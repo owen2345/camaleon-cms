@@ -52,6 +52,21 @@ RSpec.describe 'Security: custom-field saves are confined to the record being sa
     expect_only_own(post_type.reload, own, sibling)
   end
 
+  # A post type under creation owns no groups yet, so its form renders none and the save permits none.
+  it "drops a sibling post type's slug from a post type create" do
+    sibling = register(other_post_type.add_custom_field_group({ name: 'Other', slug: 'other-pt' }, 'post_type'),
+                       'sibling_pt')
+
+    post '/admin/settings/post_types', params: {
+      post_type: { name: 'Created type', slug: 'created-type' },
+      field_options: { '0' => { sibling.slug => { 'id' => sibling.id.to_s, 'values' => { '0' => 'sibling value' } } } }
+    }
+
+    expect(response).to have_http_status(:found)
+    created = current_site.post_types.find_by!(slug: 'created-type')
+    expect(created.custom_field_values.where(custom_field_slug: sibling.slug)).not_to exist
+  end
+
   it "drops a sibling post type's slug from a post save" do
     own = post_type.add_field({ 'name' => 'Own', 'slug' => 'own_post' }, { 'field_key' => 'text_box' })
     sibling = other_post_type.add_field({ 'name' => 'Other', 'slug' => 'sibling_post' }, { 'field_key' => 'text_box' })
@@ -135,11 +150,16 @@ RSpec.describe 'Security: custom-field saves are confined to the record being sa
     end
   end
 
+  # A user field registered on this site's user groups and one on another site's.
+  def user_fields
+    [register(current_site.custom_field_groups.create!(name: 'Own', slug: '_own-user', object_class: 'User',
+                                                       objectid: current_site.id), 'own_user'),
+     register(other_site.custom_field_groups.create!(name: 'Other', slug: '_other-user', object_class: 'User',
+                                                     objectid: other_site.id), 'sibling_user')]
+  end
+
   it "drops another site's slug from the user save" do
-    own = register(current_site.custom_field_groups.create!(name: 'Own', slug: '_own-user', object_class: 'User',
-                                                            objectid: current_site.id), 'own_user')
-    sibling = register(other_site.custom_field_groups.create!(name: 'Other', slug: '_other-user', object_class: 'User',
-                                                              objectid: other_site.id), 'sibling_user')
+    own, sibling = user_fields
     member = create(:user, role: 'client', site: current_site)
 
     patch "/admin/users/#{member.id}", params: {
@@ -148,6 +168,19 @@ RSpec.describe 'Security: custom-field saves are confined to the record being sa
 
     expect(response).to have_http_status(:found)
     expect_only_own(member.reload, own, sibling)
+  end
+
+  it "drops another site's slug from a user create" do
+    own, sibling = user_fields
+
+    post '/admin/users', params: {
+      user: { first_name: 'New', last_name: 'Member', email: 'new_member@tester.com', username: 'new_member',
+              password: 'password123', password_confirmation: 'password123', role: 'client' },
+      field_options: field_options(own, sibling)
+    }
+
+    expect(response).to have_http_status(:found)
+    expect_only_own(current_site.users.find_by!(username: 'new_member'), own, sibling)
   end
 
   it "drops another widget's slug from a widget assignment save" do
