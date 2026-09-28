@@ -269,7 +269,11 @@ Changes that look free from inside this repository and are not:
   groups on the record whose form renders them (`theme.add_field`, `plugin.add_custom_field_group`,
   `post_type.add_field`). The nav menu item save moved from the `NavMenuItem` placement, which nothing
   writes, to the menu's `NavMenu` groups, so values placed through the settings form are stored again; no
-  surveyed repository places nav menu groups in code.
+  surveyed repository places nav menu groups in code. `set_field_values` gained an optional second
+  positional argument, the groups to resolve slugs in; a keyword would have broken callers passing the
+  payload as a braceless hash. Without it the lookup still goes through `get_field_groups`, which
+  `camaleon-spree` overrides on `Spree::Product`, and `get_field_object` still returns a post type's
+  posts' field, which `camaleon-ecommerce`, `camaleon-cms-efashion` and the e_shop theme read.
 
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
