@@ -1,4 +1,4 @@
-/log/*.log
+/log/*.log*
 /db/*.sqlite3
 /tmp/**/*
 /public/media
