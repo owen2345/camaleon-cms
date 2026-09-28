@@ -273,7 +273,9 @@ Changes that look free from inside this repository and are not:
   positional argument, the groups to resolve slugs in; a keyword would have broken callers passing the
   payload as a braceless hash. Without it the lookup still goes through `get_field_groups`, which
   `camaleon-spree` overrides on `Spree::Product`, and `get_field_object` still returns a post type's
-  posts' field, which `camaleon-ecommerce`, `camaleon-cms-efashion` and the e_shop theme read.
+  posts' field, which `camaleon-ecommerce`, `camaleon-cms-efashion` and the e_shop theme read. That
+  lookup now skips field groups: one sharing the slug, of a site whose id equals a searched group's id,
+  was returned in place of the field, which no caller can have wanted.
 
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it

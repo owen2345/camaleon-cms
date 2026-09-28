@@ -222,9 +222,11 @@ module CamaleonCms
     alias add_field add_custom_field_to_default_group
 
     # return field object for current model
+    # Groups share the table and keep their site's id in parent_id, so only field rows count.
     def get_field_object(slug)
-      CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups.pluck(:id)).first ||
-        CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({ include_parent: true })).first
+      fields = CamaleonCms::CustomField.where(slug: slug, object_class: '_fields')
+      fields.where(parent_id: get_field_groups.pluck(:id)).first ||
+        fields.where(parent_id: get_field_groups({ include_parent: true })).first
     end
 
     # save all fields sent from browser (reservated for browser request)
@@ -370,7 +372,7 @@ module CamaleonCms
       group_ids = CamaleonCms::CustomFieldGroup.where(object_class: 'PostType_Post', objectid: post_type_id).pluck(:id)
       return if group_ids.blank?
 
-      CamaleonCms::CustomField.where(slug: key, parent_id: group_ids).pick(:id)
+      CamaleonCms::CustomField.where(slug: key, object_class: '_fields', parent_id: group_ids).pick(:id)
     end
 
     def _destroy_custom_field_groups

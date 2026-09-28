@@ -130,8 +130,9 @@ A save whose record's own field-group lookup differs from the groups its permit 
 (whose lookup returns its posts' groups), a post or draft (whose lookup adds the groups placed on the
 post and its categories), a user (whose lookup keys on a site id equal to the user's) and a widget
 assignment (whose lookup finds none) — SHALL resolve each permitted slug's field among the fields of
-those groups. A same-slug field outside them, or a field group sharing the slug, MUST NOT receive the
-value row. Other callers of the model save keep resolving slugs through the record's own lookup.
+those groups. A same-slug field outside them MUST NOT receive the value row. Other callers of the model
+save keep resolving slugs through the record's own lookup. Neither lookup SHALL point a row at a field
+group sharing the slug.
 
 #### Scenario: A post type's own field wins over its posts' field of the same slug
 

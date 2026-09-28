@@ -58,6 +58,21 @@ RSpec.describe 'Security: a custom-field save resolves slugs in the groups its f
       .to eq([own.id])
   end
 
+  it "stores a category's value under its field, not a same-slug group whose site id equals the field's group id" do
+    group = post_type.add_custom_field_group({ name: 'Cats', slug: 'cat-fields' }, 'Category')
+    own = group.add_manual_field({ 'name' => 'Tagline', 'slug' => 'tagline', 'field_order' => 1 },
+                                 { 'field_key' => 'editor' })
+    CamaleonCms::CustomFieldGroup.create!(name: 'Tagline', slug: 'tagline', object_class: 'Site',
+                                          objectid: 0, parent_id: group.id, field_order: 0)
+
+    post "/admin/post_type/#{post_type.id}/categories", params: {
+      category: { name: 'Lookup cat', slug: 'lookup-cat' }, field_options: payload(own)
+    }
+
+    category = post_type.categories.find_by!(slug: 'lookup-cat')
+    expect(category.custom_field_values.where(custom_field_slug: 'tagline').pluck(:custom_field_id)).to eq([own.id])
+  end
+
   # A post's get_field_groups also holds the groups placed on the post itself, where a same-slug field
   # ordered first won the lookup over the post type's field the permit allowed.
   describe "a post's value lands under its post type's field, not a same-slug field of the post's own group" do
