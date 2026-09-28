@@ -59,7 +59,10 @@ module CamaleonCms
 
         def save_custom_settings
           @nav_menu_item = current_site.nav_menu_items.find(params[:id])
-          @nav_menu_item.set_field_values(cama_permitted_field_options('NavMenuItem'))
+          # The custom-fields form places a menu's groups as 'NavMenu' with the menu's id, and the item's
+          # settings form renders exactly those; the save permits the same set.
+          @nav_menu_item.set_field_values(cama_permitted_field_options('NavMenu',
+                                                                       field_groups: @nav_menu_item.get_field_groups))
           head :ok
         end
 
@@ -77,7 +80,7 @@ module CamaleonCms
           @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
           item = current_site.nav_menu_items.find(params[:id])
           item.update_menu_item(parse_external_menu(params))
-          item.set_options(permitted_external_options) if params[:options].present?
+          item.set_options(permitted_external_options(item)) if params[:options].present?
           render partial: 'menu_items', locals: { items: [item], nav_menu: @nav_menu }
         end
 
@@ -109,7 +112,9 @@ module CamaleonCms
           external_params = params[:external]
           if external_params.present?
             external_item = @nav_menu.append_menu_item(parse_external_menu(external_params))
-            external_item.set_options(permitted_external_options(external_params)) if external_params[:options].present?
+            if external_params[:options].present?
+              external_item.set_options(permitted_external_options(external_item, external_params))
+            end
             items << external_item
           end
 
@@ -145,12 +150,14 @@ module CamaleonCms
           params.require(:nav_menu).permit(:name, :slug)
         end
 
-        # Only permit external menu options that match registered custom field slug
-        def permitted_external_options(external_params = nil)
+        # Only permit external menu options that match a custom field slug registered on the item's own
+        # menu, not the menu the request names
+        def permitted_external_options(item, external_params = nil)
           opts = external_params ? external_params[:options] : params[:options]
-          return {} if opts.blank?
+          # A scalar or a list carries no option keys to permit.
+          return {} if opts.blank? || !opts.respond_to?(:permit)
 
-          allowed_keys = cama_custom_field_allowed_slugs('NavMenuItem')
+          allowed_keys = cama_custom_field_allowed_slugs('NavMenu', field_groups: item.get_field_groups)
           return {} if allowed_keys.blank?
 
           opts.permit(*allowed_keys).to_h

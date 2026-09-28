@@ -273,11 +273,19 @@ module CamaleonCms
           saved = update_attrs ? post.update(update_attrs) : post.save
           raise ActiveRecord::Rollback unless saved
 
-          post.set_metas(params[:meta])
-          post.set_field_values(cama_permitted_field_options('PostType_Post'))
-          post.set_options(params[:options])
+          save_post_params(post)
           true
         end
+      end
+
+      # The request's metas, field values and options, written on the post; the draft save shares it. Field
+      # values are permitted and resolved in the post type's post groups: the post's own get_field_groups
+      # also holds groups placed on the post or its categories, where a same-slug field could win.
+      def save_post_params(post)
+        post.set_metas(params[:meta])
+        post_groups = @post_type.get_field_groups('Post')
+        post.set_field_values(cama_permitted_field_options('PostType_Post', field_groups: post_groups), post_groups)
+        post.set_options(params[:options])
       end
 
       # The refusals for the metas and options this request carries: a key the engine maintains, for

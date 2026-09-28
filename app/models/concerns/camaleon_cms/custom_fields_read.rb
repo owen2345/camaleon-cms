@@ -223,8 +223,9 @@ module CamaleonCms
 
     # return field object for current model
     def get_field_object(slug)
-      CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups.pluck(:id)).first ||
-        CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({ include_parent: true })).first
+      fields = _cama_field_rows(slug)
+      fields.where(parent_id: get_field_groups.pluck(:id)).first ||
+        fields.where(parent_id: get_field_groups({ include_parent: true })).first
     end
 
     # save all fields sent from browser (reservated for browser request)
@@ -233,7 +234,12 @@ module CamaleonCms
     #   "0"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}},
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
-    def set_field_values(datas = {})
+    # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
+    # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
+    # groups (get_field_groups returns its posts'), a post's post type groups (get_field_groups adds the
+    # post's own and its categories'), a user's site groups, a widget assignment's widget groups.
+    # Positional, so a braceless hash argument stays the payload.
+    def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 
       ActiveRecord::Base.transaction do
@@ -254,8 +260,9 @@ module CamaleonCms
             # scan-and-reject gate keys off custom_field.options[:field_key] -- so a forged non-gated
             # id would slip markup past the gate for a gated (editor/uri/field_attrs) slug. Fall back
             # to values[:id] only when the slug names no field here (trusted/internal callers that
-            # pass slugs outside this object's registered groups; permitted browser payloads never do).
-            field_id = get_field_object(field_key)&.id || fallback_field_id_for(field_key) || values[:id]
+            # pass slugs outside this object's registered groups; a permitted browser payload's slug
+            # is in the groups its save resolves against, and its id is held to the slug's fields).
+            field_id = _cama_field_id_for(field_key, field_groups) || fallback_field_id_for(field_key) || values[:id]
             group_number = [values[:group_number].to_i, 0].max
 
             order_value = -1
@@ -348,6 +355,18 @@ module CamaleonCms
 
     private
 
+    # The fields registered under a slug. Groups share the table and keep their site's id in parent_id, so
+    # a parent_id lookup must count only field rows.
+    def _cama_field_rows(slug)
+      CamaleonCms::CustomField.where(slug: slug, object_class: '_fields')
+    end
+
+    def _cama_field_id_for(key, field_groups)
+      return get_field_object(key)&.id unless field_groups
+
+      _cama_field_rows(key).where(parent_id: field_groups.unscope(:order).select(:id)).pick(:id)
+    end
+
     def fallback_field_id_for(key)
       return unless self.class.to_s.parseCamaClass == 'Post'
       return unless respond_to?(:post_type_id) && post_type_id.present?
@@ -355,7 +374,7 @@ module CamaleonCms
       group_ids = CamaleonCms::CustomFieldGroup.where(object_class: 'PostType_Post', objectid: post_type_id).pluck(:id)
       return if group_ids.blank?
 
-      CamaleonCms::CustomField.where(slug: key, parent_id: group_ids).pick(:id)
+      _cama_field_rows(key).where(parent_id: group_ids).pick(:id)
     end
 
     def _destroy_custom_field_groups

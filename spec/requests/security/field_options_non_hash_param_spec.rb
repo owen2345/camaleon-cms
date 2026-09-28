@@ -47,6 +47,22 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     expect(post_type.categories.find_by(slug: 'array-fields')).to be_present
   end
 
+  # A group or a slug entry given as a list of hashes passes the permit as an Array, which has no slug
+  # or [:id] to read.
+  { 'a slug entry' => { '0' => { 'subtitle' => [{ 'id' => '1', 'values' => { '0' => 'x' } }] } },
+    'a group' => { '0' => [{ 'subtitle' => { 'id' => '1', 'values' => { '0' => 'x' } } }] } }.each do |shape, payload|
+    it "saves the category and writes no field values when #{shape} is a list" do
+      post "/admin/post_type/#{post_type.id}/categories", params: {
+        category: { name: 'Listed field', slug: 'listed-field' }, field_options: payload
+      }
+
+      expect(response).to have_http_status(:found)
+      category = post_type.categories.find_by(slug: 'listed-field')
+      expect(category).to be_present
+      expect(category.custom_field_values).to be_empty
+    end
+  end
+
   it 'refuses a draft save whose field_options is a scalar, storing nothing' do
     parent_post = create(:post, post_type: post_type, owner: admin, slug: 'container-parent', status: 'published')
 

@@ -57,7 +57,10 @@ RSpec.describe 'Security: Nav Menus Mass Assignment', type: :request do
   describe 'POST save_custom_settings' do
     let!(:nav_menu) { site.nav_menus.create!(name: 'Test Menu', slug: 'test-menu') }
     let!(:nav_menu_item) { nav_menu.append_menu_item({ label: 'Item', type: 'external', link: '#' }) }
-    let!(:field_group) { CamaleonCms::CustomFieldGroup.create!(name: 'Group', object_class: 'NavMenuItem', site: site) }
+    # Placed on the menu as the custom-fields form stores its "NavMenu,<id>" choice.
+    let!(:field_group) do
+      CamaleonCms::CustomFieldGroup.create!(name: 'Group', object_class: 'NavMenu', objectid: nav_menu.id, site: site)
+    end
     let!(:field) { field_group.fields.create!(name: 'My Field', slug: 'my-field', object_class: '_fields') }
 
     it 'permits registered custom fields' do

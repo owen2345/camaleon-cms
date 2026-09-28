@@ -255,6 +255,28 @@ Changes that look free from inside this repository and are not:
   `set_meta` raises when a validation or a callback of `CamaleonCms::Meta` refuses the row it updates or
   creates, where it returned as if the value were stored; no surveyed plugin, theme or host adds either to that model, which
   `camaleon-ecommerce` and `camaleon_website`'s store plugin name only as an association's `class_name`.
+- **Confining the admin custom-field saves to the record's own field groups** (the `field_groups:`
+  keyword of `cama_permitted_field_options` and `cama_custom_field_allowed_slugs`) changes no surveyed
+  consumer. The only callers of the permit outside core are `camaleon-post-clone` PR #3 and plugins
+  generated from the 2.9.3 or 2.9.4 template, both with the class alone (the template now passes the
+  plugin's groups), and a class-only call keeps its 2.9.4 slug set: every group placed with that class,
+  on any record and any site. Every caller's permitted payload now carries each slug's own field id in
+  place of an id naming another field, and drops groups and entries sent as lists; a form's payload
+  already names that id and sends hashes, so no surveyed caller sees it. The four plugins
+  and themes that pass raw params to `set_field_values` never went through it. What changed is the core
+  saves: a value a theme or plugin submitted through a core form for a record other than the one its group
+  is placed on (a group on post type A, submitted with a post of post type B) was stored under the
+  client-supplied field id and is dropped now. No surveyed repository does that; each registers its
+  groups on the record whose form renders them (`theme.add_field`, `plugin.add_custom_field_group`,
+  `post_type.add_field`). The nav menu item save moved from the `NavMenuItem` placement, which nothing
+  writes, to the menu's `NavMenu` groups, so values placed through the settings form are stored again; no
+  surveyed repository places nav menu groups in code. `set_field_values` gained an optional second
+  positional argument, the groups to resolve slugs in; a keyword would have broken callers passing the
+  payload as a braceless hash. Without it the lookup still goes through `get_field_groups`, which
+  `camaleon-spree` overrides on `Spree::Product`, and `get_field_object` still returns a post type's
+  posts' field, which `camaleon-ecommerce`, `camaleon-cms-efashion` and the e_shop theme read. That
+  lookup now skips field groups: one sharing the slug, of a site whose id equals a searched group's id,
+  was returned in place of the field, which no caller can have wanted.
 
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
