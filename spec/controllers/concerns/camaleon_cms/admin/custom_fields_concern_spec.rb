@@ -75,5 +75,19 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
 
       expect(permitted['0']['own_setting']['id']).to eq(own_id)
     end
+
+    # With two fields under the slug (a class-only call spans both plugins), the id the request names is
+    # kept, whichever of the two it is, so set_field_values' fallback reaches the field actually submitted.
+    it "keeps an id naming one of the slug's own fields" do
+      shared = [plugin, other_plugin].map { |owner| register(owner.get_field_groups.first, 'shared_setting') }
+
+      shared.each do |field|
+        controller.params = ActionController::Parameters.new(
+          field_options: { '0' => { 'shared_setting' => { 'id' => field.id.to_s, 'values' => { '0' => 'v' } } } }
+        )
+
+        expect(controller.send(:cama_permitted_field_options, 'Plugin')['0']['shared_setting']['id']).to eq(field.id)
+      end
+    end
   end
 end
