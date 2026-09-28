@@ -39,7 +39,7 @@ Run `/code-review <effort> --fix` on the checkout's local branch against the bas
 
 pass | claim | file + function or spec example (no line numbers) | category | verdict | evidence (fix SHA, or reason + the HEAD it was judged at)
 
-Append each row when its verdict is reached, a FIXED row once its commit lands: a pass cut off before its PASS line then leaves its fixes on record.
+Append each row when its verdict is reached, a FIXED row in the same command as its commit; a check fix's commit gets a row too, with the check as its category. A pass cut off before its PASS line then leaves every commit it made on record.
 
 ## Verdicts
 
