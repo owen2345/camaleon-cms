@@ -445,8 +445,8 @@ form before the editor is set up (at DOM ready) sees the submit both times.
 Every admin save of custom-field values (site, theme, post type, post, draft, category, tag, user, widget
 assignment, nav menu item) now stores only the fields of the groups its form renders for the record being
 saved. A slug registered on another record of the same kind — another post type, another site's settings,
-theme or users, another widget, another menu — was permitted before and stored under the field id the
-request named; it is dropped now. A permitted value is stored under its slug's own field in those groups,
+theme or users, another widget — was permitted before and stored under the field id the request named; it
+is dropped now, and a menu item accepts only the fields placed on its own menu. A permitted value is stored under its slug's own field in those groups,
 whatever id the request names and whatever field of the same slug another group holds (a post type's
 posts, a post's own or its categories' groups, a site whose id equals the user's), so the value gate
 checks it as the field it is. The admin forms only submit the fields they render, so nothing changes for
