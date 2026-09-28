@@ -43,7 +43,7 @@ Append each row when its verdict is reached, a FIXED row in the same command as 
 
 ## Verdicts
 
-Checked in order; only FIXED is applied, and no finding is left without a verdict. A finding that is also a correctness or security defect skips steps 5 and 6, whatever its category, and goes to step 7:
+Checked in order, except that a finding that is also a correctness or security defect skips steps 5 and 6, whatever its category, and goes to step 7. Only FIXED is applied, and no finding is left without a verdict.
 
 1. Check every finding against the code yourself, whether or not the review verified it. Refuted → REFUTED. PLAUSIBLE, only when that check can neither confirm nor refute it → DEFERRED; low severity or a loud failure is no reason to defer a confirmed defect.
 2. Same claim as a DECISION or REFUTED row, on code no commit has touched since → REPEAT if DECISION, CONFLICT if REFUTED. If that code changed, treat the claim as new.
