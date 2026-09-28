@@ -8,7 +8,7 @@ description: Run one pass of the review-fix loop on a PR of camaleon-cms or of a
 Repeated `/code-review <effort> --fix` passes on a PR's local branch until they converge. Each pass reviews, applies what the verdicts allow, runs the checks and ends its turn with a PASS line. To run passes until the loop stops, type this with the parameters filled in (a skill can't start a goal):
 
 ```text
-/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures and no errors (n/a for an empty spec set) and every check ok or n/a. A STOP for any other reason the skill gives (setup, a review that can't cover its range, a second conflict, an undone commit, a check it can't fix) counts as it stands.
+/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures and no errors (n/a for an empty spec set or a no-code branch) and every check ok or n/a. A STOP for any other reason the skill gives (setup, a review that can't cover its range, a second conflict, an undone commit, a check it can't fix) counts as it stands.
 ```
 
 The session loads this skill live from its checkout, so a PR that edits it runs from a copy saved outside the checkout, named in the goal in place of the skill: the PR's fixes then don't change the rules mid-run.
@@ -52,16 +52,16 @@ Checked in order; only FIXED is applied, and no finding is left without a verdic
 
 ## Checks
 
-After each pass, in the foreground and in the checkout, the four checks in camaleon-cms `AGENTS.md` "Verify before pushing", with rubocop first: `bin/rubocop -A` on the Ruby files the pass touched, then plain `bin/rubocop`, because autocorrect can rewrite string literals the specs must see. A check the repo doesn't have (the plugins carry no brakeman) is skipped and reported as n/a.
+After each pass, in the foreground and in the checkout, the four checks in camaleon-cms `AGENTS.md` "Verify before pushing", with rubocop first: `bin/rubocop -A` on the Ruby files the pass touched, then plain `bin/rubocop`, because autocorrect can rewrite string literals the specs must see. A check the repo doesn't have (the plugins carry no brakeman) is skipped and reported as n/a. A branch that changes no code, every file it touches being Markdown, under `openspec/` or a git setting such as `.gitignore`, runs none of the four and reports each as n/a.
 
-- rspec runs the run's spec set plus the specs of any code the pass touched outside it (add them to the set), or the whole suite while the branch carries a refactoring with a wide blast radius (a base class, a concern every model includes, a shared helper), as `AGENTS.md` says. Judge it by the summary line, never a piped exit status: it passes only with 0 failures and no error outside of examples, since a spec file that fails to load stops every example and still prints `0 examples, 0 failures, 1 error occurred outside of examples`. While the set is empty (a docs-only branch), skip it and report rspec as n/a: `bin/rspec` with no files runs the whole suite.
+- rspec runs the run's spec set plus the specs of any code the pass touched outside it (add them to the set), or the whole suite while the branch carries a refactoring with a wide blast radius (a base class, a concern every model includes, a shared helper), as `AGENTS.md` says. Judge it by the summary line, never a piped exit status: it passes only with 0 failures and no error outside of examples, since a spec file that fails to load stops every example and still prints `0 examples, 0 failures, 1 error occurred outside of examples`. While the set is empty, skip it and report rspec as n/a: `bin/rspec` with no files runs the whole suite.
 - Add `openspec validate --all --strict` when the branch touches `openspec/` (`--specs` alone skips a change not yet archived).
 - Fix and commit any failure before the pass ends.
 - Only one `bin/rspec` per test DB at a time, and the suite's `before(:suite)` empties every table. Other sessions and the IDE share the checkout's test DB, so the loop runs its specs on a scratch one (`DATABASE_URL=sqlite3:<scratchpad>/db_<name>.sqlite3`), and each subagent that must run specs on its own.
 
 ## Pass states and stop
 
-- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; step 5 fixes and lint fixes may land), every check passed and the checkout's tree is clean.
+- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; step 5 fixes and lint fixes may land), every check passed or was n/a and the checkout's tree is clean.
 - **CLEAN:** SETTLED, and applied nothing at all (HEAD unchanged).
 - **UNSETTLED:** anything else.
 
