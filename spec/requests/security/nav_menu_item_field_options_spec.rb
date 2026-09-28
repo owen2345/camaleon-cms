@@ -76,4 +76,21 @@ RSpec.describe 'Nav menu item custom-field values are confined to the groups pla
     expect(item.reload.get_option(own.slug)).to eq('own option')
     expect(item.get_option(sibling.slug)).to be_nil
   end
+
+  # Options sent as a scalar or a list carry no keys to permit: they are ignored, as a non-hash
+  # field_options is, not a 500.
+  { 'a scalar' => 'own option', 'a list' => ['own option'] }.each do |shape, options|
+    it "ignores an external item's options sent as #{shape}" do
+      post cama_admin_appearances_nav_menu_update_menu_item_path(nav_menu_id: menu.id, id: item.id), params: {
+        external_label: 'Item', external_url: '#', options: options
+      }
+      expect(response).to have_http_status(:ok)
+
+      post cama_admin_appearances_nav_menu_add_items_path(nav_menu_id: menu.id), params: {
+        external: { external_label: 'New', external_url: '#', options: options }
+      }
+      expect(response).to have_http_status(:ok)
+      expect(menu.reload.children.find_by(name: 'New')).to be_present
+    end
+  end
 end

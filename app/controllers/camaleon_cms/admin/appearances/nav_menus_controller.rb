@@ -154,7 +154,8 @@ module CamaleonCms
         # menu, not the menu the request names
         def permitted_external_options(item, external_params = nil)
           opts = external_params ? external_params[:options] : params[:options]
-          return {} if opts.blank?
+          # A scalar or a list carries no option keys to permit.
+          return {} if opts.blank? || !opts.respond_to?(:permit)
 
           allowed_keys = cama_custom_field_allowed_slugs('NavMenu', field_groups: item.get_field_groups)
           return {} if allowed_keys.blank?
