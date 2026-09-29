@@ -26,4 +26,4 @@
 - [x] 4.1 `bin/rubocop -A` on the touched files, `bin/rspec` on the new specs and the adjacent ones
   (`grep -rln cama_permitted_field_options spec/`, the custom-field request and model specs),
   `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 4.2 Open the PR, add the CHANGELOG entry, archive this change on the branch
+- [x] 4.2 Open the PR, add the CHANGELOG entry, archive this change on the branch
