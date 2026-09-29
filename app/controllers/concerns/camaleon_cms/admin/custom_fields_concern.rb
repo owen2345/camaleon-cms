@@ -24,8 +24,11 @@ module CamaleonCms
         allowed_keys = field_ids.keys
         return {} if allowed_keys.blank?
 
+        # values arrives keyed by index (`values[<index>]`, as the admin JavaScript renames most fields'
+        # inputs) or as a list of scalars (`values[]`, the checkboxes field). Each shape needs a filter
+        # of its own, and the one that does not match leaves the other's result in place.
         permitted = field_options.permit(field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }.index_with do
-          allowed_keys.index_with { [:id, :group_number, { values: {} }] }
+          allowed_keys.index_with { [:id, :group_number, { values: {} }, { values: [] }] }
         end).to_h
         # Keep only hash-shaped groups and slug entries: a list of hashes passes the permit too and
         # carries no slug or id to read. Drop groups left empty after filtering: set_field_values

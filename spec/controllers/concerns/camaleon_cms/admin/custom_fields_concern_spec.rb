@@ -89,5 +89,27 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
         expect(controller.send(:cama_permitted_field_options, 'Plugin')['0']['shared_setting']['id']).to eq(field.id)
       end
     end
+
+    # The checkboxes field submits `values[]`, a list, where the other fields submit `values[<index>]`.
+    context 'with values submitted as a list' do
+      def permitted_values(values)
+        controller.params = ActionController::Parameters.new(
+          field_options: { '0' => { 'own_setting' => { 'id' => '1', 'values' => values } } }
+        )
+        controller.send(:cama_permitted_field_options, 'Plugin')['0']['own_setting']['values']
+      end
+
+      it 'keeps a list of scalars' do
+        expect(permitted_values(%w[1 3])).to eq(%w[1 3])
+      end
+
+      it 'drops a list of hashes' do
+        expect(permitted_values([{ 'attr' => 'a' }])).to be_nil
+      end
+
+      it 'keeps a hash keyed by index' do
+        expect(permitted_values({ '0' => 'own' })).to eq('0' => 'own')
+      end
+    end
   end
 end
