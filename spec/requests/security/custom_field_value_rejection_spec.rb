@@ -24,10 +24,11 @@ RSpec.describe 'Security: custom-field value rejection (M17)', type: :request do
     sign_in_as(editor_user, site: current_site)
   end
 
-  def update_post_with_field_value(post, value)
+  def update_post_with_field_value(post, value, as_list: false)
+    values = as_list ? [value] : { '0' => value }
     patch "/admin/post_type/#{post_type.id}/posts/#{post.id}", params: {
       post: { title: post.title, content: '<p>plain</p>', status: 'published' },
-      field_options: { '0' => { 'extra_body' => { 'id' => @field.id.to_s, 'values' => { '0' => value } } } }
+      field_options: { '0' => { 'extra_body' => { 'id' => @field.id.to_s, 'values' => values } } }
     }
   end
 
@@ -35,6 +36,17 @@ RSpec.describe 'Security: custom-field value rejection (M17)', type: :request do
     post_record = create(:post, post_type: post_type, owner: editor_user)
 
     update_post_with_field_value(post_record, script)
+
+    expect(flash[:error]).to include('not allowed')
+    expect(post_record.get_field_value('extra_body')).to be_blank
+  end
+
+  # The permit keeps a list of scalars too (the checkboxes field sends one), so a list reaches the
+  # same gate.
+  it 'refuses a script editor value that an untrusted author sends as a list' do
+    post_record = create(:post, post_type: post_type, owner: editor_user)
+
+    update_post_with_field_value(post_record, script, as_list: true)
 
     expect(flash[:error]).to include('not allowed')
     expect(post_record.get_field_value('extra_body')).to be_blank
