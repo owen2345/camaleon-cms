@@ -108,7 +108,7 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       'a number with text after it' => '0abc',
       'a list' => ['5'],
       'a hash' => { 'a' => '5' },
-      'a hash with a numeric key' => { '0' => '5' },
+      'a hash of hashes with a numeric key' => { '0' => { 'a' => '5' } },
       'a list of hashes' => [{ 'a' => '5' }] }.each do |kind, group_number|
       it "refuses a group number that is #{kind} and keeps the stored value" do
         update_category(group_number)
