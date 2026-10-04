@@ -107,6 +107,10 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
         expect(permitted_values([{ 'attr' => 'a' }])).to be_nil
       end
 
+      it 'drops a list that holds a scalar and a hash' do
+        expect(permitted_values(['1', { 'attr' => 'a' }])).to be_nil
+      end
+
       it 'keeps a hash keyed by index' do
         expect(permitted_values({ '0' => 'own' })).to eq('0' => 'own')
       end
