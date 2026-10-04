@@ -556,7 +556,8 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 - A text with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16), gets the
   same refusal on each of the three paths.
 - A save that skips the validation (`update_attribute`, `save(validate: false)`) stores nothing for
-  such a text. `save` returns false, and `save!` raises the refusal.
+  such a text. `save` returns false, and `save!` raises the refusal. For another refused group
+  number, such a save stores the cast of the number, as before (`'abc'` is 0).
 - A lookup with such a text (`where`, `find_by`, `get_field_values`) finds no row.
   `find_or_create_by!` gets the same refusal.
 - `update_column`, `update_all` and `insert_all` skip the validation and the callbacks. They store no

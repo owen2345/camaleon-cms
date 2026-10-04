@@ -201,6 +201,10 @@ text, and that error MUST NOT replace the refusal. A save that skips the validat
 a group number for that text: it SHALL stop with the same refusal. A lookup with that text SHALL
 find no row, so a write that looks the number up first SHALL get the same refusal.
 
+A save that skips the validation (`update_attribute`, `save(validate: false)`) is a write path of
+this requirement for that text only. For another refused group number, such a save stores the cast
+of the number, as Rails does for an integer column: -1 for -1, and 0 for `abc`.
+
 A write that skips the validation and the callbacks (`update_column`, `update_all`, `insert_all`)
 is not a write path of this requirement. Such a write stores no group number (NULL) for that text.
 
