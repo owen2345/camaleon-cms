@@ -33,6 +33,9 @@ module CamaleonCms
     # refuses it.
     # update_column, update_all and insert_all skip the validation and the callbacks. They store no
     # group number for that text.
+    # The type has the 4-byte range on each database, as the validation has. The design keeps this
+    # range where the column holds a wider integer (SQLite, a bigint column). There, a lookup with a
+    # number above the range finds no row, and those three writes raise ActiveModel::RangeError for it.
     class GroupNumberType < ActiveRecord::Type::Integer
       def self.unreadable?(value)
         value.is_a?(String) && !(value.valid_encoding? && value.encoding.ascii_compatible?)

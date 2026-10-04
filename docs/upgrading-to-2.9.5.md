@@ -565,6 +565,12 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 An admin save that sends a refused group number shows an error and keeps the stored values of the
 record. A stored row that holds a negative group number stays valid until code changes that number.
 
+The type of the group number has the 4-byte range on each database. On a database whose column holds
+a wider integer (SQLite, or a `bigint` column), this changes some calls for a number above 2147483647.
+A lookup (`where`, `get_field_values`) finds no row. `update_column`, `update_all` and `insert_all`
+raise `ActiveModel::RangeError`. Before, those databases found and stored such a number. A read of
+the stored number and an update of the value of the row still pass.
+
 `set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A refusal
 of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
 there. Before, that caller lost the stored values at its commit.

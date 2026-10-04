@@ -41,6 +41,8 @@
 - [x] 3.2 Record the survey of the consumers in `docs/ai/ecosystem.md`
 - [x] 3.3 Record the three writes that skip the validation and the callbacks in the upgrade note and
   in the requirement (D7)
+- [x] 3.4 Record the 4-byte range of the type on a database with a wider column in the upgrade note,
+  in the requirement and in a comment on the type (D3)
 
 ## 4. Verification and release steps
 
