@@ -550,8 +550,9 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
   was group 1.
 - `set_field_value` stored a negative number as given before.
 - `set_field_values` still reads an absent or empty group number as group 0.
-- `set_field_value` and `set_field_values` also refuse a text with a broken encoding. A direct
-  `custom_field_values.create!` raises the `ArgumentError` of Rails for that text.
+- `set_field_value` and `set_field_values` also refuse a text with a broken encoding, or in an
+  encoding that is not ASCII-compatible (UTF-16). A direct `custom_field_values.create!` raises the
+  `ArgumentError` of Rails for a text with a broken encoding.
 
 An admin save that sends such a group number shows an error and keeps the stored values of the record.
 A stored row that holds a negative group number stays valid until code changes that number.

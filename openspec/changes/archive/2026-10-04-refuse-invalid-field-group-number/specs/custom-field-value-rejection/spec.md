@@ -38,8 +38,9 @@ absent or empty group number in an admin save SHALL mean group 0.
 - **WHEN** a stored row holds a negative group number and a caller updates only its value
 - **THEN** the update succeeds
 
-#### Scenario: The writers refuse a group number text with a broken encoding
+#### Scenario: The writers refuse a group number text that the row cannot read
 
-- **WHEN** `set_field_value` or `set_field_values` gets a group number text with a broken encoding
+- **WHEN** `set_field_value` or `set_field_values` gets a group number text with a broken encoding,
+  or in an encoding that is not ASCII-compatible
 - **THEN** the writer raises the refusal that names the field, and the stored values of the record
   are unchanged

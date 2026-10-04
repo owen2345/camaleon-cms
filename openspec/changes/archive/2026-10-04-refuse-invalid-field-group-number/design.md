@@ -58,6 +58,11 @@ before the validation runs. The lookup in `set_field_value` raises the same erro
 send such a text, because Rails answers it with a 400. Only Ruby code can pass it. A direct
 `custom_field_values.create!` keeps the `ArgumentError` of Rails.
 
+The writers refuse a text in an encoding that is not ASCII-compatible (UTF-16, UTF-7) in the same
+way. The lookup, the digits check or the integer cast raised an encoding error for that text. The
+row refuses a text in UTF-16 or UTF-32 in its validation. A direct write of a row keeps the error of
+Rails for a text in a dummy encoding (UTF-7): the integer cast raises before the validation runs.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

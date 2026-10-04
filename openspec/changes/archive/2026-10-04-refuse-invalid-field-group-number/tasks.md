@@ -14,8 +14,8 @@
 - [x] 2.1 Validate the group number in `CamaleonCms::CustomFieldsRelationship` (D1 to D4) and add
   the message to each admin locale file
 - [x] 2.2 Give the group number to the row as sent in `set_field_values` (D5, D6)
-- [x] 2.3 Refuse a group number text with a broken encoding in `set_field_value` and
-  `set_field_values`, with examples in the model spec (D7)
+- [x] 2.3 Refuse a group number text with a broken encoding, or in an encoding that is not
+  ASCII-compatible, in `set_field_value` and `set_field_values`, with examples in the model spec (D7)
 
 ## 3. Documentation
 
