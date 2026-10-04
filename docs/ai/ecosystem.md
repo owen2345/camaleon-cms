@@ -277,6 +277,15 @@ Changes that look free from inside this repository and are not:
   posts' field, which `camaleon-ecommerce`, `camaleon-cms-efashion` and the e_shop theme read. That
   lookup now skips field groups: one sharing the slug, of a site whose id equals a searched group's id,
   was returned in place of the field, which no caller can have wanted.
+- **Keeping a list of scalars under `values`** in `cama_permitted_field_options` (#1315) breaks no
+  surveyed consumer. The helper dropped the list on 2.9.2 to 2.9.4, so a plugin from the 2.9.3 or 2.9.4
+  generator template stores its checkboxes settings again. `camaleon-post-clone` PR #3 re-keys the list
+  by index before the call, and that step still works. The plugin can remove the step when it requires
+  `camaleon_cms` 2.9.5 or later. The plugins and themes that pass raw params to `set_field_values` always
+  stored the list.
+- **Dropping a field-options entry under a key that names no allowed slug** (#1315) changes no surveyed
+  consumer. Rails passes such an entry through the permit when a group holds a numeric key. No form of
+  a surveyed consumer sends that shape.
 
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it

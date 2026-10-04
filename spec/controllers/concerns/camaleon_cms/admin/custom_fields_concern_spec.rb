@@ -89,5 +89,53 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
         expect(controller.send(:cama_permitted_field_options, 'Plugin')['0']['shared_setting']['id']).to eq(field.id)
       end
     end
+
+    # The checkboxes field submits `values[]`, a list, where the other fields submit `values[<index>]`.
+    context 'with values in both shapes' do
+      def permitted_values(values)
+        controller.params = ActionController::Parameters.new(
+          field_options: { '0' => { 'own_setting' => { 'id' => '1', 'values' => values } } }
+        )
+        controller.send(:cama_permitted_field_options, 'Plugin')['0']['own_setting']['values']
+      end
+
+      it 'keeps a list of scalars' do
+        expect(permitted_values(%w[1 3])).to eq(%w[1 3])
+      end
+
+      it 'drops a list of hashes' do
+        expect(permitted_values([{ 'attr' => 'a' }])).to be_nil
+      end
+
+      it 'drops a list that holds a scalar and a hash' do
+        expect(permitted_values(['1', { 'attr' => 'a' }])).to be_nil
+      end
+
+      it 'keeps a hash keyed by index' do
+        expect(permitted_values({ '0' => 'own' })).to eq('0' => 'own')
+      end
+
+      # All groups share `group_filter`.
+      it 'keeps both shapes in each group' do
+        controller.params = ActionController::Parameters.new(
+          field_options: {
+            '0' => { 'own_setting' => { 'id' => '1', 'values' => %w[1 3] },
+                     'other_setting' => { 'id' => '2', 'values' => { '0' => 'other' } } },
+            '1' => { 'own_setting' => { 'id' => '1', 'values' => { '0' => 'own' } },
+                     'other_setting' => { 'id' => '2', 'values' => %w[4 2] } },
+            '2' => { 'own_setting' => { 'id' => '1', 'values' => %w[6 5] },
+                     'other_setting' => { 'id' => '2', 'values' => { '0' => 'again' } } }
+          }
+        )
+        permitted = controller.send(:cama_permitted_field_options, 'Plugin')
+
+        expect(permitted['0']['own_setting']['values']).to eq(%w[1 3])
+        expect(permitted['0']['other_setting']['values']).to eq('0' => 'other')
+        expect(permitted['1']['own_setting']['values']).to eq('0' => 'own')
+        expect(permitted['1']['other_setting']['values']).to eq(%w[4 2])
+        expect(permitted['2']['own_setting']['values']).to eq(%w[6 5])
+        expect(permitted['2']['other_setting']['values']).to eq('0' => 'again')
+      end
+    end
   end
 end

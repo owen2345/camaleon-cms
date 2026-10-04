@@ -63,6 +63,23 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     end
   end
 
+  # Rails reads a group that holds a numeric key as nested attributes, so the entry under that key
+  # passes the permit. The key names no field.
+  it 'saves the category and keeps its field values when a group holds its fields under a numeric key' do
+    category = post_type.categories.create!(name: 'Nested field', slug: 'nested-field')
+    category.set_field_value('subtitle', 'kept')
+
+    patch "/admin/post_type/#{post_type.id}/categories/#{category.id}", params: {
+      category: { name: 'Renamed field', slug: 'nested-field' },
+      field_options: { '0' => { '0' => { 'subtitle' => { 'id' => '1', 'values' => { '0' => 'x' } } } } }
+    }
+
+    expect(response).to have_http_status(:found)
+    category.reload
+    expect(category.name).to eq('Renamed field')
+    expect(category.get_field_values('subtitle')).to eq(['kept'])
+  end
+
   it 'refuses a draft save whose field_options is a scalar, storing nothing' do
     parent_post = create(:post, post_type: post_type, owner: admin, slug: 'container-parent', status: 'published')
 
