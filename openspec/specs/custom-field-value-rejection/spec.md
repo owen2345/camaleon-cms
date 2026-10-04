@@ -193,7 +193,8 @@ absent or empty group number in an admin save SHALL mean group 0.
 
 A group number text with a broken encoding, or in an encoding that is not ASCII-compatible, SHALL
 get the same refusal on each write path. The integer cast of Rails raises its own error for that
-text, and that error MUST NOT replace the refusal.
+text, and that error MUST NOT replace the refusal. A save that skips the validation MUST NOT store
+a group number for that text: it SHALL stop with the same refusal.
 
 #### Scenario: A group number above the range is refused in an admin save
 
@@ -228,3 +229,10 @@ text, and that error MUST NOT replace the refusal.
   group number text with a broken encoding, or in an encoding that is not ASCII-compatible
 - **THEN** the caller gets the refusal that names the field, and the stored values of the record
   are unchanged
+
+#### Scenario: A save that skips the validation stops for a text that the integer cast cannot read
+
+- **WHEN** `update_attribute` or `save(validate: false)` saves a row with a group number text with a
+  broken encoding, or in an encoding that is not ASCII-compatible
+- **THEN** the save returns false, the row holds the refusal that names the field, and the stored
+  row is unchanged

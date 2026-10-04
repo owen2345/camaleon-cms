@@ -26,7 +26,7 @@ field-options param into a 500. The defect is present since 2.9.1.
 - The row refuses a group number text with a broken encoding, or in an encoding that is not
   ASCII-compatible (UTF-16). The integer cast of Rails raises its own error for such a text, so the
   writer of the group number keeps the text from the cast. `set_field_value` refuses the text before
-  its lookup.
+  its lookup. A save that skips the validation stops with the same refusal.
 - **Behavior change:** `set_field_values` refuses a negative group number and a text that is not
   digits. Before, it stored a negative number in group 0 and read a text with `to_i` (`'abc'` was
   group 0, `'1abc'` was group 1). `set_field_value` refuses a negative group number. Before, it

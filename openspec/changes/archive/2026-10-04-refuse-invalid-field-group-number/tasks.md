@@ -17,6 +17,8 @@
 - [x] 2.3 Refuse a group number text with a broken encoding, or in an encoding that is not
   ASCII-compatible, in the value row and before the lookup of `set_field_value`, with examples in
   the model spec (D7)
+- [x] 2.4 Stop a save that skips the validation for such a text with a `before_save` callback, with
+  examples in the model spec (D7)
 
 ## 3. Documentation
 

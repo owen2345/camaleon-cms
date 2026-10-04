@@ -62,6 +62,10 @@ not ASCII-compatible (UTF-16) gets the same Symbol.
 send such a text, because Rails answers it with a 400. Only Ruby code can pass it. A write that
 skips the writer (`write_attribute`, `update_column`) keeps the error of Rails.
 
+The cast makes the Symbol nil, so a save that skips the validation (`update_attribute`,
+`save(validate: false)`) stored that nil. The maintainer chose a guard on 2026-10-04. A `before_save`
+callback raises the refusal for the Symbol: `save` returns false, and `save!` raises the refusal.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to
