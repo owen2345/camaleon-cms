@@ -24,8 +24,12 @@ module CamaleonCms
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
     GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
+    # A group number is an index from 0. PostgreSQL and MySQL store it in a 4-byte integer column.
+    MAX_GROUP_NUMBER = 2_147_483_647
 
     validate :reject_untrusted_dangerous_value
+    # A stored row that holds a negative group number stays valid until a caller changes the number.
+    validate :reject_invalid_group_number, if: -> { new_record? || will_save_change_to_group_number? }
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
     # and friends), regardless of field type, so gate a shortcode in ANY value behind
     # content_shortcodes -- broader than the HTML gate above, which only covers markup/URI field
@@ -132,12 +136,23 @@ module CamaleonCms
       end
     end
 
+    # A number above the column range raises ActiveModel::RangeError at the save, and the integer cast
+    # hides a boolean or a text ('abc' becomes 0). The check reads the group number as the caller gave
+    # it. A nil group number passes: a caller can leave it unset.
+    def reject_invalid_group_number
+      given = group_number_before_type_cast
+      return if given.nil?
+      return if given.to_s.match?(/\A\d+\z/) && given.to_s.to_i <= MAX_GROUP_NUMBER
+
+      errors.add(:base, cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER))
+    end
+
     # The message must never be swallowed by a missing translation: only en.yml carries these keys,
     # while the process locale follows the current admin/site language — fall back to English.
-    def cama_rejection_message(key)
+    def cama_rejection_message(key, **values)
       full_key = "camaleon_cms.admin.custom_field.message.#{key}"
-      I18n.t(full_key, slug: custom_field_slug,
-                       default: I18n.t(full_key, slug: custom_field_slug, locale: :en))
+      I18n.t(full_key, slug: custom_field_slug, **values,
+                       default: I18n.t(full_key, slug: custom_field_slug, **values, locale: :en))
     end
 
     # Trust follows the post-content model: an admin may write anything; a post's field values may
