@@ -117,15 +117,20 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
 
       # All groups share one filter object.
       it 'keeps both shapes in each of two groups' do
-        entries = { 'own_setting' => { 'id' => '1', 'values' => %w[1 3] },
-                    'other_setting' => { 'id' => '2', 'values' => { '0' => 'other' } } }
-        controller.params = ActionController::Parameters.new(field_options: { '0' => entries, '1' => entries })
+        controller.params = ActionController::Parameters.new(
+          field_options: {
+            '0' => { 'own_setting' => { 'id' => '1', 'values' => %w[1 3] },
+                     'other_setting' => { 'id' => '2', 'values' => { '0' => 'other' } } },
+            '1' => { 'own_setting' => { 'id' => '1', 'values' => { '0' => 'own' } },
+                     'other_setting' => { 'id' => '2', 'values' => %w[2] } }
+          }
+        )
         permitted = controller.send(:cama_permitted_field_options, 'Plugin')
 
-        %w[0 1].each do |group|
-          expect(permitted[group]['own_setting']['values']).to eq(%w[1 3])
-          expect(permitted[group]['other_setting']['values']).to eq('0' => 'other')
-        end
+        expect(permitted['0']['own_setting']['values']).to eq(%w[1 3])
+        expect(permitted['0']['other_setting']['values']).to eq('0' => 'other')
+        expect(permitted['1']['own_setting']['values']).to eq('0' => 'own')
+        expect(permitted['1']['other_setting']['values']).to eq(%w[2])
       end
     end
   end
