@@ -69,6 +69,13 @@ module CamaleonCms
       super(attr_name, unreadable ? UNREADABLE_GROUP_NUMBER : value)
     end
 
+    # A copy takes the cast value of each attribute, and the cast hides a group number that the row
+    # refuses ('abc' becomes 0). The copy keeps the group number as the caller gave it.
+    def initialize_dup(other)
+      super
+      self[:group_number] = other.group_number_before_type_cast
+    end
+
     # Raises the refusal of the row for a group number text that the cast cannot read. The cast makes
     # the Symbol of that text nil, and a save that skips the validation must not store that nil.
     # In that save, save returns false and save! raises the refusal.

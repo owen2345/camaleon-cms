@@ -129,6 +129,43 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # A copy takes the cast value of each attribute, and the cast hides a group number that the row
+  # refuses. The copy keeps the group number as the caller gave it.
+  describe 'a copy of a row' do
+    let(:field_id) { post.get_field_object('note').id }
+
+    before { post.set_field_value('note', 'kept', group_number: 3) }
+
+    { 'a text that is not digits' => 'abc',
+      'a boolean' => true,
+      'a text with a broken encoding' => "1\xFF",
+      'a text in UTF-16' => '1'.encode('UTF-16LE') }.each do |kind, group_number|
+      it "refuses the group number of the original row when it is #{kind}" do
+        row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'copy',
+                                           group_number: group_number)
+        copy = row.dup
+
+        expect(copy.save).to be(false)
+        expect(copy.errors[:base]).to eq([copy.group_number_refusal])
+        expect(post.custom_field_values.reload.pluck(:value)).to eq(['kept'])
+      end
+    end
+
+    it 'stores the group number of a stored row' do
+      copy = post.custom_field_values.first.dup
+
+      expect(copy.save).to be(true)
+      expect(copy.reload.group_number).to eq(3)
+    end
+
+    it 'stores no group number for a row that was read without its group number' do
+      copy = described_class.select(:id, :custom_field_id, :custom_field_slug, :value).first.dup
+
+      expect(copy.save).to be(true)
+      expect(copy.reload.group_number).to be_nil
+    end
+  end
+
   it 'gives the refusal in each language of the admin' do
     files = Dir[CamaleonCms::Engine.root.join('config/locales/camaleon_cms/admin/*.yml')]
     locales = files.map { |file| YAML.load_file(file).keys.first }
