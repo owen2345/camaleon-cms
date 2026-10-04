@@ -52,16 +52,15 @@ empty text, and the core forms always send a number.
 **D6. `set_field_values` no longer clamps a negative number to 0.** The clamp was a transform. The
 row refuses the number, as the remedy rule asks.
 
-**D7. The two writers refuse a text with a broken encoding before they build the row.** The
-maintainer chose it on 2026-10-04. The integer cast of Rails raises `ArgumentError` for such a text
-before the validation runs. The lookup in `set_field_value` raises the same error. No request can
-send such a text, because Rails answers it with a 400. Only Ruby code can pass it. A direct
-`custom_field_values.create!` keeps the `ArgumentError` of Rails.
+**D7. The row refuses a text that the integer cast cannot read.** The maintainer chose it on
+2026-10-04. The integer cast of Rails raises its own error for a text with a broken encoding, or in
+a dummy encoding (UTF-7), before the validation runs. The writer of the group number gives the cast
+a Symbol in place of such a text, and the validation refuses a Symbol. A text in an encoding that is
+not ASCII-compatible (UTF-16) gets the same Symbol.
 
-The writers refuse a text in an encoding that is not ASCII-compatible (UTF-16, UTF-7) in the same
-way. The lookup, the digits check or the integer cast raised an encoding error for that text. The
-row refuses a text in UTF-16 or UTF-32 in its validation. A direct write of a row keeps the error of
-Rails for a text in a dummy encoding (UTF-7): the integer cast raises before the validation runs.
+`set_field_value` refuses the text before its lookup, which casts the number first. No request can
+send such a text, because Rails answers it with a 400. Only Ruby code can pass it. A write that
+skips the writer (`write_attribute`, `update_column`) keeps the error of Rails.
 
 ## Risks / Trade-offs
 

@@ -23,9 +23,10 @@ field-options param into a 500. The defect is present since 2.9.1.
   group number is still group 0. The lower clamp and the `to_i` call go.
 - An admin save that sends such a group number redirects back with a flash error that names the
   field. The stored values stay, because the save runs in a transaction.
-- `set_field_value` and `set_field_values` refuse a group number text with a broken encoding before
-  they build the row. The integer cast of Rails raises `ArgumentError` for such a text. They refuse
-  a text in an encoding that is not ASCII-compatible (UTF-16) in the same way.
+- The row refuses a group number text with a broken encoding, or in an encoding that is not
+  ASCII-compatible (UTF-16). The integer cast of Rails raises its own error for such a text, so the
+  writer of the group number keeps the text from the cast. `set_field_value` refuses the text before
+  its lookup.
 - **Behavior change:** `set_field_values` refuses a negative group number and a text that is not
   digits. Before, it stored a negative number in group 0 and read a text with `to_i` (`'abc'` was
   group 0, `'1abc'` was group 1). `set_field_value` refuses a negative group number. Before, it
