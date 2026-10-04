@@ -15,7 +15,7 @@ def create_site
   end
 end
 
-describe 'the Sites', :js do
+RSpec.describe 'the Sites', :js do
   # This spec creates a second site via the UI; once two sites exist, resolution
   # matches the request host against site slugs, so the base site's slug must be
   # the Capybara server host — the shared site's slug is not.

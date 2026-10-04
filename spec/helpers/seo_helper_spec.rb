@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe CamaleonCms::Frontend::SeoHelper do
+RSpec.describe CamaleonCms::Frontend::SeoHelper do
   let(:host) { request_env['HTTP_HOST'] }
   let(:request_env) { ActionDispatch::TestRequest.__send__(:default_env) }
   let(:url_scheme) { request_env['rack.url_scheme'] }

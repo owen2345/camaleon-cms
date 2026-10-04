@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the signin process', :js do
+RSpec.describe 'the signin process', :js do
   init_site
   it 'signs me in with valid credentials' do # rubocop:disable RSpec/NoExpectationExample
     admin_form_sign_in

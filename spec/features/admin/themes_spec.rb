@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the Themes', :js do
+RSpec.describe 'the Themes', :js do
   init_site
 
   it 'Themes list' do

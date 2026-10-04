@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the Users', :js do
+RSpec.describe 'the Users', :js do
   init_site
   uname = "testerr_#{Time.current.to_i}"
   uemail = "testerr_#{Time.current.to_i}@gmail.com"

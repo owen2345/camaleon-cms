@@ -14,7 +14,7 @@ def create_widget
   end
 end
 
-describe 'the Widgets', :js do
+RSpec.describe 'the Widgets', :js do
   init_site
 
   it 'Widgets list' do

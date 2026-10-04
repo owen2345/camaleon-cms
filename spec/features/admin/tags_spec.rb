@@ -10,7 +10,7 @@ def create_tag
   click_button 'Submit'
 end
 
-describe 'the signin process', :js do
+RSpec.describe 'the signin process', :js do
   let(:post_type_id) { @site.post_types.where(slug: :post).pick(:id) }
 
   init_site

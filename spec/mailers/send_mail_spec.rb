@@ -1,4 +1,4 @@
-describe 'CamaleonCms::HtmlMailer' do
+RSpec.describe 'CamaleonCms::HtmlMailer' do
   before do
     @site = CamaleonCms::Site.first.decorate
   end

@@ -27,7 +27,7 @@ def shortcode_tests
   end
 end
 
-describe 'CamaleonCms::ShortCodeHelper' do
+RSpec.describe 'CamaleonCms::ShortCodeHelper' do
   describe 'Shortcode Simple' do
     shortcode_tests
     it 'No attributes' do

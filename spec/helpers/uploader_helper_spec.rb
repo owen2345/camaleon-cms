@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe CamaleonCms::UploaderHelper do
+RSpec.describe CamaleonCms::UploaderHelper do
   init_site
 
   before do

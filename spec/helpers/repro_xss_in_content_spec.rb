@@ -5,7 +5,7 @@
 # untrusted save carrying the payload is refused outright, stored content always equals authored
 # content, and `the_content` renders it verbatim with no render-time transform — the same contract
 # as the templates' `raw post.the_content`.
-describe CamaleonCms::Frontend::ContentSelectHelper do
+RSpec.describe CamaleonCms::Frontend::ContentSelectHelper do
   let(:site) { create(:site) }
   # the site install already creates a 'post' post type; a second one with the
   # same slug under the same site is (correctly) rejected as a duplicate

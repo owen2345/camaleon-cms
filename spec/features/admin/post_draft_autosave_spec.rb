@@ -2,7 +2,7 @@
 
 # The post editor autosaves a draft buffer every minute while the form has changed since its last save.
 # `App_post.save_draft_ajax(null, true)` is what the timer runs, so the examples call it directly.
-describe 'Post editor draft autosave', :js do
+RSpec.describe 'Post editor draft autosave', :js do
   let!(:site) { CamaleonCms::Site.first.decorate }
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
   let(:new_post_path) { "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new" }

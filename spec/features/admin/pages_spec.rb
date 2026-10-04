@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the signin process', :js do
+RSpec.describe 'the signin process', :js do
   let(:post_type_id) { @site.post_types.where(slug: :page).pick(:id) }
 
   init_site

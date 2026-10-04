@@ -2,7 +2,7 @@
 
 require_relative '../shared_specs/i18n_value_translation_safety'
 
-describe CamaleonCms::HtmlHelper do
+RSpec.describe CamaleonCms::HtmlHelper do
   describe '#cama_print_i18n_value' do
     def render_i18n_value(value)
       helper.instance_eval { cama_print_i18n_value(value) }

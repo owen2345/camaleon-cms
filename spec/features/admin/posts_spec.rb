@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'Posts workflows for Admin', :js do
+RSpec.describe 'Posts workflows for Admin', :js do
   let(:post) { site.the_post('sample-post').decorate }
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
   let!(:site) { CamaleonCms::Site.first.decorate }

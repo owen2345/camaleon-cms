@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the Menus', :js do
+RSpec.describe 'the Menus', :js do
   init_site
 
   it 'Plugins list' do

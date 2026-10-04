@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'no found', :js do
+RSpec.describe 'no found', :js do
   init_site
 
   it '404s' do

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the Custom Fields', :js do
+RSpec.describe 'the Custom Fields', :js do
   init_site
 
   it 'Custom fields list' do

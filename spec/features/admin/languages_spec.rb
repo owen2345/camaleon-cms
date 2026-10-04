@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the Languages', :js do
+RSpec.describe 'the Languages', :js do
   init_site
 
   it 'Languages list' do

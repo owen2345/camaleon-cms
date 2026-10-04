@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'CamaleonCms::EmailHelper' do
+RSpec.describe 'CamaleonCms::EmailHelper' do
   init_site
 
   describe '#send_email (old way)' do

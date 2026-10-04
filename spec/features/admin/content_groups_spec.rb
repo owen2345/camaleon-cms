@@ -14,7 +14,7 @@ def create_post_type
   end
 end
 
-describe 'the Content Groups', :js do
+RSpec.describe 'the Content Groups', :js do
   init_site
 
   it 'create new content group' do
