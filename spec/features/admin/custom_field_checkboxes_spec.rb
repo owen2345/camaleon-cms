@@ -4,7 +4,7 @@
 # inputs of the other fields to `values[<index>]`. The request specs build that list by hand. These
 # examples submit the real form, so they fail when the partial, the JavaScript or the permit changes
 # the shape.
-describe 'the checkboxes custom field', :js do
+RSpec.describe 'the checkboxes custom field', :js do
   init_site
 
   before do
