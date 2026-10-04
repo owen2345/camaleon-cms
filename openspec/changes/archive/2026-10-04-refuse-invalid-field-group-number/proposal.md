@@ -60,8 +60,10 @@ None.
   `app/models/concerns/camaleon_cms/custom_fields_read.rb` (the hand-off),
   `app/controllers/concerns/camaleon_cms/admin/custom_fields_concern.rb` (the permit),
   `config/locales/camaleon_cms/admin/*.yml` (the message, in each admin language).
-- Specs: examples in `spec/requests/security/field_options_non_hash_param_spec.rb` and a new
-  `spec/models/custom_field_value_group_number_spec.rb`.
+- Specs: a new `spec/models/custom_field_value_group_number_spec.rb`, and examples in
+  `spec/requests/security/field_options_non_hash_param_spec.rb`,
+  `spec/models/custom_field_value_rejection_spec.rb` and
+  `spec/controllers/concerns/camaleon_cms/admin/custom_fields_concern_spec.rb`.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the refusal.
 - Ecosystem: `camaleon_export_import` passes an exported row's group number to `set_field_value`, an
   integer or nil. Both pass. `docs/ai/ecosystem.md` records the survey.
