@@ -27,6 +27,9 @@
   a lookup, with examples in the model spec (D7)
 - [x] 2.8 Open a savepoint in `set_field_value` and `set_field_values`, so a refusal that the caller
   rescues inside its own transaction rolls the delete back, with examples in the model specs (D9)
+- [x] 2.9 Reset the association of the record when a writer raises an error, so the record reads
+  the stored values and its next save stores no row of the call, with examples in the model specs
+  (D10)
 
 ## 3. Documentation
 

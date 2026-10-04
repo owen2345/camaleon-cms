@@ -27,6 +27,10 @@ copy of a row with a refused group number MUST get the same refusal.
 of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL open a
 savepoint, so the rollback also holds when the caller rescues the refusal and commits.
 
+The rollback leaves the rows of the failed call in the `custom_field_values` association of the
+record. After an error of a writer, the writer SHALL reset that association. The record then SHALL
+read the stored values, and its next save MUST NOT store a row of the failed call.
+
 #### Scenario: A group number above the range is refused in an admin save
 
 - **WHEN** an admin save submits a registered field with a group number above 2147483647
@@ -86,3 +90,9 @@ savepoint, so the rollback also holds when the caller rescues the refusal and co
 - **WHEN** a caller runs `set_field_value` or `set_field_values` inside its own transaction with a
   group number that the row refuses, rescues the refusal inside that transaction and commits
 - **THEN** the stored values of the record are unchanged
+
+#### Scenario: The record reads the stored values after a failed write
+
+- **WHEN** `set_field_value` or `set_field_values` raises an error, and the caller rescues it and
+  goes on with the same record
+- **THEN** the record reads the stored values, and its next save stores no row of the failed call

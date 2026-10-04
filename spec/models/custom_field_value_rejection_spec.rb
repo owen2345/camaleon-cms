@@ -198,6 +198,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
     end
 
+    it 'stores no value of a refused list when the caller saves the post after the refusal' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>keep me</p>')
+
+      expect { post.set_field_value('body', ['<p>first</p>', script]) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(post.save).to be(true)
+      expect(post.reload.get_field_values('body')).to eq(['<p>keep me</p>'])
+    end
+
     it 'refuses a dangerous value written through update_field_value (M5)' do
       as_user(contributor)
       post.set_field_value('body', '<p>ok</p>')

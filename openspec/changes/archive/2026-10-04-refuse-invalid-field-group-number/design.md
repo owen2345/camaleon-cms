@@ -89,6 +89,16 @@ transaction of the caller, so a caller that rescued the refusal there and commit
 The writers call `transaction(requires_new: true)`. The savepoint covers each refusal of a row, the
 refusal of the value gate included.
 
+**D10. The writers reset the association after an error.** The maintainer chose it on 2026-10-04.
+The rollback restores the database. The record still holds the rows of the call in its
+`custom_field_values` association. After a refused `set_field_values`, the record read those rows,
+and its next save failed. After a refused list of `set_field_value`, the next save of the record
+stored the rows before the refused value. Each writer resets the association when its transaction
+raises an error of any class, so the record reads the stored values again.
+
+The reset also covers a refusal of the value gate. The other remedy was a note that tells the
+caller to reload the record.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

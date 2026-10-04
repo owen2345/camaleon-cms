@@ -566,6 +566,11 @@ record. A stored row that holds a negative group number stays valid until code c
 of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
 there. Before, that caller lost the stored values at its commit.
 
+After an error, the two writers also reset the `custom_field_values` association of the record. The
+record reads the stored values again, and its next save stores no row of the failed call. Before,
+the record kept the rows of the failed call: its next save failed, or stored some of those rows.
+The association does not hold the unsaved rows of the failed call after the error.
+
 ---
 
 ## Recommended rollout

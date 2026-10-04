@@ -207,6 +207,34 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The rollback of a failed write leaves the rows of the call in the association of the record. Each
+  # writer resets the association, so the record reads the stored values and its next save stores no
+  # row of the call.
+  describe 'the record after a failed write' do
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    it 'reads the stored values and saves after a refusal of set_field_values' do
+      payload = { '0' => { 'note' => { group_number: 0, values: ['fresh'] } },
+                  '1' => { 'note' => { group_number: -1, values: ['new'] } } }
+
+      expect { post.set_field_values(payload) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(post.get_field_values('note', 1)).to eq(['kept'])
+      expect(post.get_field_values('note', 0)).to eq([])
+      expect(post.update(title: 'Saved')).to be(true)
+      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+    end
+
+    it 'reads the stored values after an error of set_field_values that is not a refusal' do
+      payload = { '0' => { 'note' => { values: ['fresh'] }, 'unknown' => { id: 2**64, values: ['x'] } } }
+
+      expect { post.set_field_values(payload) }.to raise_error(ActiveModel::RangeError)
+
+      expect(post.get_field_values('note', 1)).to eq(['kept'])
+      expect(post.get_field_values('note', 0)).to eq([])
+    end
+  end
+
   it 'gives the refusal in each language of the admin' do
     files = Dir[CamaleonCms::Engine.root.join('config/locales/camaleon_cms/admin/*.yml')]
     locales = files.map { |file| YAML.load_file(file).keys.first }

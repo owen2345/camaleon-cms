@@ -293,6 +293,8 @@ Changes that look free from inside this repository and are not:
   JavaScript sets the group number of that form to the index of the group. A negative number raises
   `ActiveRecord::RecordInvalid` now. `set_field_values` stored it in group 0 before, and
   `set_field_value` stored it as given.
+- **The reset of the `custom_field_values` association after an error of `set_field_value` or
+  `set_field_values`** changes no surveyed consumer. No consumer rescues an error of the two writers.
 
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
