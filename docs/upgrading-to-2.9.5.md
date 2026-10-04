@@ -191,6 +191,9 @@ record. All admin saves of custom-field values had this defect:
 - Categories and tags.
 - Users, widget assignments and menu items.
 
+The menu item save stored no custom field on 2.9.2 to 2.9.4, so a menu item kept the options that it
+held.
+
 This release stores the checked options.
 
 **Action:** this release does not restore the values that those saves removed. Review the records
