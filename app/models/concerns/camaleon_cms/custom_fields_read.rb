@@ -366,18 +366,26 @@ module CamaleonCms
     # The transaction of set_field_value and set_field_values. Inside a transaction of the caller it is
     # a savepoint. A refusal of a row then rolls the delete back, also when the caller rescues the
     # refusal and commits.
-    # The rollback leaves the rows of the call in the association. After an error, the reset makes the
-    # record read the stored values again, and its next save stores no row of the call.
+    #
+    # The rollback leaves the rows of the call in the association. An exception of any class stops the
+    # call and starts the reset. The record then reads the stored values again, and its next save
+    # stores no row of the call. A timeout of the caller raises an exception that is not a
+    # StandardError, so the reset is in an ensure block.
     # The reset drops each unsaved row, so the writer puts back the rows that the caller built before
     # the call.
     def _cama_write_field_values(&block)
       field_values = custom_field_values.proxy_association
       built_before = field_values.target.select(&:new_record?)
-      ActiveRecord::Base.transaction(requires_new: true, &block)
-    rescue StandardError
-      custom_field_values.reset
-      built_before&.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
-      raise
+      begin
+        result = ActiveRecord::Base.transaction(requires_new: true, &block)
+        written = true
+        result
+      ensure
+        unless written
+          custom_field_values.reset
+          built_before.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
+        end
+      end
     end
 
     # The fields registered under a slug. Groups share the table and keep their site's id in parent_id, so

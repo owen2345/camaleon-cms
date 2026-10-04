@@ -352,6 +352,21 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 0)).to eq([])
     end
 
+    # A timeout of the caller stops a writer with an exception that is not a StandardError, as
+    # NotImplementedError is not one.
+    it 'stores no row of the call after an exception of set_field_value that is not a StandardError' do
+      values = ['first']
+      values.define_singleton_method(:each) do |&block|
+        super(&block)
+        raise NotImplementedError
+      end
+
+      expect { post.set_field_value('note', values, group_number: 2) }.to raise_error(NotImplementedError)
+
+      expect(post.save).to be(true)
+      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+    end
+
     # The reset drops each unsaved row of the association. The writer puts back the rows that the
     # caller built before the call, so the next save of the record stores them.
     context 'with a row that the caller built before the call' do

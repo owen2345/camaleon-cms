@@ -111,7 +111,8 @@ The rollback restores the database. The record still holds the rows of the call 
 `custom_field_values` association. After a refused `set_field_values`, the record read those rows,
 and its next save failed. After a refused list of `set_field_value`, the next save of the record
 stored the rows before the refused value. Each writer resets the association when its transaction
-raises an error of any class, so the record reads the stored values again.
+raises an error of any class, so the record reads the stored values again. The reset is in an
+`ensure` block: a timeout of the caller raises an exception that is not a `StandardError`.
 
 The reset also covers a refusal of the value gate. The other remedy was a note that tells the
 caller to reload the record.
