@@ -38,6 +38,9 @@ RSpec.describe 'Admin custom field values submitted as a list', type: :request d
     site = save_site('0' => { 'colors' => { 'id' => colors.id.to_s, 'values' => %w[3 1] } })
 
     expect(site.get_field_values('colors')).to eq(%w[3 1])
+    # A database gives no order to rows that have the same `term_order`.
+    expect(site.custom_field_values.where(custom_field_slug: 'colors').pluck(:value, :term_order))
+      .to eq([['3', 0], ['1', 1]])
   end
 
   it 'keeps a stored checkboxes value that the save submits again' do
