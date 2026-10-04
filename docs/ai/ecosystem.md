@@ -287,13 +287,15 @@ Changes that look free from inside this repository and are not:
   consumer. Rails passes such an entry through the permit when a group holds a numeric key. No form of
   a surveyed consumer sends that shape.
 - **The refusal of a group number that is not nil or an integer from 0 to 2147483647** changes no
-  surveyed consumer. A custom-field value row gives the refusal. `camaleon_export_import` is the only one
-  that passes a group number to `set_field_value`: the number of an exported row, an integer or nil.
-  The plugins and themes that pass raw params to `set_field_values` render the core form. The admin
-  JavaScript sets the group number of that form to the index of the group. A negative number raises
-  `ActiveRecord::RecordInvalid` now. `set_field_values` stored it in group 0 before, and
-  `set_field_value` stored it as given. `set_field_value` also gives the refusal for an empty list of
-  values. No surveyed consumer passes an empty list with a group number.
+  surveyed consumer. A custom-field value row gives the refusal.
+  - `camaleon_export_import` is the only one that passes a group number to `set_field_value`: the
+    number of an exported row, an integer or nil.
+  - The plugins and themes that pass raw params to `set_field_values` render the core form. The admin
+    JavaScript sets the group number of that form to the index of the group.
+  - A negative number raises `ActiveRecord::RecordInvalid` now. `set_field_values` stored it in group 0
+    before, and `set_field_value` stored it as given.
+  - `set_field_value` also gives the refusal when the list of values is empty. No surveyed consumer
+    passes an empty list with a group number.
 - **The reset of the `custom_field_values` association after an error of `set_field_value` or
   `set_field_values`** changes no surveyed consumer. No consumer rescues an error of the two writers.
   The unsaved rows that a caller built on the association before the call stay.
