@@ -97,6 +97,7 @@ zh-CN:
       custom_field:
         message:
           custom_group_error: '自定义字段组出错'
+          group_number_invalid: "字段 '%{slug}' 的组编号必须是 0 到 %{max} 之间的整数."
           custom_created: '自定义字段已经被创建.'
           custom_updated: '自定义字段已经被更新.'
         fields:

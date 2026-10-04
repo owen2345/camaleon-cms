@@ -95,6 +95,7 @@ nl:
       custom_field:
         message:
           custom_group_error: 'Fout in aangepast veld.'
+          group_number_invalid: "Het groepsnummer van het veld '%{slug}' moet een geheel getal van 0 tot en met %{max} zijn."
           custom_created: 'Aangepast veld aangemaakt.'
           custom_updated: 'Aangepast veld bijgewerkt.'
         fields:

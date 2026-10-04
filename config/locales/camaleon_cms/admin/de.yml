@@ -97,6 +97,7 @@ de:
       custom_field:
         message:
           custom_group_error: 'Fehler in Gruppe für selbsterstellte Felder'
+          group_number_invalid: "Die Gruppennummer des Feldes '%{slug}' muss eine ganze Zahl von 0 bis %{max} sein."
           custom_created: 'Die Gruppe für selbsterstellte Felder wurde erstellt.'
           custom_updated: 'Die Gruppe für selbsterstellte Felder wurde aktualisiert.'
         fields:

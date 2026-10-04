@@ -86,6 +86,7 @@ it:
       custom_field:
         message:
           custom_group_error: 'Errore custom field group'
+          group_number_invalid: "Il numero di gruppo del campo '%{slug}' deve essere un numero intero da 0 a %{max}."
           custom_created: 'Il custom field group è stato creato.'
           custom_updated: 'Il custom field group è stato aggiornato.'
         fields:

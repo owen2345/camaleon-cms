@@ -147,8 +147,9 @@ module CamaleonCms
       errors.add(:base, cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER))
     end
 
-    # The message must never be swallowed by a missing translation: only en.yml carries these keys,
-    # while the process locale follows the current admin/site language — fall back to English.
+    # A missing translation must not hide the message. The process locale follows the language of the
+    # admin or the site, and en.yml is the only file that carries each key. The message falls back to
+    # English.
     def cama_rejection_message(key, **values)
       full_key = "camaleon_cms.admin.custom_field.message.#{key}"
       I18n.t(full_key, slug: custom_field_slug, **values,

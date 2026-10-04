@@ -98,6 +98,7 @@ ru:
       custom_field:
         message:
           custom_group_error: 'Ошибка группы настраиваемых полей '
+          group_number_invalid: "Номер группы поля '%{slug}' должен быть целым числом от 0 до %{max}."
           custom_created: 'Группа настраиваемых полей был создан.'
           custom_updated: 'Группа настраиваемых полей был обновлен.'
         fields:

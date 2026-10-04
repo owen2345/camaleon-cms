@@ -95,6 +95,7 @@ pt-BR:
       custom_field:
         message:
           custom_group_error: 'Erro grupo campo personalizado'
+          group_number_invalid: "O número do grupo do campo '%{slug}' deve ser um número inteiro de 0 a %{max}."
           custom_created: 'O grupo campo personalizado foi criado.'
           custom_updated: 'O grupo personalizado campo foi atualizado.'
         fields:

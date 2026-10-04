@@ -44,6 +44,22 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  it 'gives the refusal in each language of the admin' do
+    files = Dir[CamaleonCms::Engine.root.join('config/locales/camaleon_cms/admin/*.yml')]
+    locales = files.map { |file| YAML.load_file(file).keys.first }
+    expect(locales).to include('en', 'es', 'zh-CN')
+    english = I18n.t('camaleon_cms.admin.custom_field.message.group_number_invalid',
+                     locale: :en, slug: 'note', max: described_class::MAX_GROUP_NUMBER)
+
+    locales.each do |locale|
+      row = post.custom_field_values.new(custom_field_slug: 'note', group_number: -1)
+      I18n.with_locale(locale) { row.valid? }
+
+      expect(row.errors[:base].first).to include("'note'", '2147483647'), locale
+      expect(row.errors[:base].first).not_to eq(english), locale unless locale == 'en'
+    end
+  end
+
   it 'updates the value of a stored row that holds a negative group number' do
     post.set_field_value('note', 'old')
     row = post.custom_field_values.first
