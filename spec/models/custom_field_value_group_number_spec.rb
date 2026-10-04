@@ -418,6 +418,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # A plugin that passes raw params gives the request key as the slug, so a slug can hold the
+  # interpolation syntax of I18n. A language with no message takes the English message.
+  it 'names a slug that holds the interpolation syntax in a language with no message' do
+    slug = '100%{x} a%%b' # rubocop:disable Style/FormatStringToken
+    row = described_class.new(custom_field_slug: slug, group_number: -1)
+    refusal = "The group number of the '#{slug}' field must be a whole number from 0 to 2147483647."
+
+    I18n.with_locale(:ja) { row.valid? }
+
+    expect(row.errors[:base]).to eq([refusal])
+  end
+
   it 'updates the value of a stored row that holds a negative group number' do
     post.set_field_value('note', 'old')
     row = post.custom_field_values.first

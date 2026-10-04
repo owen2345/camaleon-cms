@@ -230,10 +230,11 @@ module CamaleonCms
     # A missing translation must not hide the message. The process locale follows the language of the
     # admin or the site, and en.yml is the only file that carries each key. The message falls back to
     # English.
+    # The fallback is the English template with no values, so I18n fills the values one time. A slug
+    # can hold the interpolation syntax of I18n, and a second pass raises an error for that slug.
     def cama_rejection_message(key, **values)
       full_key = "camaleon_cms.admin.custom_field.message.#{key}"
-      I18n.t(full_key, slug: custom_field_slug, **values,
-                       default: I18n.t(full_key, slug: custom_field_slug, **values, locale: :en))
+      I18n.t(full_key, slug: custom_field_slug, **values, default: I18n.t(full_key, locale: :en))
     end
 
     # Trust follows the post-content model: an admin may write anything; a post's field values may
