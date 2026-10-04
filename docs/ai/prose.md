@@ -11,6 +11,7 @@ The standard applies to:
 - Code comments.
 - `README.md` and the files under `docs/`.
 - `CHANGELOG.md` entries.
+- New commit messages.
 - PR titles and PR descriptions.
 - The `describe`, `context` and `it` descriptions of new specs.
 
