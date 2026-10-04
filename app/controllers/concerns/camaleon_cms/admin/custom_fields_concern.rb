@@ -31,11 +31,13 @@ module CamaleonCms
           allowed_keys.index_with { [:id, :group_number, { values: {} }, { values: [] }] }
         end).to_h
         # Keep only hash-shaped groups and slug entries: a list of hashes passes the permit too and
-        # carries no slug or id to read. Drop groups left empty after filtering: set_field_values
+        # carries no slug or id to read. Keep only the entries of an allowed slug. Rails reads a group
+        # that holds a numeric key as nested attributes, so the entry under that key passes the permit.
+        # Drop groups left empty after filtering: set_field_values
         # deletes every existing value before writing, so handing it a non-blank-but-empty payload (a
         # group whose submitted slugs were all unregistered) would wipe the stored values and write nothing.
         permitted.select! { |_group, fields| fields.is_a?(Hash) }
-        permitted.each_value { |fields| fields.select! { |_slug, data| data.is_a?(Hash) } }
+        permitted.each_value { |fields| fields.select! { |slug, data| data.is_a?(Hash) && field_ids.key?(slug) } }
         permitted.reject! { |_group, fields| fields.blank? }
         # The value gate picks its check from the field the row points at, and set_field_values falls
         # back to this id where the groups it resolves slugs in hold no field of that slug (a caller that
