@@ -115,7 +115,7 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
         expect(permitted_values({ '0' => 'own' })).to eq('0' => 'own')
       end
 
-      # All groups share one filter object.
+      # All groups share `group_filter`.
       it 'keeps both shapes in each of two groups' do
         controller.params = ActionController::Parameters.new(
           field_options: {
