@@ -23,7 +23,7 @@ what theme/plugin developers should know.
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has plugins or themes that submit post template or layout values, non-ASCII meta keys or a status other than published/pending/draft, or relies on a non-publisher reaching `published` | Offer templates through the hooks; a user without the publish permission now stays at `pending` on create, update and restore; run the scan task for stored values ([details](#post-templates-reserved-keys-and-restore)) |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
-| Has **checkboxes** custom fields | Admin saves store them again. Check the options again on the records that an admin saved since 2.9.2 ([details](#admin-saves-store-checkboxes-custom-fields-again)) |
+| Has **checkboxes** custom fields | Admin saves store them again. Check the options again on the records that a user saved through an admin form since 2.9.2 ([details](#admin-saves-store-checkboxes-custom-fields-again)) |
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
@@ -198,8 +198,8 @@ held.
 This release stores the checked options.
 
 **Action:** this release does not restore the options that those saves removed. Review the records
-with a checkboxes field that an admin saved on 2.9.2 to 2.9.4. Check their options again. Code that
-calls `set_field_value` or `save_field_value` stored its values correctly.
+with a checkboxes field that a user saved through an admin form on 2.9.2 to 2.9.4. Check their options
+again. Code that calls `set_field_value` or `save_field_value` stored its values correctly.
 
 ---
 
