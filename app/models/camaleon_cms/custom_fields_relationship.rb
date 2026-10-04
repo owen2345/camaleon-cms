@@ -26,7 +26,7 @@ module CamaleonCms
     GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
     # A group number is an index from 0. PostgreSQL and MySQL store it in a 4-byte integer column.
     MAX_GROUP_NUMBER = 2_147_483_647
-    # The writer of the group number gives this Symbol to the integer cast in place of a text that the
+    # write_attribute gives this Symbol to the integer cast in place of a group number text that the
     # cast cannot read. The validation refuses a Symbol.
     UNREADABLE_GROUP_NUMBER = :unreadable
 
@@ -58,9 +58,15 @@ module CamaleonCms
     end
 
     # The integer cast of Rails raises its own error for a text that it cannot read, before the
-    # validation runs. The writer keeps that text from the cast, and the validation refuses the row.
+    # validation runs. write_attribute keeps that text from the cast, and the validation refuses the row.
     def group_number=(value)
-      super(self.class.unreadable_group_number?(value) ? UNREADABLE_GROUP_NUMBER : value)
+      write_attribute(:group_number, value)
+    end
+
+    # The writer above and []= call this method.
+    def write_attribute(attr_name, value)
+      unreadable = attr_name.to_s == 'group_number' && self.class.unreadable_group_number?(value)
+      super(attr_name, unreadable ? UNREADABLE_GROUP_NUMBER : value)
     end
 
     # Raises the refusal of the row for a group number text that the cast cannot read. The cast makes
@@ -183,7 +189,7 @@ module CamaleonCms
       new_record? || will_save_change_to_group_number? || group_number_unreadable?
     end
 
-    # The writer of the group number left its Symbol in place of a text that the cast cannot read.
+    # write_attribute left its Symbol in place of a text that the cast cannot read.
     def group_number_unreadable?
       group_number_before_type_cast == UNREADABLE_GROUP_NUMBER
     end
@@ -199,11 +205,11 @@ module CamaleonCms
     end
 
     # An Integer or a text of ASCII digits. A Symbol can print as digits, and the cast makes it nil.
-    # The digits check raises for a text in an encoding that is not ASCII-compatible (UTF-16). A write
-    # that skips the writer of the group number can give that text.
+    # The digits check raises for a text that the cast cannot read. A write that skips write_attribute
+    # can leave that text in the row.
     def storable_group_number?(given)
       return false unless given.is_a?(Integer) || given.is_a?(String)
-      return false if given.is_a?(String) && !given.encoding.ascii_compatible?
+      return false if self.class.unreadable_group_number?(given)
 
       given.to_s.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
     end

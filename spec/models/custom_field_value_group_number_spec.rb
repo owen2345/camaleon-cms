@@ -45,8 +45,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   end
 
   # The integer cast of Rails cannot read a text with a broken encoding, or in an encoding that is not
-  # ASCII-compatible. The writer of the group number keeps that text from the cast, and the row
-  # refuses it.
+  # ASCII-compatible. The row keeps that text from the cast and refuses it.
   describe 'a group number text that the integer cast cannot read' do
     let(:field_id) { post.get_field_object('note').id }
 
@@ -90,6 +89,24 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.errors[:base]).to eq([row.group_number_refusal])
         expect(row.reload.group_number).to eq(1)
       end
+
+      it "gets the refusal of a stored row for a text #{kind} written with []=, and the stored number stays" do
+        row = post.custom_field_values.first
+        row[:group_number] = group_number
+
+        expect(row.save).to be(false)
+        expect(row.errors[:base]).to eq([row.group_number_refusal])
+        expect(row.reload.group_number).to eq(1)
+      end
+
+      it "gets the refusal of a new row for a text #{kind} written with write_attribute" do
+        row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'new')
+        row.write_attribute(:group_number, group_number)
+
+        expect(row.save).to be(false)
+        expect(row.errors[:base]).to eq([row.group_number_refusal])
+        expect(post.custom_field_values.reload.pluck(:value)).to eq(['kept'])
+      end
     end
 
     it 'stops the save of a new row that skips the validation for a text with a broken encoding' do
@@ -108,14 +125,6 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       row = post.custom_field_values.find_by(group_number: nil)
 
       expect(row.update(group_number: "1\xFF")).to be(false)
-      expect(row.errors[:base]).to include(row.group_number_refusal)
-    end
-
-    it 'gets the refusal of the row for a text in UTF-16 that skips the writer' do
-      row = post.custom_field_values.new(custom_field_slug: 'note')
-      row[:group_number] = '1'.encode('UTF-16LE')
-
-      expect(row).not_to be_valid
       expect(row.errors[:base]).to include(row.group_number_refusal)
     end
   end
