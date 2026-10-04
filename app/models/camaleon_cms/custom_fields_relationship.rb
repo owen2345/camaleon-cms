@@ -31,8 +31,10 @@ module CamaleonCms
     # with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16). This type reads
     # that text as no number, in a row and in a lookup. The row keeps the text, and the validation
     # refuses it.
+    #
     # update_column, update_all and insert_all skip the validation and the callbacks. They store no
     # group number for that text.
+    #
     # The type has the 4-byte range on each database, as the validation has. The design keeps this
     # range where the column holds a wider integer (SQLite, a bigint column). There, a lookup with a
     # number above the range finds no row, and those three writes raise ActiveModel::RangeError for it.

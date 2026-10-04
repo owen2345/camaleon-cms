@@ -28,6 +28,7 @@ module CamaleonCms
         # inputs) or as a list of scalars (`values[]`, the checkboxes field). A `values` filter that does
         # not match the shape leaves the result of the other one in place. Rails converts a plain filter
         # again for each group. `group_filter` has indifferent access, so Rails does not convert it.
+        #
         # A group number is a scalar. The value row refuses a list or a hash, so the last filter gives
         # that shape to the row with no content. Without that filter Rails drops the number, and
         # set_field_values reads an absent number as group 0.
