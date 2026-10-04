@@ -32,6 +32,7 @@ what theme/plugin developers should know.
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
+| Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values` | The number must be nil or an integer from 0 to 2147483647. Any other number raises `ActiveRecord::RecordInvalid` ([details](#a-custom-field-value-refuses-a-group-number-outside-its-range)) |
 | Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
 
 ---
@@ -536,6 +537,20 @@ remove that step when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;
 both were silently dropped since 2.9.2.
+
+### A custom-field value refuses a group number outside its range
+
+A custom-field value row accepts a group number only when it is nil or an integer from 0 to 2147483647,
+given as an Integer or as a text of digits. `set_field_value`, `set_field_values` and a direct
+`custom_field_values.create!` raise `ActiveRecord::RecordInvalid` for any other group number.
+
+- A number above 2147483647 raised `ActiveModel::RangeError` before, on PostgreSQL and on MySQL.
+- `set_field_values` stored a negative number, or a text that is not digits, in group 0 before.
+- `set_field_value` stored a negative number as given before.
+- `set_field_values` still reads an absent or empty group number as group 0.
+
+An admin save that sends such a group number shows an error and keeps the stored values of the record.
+A stored row that holds a negative group number stays valid until code changes that number.
 
 ---
 
