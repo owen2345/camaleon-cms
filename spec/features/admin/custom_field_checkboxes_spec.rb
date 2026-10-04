@@ -45,6 +45,13 @@ RSpec.describe 'the checkboxes custom field', :js do
       expect(page).to have_unchecked_field('Option 2')
       expect(page).to have_checked_field('Option 3')
       uncheck 'Option 1'
+    end
+
+    expect(stored).to eq(%w[3])
+
+    stored = save_site_settings do
+      expect(page).to have_unchecked_field('Option 1')
+      expect(page).to have_checked_field('Option 3')
       uncheck 'Option 3'
     end
 
