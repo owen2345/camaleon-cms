@@ -25,10 +25,10 @@ module CamaleonCms
         return {} if allowed_keys.blank?
 
         # values arrives keyed by index (`values[<index>]`, as the admin JavaScript renames most fields'
-        # inputs) or as a list of scalars (`values[]`, the checkboxes field). Each shape needs a filter
-        # of its own. The filter that does not match leaves the result of the other filter in place.
-        # All groups share one filter. Rails copies a plain filter for each group. It does not copy a
-        # filter that has indifferent access.
+        # inputs) or as a list of scalars (`values[]`, the checkboxes field). `entry_filter` holds one
+        # `values` filter for each shape. A `values` filter that does not match leaves the result of the
+        # other one in place. All groups share `group_filter`. Rails converts a plain filter again for
+        # each group. `group_filter` has indifferent access, so Rails does not convert it.
         entry_filter = [:id, :group_number, { values: {} }, { values: [] }]
         group_filter = allowed_keys.index_with { entry_filter }.with_indifferent_access
         group_keys = field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }
