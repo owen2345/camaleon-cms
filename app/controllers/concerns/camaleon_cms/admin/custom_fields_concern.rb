@@ -25,20 +25,19 @@ module CamaleonCms
         return {} if allowed_keys.blank?
 
         # values arrives keyed by index (`values[<index>]`, as the admin JavaScript renames most fields'
-        # inputs) or as a list of scalars (`values[]`, the checkboxes field). `entry_filter` holds one
-        # `values` filter for each shape. A `values` filter that does not match leaves the result of the
-        # other one in place. All groups share `group_filter`. Rails converts a plain filter again for
-        # each group. `group_filter` has indifferent access, so Rails does not convert it.
+        # inputs) or as a list of scalars (`values[]`, the checkboxes field). A `values` filter that does
+        # not match the shape leaves the result of the other one in place. Rails converts a plain filter
+        # again for each group. `group_filter` has indifferent access, so Rails does not convert it.
         entry_filter = [:id, :group_number, { values: {} }, { values: [] }]
         group_filter = allowed_keys.index_with { entry_filter }.with_indifferent_access
         group_keys = field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }
         permitted = field_options.permit(group_keys.index_with { group_filter }).to_h
         # Keep only hash-shaped groups and slug entries: a list of hashes passes the permit too and
-        # carries no slug or id to read. Keep only the entries of an allowed slug. Rails reads a group
-        # that holds a numeric key as nested attributes, so the entry under that key passes the permit.
-        # Drop groups left empty after filtering: set_field_values
-        # deletes every existing value before writing, so handing it a non-blank-but-empty payload (a
-        # group whose submitted slugs were all unregistered) would wipe the stored values and write nothing.
+        # carries no slug or id to read. Rails reads a group that holds a numeric key as nested attributes,
+        # so the entry under that key passes the permit. That key names no field. Drop groups left empty
+        # after filtering: set_field_values deletes every existing value before writing, so handing it a
+        # non-blank-but-empty payload (a group whose submitted slugs were all unregistered) would wipe the
+        # stored values and write nothing.
         permitted.select! { |_group, fields| fields.is_a?(Hash) }
         permitted.each_value { |fields| fields.select! { |slug, data| data.is_a?(Hash) && field_ids.key?(slug) } }
         permitted.reject! { |_group, fields| fields.blank? }
