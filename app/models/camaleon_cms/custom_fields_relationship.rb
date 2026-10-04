@@ -141,10 +141,16 @@ module CamaleonCms
     # it. A nil group number passes: a caller can leave it unset.
     def reject_invalid_group_number
       given = group_number_before_type_cast
-      return if given.nil?
-      return if given.to_s.match?(/\A\d+\z/) && given.to_s.to_i <= MAX_GROUP_NUMBER
+      return if given.nil? || storable_group_number?(given)
 
       errors.add(:base, cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER))
+    end
+
+    # An Integer or a text of ASCII digits. A Symbol can print as digits, and the cast makes it nil.
+    def storable_group_number?(given)
+      return false unless given.is_a?(Integer) || given.is_a?(String)
+
+      given.to_s.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
     end
 
     # A missing translation must not hide the message. The process locale follows the language of the
