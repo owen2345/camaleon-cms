@@ -41,10 +41,7 @@ RSpec.describe 'Admin custom field values submitted as a list', type: :request d
   end
 
   it 'keeps a stored checkboxes value that the save submits again' do
-    %w[1 3].each_with_index do |value, index|
-      current_site.custom_field_values.create!(custom_field_id: colors.id, custom_field_slug: 'colors', value: value,
-                                               term_order: index)
-    end
+    current_site.set_field_value('colors', %w[1 3])
 
     site = save_site('0' => { 'colors' => { 'id' => colors.id.to_s, 'values' => %w[1 3] } })
 
