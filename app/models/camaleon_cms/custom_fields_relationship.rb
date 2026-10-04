@@ -199,7 +199,7 @@ module CamaleonCms
     # Raises the refusal of the row. The row holds the message one time.
     def raise_group_number_refusal
       refusal = group_number_refusal
-      errors.add(:base, refusal) unless errors[:base].include?(refusal)
+      errors.add(:base, refusal) unless errors.added?(:base, refusal)
       raise ActiveRecord::RecordInvalid, self
     end
 
