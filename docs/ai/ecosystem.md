@@ -286,12 +286,13 @@ Changes that look free from inside this repository and are not:
 - **Dropping a field-options entry under a key that names no allowed slug** (#1315) changes no surveyed
   consumer. Rails passes such an entry through the permit when a group holds a numeric key. No form of
   a surveyed consumer sends that shape.
-- **The refusal of a group number that is not nil or an integer from 0 to 2147483647** on a custom-field
-  value row changes no surveyed consumer. `camaleon_export_import` is the only one that passes a group number
-  to `set_field_value`: the number of an exported row, an integer or nil. The plugins and themes that
-  pass raw params to `set_field_values` render the core form, and the admin JavaScript sets its group
-  number to the index of the group. A negative number raises `ActiveRecord::RecordInvalid` now.
-  `set_field_values` stored it in group 0 before, and `set_field_value` stored it as given.
+- **The refusal of a group number that is not nil or an integer from 0 to 2147483647** changes no
+  surveyed consumer. A custom-field value row gives the refusal. `camaleon_export_import` is the only one
+  that passes a group number to `set_field_value`: the number of an exported row, an integer or nil.
+  The plugins and themes that pass raw params to `set_field_values` render the core form. The admin
+  JavaScript sets the group number of that form to the index of the group. A negative number raises
+  `ActiveRecord::RecordInvalid` now. `set_field_values` stored it in group 0 before, and
+  `set_field_value` stored it as given.
 
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it

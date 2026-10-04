@@ -540,9 +540,9 @@ both were silently dropped since 2.9.2.
 
 ### A custom-field value refuses a group number outside its range
 
-A custom-field value row accepts a group number only when it is nil or an integer from 0 to 2147483647,
-given as an Integer or as a text of digits. `set_field_value`, `set_field_values` and a direct
-`custom_field_values.create!` raise `ActiveRecord::RecordInvalid` for any other group number.
+A custom-field value row accepts a group number only when it is nil or an integer from 0 to 2147483647.
+The caller gives the integer as an Integer or as a text of digits. `set_field_value`, `set_field_values`
+and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` for any other group number.
 
 - A number above 2147483647 raised `ActiveModel::RangeError` before, on PostgreSQL and on MySQL.
 - `set_field_values` stored a negative number in group 0 before.
