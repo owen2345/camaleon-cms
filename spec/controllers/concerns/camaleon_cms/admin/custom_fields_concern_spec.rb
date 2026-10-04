@@ -91,7 +91,7 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
     end
 
     # The checkboxes field submits `values[]`, a list, where the other fields submit `values[<index>]`.
-    context 'with values submitted as a list' do
+    context 'with values in both shapes' do
       def permitted_values(values)
         controller.params = ActionController::Parameters.new(
           field_options: { '0' => { 'own_setting' => { 'id' => '1', 'values' => values } } }
