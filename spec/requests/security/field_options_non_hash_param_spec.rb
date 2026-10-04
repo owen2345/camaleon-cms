@@ -94,6 +94,12 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
 
     before { category.set_field_value('subtitle', 'kept') }
 
+    def expect_refusal
+      expect(response).to have_http_status(:found)
+      expect(flash[:error]).to include(refusal)
+      expect(category.reload.get_field_values('subtitle')).to eq(['kept'])
+    end
+
     def update_category(group_number, **options)
       patch "/admin/post_type/#{post_type.id}/categories/#{category.id}", params: {
         category: { name: 'Grouped field' },
@@ -113,9 +119,7 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       it "refuses a group number that is #{kind} and keeps the stored value" do
         update_category(group_number)
 
-        expect(response).to have_http_status(:found)
-        expect(flash[:error]).to include(refusal)
-        expect(category.reload.get_field_values('subtitle')).to eq(['kept'])
+        expect_refusal
       end
     end
 
@@ -124,18 +128,14 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       it "refuses a JSON group number of #{kind} and keeps the stored value" do
         update_category(group_number, as: :json)
 
-        expect(response).to have_http_status(:found)
-        expect(flash[:error]).to include(refusal)
-        expect(category.reload.get_field_values('subtitle')).to eq(['kept'])
+        expect_refusal
       end
     end
 
     it 'refuses a group number that the request sends as a file and keeps the stored value' do
       update_category(Rack::Test::UploadedFile.new(StringIO.new('1'), 'text/plain', original_filename: 'n.txt'))
 
-      expect(response).to have_http_status(:found)
-      expect(flash[:error]).to include(refusal)
-      expect(category.reload.get_field_values('subtitle')).to eq(['kept'])
+      expect_refusal
     end
 
     # The post save holds the post and its field values in one transaction, so the refusal also rolls
