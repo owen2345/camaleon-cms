@@ -204,6 +204,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect(row.update(group_number: "1\xFF")).to be(false)
       expect(row.errors[:base]).to include(row.group_number_refusal)
+      expect(row.valid?).to be(false)
     end
   end
 
