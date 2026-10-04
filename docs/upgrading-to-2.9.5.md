@@ -498,8 +498,9 @@ the same slug.
 
 `cama_permitted_field_options` keeps the `values` of a slug sent as a list of scalars (`values[]`, what
 the checkboxes field submits) and the `values` keyed by index. It drops a list that holds a non-scalar,
-as before. A plugin that re-keyed the list by index before the helper call can remove that step when
-it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9.4 the permit drops the list.
+as before. A plugin that re-keyed the list by index before the `cama_permitted_field_options` call can
+remove that step when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9.4
+`cama_permitted_field_options` drops the list.
 
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;
