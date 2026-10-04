@@ -138,6 +138,25 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       expect(category.reload.get_field_values('subtitle')).to eq(['kept'])
     end
 
+    # The post save holds the post and its field values in one transaction, so the refusal also rolls
+    # back the attributes of the post.
+    it 'stores no attribute of a post when the save of the post sends a refused group number' do
+      group = CamaleonCms::CustomFieldGroup.create!(name: 'Post fields', slug: 'post-fields',
+                                                    object_class: 'PostType_Post', objectid: post_type.id,
+                                                    site: current_site)
+      group.add_manual_field({ 'name' => 'Note', 'slug' => 'note' }, { 'field_key' => 'text_box' })
+      record = create(:post, post_type: post_type, owner: admin, title: 'Kept title')
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{record.id}", params: {
+        post: { title: 'New title', content: '<p>plain</p>', status: 'published' },
+        field_options: { '0' => { 'note' => { 'group_number' => '-1', 'values' => { '0' => 'x' } } } }
+      }
+
+      expect(response).to have_http_status(:found)
+      expect(flash[:error]).to include("The group number of the 'note' field")
+      expect(record.reload.title).to eq('Kept title')
+    end
+
     it 'stores the value under the largest group number' do
       update_category('2147483647')
 
