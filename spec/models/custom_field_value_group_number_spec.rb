@@ -254,6 +254,40 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 1)).to eq(['kept'])
       expect(post.get_field_values('note', 0)).to eq([])
     end
+
+    # The reset drops each unsaved row of the association. The writer puts back the rows that the
+    # caller built before the call, so the next save of the record stores them.
+    context 'with a row that the caller built before the call' do
+      let(:stored_values) { described_class.where(custom_field_slug: 'note').pluck(:value) }
+
+      before do
+        post.custom_field_values.build(custom_field_id: post.get_field_object('note').id,
+                                       custom_field_slug: 'note', value: 'built', group_number: 5)
+      end
+
+      it 'keeps that row after an error of set_field_value' do
+        expect { post.set_field_value('note', 'new', order: 2**64) }.to raise_error(ActiveModel::RangeError)
+
+        expect(post.save).to be(true)
+        expect(stored_values).to contain_exactly('kept', 'built')
+      end
+
+      it 'keeps that row after a refusal of set_field_value' do
+        expect { post.set_field_value('note', 'new', group_number: -1) }.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(post.save).to be(true)
+        expect(stored_values).to contain_exactly('kept', 'built')
+      end
+
+      it 'keeps that row after a refusal of set_field_values' do
+        payload = { '0' => { 'note' => { group_number: -1, values: ['new'] } } }
+
+        expect { post.set_field_values(payload) }.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(post.save).to be(true)
+        expect(stored_values).to contain_exactly('kept', 'built')
+      end
+    end
   end
 
   it 'gives the refusal in each language of the admin' do

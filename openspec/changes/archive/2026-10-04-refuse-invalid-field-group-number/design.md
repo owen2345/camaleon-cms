@@ -99,6 +99,11 @@ raises an error of any class, so the record reads the stored values again.
 The reset also covers a refusal of the value gate. The other remedy was a note that tells the
 caller to reload the record.
 
+The reset drops each unsaved row of the association, also a row that the caller built before the
+call. The maintainer chose on 2026-10-04 to put those rows back. Each writer reads the unsaved rows
+of the association before its transaction, and adds them to the association after the reset. A
+`set_field_values` call that stores its rows still drops them: its delete clears the association.
+
 **D11. `set_field_value` refuses the group number before its delete.** The maintainer chose it on
 2026-10-04. A call with an empty list builds no row, so no row refused the group number. The lookup
 of the delete cast the number, and the call deleted the stored values of that group: `'1abc'` and

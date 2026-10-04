@@ -33,7 +33,8 @@ field-options param into a 500. The defect is present since 2.9.1.
 - `set_field_value` refuses the group number before its delete. A call with an empty list builds no
   row. Before, that call deleted the stored values of the group that the integer cast gave.
 - After an error, the two writers reset the `custom_field_values` association of the record. The
-  record reads the stored values again, and its next save stores no row of the failed call.
+  record reads the stored values again, and its next save stores no row of the failed call. The
+  unsaved rows that the caller built before the call stay in the association.
 - **Behavior change:** `set_field_values` refuses a negative group number and a text that is not
   digits. Before, it stored a negative number in group 0 and read a text with `to_i` (`'abc'` was
   group 0, `'1abc'` was group 1). `set_field_value` refuses a negative group number. Before, it

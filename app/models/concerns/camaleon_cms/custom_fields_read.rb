@@ -368,10 +368,15 @@ module CamaleonCms
     # refusal and commits.
     # The rollback leaves the rows of the call in the association. After an error, the reset makes the
     # record read the stored values again, and its next save stores no row of the call.
+    # The reset drops each unsaved row, so the writer puts back the rows that the caller built before
+    # the call.
     def _cama_write_field_values(&block)
+      field_values = custom_field_values.proxy_association
+      built_before = field_values.target.select(&:new_record?)
       ActiveRecord::Base.transaction(requires_new: true, &block)
     rescue StandardError
       custom_field_values.reset
+      built_before&.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
       raise
     end
 

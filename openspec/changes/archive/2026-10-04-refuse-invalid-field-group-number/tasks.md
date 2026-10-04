@@ -32,6 +32,8 @@
   (D10)
 - [x] 2.10 Refuse the group number in `set_field_value` before the delete, so a call with an empty
   list gets the refusal, with examples in the model spec (D11)
+- [x] 2.11 Put the unsaved rows that the caller built before the call back after the reset, with
+  examples in the model spec (D10)
 
 ## 3. Documentation
 

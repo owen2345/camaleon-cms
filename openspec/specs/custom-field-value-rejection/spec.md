@@ -214,6 +214,9 @@ The rollback leaves the rows of the failed call in the `custom_field_values` ass
 record. After an error of a writer, the writer SHALL reset that association. The record then SHALL
 read the stored values, and its next save MUST NOT store a row of the failed call.
 
+The reset drops each unsaved row of the association, so the writer SHALL put back the unsaved rows
+that the caller built before the call.
+
 #### Scenario: A group number above the range is refused in an admin save
 
 - **WHEN** an admin save submits a registered field with a group number above 2147483647
@@ -285,3 +288,9 @@ read the stored values, and its next save MUST NOT store a row of the failed cal
 - **WHEN** `set_field_value` or `set_field_values` raises an error, and the caller rescues it and
   goes on with the same record
 - **THEN** the record reads the stored values, and its next save stores no row of the failed call
+
+#### Scenario: The rows that the caller built stay after a failed write
+
+- **WHEN** a caller builds an unsaved row on the `custom_field_values` association, and
+  `set_field_value` or `set_field_values` then raises an error
+- **THEN** the association holds that row, and the next save of the record stores it
