@@ -54,7 +54,10 @@ module CamaleonCms
 
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :group_number_given?
-    before_save :refuse_unreadable_group_number!
+    # A save that skips the validation must not store a group number text that the type cannot read:
+    # the type reads that text as no number. In that save, save returns false and save! raises the
+    # refusal.
+    before_save :refuse_invalid_group_number!, if: :group_number_unreadable?
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
     # and friends), regardless of field type, so gate a shortcode in ANY value behind
     # content_shortcodes -- broader than the HTML gate above, which only covers markup/URI field
@@ -80,7 +83,8 @@ module CamaleonCms
     end
 
     # Raises the refusal of the row when the row refuses its group number. set_field_value calls it
-    # before its delete, because a call with an empty list builds no row.
+    # before its delete, because a call with an empty list builds no row. The before_save guard calls
+    # it for a text that the type cannot read.
     def refuse_invalid_group_number!
       raise_group_number_refusal if group_number_refused?
     end
@@ -190,13 +194,6 @@ module CamaleonCms
     # The row holds a text that the integer type cannot read.
     def group_number_unreadable?
       GroupNumberType.unreadable?(group_number_before_type_cast)
-    end
-
-    # Raises the refusal of the row for a group number text that the type cannot read. The type reads
-    # that text as no number, and a save that skips the validation must not store the row.
-    # In that save, save returns false and save! raises the refusal.
-    def refuse_unreadable_group_number!
-      raise_group_number_refusal if group_number_unreadable?
     end
 
     # Raises the refusal of the row. The row holds the message one time.
