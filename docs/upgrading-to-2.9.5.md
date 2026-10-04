@@ -23,6 +23,7 @@ what theme/plugin developers should know.
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has plugins or themes that submit post template or layout values, non-ASCII meta keys or a status other than published/pending/draft, or relies on a non-publisher reaching `published` | Offer templates through the hooks; a user without the publish permission now stays at `pending` on create, update and restore; run the scan task for stored values ([details](#post-templates-reserved-keys-and-restore)) |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
+| Has **checkboxes** custom fields | Admin saves store them again. Check the options again on the records that an admin saved since 2.9.2 ([details](#admin-saves-store-checkboxes-custom-fields-again)) |
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
@@ -176,6 +177,28 @@ Separately, the per-kind field options in the custom-fields settings — colorpi
 Format**, the date field's date-vs-datetime toggle, image **versions**, file **formats**, and the
 posts field's post-type filter — were silently discarded on every save. They persist now, but any
 choice made before this release was never stored: reopen the field group and pick them again.
+
+---
+
+## Admin saves store checkboxes custom fields again
+
+Since 2.9.2 no admin form stored a **checkboxes** custom field. A save dropped the checked options.
+It also removed the options that the record held, because a save replaces all field values of a
+record. All admin saves of custom-field values had this defect:
+
+- Site settings and theme settings.
+- Post types, posts and drafts.
+- Categories and tags.
+- Users, widget assignments and menu items.
+
+The menu item save stored no custom field on 2.9.2 to 2.9.4, so a menu item kept the options that it
+held.
+
+This release stores the checked options.
+
+**Action:** this release does not restore the values that those saves removed. Review the records
+with a checkboxes field that an admin saved on 2.9.2 to 2.9.4. Check their options again. Code that
+calls `set_field_value` or `save_field_value` stored its values correctly.
 
 ---
 
@@ -471,6 +494,10 @@ post, draft, user and widget assignment saves do (a post and its draft pass the 
 not the per-post and category groups the editor also renders). Without it `set_field_values` resolves
 slugs through the record's `get_field_groups`, as before, matching field rows only, never a group of
 the same slug.
+
+`cama_permitted_field_options` keeps the `values` of a slug sent as a list of scalars (`values[]`, what
+the checkboxes field submits) and the `values` keyed by index. It drops a list that holds a non-scalar,
+as before. A plugin that re-keyed the list by index before the helper call can remove that step.
 
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** Admin saves store checkboxes custom fields again. Since 2.9.2 each admin save dropped the checked options and removed the options that the record held. `cama_permitted_field_options` keeps `values` sent as a list of scalars. [#1315](https://github.com/owen2345/camaleon-cms/pull/1315).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#admin-saves-store-checkboxes-custom-fields-again).
+
 - **Docs:** The agent docs now state the prose standard. All prose follows ASD-STE100 Simplified Technical English and must be concise. `docs/ai/prose.md` gives the scope and the rules. Development-only. [#1316](https://github.com/owen2345/camaleon-cms/pull/1316).
 
 - **Security fix:** Admin custom-field saves store only the fields of the groups their form renders for the record being saved, each value under its slug's own field; a nav menu item's custom fields are stored again. `cama_permitted_field_options` takes `field_groups:` and `set_field_values` an optional groups argument. [#1312](https://github.com/owen2345/camaleon-cms/pull/1312).
