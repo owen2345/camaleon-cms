@@ -248,6 +248,42 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The type of the group number has the 4-byte range on each database, also where the column holds
+  # a wider integer.
+  describe 'a group number above the range of the type' do
+    let(:row) { post.custom_field_values.first }
+
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    it 'raises ActiveModel::RangeError in a write that skips the validation and the callbacks' do
+      attrs = { custom_field_id: row.custom_field_id, custom_field_slug: 'note', value: 'bulk',
+                group_number: 2_147_483_648 }
+
+      expect { row.update_column(:group_number, 2_147_483_648) } # rubocop:disable Rails/SkipsModelValidations
+        .to raise_error(ActiveModel::RangeError)
+      expect { described_class.where(id: row.id).update_all(group_number: 2_147_483_648) } # rubocop:disable Rails/SkipsModelValidations
+        .to raise_error(ActiveModel::RangeError)
+      expect { described_class.insert_all([attrs]) } # rubocop:disable Rails/SkipsModelValidations
+        .to raise_error(ActiveModel::RangeError)
+      expect(row.reload.group_number).to eq(1)
+      expect(described_class.where(value: 'bulk')).to be_empty
+    end
+
+    context 'with a stored row that holds the number in a wider column' do
+      before { store_wide_group_number(row) }
+
+      it 'finds no row in a lookup' do
+        expect(post.custom_field_values.where(group_number: 2_147_483_648)).to be_empty
+        expect(post.get_field_values('note', 2_147_483_648)).to eq([])
+      end
+
+      it 'reads the stored number and updates the value of the row' do
+        expect(row.reload.group_number).to eq(2_147_483_648)
+        expect(row.update(value: 'new')).to be(true)
+      end
+    end
+  end
+
   # A caller can hold a transaction of its own and rescue the refusal inside it. Each writer opens a
   # savepoint there, so the refusal also rolls back the delete of the stored values.
   describe 'a refusal inside a transaction of the caller' do
