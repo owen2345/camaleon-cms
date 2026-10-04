@@ -61,7 +61,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 2_147_483_647)).to eq(['last'])
     end
 
-    it 'stores a value under a group number given as a text of digits' do
+    it 'stores a value under a group number that the caller gives as a text of digits' do
       post.set_field_value('note', 'second', group_number: '2')
 
       expect(post.get_field_values('note', 2)).to eq(['second'])
@@ -138,7 +138,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.reload.group_number).to eq(1)
       end
 
-      it "gets the refusal of a stored row for a text #{kind} written with []=, and the stored number stays" do
+      it "gets the refusal of a stored row when []= writes a text #{kind}, and the stored number stays" do
         row = post.custom_field_values.first
         row[:group_number] = group_number
 
@@ -147,7 +147,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.reload.group_number).to eq(1)
       end
 
-      it "gets the refusal of a new row for a text #{kind} written with write_attribute" do
+      it "gets the refusal of a new row when write_attribute writes a text #{kind}" do
         row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'new')
         row.write_attribute(:group_number, group_number)
 
@@ -442,7 +442,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     expect(row.reload.update(value: 'new')).to be(true)
   end
 
-  it 'refuses a negative group number written to a stored row' do
+  it 'refuses a negative group number that a caller writes to a stored row' do
     post.set_field_value('note', 'old')
     row = post.custom_field_values.first
 

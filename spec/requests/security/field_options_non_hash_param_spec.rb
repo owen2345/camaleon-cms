@@ -130,7 +130,7 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       end
     end
 
-    it 'refuses a group number sent as a file and keeps the stored value' do
+    it 'refuses a group number that the request sends as a file and keeps the stored value' do
       update_category(Rack::Test::UploadedFile.new(StringIO.new('1'), 'text/plain', original_filename: 'n.txt'))
 
       expect(response).to have_http_status(:found)
