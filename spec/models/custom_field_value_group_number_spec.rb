@@ -45,7 +45,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   end
 
   # The row cannot read a text with a broken encoding, or a text in an encoding that is not
-  # ASCII-compatible: the integer cast of Rails, or the lookup of the writer, raises its own error.
+  # ASCII-compatible. The integer cast of Rails, or the lookup of the writer, raises its own error.
   # The two writers refuse that text before they build the row.
   describe 'a group number text that the row cannot read' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
