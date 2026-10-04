@@ -67,6 +67,11 @@ The cast makes the Symbol nil, so a save that skips the validation (`update_attr
 `save(validate: false)`) stored that nil. The maintainer chose a guard on 2026-10-04. A `before_save`
 callback raises the refusal for the Symbol: `save` returns false, and `save!` raises the refusal.
 
+**D8. A copy of a row keeps the given group number.** A copy (`dup`) takes the cast value of each
+attribute. The cast hides a group number that the row refuses: `'abc'` becomes 0, `true` becomes 1,
+and the Symbol of D7 becomes nil. The copy was valid, and its save stored that number.
+`initialize_dup` gives the copy the group number as the caller gave it to the original row.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

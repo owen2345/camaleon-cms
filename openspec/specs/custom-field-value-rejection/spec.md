@@ -196,6 +196,9 @@ get the same refusal on each write path. The integer cast of Rails raises its ow
 text, and that error MUST NOT replace the refusal. A save that skips the validation MUST NOT store
 a group number for that text: it SHALL stop with the same refusal.
 
+A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
+copy of a row with a refused group number MUST get the same refusal.
+
 #### Scenario: A group number above the range is refused in an admin save
 
 - **WHEN** an admin save submits a registered field with a group number above 2147483647
@@ -236,3 +239,9 @@ a group number for that text: it SHALL stop with the same refusal.
   broken encoding, or in an encoding that is not ASCII-compatible
 - **THEN** the save returns false, the row holds the refusal that names the field, and the stored
   row is unchanged
+
+#### Scenario: A copy of a row with a refused group number is refused
+
+- **WHEN** a caller copies a row with `dup`, and the row holds a group number that the row refuses
+- **THEN** the save of the copy returns false, the copy holds the refusal that names the field, and
+  the save stores no row

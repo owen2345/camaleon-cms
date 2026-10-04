@@ -21,6 +21,8 @@
   examples in the model spec (D7)
 - [x] 2.5 Give the Symbol in `write_attribute`, so `[]=` gets the same refusal, with examples in the
   model spec (D7)
+- [x] 2.6 Keep the given group number in a copy of a row (`initialize_dup`), with examples in the
+  model spec (D8)
 
 ## 3. Documentation
 
