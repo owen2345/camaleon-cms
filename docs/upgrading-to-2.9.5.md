@@ -196,7 +196,7 @@ held.
 
 This release stores the checked options.
 
-**Action:** this release does not restore the values that those saves removed. Review the records
+**Action:** this release does not restore the options that those saves removed. Review the records
 with a checkboxes field that an admin saved on 2.9.2 to 2.9.4. Check their options again. Code that
 calls `set_field_value` or `save_field_value` stored its values correctly.
 
