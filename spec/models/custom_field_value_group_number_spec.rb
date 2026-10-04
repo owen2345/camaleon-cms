@@ -4,7 +4,7 @@
 # number above that range raised ActiveModel::RangeError at the save. The value row refuses a group
 # number that is not an integer from 0 to 2147483647.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
-  let(:post_type) { create(:post_type) }
+  let(:post_type) { installed_post_type }
   let(:post) { create(:post, post_type: post_type) }
 
   before do
