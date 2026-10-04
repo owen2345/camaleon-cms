@@ -14,10 +14,10 @@ The standard applies to:
 - PR titles and PR descriptions.
 - The `describe`, `context` and `it` descriptions of new specs.
 
-Apply the standard to the prose that you add or change. Do not rewrite:
+Apply the standard to the prose that you add or change. These limits apply:
 
-- The description of a spec that is already in the repository.
-- A commit message that is already on the remote.
+- You can rewrite the description of an old spec only when your change edits that spec.
+- Never rewrite a commit message that is already on the remote.
 
 ## Sentences and paragraphs
 
