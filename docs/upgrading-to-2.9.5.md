@@ -565,6 +565,10 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 An admin save that sends a refused group number shows an error and keeps the stored values of the
 record. A stored row that holds a negative group number stays valid until code changes that number.
 
+`cama_permitted_field_options` gives a group number that is a list or a hash to the row, with no
+content. The row refuses it. Before, the helper dropped that number, and the save stored the value
+in group 0.
+
 A copy of a stored row (`dup`) is a new row, so the row checks its group number. The copy of a row
 that holds a negative number gets the refusal. So does the copy of a row that holds a number above
 2147483647 in a wider column. `camaleon-post-clone` copies the value rows of a post when its option

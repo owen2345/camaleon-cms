@@ -191,6 +191,10 @@ when its group number changes. An admin save that submits a refused group number
 a 500: it SHALL redirect back with the error and leave the stored values of the record unchanged. An
 absent or empty group number in an admin save SHALL mean group 0.
 
+In an admin save, a group number that is a list or a hash MUST get the same refusal. An empty list
+is a list. `cama_permitted_field_options` SHALL give that shape to the row, with no content. It
+SHALL NOT drop the number, because `set_field_values` reads an absent number as group 0.
+
 A group number text with a broken encoding, or in an encoding that is not ASCII-compatible, SHALL
 get the same refusal on each write path. The integer cast of Rails raises its own error for that
 text, and that error MUST NOT replace the refusal. A save that skips the validation MUST NOT store
@@ -235,6 +239,13 @@ that the caller built before the call.
 #### Scenario: A boolean group number is refused in an admin save
 
 - **WHEN** an admin save with a JSON body submits `true` or `false` as a group number
+- **THEN** the response redirects back with an error that names the field, and the stored values of
+  the record are unchanged
+
+#### Scenario: A group number sent as a list or a hash is refused in an admin save
+
+- **WHEN** an admin save submits a registered field with a group number that is a list, a hash or a
+  list of hashes
 - **THEN** the response redirects back with an error that names the field, and the stored values of
   the record are unchanged
 

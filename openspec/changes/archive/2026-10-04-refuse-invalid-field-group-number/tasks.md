@@ -34,6 +34,9 @@
   list gets the refusal, with examples in the model spec (D11)
 - [x] 2.11 Put the unsaved rows that the caller built before the call back after the reset, with
   examples in the model spec (D10)
+- [x] 2.12 Give a group number that is a list or a hash to the row in `cama_permitted_field_options`,
+  so an admin save gets the refusal, with examples in the request spec and in the spec of the permit
+  helper (D12)
 
 ## 3. Documentation
 

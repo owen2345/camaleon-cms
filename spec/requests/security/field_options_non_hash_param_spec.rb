@@ -83,6 +83,9 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
   # set_field_values took the group number from the request with a lower bound only. A number above
   # the column range raised ActiveModel::RangeError at the row save. A JSON boolean raised
   # NoMethodError. The value row refuses each of them, and the admin shows the refusal.
+  #
+  # The permit took the group number as a scalar only. Rails dropped a list or a hash, and
+  # set_field_values read the absent number as group 0. The permit gives those shapes to the row.
   describe 'a group number that is not an integer from 0 to 2147483647' do
     let(:category) { post_type.categories.create!(name: 'Grouped field', slug: 'grouped-field') }
     let(:refusal) do
@@ -102,7 +105,10 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       'above the range of a 4-byte column' => '2147483648',
       'negative' => '-1',
       'not a number' => 'abc',
-      'a number with text after it' => '0abc' }.each do |kind, group_number|
+      'a number with text after it' => '0abc',
+      'a list' => ['5'],
+      'a hash' => { 'a' => '5' },
+      'a list of hashes' => [{ 'a' => '5' }] }.each do |kind, group_number|
       it "refuses a group number that is #{kind} and keeps the stored value" do
         update_category(group_number)
 
@@ -112,8 +118,9 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       end
     end
 
-    [true, false].each do |group_number|
-      it "refuses a JSON group number of #{group_number} and keeps the stored value" do
+    { 'true' => true, 'false' => false, 'a list of lists' => [['5']],
+      'an empty list' => [] }.each do |kind, group_number|
+      it "refuses a JSON group number of #{kind} and keeps the stored value" do
         update_category(group_number, as: :json)
 
         expect(response).to have_http_status(:found)

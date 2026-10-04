@@ -131,6 +131,15 @@ stored negative group also raises.
 The other remedy was a type that reads each refused number as no number in a lookup. That type
 changes the readers.
 
+**D12. The permit gives a group number that is not a scalar to the row.** The maintainer chose it on
+2026-10-04. `cama_permitted_field_options` took the group number as a scalar. Rails dropped a list or
+a hash there, and `set_field_values` read the absent number as group 0. The save stored the value in
+group 0 with no error. The entry filter has `{ group_number: [{}] }` now. That filter gives a list or
+a hash to the row with no content, and the row refuses the shape.
+
+The filter also covers a list that holds a hash or a list. The other remedy was to leave the permit
+and to say in the requirement that the permit drops such a number.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

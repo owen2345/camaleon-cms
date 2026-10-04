@@ -296,6 +296,9 @@ Changes that look free from inside this repository and are not:
     before, and `set_field_value` stored it as given.
   - `set_field_value` also gives the refusal when the list of values is empty. No surveyed consumer
     passes an empty list with a group number.
+  - `cama_permitted_field_options` gives a group number that is a list or a hash to the row, which
+    refuses it. Before, the helper dropped that number. No form of a surveyed consumer sends that
+    shape.
   - `camaleon-post-clone` copies the value rows of a post with `deep_clone`. A copy is a new row, so the
     clone of a post that holds a row with a negative group number raises `ActiveRecord::RecordInvalid`.
     Only custom code stored such a number, and no surveyed consumer does.

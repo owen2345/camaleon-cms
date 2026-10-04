@@ -35,6 +35,9 @@ field-options param into a 500. The defect is present since 2.9.1.
 - After an error, the two writers reset the `custom_field_values` association of the record. The
   record reads the stored values again, and its next save stores no row of the failed call. The
   unsaved rows that the caller built before the call stay in the association.
+- `cama_permitted_field_options` gives a group number that is a list or a hash to the row, with no
+  content. The row refuses it. Before, the permit dropped that number, and the save stored the value
+  in group 0.
 - **Behavior change:** `set_field_values` refuses a negative group number and a text that is not
   digits. Before, it stored a negative number in group 0 and read a text with `to_i` (`'abc'` was
   group 0, `'1abc'` was group 1). `set_field_value` refuses a negative group number. Before, it
@@ -55,6 +58,7 @@ None.
 
 - `app/models/camaleon_cms/custom_fields_relationship.rb` (the validation),
   `app/models/concerns/camaleon_cms/custom_fields_read.rb` (the hand-off),
+  `app/controllers/concerns/camaleon_cms/admin/custom_fields_concern.rb` (the permit),
   `config/locales/camaleon_cms/admin/*.yml` (the message, in each admin language).
 - Specs: examples in `spec/requests/security/field_options_non_hash_param_spec.rb` and a new
   `spec/models/custom_field_value_group_number_spec.rb`.

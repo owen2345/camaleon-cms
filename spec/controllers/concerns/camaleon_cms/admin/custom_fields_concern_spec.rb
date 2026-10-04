@@ -90,6 +90,32 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
       end
     end
 
+    # The value row refuses a group number that is a list or a hash. The permit gives the shape to
+    # the row and drops its content.
+    context 'with a group number that is not a scalar' do
+      def permitted_group_number(group_number)
+        entry = { 'id' => '1', 'group_number' => group_number, 'values' => { '0' => 'own' } }
+        controller.params = ActionController::Parameters.new(field_options: { '0' => { 'own_setting' => entry } })
+        controller.send(:cama_permitted_field_options, 'Plugin')['0']['own_setting']['group_number']
+      end
+
+      it 'keeps a scalar' do
+        expect(permitted_group_number('2')).to eq('2')
+      end
+
+      it 'gives a list as an empty list' do
+        expect(permitted_group_number(%w[5 6])).to eq([])
+      end
+
+      it 'gives a hash as an empty hash' do
+        expect(permitted_group_number({ 'a' => '5' })).to eq({})
+      end
+
+      it 'gives a list of hashes as a list of empty hashes' do
+        expect(permitted_group_number([{ 'a' => '5' }])).to eq([{}])
+      end
+    end
+
     # The checkboxes field submits `values[]`, a list, where the other fields submit `values[<index>]`.
     context 'with values in both shapes' do
       def permitted_values(values)
