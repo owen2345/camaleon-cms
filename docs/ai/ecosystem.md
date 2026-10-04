@@ -291,7 +291,8 @@ Changes that look free from inside this repository and are not:
   - `camaleon_export_import` is the only one that passes a group number to `set_field_value`: the
     number of an exported row, an integer or nil.
   - The plugins and themes that pass raw params to `set_field_values` render the core form. The admin
-    JavaScript sets the group number of that form to the index of the group.
+    JavaScript sets the group number of that form to the index of the group. One of them,
+    `camaleon_sitemap_customizer`, renders no custom-field form, so its form sends no group number.
   - A negative number raises `ActiveRecord::RecordInvalid` now. `set_field_values` stored it in group 0
     before, and `set_field_value` stored it as given.
   - `set_field_value` also gives the refusal when the list of values is empty. No surveyed consumer
