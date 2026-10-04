@@ -87,6 +87,8 @@ module CamaleonCms
 
     # A copy takes the cast value of each attribute, and the cast hides a group number that the row
     # refuses ('abc' becomes 0). The copy keeps the group number as the caller gave it.
+    # A copy is a new row, so the row checks its group number. The copy of a stored row that holds a
+    # negative number, or a number above the range, gets the refusal. The design keeps this refusal.
     def initialize_dup(other)
       super
       self[:group_number] = other.group_number_before_type_cast

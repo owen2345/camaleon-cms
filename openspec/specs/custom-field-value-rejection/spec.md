@@ -208,6 +208,10 @@ the column holds a wider integer (SQLite, a `bigint` column). There, a lookup wi
 A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
 copy of a row with a refused group number MUST get the same refusal.
 
+A copy is a new row, so the row SHALL check its group number. The copy of a stored row that holds
+a negative number MUST get the same refusal. So MUST the copy of a stored row that holds a number
+above 2147483647 in a wider column.
+
 `set_field_value` SHALL check the group number before it deletes a stored value. A call with an
 empty list of values builds no row, and that call MUST get the same refusal.
 

@@ -565,6 +565,12 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 An admin save that sends a refused group number shows an error and keeps the stored values of the
 record. A stored row that holds a negative group number stays valid until code changes that number.
 
+A copy of a stored row (`dup`) is a new row, so the row checks its group number. The copy of a row
+that holds a negative number gets the refusal. So does the copy of a row that holds a number above
+2147483647 in a wider column. `camaleon-post-clone` copies the value rows of a post when its option
+for the custom fields is on. Its clone of a post with such a row raises `ActiveRecord::RecordInvalid`.
+Before, the copy stored that number.
+
 The type of the group number has the 4-byte range on each database. On a database whose column holds
 a wider integer (SQLite, or a `bigint` column), this changes some calls for a number above 2147483647.
 A lookup (`where`, `get_field_values`) finds no row. `update_column`, `update_all` and `insert_all`

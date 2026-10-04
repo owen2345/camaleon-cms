@@ -296,6 +296,9 @@ Changes that look free from inside this repository and are not:
     before, and `set_field_value` stored it as given.
   - `set_field_value` also gives the refusal when the list of values is empty. No surveyed consumer
     passes an empty list with a group number.
+  - `camaleon-post-clone` copies the value rows of a post with `deep_clone`. A copy is a new row, so the
+    clone of a post that holds a row with a negative group number raises `ActiveRecord::RecordInvalid`.
+    Only custom code stored such a number, and no surveyed consumer does.
 - **The reset of the `custom_field_values` association after an error of `set_field_value` or
   `set_field_values`** changes no surveyed consumer. No consumer rescues an error of the two writers.
   The unsaved rows that a caller built on the association before the call stay.
