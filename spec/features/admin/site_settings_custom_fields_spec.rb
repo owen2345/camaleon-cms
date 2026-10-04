@@ -4,7 +4,7 @@
 # a required field belonging to another content type is rendered on the site settings form with
 # `class="required"`, so jQuery validation refuses to submit until it is filled in. The block is
 # client-side, which is why it needs a :js feature spec rather than a request spec.
-describe 'Site settings with custom field groups of other content types', :js do
+RSpec.describe 'Site settings with custom field groups of other content types', :js do
   init_site
 
   before do

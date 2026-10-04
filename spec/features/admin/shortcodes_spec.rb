@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the Shortcodes', :js do
+RSpec.describe 'the Shortcodes', :js do
   init_site
 
   it 'Shortcodes list' do

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'Custom field translation (safe)', :js do
+RSpec.describe 'Custom field translation (safe)', :js do
   init_site
 
   let(:field_slug) { 'secure_checkbox' }

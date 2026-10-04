@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe CamaleonCms::CaptchaHelper do
+RSpec.describe CamaleonCms::CaptchaHelper do
   subject(:helper_instance) { plain_class.new }
 
   # Test the helper when included in a plain object without view context.

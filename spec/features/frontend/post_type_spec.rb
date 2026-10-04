@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'Posttype frontend', :js do
+RSpec.describe 'Posttype frontend', :js do
   before do
     @site = CamaleonCms::Site.first.decorate
     @post = @site.the_post('sample-post').decorate

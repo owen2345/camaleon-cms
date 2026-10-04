@@ -19,7 +19,7 @@ def create_role
   end
 end
 
-describe 'the User Roles', :js do
+RSpec.describe 'the User Roles', :js do
   init_site
 
   it 'User Roles list' do

@@ -1,4 +1,4 @@
-describe 'User Roles UI includes select_eval permission', :js do
+RSpec.describe 'User Roles UI includes select_eval permission', :js do
   init_site
 
   def open_new_role_form

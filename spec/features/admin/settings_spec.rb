@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'the Site Settings SideBar options', :js do
+RSpec.describe 'the Site Settings SideBar options', :js do
   init_site
 
   before { admin_sign_in }

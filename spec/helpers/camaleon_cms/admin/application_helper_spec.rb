@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe 'CamaleonCms::Admin::ApplicationHelper' do
+RSpec.describe 'CamaleonCms::Admin::ApplicationHelper' do
   describe '#cama_shortcode_print' do
     it 'returns an input tag with auto-select JS attributes' do
       code = '[test_shortcode]'

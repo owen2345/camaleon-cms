@@ -6,7 +6,7 @@
 # so a saved free-text value like "2" crashed the picker's constructor mid-render, taking the
 # rest of the form's custom fields down with it. The examples pin the picker, its value, the
 # fields rendered after it, and the whole class of values jQuery coerces.
-describe 'the colorpicker custom field', :js do
+RSpec.describe 'the colorpicker custom field', :js do
   init_site
 
   # The text field after the colorpicker pins the blast radius: the old crash aborted the

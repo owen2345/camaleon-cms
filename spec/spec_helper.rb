@@ -89,8 +89,6 @@ RSpec.configure do |config|
     # ...rather than:
     #     # => "be bigger than 2"
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
-
-    expectations.syntax = %i[should expect]
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
@@ -102,6 +100,9 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+  # Removes the global `describe` and the `should` syntax. A spec file must start with `RSpec.describe`.
+  config.disable_monkey_patching!
+
   # The settings below are suggested to provide a good initial experience
   # with RSpec, but feel free to customize to your heart's content.
   #   # These two settings work together to allow you to limit a spec run
@@ -110,13 +111,6 @@ RSpec.configure do |config|
   #   # get run.
   #   config.filter_run :focus
   #   config.run_all_when_everything_filtered = true
-  #
-  #   # Limits the available syntax to the non-monkey patched syntax that is
-  #   # recommended. For more details, see:
-  #   #   - https://myronmars.to/n/dev-blog/2012/06/rspecs-new-expectation-syntax
-  #   #   - https://teaisaweso.me/blog/2013/05/27/rspecs-new-message-expectation-syntax/
-  #   #   - https://myronmars.to/n/dev-blog/2014/05/notable-changes-in-rspec-3#new__config_option_to_disable_rspeccore_monkey_patching
-  #   config.disable_monkey_patching!
   #
   #   # Many RSpec users commonly either run the entire suite or an individual
   #   # file, and it's useful to allow more verbose output when running an
