@@ -14,6 +14,14 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     group.add_manual_field({ name: 'Note', slug: 'note' }, { field_key: 'text_box' })
   end
 
+  # A column that holds a wider integer can hold a number above the range of the type. An update with
+  # an SQL text skips the type.
+  def store_wide_group_number(row)
+    skip 'The column holds a 4-byte integer' unless described_class.connection.adapter_name.match?(/sqlite/i)
+
+    described_class.where(id: row.id).update_all('group_number = 2147483648') # rubocop:disable Rails/SkipsModelValidations
+  end
+
   describe 'set_field_value' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
@@ -217,6 +225,26 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect(copy.save).to be(true)
       expect(copy.reload.group_number).to be_nil
+    end
+
+    # A copy is a new row, so the row checks its group number. A stored row can hold a number that a
+    # new row refuses.
+    it 'refuses the copy of a stored row that holds a negative group number' do
+      row = post.custom_field_values.first
+      row.update_column(:group_number, -1) # rubocop:disable Rails/SkipsModelValidations
+      copy = row.reload.dup
+
+      expect(copy.save).to be(false)
+      expect(copy.errors[:base]).to eq([copy.group_number_refusal])
+    end
+
+    it 'refuses the copy of a stored row that holds a group number above the range in a wider column' do
+      row = post.custom_field_values.first
+      store_wide_group_number(row)
+      copy = row.reload.dup
+
+      expect(copy.save).to be(false)
+      expect(copy.errors[:base]).to eq([copy.group_number_refusal])
     end
   end
 
