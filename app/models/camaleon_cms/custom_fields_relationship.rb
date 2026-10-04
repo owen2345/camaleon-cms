@@ -49,7 +49,22 @@ module CamaleonCms
       self
     end
 
+    # The message of the refusal of a group number, for the validation and for the writers.
+    def group_number_refusal
+      cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER)
+    end
+
     class << self
+      # The integer cast of Rails raises ArgumentError for a text with a broken encoding, before the row
+      # validation runs. A writer calls this method before it builds the row.
+      def refuse_broken_group_number!(slug, group_number)
+        return unless group_number.is_a?(String) && !group_number.valid_encoding?
+
+        row = new(custom_field_slug: slug)
+        row.errors.add(:base, row.group_number_refusal)
+        raise ActiveRecord::RecordInvalid, row
+      end
+
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).
       def gated_field_key?(field_key)
         GATED_FIELD_KEYS.include?(field_key.to_s)
@@ -143,7 +158,7 @@ module CamaleonCms
       given = group_number_before_type_cast
       return if given.nil? || storable_group_number?(given)
 
-      errors.add(:base, cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER))
+      errors.add(:base, group_number_refusal)
     end
 
     # An Integer or a text of ASCII digits. A Symbol can print as digits, and the cast makes it nil.

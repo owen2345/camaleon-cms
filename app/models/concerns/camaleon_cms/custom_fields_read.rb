@@ -265,9 +265,11 @@ module CamaleonCms
             # is in the groups its save resolves against, and its id is held to the slug's fields).
             field_id = _cama_field_id_for(field_key, field_groups) || fallback_field_id_for(field_key) || values[:id]
             # An absent or empty group number is the first group. The value row refuses a group number
-            # that is not an integer in its range.
+            # that is not an integer in its range. The row cannot read a text with a broken encoding,
+            # so the refusal of that text comes first.
             group_number = values[:group_number]
             group_number = 0 if group_number.nil? || group_number == ''
+            CamaleonCms::CustomFieldsRelationship.refuse_broken_group_number!(field_key, group_number)
 
             order_value = -1
             (
@@ -337,6 +339,9 @@ module CamaleonCms
       args[:field_id] ||= fallback_field_id_for(key)
 
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
+
+      # The row and the lookup below cannot read a group number text with a broken encoding.
+      CamaleonCms::CustomFieldsRelationship.refuse_broken_group_number!(key, args[:group_number])
 
       v = {
         custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),

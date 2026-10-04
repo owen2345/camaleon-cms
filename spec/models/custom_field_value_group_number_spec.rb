@@ -44,6 +44,26 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The integer cast of Rails raises ArgumentError for a text with a broken encoding, before the row
+  # validation runs. The two writers refuse that text before they build the row.
+  describe 'a group number text with a broken encoding' do
+    let(:group_number) { "1\xFF" }
+
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    it 'gets the refusal of set_field_value, and the stored value stays' do
+      expect { post.set_field_value('note', 'new', group_number: group_number) }
+        .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    it 'gets the refusal of set_field_values, and the stored value stays' do
+      expect { post.set_field_values({ '0' => { 'note' => { group_number: group_number, values: ['new'] } } }) }
+        .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+  end
+
   it 'gives the refusal in each language of the admin' do
     files = Dir[CamaleonCms::Engine.root.join('config/locales/camaleon_cms/admin/*.yml')]
     locales = files.map { |file| YAML.load_file(file).keys.first }
