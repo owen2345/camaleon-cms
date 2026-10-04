@@ -37,7 +37,7 @@ RSpec.describe 'the checkboxes custom field', :js do
     expect(stored).to eq(%w[1 3])
   end
 
-  it 'shows the stored options as checked and removes the options that the admin unchecks' do
+  it 'removes the options that the admin unchecks' do
     @site.set_field_value('colors', %w[1 3])
 
     stored = save_site_settings do
