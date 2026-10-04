@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
-# The admin JavaScript renames a custom field's `values[]` inputs to `values[<index>]`, except for the
-# checkboxes field, whose inputs keep the `values[]` name and so submit a list of scalars. The
-# allow-list every admin save shares permitted `values` as a hash only: the list was dropped, and
-# since set_field_values clears the record's values before writing, each save stored nothing for the
-# checkboxes field and wiped what it held. The permit keeps both shapes; a list of non-scalars stays
-# dropped.
+# The admin JavaScript renames the `values[]` inputs of a custom field to `values[<index>]`. The
+# checkboxes field keeps the `values[]` name, so it submits a list of scalars. The permit that all
+# admin saves share keeps both shapes. Without the list filter, a save stores nothing for the
+# checkboxes field and removes its stored values. The permit drops a list that holds a non-scalar.
 RSpec.describe 'Admin custom field values submitted as a list', type: :request do
   init_site
 
