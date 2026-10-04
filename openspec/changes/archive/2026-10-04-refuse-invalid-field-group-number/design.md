@@ -53,23 +53,29 @@ empty text, and the core forms always send a number.
 row refuses the number, as the remedy rule asks.
 
 **D7. The row refuses a text that the integer cast cannot read.** The maintainer chose it on
-2026-10-04. The integer cast of Rails raises its own error for a text with a broken encoding, or in
-a dummy encoding (UTF-7), before the validation runs. The writer of the group number gives the cast
-a Symbol in place of such a text, and the validation refuses a Symbol. A text in an encoding that is
-not ASCII-compatible (UTF-16) gets the same Symbol.
+2026-10-04. The integer type of Rails raises its own error for a text with a broken encoding, or in
+an encoding that is not ASCII-compatible (UTF-16, UTF-7), before the validation runs.
 
-`set_field_value` refuses the text before its lookup, which casts the number first. No request can
-send such a text, because Rails answers it with a 400. Only Ruby code can pass it.
-`write_attribute` gives the Symbol, so `[]=` gets the same refusal. `update_column` skips the
-validation and the callbacks, and this change does not touch it.
+The group number has its own integer type, `GroupNumberType`. The maintainer chose the type on
+2026-10-04. The type reads such a text as no number, and the row keeps the text. The validation
+reads the text and refuses it. The type covers each write to the attribute (`group_number=`, `[]=`,
+`write_attribute`) and each lookup. No request can send such a text, because Rails answers it with
+a 400. Only Ruby code can pass it.
 
-The cast makes the Symbol nil, so a save that skips the validation (`update_attribute`,
-`save(validate: false)`) stored that nil. The maintainer chose a guard on 2026-10-04. A `before_save`
-callback raises the refusal for the Symbol: `save` returns false, and `save!` raises the refusal.
+A lookup with such a text finds no row, as a lookup with a text that is not a number does in Rails.
+`set_field_value` and `find_or_create_by!` look the number up first. They reach the row after the
+lookup, and the row gives the refusal. The type replaced three guards: a writer and a
+`write_attribute` override that gave the cast a Symbol, and a check before the lookup of
+`set_field_value`. With those guards, `find_or_create_by!` raised the error of Rails.
+
+A save that skips the validation (`update_attribute`, `save(validate: false)`) stored no number for
+such a text. The maintainer chose a guard on 2026-10-04. A `before_save` callback raises the
+refusal: `save` returns false, and `save!` raises the refusal. `update_column`, `update_all` and
+`insert_all` skip the validation and the callbacks. They store no group number for such a text.
 
 **D8. A copy of a row keeps the given group number.** A copy (`dup`) takes the cast value of each
 attribute. The cast hides a group number that the row refuses: `'abc'` becomes 0, `true` becomes 1,
-and the Symbol of D7 becomes nil. The copy was valid, and its save stored that number.
+and the text of D7 becomes nil. The copy was valid, and its save stored that number.
 `initialize_dup` gives the copy the group number as the caller gave it to the original row.
 
 ## Risks / Trade-offs

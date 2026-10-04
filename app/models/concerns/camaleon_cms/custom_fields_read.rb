@@ -338,10 +338,6 @@ module CamaleonCms
 
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
-      # The lookup below raises its own error for a group number text with a broken encoding, or in an
-      # encoding that is not ASCII-compatible. The refusal of the row comes first.
-      CamaleonCms::CustomFieldsRelationship.refuse_unreadable_group_number!(key, args[:group_number])
-
       v = {
         custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
         term_order: args[:order], group_number: args[:group_number]

@@ -26,9 +26,33 @@ module CamaleonCms
     GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
     # A group number is an index from 0. PostgreSQL and MySQL store it in a 4-byte integer column.
     MAX_GROUP_NUMBER = 2_147_483_647
-    # write_attribute gives this Symbol to the integer cast in place of a group number text that the
-    # cast cannot read. The validation refuses a Symbol.
-    UNREADABLE_GROUP_NUMBER = :unreadable
+
+    # The integer type of the group number. The integer type of Rails raises its own error for a text
+    # with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16). This type reads
+    # that text as no number, in a row and in a lookup. The row keeps the text, and the validation
+    # refuses it.
+    class GroupNumberType < ActiveRecord::Type::Integer
+      def self.unreadable?(value)
+        value.is_a?(String) && !(value.valid_encoding? && value.encoding.ascii_compatible?)
+      end
+
+      def cast(value)
+        super unless self.class.unreadable?(value)
+      end
+
+      def serialize(value)
+        super unless self.class.unreadable?(value)
+      end
+
+      # The change check of Rails matches the text against a pattern, which raises the same error.
+      def changed?(old_value, new_value, new_value_before_type_cast)
+        return !old_value.nil? if self.class.unreadable?(new_value_before_type_cast)
+
+        super
+      end
+    end
+
+    attribute :group_number, GroupNumberType.new
 
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :group_number_given?
@@ -52,21 +76,9 @@ module CamaleonCms
       self
     end
 
-    # The message of the refusal of a group number, for the validation and for set_field_value.
+    # The message of the refusal of a group number.
     def group_number_refusal
       cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER)
-    end
-
-    # The integer cast of Rails raises its own error for a text that it cannot read, before the
-    # validation runs. write_attribute keeps that text from the cast, and the validation refuses the row.
-    def group_number=(value)
-      write_attribute(:group_number, value)
-    end
-
-    # The writer above and []= call this method.
-    def write_attribute(attr_name, value)
-      unreadable = attr_name.to_s == 'group_number' && self.class.unreadable_group_number?(value)
-      super(attr_name, unreadable ? UNREADABLE_GROUP_NUMBER : value)
     end
 
     # A copy takes the cast value of each attribute, and the cast hides a group number that the row
@@ -76,34 +88,7 @@ module CamaleonCms
       self[:group_number] = other.group_number_before_type_cast
     end
 
-    # Raises the refusal of the row for a group number text that the cast cannot read. The cast makes
-    # the Symbol of that text nil, and a save that skips the validation must not store that nil.
-    # In that save, save returns false and save! raises the refusal.
-    def refuse_unreadable_group_number!
-      return unless group_number_unreadable?
-
-      refusal = group_number_refusal
-      errors.add(:base, refusal) unless errors[:base].include?(refusal)
-      raise ActiveRecord::RecordInvalid, self
-    end
-
     class << self
-      # A text with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16). The
-      # integer cast of Rails raises its own error for that text.
-      def unreadable_group_number?(group_number)
-        return false unless group_number.is_a?(String)
-
-        !(group_number.valid_encoding? && group_number.encoding.ascii_compatible?)
-      end
-
-      # The lookup of set_field_value casts the group number before the row can refuse it. The method
-      # raises the refusal of the row for a text that the cast cannot read.
-      def refuse_unreadable_group_number!(slug, group_number)
-        return unless unreadable_group_number?(group_number)
-
-        new(custom_field_slug: slug, group_number: group_number).refuse_unreadable_group_number!
-      end
-
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).
       def gated_field_key?(field_key)
         GATED_FIELD_KEYS.include?(field_key.to_s)
@@ -191,14 +176,25 @@ module CamaleonCms
     end
 
     # A stored row that holds a negative group number stays valid until a caller changes the number.
-    # The cast makes the Symbol of an unreadable text nil, which is no change on a row with no number.
+    # The type reads an unreadable text as no number, which is no change on a row with no number.
     def group_number_given?
       new_record? || will_save_change_to_group_number? || group_number_unreadable?
     end
 
-    # write_attribute left its Symbol in place of a text that the cast cannot read.
+    # The row holds a text that the integer type cannot read.
     def group_number_unreadable?
-      group_number_before_type_cast == UNREADABLE_GROUP_NUMBER
+      GroupNumberType.unreadable?(group_number_before_type_cast)
+    end
+
+    # Raises the refusal of the row for a group number text that the type cannot read. The type reads
+    # that text as no number, and a save that skips the validation must not store the row.
+    # In that save, save returns false and save! raises the refusal.
+    def refuse_unreadable_group_number!
+      return unless group_number_unreadable?
+
+      refusal = group_number_refusal
+      errors.add(:base, refusal) unless errors[:base].include?(refusal)
+      raise ActiveRecord::RecordInvalid, self
     end
 
     # A number above the column range raises ActiveModel::RangeError at the save, and the integer cast
@@ -212,11 +208,10 @@ module CamaleonCms
     end
 
     # An Integer or a text of ASCII digits. A Symbol can print as digits, and the cast makes it nil.
-    # The digits check raises for a text that the cast cannot read. A write that skips write_attribute
-    # can leave that text in the row.
+    # The digits check raises for a text that the type cannot read.
     def storable_group_number?(given)
       return false unless given.is_a?(Integer) || given.is_a?(String)
-      return false if self.class.unreadable_group_number?(given)
+      return false if GroupNumberType.unreadable?(given)
 
       given.to_s.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
     end

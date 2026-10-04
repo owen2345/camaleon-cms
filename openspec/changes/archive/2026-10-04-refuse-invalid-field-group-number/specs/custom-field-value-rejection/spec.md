@@ -14,7 +14,8 @@ absent or empty group number in an admin save SHALL mean group 0.
 A group number text with a broken encoding, or in an encoding that is not ASCII-compatible, SHALL
 get the same refusal on each write path. The integer cast of Rails raises its own error for that
 text, and that error MUST NOT replace the refusal. A save that skips the validation MUST NOT store
-a group number for that text: it SHALL stop with the same refusal.
+a group number for that text: it SHALL stop with the same refusal. A lookup with that text SHALL
+find no row, so a write that looks the number up first SHALL get the same refusal.
 
 A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
 copy of a row with a refused group number MUST get the same refusal.
@@ -59,6 +60,13 @@ copy of a row with a refused group number MUST get the same refusal.
   broken encoding, or in an encoding that is not ASCII-compatible
 - **THEN** the save returns false, the row holds the refusal that names the field, and the stored
   row is unchanged
+
+#### Scenario: A write that looks the number up first is refused
+
+- **WHEN** `custom_field_values.find_or_create_by!` gets a group number text with a broken
+  encoding, or in an encoding that is not ASCII-compatible
+- **THEN** the lookup finds no row, the caller gets the refusal that names the field, and the
+  stored values of the record are unchanged
 
 #### Scenario: A copy of a row with a refused group number is refused
 

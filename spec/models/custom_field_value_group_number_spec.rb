@@ -107,6 +107,21 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.errors[:base]).to eq([row.group_number_refusal])
         expect(post.custom_field_values.reload.pluck(:value)).to eq(['kept'])
       end
+
+      it "gets the refusal of find_or_create_by! for a text #{kind}, and the stored value stays" do
+        attrs = { custom_field_id: field_id, custom_field_slug: 'note', value: 'new', group_number: group_number }
+
+        expect { post.custom_field_values.find_or_create_by!(attrs) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+
+      it "finds no row in a lookup for a text #{kind}" do
+        post.set_field_value('note', 'unset', group_number: nil)
+
+        expect(post.custom_field_values.where(group_number: group_number)).to be_empty
+        expect(post.get_field_values('note', group_number)).to eq([])
+      end
     end
 
     it 'stops the save of a new row that skips the validation for a text with a broken encoding' do

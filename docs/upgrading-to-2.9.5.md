@@ -554,6 +554,8 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
   same refusal on each of the three paths.
 - A save that skips the validation (`update_attribute`, `save(validate: false)`) stores nothing for
   such a text. `save` returns false, and `save!` raises the refusal.
+- A lookup with such a text (`where`, `find_by`, `get_field_values`) finds no row.
+  `find_or_create_by!` gets the same refusal.
 
 An admin save that sends such a group number shows an error and keeps the stored values of the record.
 A stored row that holds a negative group number stays valid until code changes that number.

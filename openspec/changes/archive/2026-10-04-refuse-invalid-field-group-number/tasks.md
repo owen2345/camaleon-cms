@@ -23,6 +23,8 @@
   model spec (D7)
 - [x] 2.6 Keep the given group number in a copy of a row (`initialize_dup`), with examples in the
   model spec (D8)
+- [x] 2.7 Move the guards of 2.3 and 2.5 to an integer type for the group number, which also covers
+  a lookup, with examples in the model spec (D7)
 
 ## 3. Documentation
 
