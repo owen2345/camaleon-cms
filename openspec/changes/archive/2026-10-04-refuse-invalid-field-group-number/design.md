@@ -86,7 +86,8 @@ another refused number, such a save stores the cast of the number, as Rails does
 `insert_all` skip the validation and the callbacks. They store no group number for such a text.
 
 The maintainer chose to leave those three writes on 2026-10-04. Before, Rails raised its own error
-there. The type only maps a value, so it cannot keep the stored number. A refusal is possible for
+there in most cases. In the other cases it stored the digits at the start of the text, or no
+number. The type only maps a value, so it cannot keep the stored number. A refusal is possible for
 `update_column` only: `update_all` and `insert_all` cast the value first, with the cast that the row
 uses. Rails gives those writes no check for other values: `'abc'` becomes NULL or 0.
 
