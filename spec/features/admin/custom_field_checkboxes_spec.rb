@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-# The checkboxes partial keeps the `values[]` name of its inputs. The admin JavaScript renames the
-# inputs of the other fields to `values[<index>]`. The request specs build that list by hand. These
-# examples submit the real form, so they fail when the partial, the JavaScript or the permit changes
-# the shape.
+# The checkboxes partial keeps the `values[]` name of its inputs, so the field submits a list of
+# scalars. The admin JavaScript renames the inputs of the other fields to `values[<index>]`. The
+# request specs build the list by hand. These examples submit the real form, so they fail when the
+# form and the permit do not agree on the shape of the values.
 RSpec.describe 'the checkboxes custom field', :js do
   init_site
 
