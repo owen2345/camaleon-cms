@@ -114,6 +114,19 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
       it 'keeps a hash keyed by index' do
         expect(permitted_values({ '0' => 'own' })).to eq('0' => 'own')
       end
+
+      # All groups share one filter object.
+      it 'keeps both shapes in each of two groups' do
+        entries = { 'own_setting' => { 'id' => '1', 'values' => %w[1 3] },
+                    'other_setting' => { 'id' => '2', 'values' => { '0' => 'other' } } }
+        controller.params = ActionController::Parameters.new(field_options: { '0' => entries, '1' => entries })
+        permitted = controller.send(:cama_permitted_field_options, 'Plugin')
+
+        %w[0 1].each do |group|
+          expect(permitted[group]['own_setting']['values']).to eq(%w[1 3])
+          expect(permitted[group]['other_setting']['values']).to eq('0' => 'other')
+        end
+      end
     end
   end
 end
