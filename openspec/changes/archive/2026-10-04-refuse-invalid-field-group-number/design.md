@@ -10,7 +10,7 @@ reaches it: `set_field_values`, `set_field_value` and a direct `custom_field_val
 **Goals:**
 
 - No admin save answers a group number in the request with a 500.
-- A refused group number writes nothing and removes nothing.
+- A refused group number stores no value row and removes no stored value.
 - The same rule holds on SQLite, PostgreSQL and MySQL.
 
 **Non-Goals:**
@@ -30,8 +30,8 @@ reaches it: `set_field_values`, `set_field_value` and a direct `custom_field_val
 - A `rescue_from ActiveModel::RangeError` in `AdminController` hides each range error in the admin
   and does not cover the `NoMethodError`.
 
-The validation covers each caller, rolls the save back, and reaches the existing `RecordInvalid`
-rescue, which shows the message.
+The validation covers each caller, rolls the write of the values back, and reaches the existing
+`RecordInvalid` rescue, which shows the message.
 
 **D2. The validation reads the value before the cast.** The integer cast makes `true` 1, `false` 0
 and `'abc'` 0, so a check of the cast value accepts them. The numericality validator of Rails falls
