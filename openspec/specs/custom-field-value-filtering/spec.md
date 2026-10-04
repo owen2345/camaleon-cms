@@ -49,6 +49,13 @@ nothing.
   registered under its scope
 - **THEN** the object's existing values remain unchanged
 
+#### Scenario: A group that nests its fields under a numeric key preserves existing values
+
+- **WHEN** an object has stored custom-field values and a save submits a group that holds its
+  fields under a numeric key
+- **THEN** the request completes normally (no 500) and the object's existing values remain
+  unchanged
+
 ### Requirement: A non-hash field-options payload is ignored, not fatal
 
 The allowed-slugs permit SHALL treat a `field_options` (or sibling `theme_fields`) payload that is

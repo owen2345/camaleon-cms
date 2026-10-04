@@ -27,3 +27,25 @@ record. A list holding anything other than scalars MUST NOT create a value row.
 
 - **WHEN** a save submits a registered field's values as a list of hashes
 - **THEN** no value row is stored for that field
+
+## MODIFIED Requirements
+
+### Requirement: A submission carrying no registered slug leaves stored values intact
+
+An admin custom-field value save whose submitted slugs are all unregistered under the target
+scope SHALL leave the target's existing stored values unchanged. The allowed-slugs filter MUST
+NOT hand the value writer a non-blank payload that clears every existing value while writing
+nothing.
+
+#### Scenario: All-unregistered submission preserves existing values
+
+- **WHEN** an object has stored custom-field values and a save submits only slugs not
+  registered under its scope
+- **THEN** the object's existing values remain unchanged
+
+#### Scenario: A group that nests its fields under a numeric key preserves existing values
+
+- **WHEN** an object has stored custom-field values and a save submits a group that holds its
+  fields under a numeric key
+- **THEN** the request completes normally (no 500) and the object's existing values remain
+  unchanged
