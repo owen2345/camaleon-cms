@@ -44,23 +44,33 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The integer cast of Rails raises ArgumentError for a text with a broken encoding, before the row
-  # validation runs. The two writers refuse that text before they build the row.
-  describe 'a group number text with a broken encoding' do
-    let(:group_number) { "1\xFF" }
-
+  # The row cannot read a text with a broken encoding, or a text in an encoding that is not
+  # ASCII-compatible: the integer cast of Rails, or the lookup of the writer, raises its own error.
+  # The two writers refuse that text before they build the row.
+  describe 'a group number text that the row cannot read' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
-    it 'gets the refusal of set_field_value, and the stored value stays' do
-      expect { post.set_field_value('note', 'new', group_number: group_number) }
-        .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
-      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    { 'with a broken encoding' => "1\xFF",
+      'in UTF-16' => '1'.encode('UTF-16LE'),
+      'in UTF-7' => (+'1').force_encoding('UTF-7') }.each do |kind, group_number|
+      it "gets the refusal of set_field_value for a text #{kind}, and the stored value stays" do
+        expect { post.set_field_value('note', 'new', group_number: group_number) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+
+      it "gets the refusal of set_field_values for a text #{kind}, and the stored value stays" do
+        expect { post.set_field_values({ '0' => { 'note' => { group_number: group_number, values: ['new'] } } }) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
     end
 
-    it 'gets the refusal of set_field_values, and the stored value stays' do
-      expect { post.set_field_values({ '0' => { 'note' => { group_number: group_number, values: ['new'] } } }) }
-        .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
-      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    it 'gets the refusal of a new row for a text in UTF-16' do
+      row = post.custom_field_values.new(custom_field_slug: 'note', group_number: '1'.encode('UTF-16LE'))
+
+      expect(row).not_to be_valid
+      expect(row.errors[:base]).to include(row.group_number_refusal)
     end
   end
 

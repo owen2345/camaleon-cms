@@ -55,10 +55,12 @@ module CamaleonCms
     end
 
     class << self
-      # The integer cast of Rails raises ArgumentError for a text with a broken encoding, before the row
-      # validation runs. A writer calls this method before it builds the row.
-      def refuse_broken_group_number!(slug, group_number)
-        return unless group_number.is_a?(String) && !group_number.valid_encoding?
+      # The row cannot read a text with a broken encoding, or a text in an encoding that is not
+      # ASCII-compatible (UTF-16). The integer cast of Rails, or the lookup of a writer, raises its own
+      # error for that text. A writer calls this method before it builds the row.
+      def refuse_unreadable_group_number!(slug, group_number)
+        return unless group_number.is_a?(String)
+        return if group_number.valid_encoding? && group_number.encoding.ascii_compatible?
 
         row = new(custom_field_slug: slug)
         row.errors.add(:base, row.group_number_refusal)
@@ -162,8 +164,10 @@ module CamaleonCms
     end
 
     # An Integer or a text of ASCII digits. A Symbol can print as digits, and the cast makes it nil.
+    # The digits check raises for a text in an encoding that is not ASCII-compatible (UTF-16).
     def storable_group_number?(given)
       return false unless given.is_a?(Integer) || given.is_a?(String)
+      return false if given.is_a?(String) && !given.encoding.ascii_compatible?
 
       given.to_s.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
     end
