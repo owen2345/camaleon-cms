@@ -184,12 +184,12 @@ choice made before this release was never stored: reopen the field group and pic
 
 Since 2.9.2 no admin form stored a **checkboxes** custom field. A save dropped the checked options.
 It also removed the options that the record held, because a save replaces all field values of a
-record. All admin saves of custom-field values had this defect:
+record. These admin saves had this defect:
 
 - Site settings and theme settings.
 - Post types, posts and drafts.
 - Categories and tags.
-- Users, widget assignments and menu items.
+- Users and widget assignments.
 
 The menu item save stored no custom field on 2.9.2 to 2.9.4, so a menu item kept the options that it
 held.
