@@ -19,6 +19,8 @@
   the model spec (D7)
 - [x] 2.4 Stop a save that skips the validation for such a text with a `before_save` callback, with
   examples in the model spec (D7)
+- [x] 2.5 Give the Symbol in `write_attribute`, so `[]=` gets the same refusal, with examples in the
+  model spec (D7)
 
 ## 3. Documentation
 

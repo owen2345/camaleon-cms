@@ -59,8 +59,9 @@ a Symbol in place of such a text, and the validation refuses a Symbol. A text in
 not ASCII-compatible (UTF-16) gets the same Symbol.
 
 `set_field_value` refuses the text before its lookup, which casts the number first. No request can
-send such a text, because Rails answers it with a 400. Only Ruby code can pass it. A write that
-skips the writer (`write_attribute`, `update_column`) keeps the error of Rails.
+send such a text, because Rails answers it with a 400. Only Ruby code can pass it.
+`write_attribute` gives the Symbol, so `[]=` gets the same refusal. `update_column` skips the
+validation and the callbacks, and this change does not touch it.
 
 The cast makes the Symbol nil, so a save that skips the validation (`update_attribute`,
 `save(validate: false)`) stored that nil. The maintainer chose a guard on 2026-10-04. A `before_save`
