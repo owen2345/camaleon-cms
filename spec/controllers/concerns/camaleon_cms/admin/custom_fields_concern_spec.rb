@@ -111,6 +111,11 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
         expect(permitted_group_number({ 'a' => '5' })).to eq({})
       end
 
+      # Rails reads a hash with a numeric key as nested attributes.
+      it 'gives a hash with a numeric key as an empty hash' do
+        expect(permitted_group_number({ '0' => '5' })).to eq({})
+      end
+
       it 'gives a list of hashes as a list of empty hashes' do
         expect(permitted_group_number([{ 'a' => '5' }])).to eq([{}])
       end
