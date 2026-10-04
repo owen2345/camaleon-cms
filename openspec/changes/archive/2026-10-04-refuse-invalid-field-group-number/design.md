@@ -52,6 +52,12 @@ empty text, and the core forms always send a number.
 **D6. `set_field_values` no longer clamps a negative number to 0.** The clamp was a transform. The
 row refuses the number, as the remedy rule asks.
 
+**D7. The two writers refuse a text with a broken encoding before they build the row.** The
+maintainer chose it on 2026-10-04. The integer cast of Rails raises `ArgumentError` for such a text
+before the validation runs. The lookup in `set_field_value` raises the same error. No request can
+send such a text, because Rails answers it with a 400. Only Ruby code can pass it. A direct
+`custom_field_values.create!` keeps the `ArgumentError` of Rails.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to
