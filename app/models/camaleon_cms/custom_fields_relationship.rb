@@ -32,6 +32,7 @@ module CamaleonCms
 
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :group_number_given?
+    before_save :refuse_unreadable_group_number!
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
     # and friends), regardless of field type, so gate a shortcode in ANY value behind
     # content_shortcodes -- broader than the HTML gate above, which only covers markup/URI field
@@ -62,6 +63,17 @@ module CamaleonCms
       super(self.class.unreadable_group_number?(value) ? UNREADABLE_GROUP_NUMBER : value)
     end
 
+    # Raises the refusal of the row for a group number text that the cast cannot read. The cast makes
+    # the Symbol of that text nil, and a save that skips the validation must not store that nil.
+    # In that save, save returns false and save! raises the refusal.
+    def refuse_unreadable_group_number!
+      return unless group_number_unreadable?
+
+      refusal = group_number_refusal
+      errors.add(:base, refusal) unless errors[:base].include?(refusal)
+      raise ActiveRecord::RecordInvalid, self
+    end
+
     class << self
       # A text with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16). The
       # integer cast of Rails raises its own error for that text.
@@ -76,9 +88,7 @@ module CamaleonCms
       def refuse_unreadable_group_number!(slug, group_number)
         return unless unreadable_group_number?(group_number)
 
-        row = new(custom_field_slug: slug)
-        row.errors.add(:base, row.group_number_refusal)
-        raise ActiveRecord::RecordInvalid, row
+        new(custom_field_slug: slug, group_number: group_number).refuse_unreadable_group_number!
       end
 
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).
@@ -170,8 +180,12 @@ module CamaleonCms
     # A stored row that holds a negative group number stays valid until a caller changes the number.
     # The cast makes the Symbol of an unreadable text nil, which is no change on a row with no number.
     def group_number_given?
-      new_record? || will_save_change_to_group_number? ||
-        group_number_before_type_cast == UNREADABLE_GROUP_NUMBER
+      new_record? || will_save_change_to_group_number? || group_number_unreadable?
+    end
+
+    # The writer of the group number left its Symbol in place of a text that the cast cannot read.
+    def group_number_unreadable?
+      group_number_before_type_cast == UNREADABLE_GROUP_NUMBER
     end
 
     # A number above the column range raises ActiveModel::RangeError at the save, and the integer cast

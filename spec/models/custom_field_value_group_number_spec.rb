@@ -82,6 +82,25 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.errors[:base]).to include(row.group_number_refusal)
         expect(row.reload.group_number).to eq(1)
       end
+
+      it "stops a save that skips the validation for a text #{kind}, and the stored number stays" do
+        row = post.custom_field_values.first
+
+        expect(row.update_attribute(:group_number, group_number)).to be(false) # rubocop:disable Rails/SkipsModelValidations
+        expect(row.errors[:base]).to eq([row.group_number_refusal])
+        expect(row.reload.group_number).to eq(1)
+      end
+    end
+
+    it 'stops the save of a new row that skips the validation for a text with a broken encoding' do
+      row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'new',
+                                         group_number: "1\xFF")
+
+      expect(row.save(validate: false)).to be(false)
+      expect { row.save!(validate: false) }
+        .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+      expect(row.errors[:base]).to eq([row.group_number_refusal])
+      expect(post.custom_field_values.reload.pluck(:value)).to eq(['kept'])
     end
 
     it 'gets the refusal of a stored row with no group number for a text with a broken encoding' do
