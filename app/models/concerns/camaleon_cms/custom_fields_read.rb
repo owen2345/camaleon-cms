@@ -234,6 +234,7 @@ module CamaleonCms
     #   "0"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}},
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
+    # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
     # groups (get_field_groups returns its posts'), a post's post type groups (get_field_groups adds the
