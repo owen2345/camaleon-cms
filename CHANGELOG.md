@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Docs:** The agent docs now state the prose standard. All prose follows ASD-STE100 Simplified Technical English and must be concise. `docs/ai/prose.md` gives the scope and the rules. Development-only. [#1316](https://github.com/owen2345/camaleon-cms/pull/1316).
+
 - **Security fix:** Admin custom-field saves store only the fields of the groups their form renders for the record being saved, each value under its slug's own field; a nav menu item's custom fields are stored again. `cama_permitted_field_options` takes `field_groups:` and `set_field_values` an optional groups argument. [#1312](https://github.com/owen2345/camaleon-cms/pull/1312).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#admin-custom-field-saves-store-only-the-records-own-fields).
 
