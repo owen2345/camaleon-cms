@@ -227,8 +227,10 @@ module CamaleonCms
     end
 
     # A missing translation must not hide the message. The process locale follows the language of the
-    # admin or the site, and en.yml is the only file that carries each key. The message falls back to
+    # admin or the site. Only en.yml carries each key. The other admin files carry the key of the
+    # group number only, and a language with no admin file carries none. The message falls back to
     # English.
+    #
     # The fallback is the English template with no values, so I18n fills the values one time. A slug
     # can hold the interpolation syntax of I18n, and a second pass raises an error for that slug.
     def cama_rejection_message(key, **values)
