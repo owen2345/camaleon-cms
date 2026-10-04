@@ -74,8 +74,9 @@ reads the text and refuses it. The type covers each write to the attribute (`gro
 a 400. Only Ruby code can pass it.
 
 A lookup with such a text finds no row, as a lookup with a text that is not a number does in Rails.
-`set_field_value` and `find_or_create_by!` look the number up first. They reach the row after the
-lookup, and the row gives the refusal. The type replaced three guards: a writer and a
+`find_or_create_by!` looks the number up first. It reaches the row after the lookup, and the row
+gives the refusal. `set_field_value` did the same until D11: it checks the number before its lookup
+now. The type replaced three guards: a writer and a
 `write_attribute` override that gave the cast a Symbol, and a check before the lookup of
 `set_field_value`. With those guards, `find_or_create_by!` raised the error of Rails.
 
