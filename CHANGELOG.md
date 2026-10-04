@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The spec suite disables the RSpec monkey patches (`config.disable_monkey_patching!`). A spec file must start with `RSpec.describe`: a bare top-level `describe` fails to load, and the `should` syntax does not exist. Development-only. [#1317](https://github.com/owen2345/camaleon-cms/pull/1317).
+
 - **Bug fix:** Admin saves store checkboxes custom fields again. Since 2.9.2 most admin saves dropped the checked options and removed the options that the record held. `cama_permitted_field_options` keeps `values` sent as a list of scalars. [#1315](https://github.com/owen2345/camaleon-cms/pull/1315).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#admin-saves-store-checkboxes-custom-fields-again).
 
