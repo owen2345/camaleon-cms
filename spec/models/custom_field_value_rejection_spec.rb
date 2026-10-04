@@ -208,6 +208,20 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('body')).to eq(['<p>keep me</p>'])
     end
 
+    # A refused list leaves its first row in the association of the post, and the reset drops each
+    # unsaved row. The writer puts back the row that the caller built before the call.
+    it 'keeps the row that the caller built when the writer refuses a list' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>keep me</p>')
+      post.custom_field_values.build(custom_field_id: post.get_field_object('body').id, custom_field_slug: 'body',
+                                     value: '<p>built</p>', group_number: 5)
+
+      expect { post.set_field_value('body', ['<p>first</p>', script]) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(post.save).to be(true)
+      expect(post.reload.custom_field_values.pluck(:value)).to contain_exactly('<p>keep me</p>', '<p>built</p>')
+    end
+
     it 'refuses a dangerous value written through update_field_value (M5)' do
       as_user(contributor)
       post.set_field_value('body', '<p>ok</p>')
