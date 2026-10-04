@@ -169,6 +169,21 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.custom_field_values.where(group_number: group_number)).to be_empty
         expect(post.get_field_values('note', group_number)).to eq([])
       end
+
+      it "stores no group number for a text #{kind} in a write that skips the validation and the callbacks" do
+        row = post.custom_field_values.first
+        attrs = { custom_field_id: field_id, custom_field_slug: 'note', value: 'bulk', group_number: group_number }
+
+        row.update_column(:group_number, group_number) # rubocop:disable Rails/SkipsModelValidations
+        expect(row.reload.group_number).to be_nil
+
+        row.update_column(:group_number, 1) # rubocop:disable Rails/SkipsModelValidations
+        described_class.where(id: row.id).update_all(group_number: group_number) # rubocop:disable Rails/SkipsModelValidations
+        expect(row.reload.group_number).to be_nil
+
+        described_class.insert_all([attrs]) # rubocop:disable Rails/SkipsModelValidations
+        expect(described_class.find_by(value: 'bulk').group_number).to be_nil
+      end
     end
 
     it 'stops the save of a new row that skips the validation for a text with a broken encoding' do
