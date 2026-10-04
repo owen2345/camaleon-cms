@@ -82,8 +82,7 @@ module CamaleonCms
     # Raises the refusal of the row when the row refuses its group number. set_field_value calls it
     # before its delete, because a call with an empty list builds no row.
     def refuse_invalid_group_number!
-      reject_invalid_group_number
-      raise ActiveRecord::RecordInvalid, self if errors[:base].include?(group_number_refusal)
+      raise_group_number_refusal if group_number_refused?
     end
 
     # A copy takes the cast value of each attribute, and the cast hides a group number that the row
@@ -195,21 +194,26 @@ module CamaleonCms
     # that text as no number, and a save that skips the validation must not store the row.
     # In that save, save returns false and save! raises the refusal.
     def refuse_unreadable_group_number!
-      return unless group_number_unreadable?
+      raise_group_number_refusal if group_number_unreadable?
+    end
 
+    # Raises the refusal of the row. The row holds the message one time.
+    def raise_group_number_refusal
       refusal = group_number_refusal
       errors.add(:base, refusal) unless errors[:base].include?(refusal)
       raise ActiveRecord::RecordInvalid, self
     end
 
+    def reject_invalid_group_number
+      errors.add(:base, group_number_refusal) if group_number_refused?
+    end
+
     # A number above the column range raises ActiveModel::RangeError at the save, and the integer cast
     # hides a boolean or a text ('abc' becomes 0). The check reads the group number as the caller gave
     # it. A nil group number passes: a caller can leave it unset.
-    def reject_invalid_group_number
+    def group_number_refused?
       given = group_number_before_type_cast
-      return if given.nil? || storable_group_number?(given)
-
-      errors.add(:base, group_number_refusal)
+      !(given.nil? || storable_group_number?(given))
     end
 
     # An Integer or a text of ASCII digits. A Symbol can print as digits, and the cast makes it nil.

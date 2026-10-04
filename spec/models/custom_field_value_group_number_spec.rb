@@ -65,6 +65,24 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The check of the writer reads the group number of the row, not the errors that the row holds.
+  describe 'refuse_invalid_group_number!' do
+    let(:row) { described_class.new(custom_field_slug: 'note', group_number: -1) }
+
+    before { row.valid? }
+
+    it 'passes a valid group number on a row that holds an earlier refusal' do
+      row.group_number = 1
+
+      expect { row.refuse_invalid_group_number! }.not_to raise_error
+    end
+
+    it 'adds no second refusal to a row that holds the refusal' do
+      expect { row.refuse_invalid_group_number! }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(row.errors[:base]).to eq([row.group_number_refusal])
+    end
+  end
+
   # The integer cast of Rails cannot read a text with a broken encoding, or in an encoding that is not
   # ASCII-compatible. The row keeps that text from the cast and refuses it.
   describe 'a group number text that the integer cast cannot read' do
