@@ -24,8 +24,9 @@ field-options param into a 500. The defect is present since 2.9.1.
 - An admin save that sends such a group number redirects back with a flash error that names the
   field. The stored values stay, because the save runs in a transaction.
 - **Behavior change:** `set_field_values` refuses a negative group number and a text that is not
-  digits. Before, it stored the value in group 0. `set_field_value` refuses a negative group number.
-  Before, it stored the number.
+  digits. Before, it stored a negative number in group 0 and read a text with `to_i` (`'abc'` was
+  group 0, `'1abc'` was group 1). `set_field_value` refuses a negative group number. Before, it
+  stored the number.
 
 ## Capabilities
 

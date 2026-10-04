@@ -545,7 +545,9 @@ given as an Integer or as a text of digits. `set_field_value`, `set_field_values
 `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` for any other group number.
 
 - A number above 2147483647 raised `ActiveModel::RangeError` before, on PostgreSQL and on MySQL.
-- `set_field_values` stored a negative number, or a text that is not digits, in group 0 before.
+- `set_field_values` stored a negative number in group 0 before.
+- `set_field_values` read a text that is not digits with `to_i` before: `'abc'` was group 0, and `'1abc'`
+  was group 1.
 - `set_field_value` stored a negative number as given before.
 - `set_field_values` still reads an absent or empty group number as group 0.
 
