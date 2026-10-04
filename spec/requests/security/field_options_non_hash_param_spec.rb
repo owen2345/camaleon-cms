@@ -70,12 +70,14 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     category.set_field_value('subtitle', 'kept')
 
     patch "/admin/post_type/#{post_type.id}/categories/#{category.id}", params: {
-      category: { name: 'Nested field', slug: 'nested-field' },
+      category: { name: 'Renamed field', slug: 'nested-field' },
       field_options: { '0' => { '0' => { 'subtitle' => { 'id' => '1', 'values' => { '0' => 'x' } } } } }
     }
 
     expect(response).to have_http_status(:found)
-    expect(category.reload.get_field_values('subtitle')).to eq(['kept'])
+    category.reload
+    expect(category.name).to eq('Renamed field')
+    expect(category.get_field_values('subtitle')).to eq(['kept'])
   end
 
   it 'refuses a draft save whose field_options is a scalar, storing nothing' do
