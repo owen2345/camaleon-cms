@@ -64,7 +64,7 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
   end
 
   # Rails reads a group that holds a numeric key as nested attributes, so the entry under that key
-  # passes the permit. The key names no field. The save must write nothing and remove nothing.
+  # passes the permit. The key names no field.
   it 'saves the category and keeps its field values when a group holds its fields under a numeric key' do
     category = post_type.categories.create!(name: 'Nested field', slug: 'nested-field')
     category.set_field_value('subtitle', 'kept')
