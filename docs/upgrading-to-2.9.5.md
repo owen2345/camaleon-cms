@@ -549,6 +549,7 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 - `set_field_values` read a text that is not digits with `to_i` before: `'abc'` was group 0, and `'1abc'`
   was group 1.
 - `set_field_value` stored a negative number as given before.
+- `set_field_value` stored no group number for an empty text before. Pass nil for no group number.
 - `set_field_value` with an empty list also refuses the group number, before it deletes a stored value.
   Before, that call raised nothing and deleted the values of the group that the integer cast gave
   (`'1abc'` was group 1). It also deleted the values of a stored negative group.
