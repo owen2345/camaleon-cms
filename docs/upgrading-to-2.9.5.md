@@ -574,8 +574,9 @@ in group 0.
 
 A copy of a stored row (`dup`) is a new row, so the row checks its group number. The copy of a row
 that holds a negative number gets the refusal. So does the copy of a row that holds a number above
-2147483647 in a wider column. `camaleon-post-clone` copies the value rows of a post when its option
-for the custom fields is on. Its clone of a post with such a row raises `ActiveRecord::RecordInvalid`.
+2147483647 in a wider column. The master branch of `camaleon-post-clone` copies the value rows of a
+post when its option for the custom fields is on. Its clone of a post with such a row raises
+`ActiveRecord::RecordInvalid` for the post, with the message "Custom field values is invalid".
 Before, the copy stored that number.
 
 The type of the group number has the 4-byte range on each database. On a database whose column holds
