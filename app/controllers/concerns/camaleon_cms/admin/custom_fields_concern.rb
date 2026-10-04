@@ -26,7 +26,7 @@ module CamaleonCms
 
         # values arrives keyed by index (`values[<index>]`, as the admin JavaScript renames most fields'
         # inputs) or as a list of scalars (`values[]`, the checkboxes field). Each shape needs a filter
-        # of its own, and the one that does not match leaves the other's result in place.
+        # of its own. The filter that does not match leaves the result of the other filter in place.
         # All groups share one filter. Rails copies a plain filter for each group. It does not copy a
         # filter that has indifferent access.
         entry_filter = [:id, :group_number, { values: {} }, { values: [] }]
