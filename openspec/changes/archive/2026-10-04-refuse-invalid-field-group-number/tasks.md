@@ -12,7 +12,7 @@
 ## 2. The remedy
 
 - [x] 2.1 Validate the group number in `CamaleonCms::CustomFieldsRelationship` (D1 to D4) and add
-  the message to `en.yml`
+  the message to each admin locale file
 - [x] 2.2 Give the group number to the row as sent in `set_field_values` (D5, D6)
 
 ## 3. Documentation
