@@ -191,6 +191,7 @@ releases:
 - Post types, posts and drafts.
 - Categories and tags.
 - Users and widget assignments.
+- Plugin settings that a plugin saves through `cama_permitted_field_options`.
 
 The menu item save stored no custom field on 2.9.2 to 2.9.4, so a menu item kept the options that it
 held.
