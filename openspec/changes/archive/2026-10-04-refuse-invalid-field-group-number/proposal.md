@@ -21,7 +21,7 @@ field-options param into a 500. The defect is present since 2.9.1.
   only when the number changes. A nil group number passes.
 - `set_field_values` gives the group number to the row as the request sent it. An absent or empty
   group number is still group 0. The lower clamp and the `to_i` call go.
-- An admin save that sends such a group number redirects back with a flash error that names the
+- An admin save that sends a refused group number redirects back with a flash error that names the
   field. The stored values stay, because the save runs in a transaction.
 - The row refuses a group number text with a broken encoding, or in an encoding that is not
   ASCII-compatible (UTF-16). The integer type of Rails raises its own error for such a text, so the
