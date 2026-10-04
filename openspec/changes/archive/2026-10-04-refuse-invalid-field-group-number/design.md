@@ -99,6 +99,16 @@ raises an error of any class, so the record reads the stored values again.
 The reset also covers a refusal of the value gate. The other remedy was a note that tells the
 caller to reload the record.
 
+**D11. `set_field_value` refuses the group number before its delete.** The maintainer chose it on
+2026-10-04. A call with an empty list builds no row, so no row refused the group number. The lookup
+of the delete cast the number, and the call deleted the stored values of that group: `'1abc'` and
+`true` were group 1. `set_field_value` gives the group number to a row that it does not store. That
+row raises the refusal before the delete. The check runs on each call, so an empty list for a
+stored negative group also raises.
+
+The other remedy was a type that reads each refused number as no number in a lookup. That type
+changes the readers.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

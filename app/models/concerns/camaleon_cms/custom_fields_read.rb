@@ -346,6 +346,10 @@ module CamaleonCms
       # value the scan-and-reject gate refuses (create! -> RecordInvalid) rolls the delete back and
       # the previously stored value survives instead of being destroyed.
       _cama_write_field_values do
+        # A call with an empty list builds no row, so no row refuses the group number. The check gives
+        # the refusal of a row before the delete.
+        CamaleonCms::CustomFieldsRelationship.new(v.slice(:custom_field_slug, :group_number))
+                                             .refuse_invalid_group_number!
         if args[:clear]
           custom_field_values.where({ custom_field_slug: key, group_number: args[:group_number] }).delete_all
         end

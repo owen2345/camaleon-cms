@@ -30,6 +30,8 @@
 - [x] 2.9 Reset the association of the record when a writer raises an error, so the record reads
   the stored values and its next save stores no row of the call, with examples in the model specs
   (D10)
+- [x] 2.10 Refuse the group number in `set_field_value` before the delete, so a call with an empty
+  list gets the refusal, with examples in the model spec (D11)
 
 ## 3. Documentation
 

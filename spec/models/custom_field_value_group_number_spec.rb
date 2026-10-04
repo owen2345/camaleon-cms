@@ -25,6 +25,27 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
+    # A call with an empty list builds no row, so no row refuses the group number. The writer refuses
+    # the number before its delete.
+    ['1abc', true, 1.5, -1, [1], "1\xFF"].each do |group_number|
+      it "refuses the group number #{group_number.inspect} with an empty list and keeps the stored value" do
+        expect { post.set_field_value('note', [], group_number: group_number) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.get_field_values('note', 1)).to eq(['kept'])
+      end
+    end
+
+    it 'refuses a group number with an empty list when the call does not clear the stored values' do
+      expect { post.set_field_value('note', [], group_number: '1abc', clear: false) }
+        .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+    end
+
+    it 'removes the stored values of a group with an empty list' do
+      post.set_field_value('note', [], group_number: 1)
+
+      expect(post.get_field_values('note', 1)).to eq([])
+    end
+
     it 'stores a value under the largest group number' do
       post.set_field_value('note', 'last', group_number: 2_147_483_647)
 

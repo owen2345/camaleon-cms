@@ -23,6 +23,9 @@ is not a write path of this requirement. Such a write stores no group number (NU
 A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
 copy of a row with a refused group number MUST get the same refusal.
 
+`set_field_value` SHALL check the group number before it deletes a stored value. A call with an
+empty list of values builds no row, and that call MUST get the same refusal.
+
 `set_field_value` and `set_field_values` delete stored values before they create the rows. A refusal
 of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL open a
 savepoint, so the rollback also holds when the caller rescues the refusal and commits.
@@ -84,6 +87,12 @@ read the stored values, and its next save MUST NOT store a row of the failed cal
 - **WHEN** a caller copies a row with `dup`, and the row holds a group number that the row refuses
 - **THEN** the save of the copy returns false, the copy holds the refusal that names the field, and
   the save stores no row
+
+#### Scenario: An empty list with a refused group number is refused
+
+- **WHEN** `set_field_value` gets an empty list of values and a group number that a row refuses
+- **THEN** the caller gets the refusal that names the field, and the stored values of the record
+  are unchanged
 
 #### Scenario: A refusal inside a transaction of the caller keeps the stored values
 

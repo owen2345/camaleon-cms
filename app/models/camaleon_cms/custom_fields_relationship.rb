@@ -76,6 +76,13 @@ module CamaleonCms
       cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER)
     end
 
+    # Raises the refusal of the row when the row refuses its group number. set_field_value calls it
+    # before its delete, because a call with an empty list builds no row.
+    def refuse_invalid_group_number!
+      reject_invalid_group_number
+      raise ActiveRecord::RecordInvalid, self if errors[:base].include?(group_number_refusal)
+    end
+
     # A copy takes the cast value of each attribute, and the cast hides a group number that the row
     # refuses ('abc' becomes 0). The copy keeps the group number as the caller gave it.
     def initialize_dup(other)
