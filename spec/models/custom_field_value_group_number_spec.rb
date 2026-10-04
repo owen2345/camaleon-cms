@@ -301,8 +301,10 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # A caller can hold a transaction of its own and rescue the refusal inside it. Each writer opens a
-  # savepoint there, so the refusal also rolls back the delete of the stored values.
+  # A caller can hold a transaction of its own and rescue the refusal inside it. set_field_values
+  # deletes the stored values before a row refuses the number, and its savepoint rolls that delete
+  # back. set_field_value refuses the number before its delete. The spec of the value gate covers the
+  # savepoint of set_field_value.
   describe 'a refusal inside a transaction of the caller' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
