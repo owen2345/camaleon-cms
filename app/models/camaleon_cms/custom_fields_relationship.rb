@@ -31,6 +31,8 @@ module CamaleonCms
     # with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16). This type reads
     # that text as no number, in a row and in a lookup. The row keeps the text, and the validation
     # refuses it.
+    # update_column, update_all and insert_all skip the validation and the callbacks. They store no
+    # group number for that text.
     class GroupNumberType < ActiveRecord::Type::Integer
       def self.unreadable?(value)
         value.is_a?(String) && !(value.valid_encoding? && value.encoding.ascii_compatible?)

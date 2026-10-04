@@ -32,6 +32,8 @@
 
 - [x] 3.1 Add the note for plugin and theme developers to `docs/upgrading-to-2.9.5.md`
 - [x] 3.2 Record the survey of the consumers in `docs/ai/ecosystem.md`
+- [x] 3.3 Record the three writes that skip the validation and the callbacks in the upgrade note and
+  in the requirement (D7)
 
 ## 4. Verification and release steps
 

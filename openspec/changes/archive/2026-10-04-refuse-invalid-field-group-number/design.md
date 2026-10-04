@@ -73,6 +73,11 @@ such a text. The maintainer chose a guard on 2026-10-04. A `before_save` callbac
 refusal: `save` returns false, and `save!` raises the refusal. `update_column`, `update_all` and
 `insert_all` skip the validation and the callbacks. They store no group number for such a text.
 
+The maintainer chose to leave those three writes on 2026-10-04. Before, Rails raised its own error
+there. The type only maps a value, so it cannot keep the stored number. A refusal is possible for
+`update_column` only: `update_all` and `insert_all` cast the value first, with the cast that the row
+uses. Rails gives those writes no check for other values: `'abc'` becomes NULL or 0.
+
 **D8. A copy of a row keeps the given group number.** A copy (`dup`) takes the cast value of each
 attribute. The cast hides a group number that the row refuses: `'abc'` becomes 0, `true` becomes 1,
 and the text of D7 becomes nil. The copy was valid, and its save stored that number.
