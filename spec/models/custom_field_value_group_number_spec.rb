@@ -44,10 +44,12 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The row cannot read a text with a broken encoding, or a text in an encoding that is not
-  # ASCII-compatible. The integer cast of Rails, or the lookup of the writer, raises its own error.
-  # The two writers refuse that text before they build the row.
-  describe 'a group number text that the row cannot read' do
+  # The integer cast of Rails cannot read a text with a broken encoding, or in an encoding that is not
+  # ASCII-compatible. The writer of the group number keeps that text from the cast, and the row
+  # refuses it.
+  describe 'a group number text that the integer cast cannot read' do
+    let(:field_id) { post.get_field_object('note').id }
+
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
     { 'with a broken encoding' => "1\xFF",
@@ -64,10 +66,35 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
           .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
         expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
+
+      it "gets the refusal of a direct create! for a text #{kind}" do
+        attrs = { custom_field_id: field_id, custom_field_slug: 'note', value: 'new', group_number: group_number }
+
+        expect { post.custom_field_values.create!(attrs) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+
+      it "gets the refusal of a stored row for a text #{kind}, and the stored number stays" do
+        row = post.custom_field_values.first
+
+        expect(row.update(group_number: group_number)).to be(false)
+        expect(row.errors[:base]).to include(row.group_number_refusal)
+        expect(row.reload.group_number).to eq(1)
+      end
     end
 
-    it 'gets the refusal of a new row for a text in UTF-16' do
-      row = post.custom_field_values.new(custom_field_slug: 'note', group_number: '1'.encode('UTF-16LE'))
+    it 'gets the refusal of a stored row with no group number for a text with a broken encoding' do
+      post.set_field_value('note', 'unset', group_number: nil)
+      row = post.custom_field_values.find_by(group_number: nil)
+
+      expect(row.update(group_number: "1\xFF")).to be(false)
+      expect(row.errors[:base]).to include(row.group_number_refusal)
+    end
+
+    it 'gets the refusal of the row for a text in UTF-16 that skips the writer' do
+      row = post.custom_field_values.new(custom_field_slug: 'note')
+      row[:group_number] = '1'.encode('UTF-16LE')
 
       expect(row).not_to be_valid
       expect(row.errors[:base]).to include(row.group_number_refusal)
