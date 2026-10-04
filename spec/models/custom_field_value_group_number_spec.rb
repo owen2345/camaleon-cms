@@ -238,7 +238,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
 
     it 'stores no group number for a row that a query read without its group number' do
-      copy = described_class.select(:id, :custom_field_id, :custom_field_slug, :value).first.dup
+      copy = post.custom_field_values.select(:id, :custom_field_id, :custom_field_slug, :value).first.dup
 
       expect(copy.save).to be(true)
       expect(copy.reload.group_number).to be_nil
