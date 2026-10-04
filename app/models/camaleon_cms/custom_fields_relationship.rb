@@ -43,13 +43,6 @@ module CamaleonCms
       def serialize(value)
         super unless self.class.unreadable?(value)
       end
-
-      # The change check of Rails matches the text against a pattern, which raises the same error.
-      def changed?(old_value, new_value, new_value_before_type_cast)
-        return !old_value.nil? if self.class.unreadable?(new_value_before_type_cast)
-
-        super
-      end
     end
 
     attribute :group_number, GroupNumberType.new
