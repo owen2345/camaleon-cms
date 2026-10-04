@@ -11,6 +11,10 @@ when its group number changes. An admin save that submits a refused group number
 a 500: it SHALL redirect back with the error and leave the stored values of the record unchanged. An
 absent or empty group number in an admin save SHALL mean group 0.
 
+A row cannot read a group number text with a broken encoding, or in an encoding that is not
+ASCII-compatible. `set_field_value` and `set_field_values` SHALL refuse that text with the same error
+before they build the row. A direct write of a row can raise the error of Rails for that text.
+
 #### Scenario: A group number above the range is refused in an admin save
 
 - **WHEN** an admin save submits a registered field with a group number above 2147483647
