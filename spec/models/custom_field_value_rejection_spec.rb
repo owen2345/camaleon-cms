@@ -185,6 +185,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
     end
 
+    it 'keeps the stored value when the caller rescues the refusal inside its transaction' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>keep me</p>')
+
+      ActiveRecord::Base.transaction do
+        post.set_field_value('body', script)
+      rescue ActiveRecord::RecordInvalid
+        nil
+      end
+
+      expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
+    end
+
     it 'refuses a dangerous value written through update_field_value (M5)' do
       as_user(contributor)
       post.set_field_value('body', '<p>ok</p>')

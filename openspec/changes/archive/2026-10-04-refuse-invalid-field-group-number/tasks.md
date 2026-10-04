@@ -25,6 +25,8 @@
   model spec (D8)
 - [x] 2.7 Move the guards of 2.3 and 2.5 to an integer type for the group number, which also covers
   a lookup, with examples in the model spec (D7)
+- [x] 2.8 Open a savepoint in `set_field_value` and `set_field_values`, so a refusal that the caller
+  rescues inside its own transaction rolls the delete back, with examples in the model specs (D9)
 
 ## 3. Documentation
 

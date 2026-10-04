@@ -243,7 +243,9 @@ module CamaleonCms
     def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 
-      ActiveRecord::Base.transaction do
+      # A savepoint inside a transaction of the caller. A refusal of a row rolls the delete back there
+      # too, when the caller rescues the refusal and commits.
+      ActiveRecord::Base.transaction(requires_new: true) do
         # A value identical to one already stored is not newly authored, so it must not be re-gated on
         # an unrelated edit (audit M8): the admin form round-trips every value and this method
         # delete/recreates them all, so without this skip a single pre-gate dangerous value would fail
@@ -344,8 +346,9 @@ module CamaleonCms
       }
       # Atomic (audit M7): clear the previous value and write the new one in one transaction, so a
       # value the scan-and-reject gate refuses (create! -> RecordInvalid) rolls the delete back and
-      # the previously stored value survives instead of being destroyed.
-      ActiveRecord::Base.transaction do
+      # the previously stored value survives instead of being destroyed. The transaction is a savepoint
+      # inside a transaction of the caller, so the rollback also holds when the caller rescues the refusal.
+      ActiveRecord::Base.transaction(requires_new: true) do
         if args[:clear]
           custom_field_values.where({ custom_field_slug: key, group_number: args[:group_number] }).delete_all
         end

@@ -200,6 +200,10 @@ find no row, so a write that looks the number up first SHALL get the same refusa
 A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
 copy of a row with a refused group number MUST get the same refusal.
 
+`set_field_value` and `set_field_values` delete stored values before they create the rows. A refusal
+of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL open a
+savepoint, so the rollback also holds when the caller rescues the refusal and commits.
+
 #### Scenario: A group number above the range is refused in an admin save
 
 - **WHEN** an admin save submits a registered field with a group number above 2147483647
@@ -253,3 +257,9 @@ copy of a row with a refused group number MUST get the same refusal.
 - **WHEN** a caller copies a row with `dup`, and the row holds a group number that the row refuses
 - **THEN** the save of the copy returns false, the copy holds the refusal that names the field, and
   the save stores no row
+
+#### Scenario: A refusal inside a transaction of the caller keeps the stored values
+
+- **WHEN** a caller runs `set_field_value` or `set_field_values` inside its own transaction with a
+  group number that the row refuses, rescues the refusal inside that transaction and commits
+- **THEN** the stored values of the record are unchanged

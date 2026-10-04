@@ -78,6 +78,12 @@ attribute. The cast hides a group number that the row refuses: `'abc'` becomes 0
 and the text of D7 becomes nil. The copy was valid, and its save stored that number.
 `initialize_dup` gives the copy the group number as the caller gave it to the original row.
 
+**D9. The writers open a savepoint.** The maintainer chose it on 2026-10-04. `set_field_value` and
+`set_field_values` delete stored values before they create the rows. Their transaction joined a
+transaction of the caller, so a caller that rescued the refusal there and committed kept the delete.
+The writers call `transaction(requires_new: true)`. The savepoint covers each refusal of a row, the
+refusal of the value gate included.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

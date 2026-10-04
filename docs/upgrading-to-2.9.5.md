@@ -560,6 +560,10 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 An admin save that sends such a group number shows an error and keeps the stored values of the record.
 A stored row that holds a negative group number stays valid until code changes that number.
 
+`set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A refusal
+of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
+there. Before, that caller lost the stored values at its commit.
+
 ---
 
 ## Recommended rollout

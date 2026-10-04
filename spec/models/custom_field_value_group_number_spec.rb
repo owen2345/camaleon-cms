@@ -181,6 +181,32 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # A caller can hold a transaction of its own and rescue the refusal inside it. Each writer opens a
+  # savepoint there, so the refusal also rolls back the delete of the stored values.
+  describe 'a refusal inside a transaction of the caller' do
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    it 'keeps the stored value when the caller rescues the refusal of set_field_value' do
+      ActiveRecord::Base.transaction do
+        post.set_field_value('note', 'new', group_number: '1abc')
+      rescue ActiveRecord::RecordInvalid
+        nil
+      end
+
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    it 'keeps the stored values when the caller rescues the refusal of set_field_values' do
+      ActiveRecord::Base.transaction do
+        post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+      rescue ActiveRecord::RecordInvalid
+        nil
+      end
+
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+  end
+
   it 'gives the refusal in each language of the admin' do
     files = Dir[CamaleonCms::Engine.root.join('config/locales/camaleon_cms/admin/*.yml')]
     locales = files.map { |file| YAML.load_file(file).keys.first }
