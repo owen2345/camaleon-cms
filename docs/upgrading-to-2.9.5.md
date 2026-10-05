@@ -587,7 +587,8 @@ for a number outside that range. Before, those databases found and stored such a
 - A lookup (`where`, `get_field_values`) finds no row.
 - A write that skips the validation raises `ActiveModel::RangeError`. Such a write is
   `update_attribute`, `save(validate: false)`, or a write that also skips the callbacks
-  (`update_column`, `update_all`, `insert_all`).
+  (`update_column`, `update_all` with a hash, `insert_all`). `update_all` with an SQL text skips
+  the type and stores the number.
 - On Rails 7.1 or later, a read of the stored number and an update of the value of the row still
   pass. On Rails 7.0 or earlier, each save of a row that holds such a number raises
   `ActiveModel::RangeError`.

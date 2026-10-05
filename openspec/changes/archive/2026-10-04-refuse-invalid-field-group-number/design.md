@@ -45,7 +45,8 @@ The type of the group number (D7) has the same 4-byte range on each database. So
 wider integer in the column: SQLite, and a host whose column is `bigint`. There, a lookup with a
 number above 2147483647 or below -2147483648 finds no row. A write that skips the validation raises
 `ActiveModel::RangeError` for that number: `update_attribute`, `save(validate: false)`,
-`update_column`, `update_all` and `insert_all`. Before, those databases found and stored such a
+`update_column`, `update_all` with a hash and `insert_all`. `update_all` with an SQL text skips
+the type and stores the number. Before, those databases found and stored such a
 number. On Rails 7.0 or earlier, each save of a row that holds such a number raises that error:
 those versions serialize each attribute of the row again after a save.
 
