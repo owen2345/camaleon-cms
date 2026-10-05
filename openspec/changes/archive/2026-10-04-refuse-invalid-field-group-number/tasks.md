@@ -43,6 +43,8 @@
   with examples in the model spec (D9)
 - [x] 2.15 Refuse a group number text of more than 16 bytes, with examples in the model and request
   specs (D2)
+- [x] 2.16 Check the group number of an entry with no values in `set_field_values`, with model and
+  request examples (D14)
 
 ## 3. Documentation
 

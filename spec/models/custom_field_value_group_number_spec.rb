@@ -99,6 +99,42 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # An entry with no values builds no row, so no row refuses its group number. set_field_values
+  # refuses the group number of each entry.
+  describe 'set_field_values with an entry that has no values' do
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    { "the text 'abc' and an empty hash of values" => { group_number: 'abc', values: {} },
+      'a negative number and an empty list of values' => { group_number: -1, values: [] },
+      'a number above the range and no values' => { group_number: 2_147_483_648 },
+      'a text with a broken encoding and no values' => { group_number: "1\xFF", values: nil },
+      'an empty text in UTF-16 and no values' => { group_number: ''.encode('UTF-16LE') } }.each do |kind, entry|
+      it "refuses an entry with #{kind}, and the stored value stays" do
+        expect { post.set_field_values({ '0' => { 'note' => entry } }) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+    end
+
+    it 'refuses such an entry after an entry that it stored, and keeps the stored value' do
+      payload = { '0' => { 'note' => { group_number: 0, values: ['fresh'] } },
+                  '1' => { 'note' => { group_number: 'abc' } } }
+
+      expect { post.set_field_values(payload) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(post.reload.custom_field_values.pluck(:value)).to eq(['kept'])
+    end
+
+    { 'a valid group number and an empty hash of values' => { group_number: 2, values: {} },
+      'an empty group number and no values' => { group_number: '' },
+      'no group number and an empty list of values' => { values: [] } }.each do |kind, entry|
+      it "stores no row for an entry with #{kind}" do
+        post.set_field_values({ '0' => { 'note' => entry } })
+
+        expect(post.reload.custom_field_values).to be_empty
+      end
+    end
+  end
+
   # The check of the writer reads the group number of the row, not the errors that the row holds.
   describe 'refuse_invalid_group_number!' do
     let(:row) { described_class.new(custom_field_slug: 'note', group_number: -1) }

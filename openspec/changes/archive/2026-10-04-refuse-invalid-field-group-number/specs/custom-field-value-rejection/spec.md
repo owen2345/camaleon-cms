@@ -52,6 +52,9 @@ above 2147483647 in a wider column.
 `set_field_value` SHALL check the group number before it deletes a stored value. A call with an
 empty list of values builds no row, and that call MUST get the same refusal.
 
+`set_field_values` SHALL check the group number of each entry. An entry with no values builds no
+row, and that entry MUST get the same refusal.
+
 `set_field_value` and `set_field_values` delete stored values before they create the rows. A refusal
 of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL ask Rails
 for a savepoint, so the rollback also holds when the caller rescues the refusal and commits. The
@@ -152,6 +155,13 @@ the unsaved row stays in the association.
 #### Scenario: An empty list with a refused group number is refused
 
 - **WHEN** `set_field_value` gets an empty list of values and a group number that a row refuses
+- **THEN** the caller gets the refusal that names the field, and the stored values of the record
+  are unchanged
+
+#### Scenario: An entry with no values and a refused group number is refused
+
+- **WHEN** `set_field_values` or an admin save gets an entry with no values and a group number that
+  a row refuses
 - **THEN** the caller gets the refusal that names the field, and the stored values of the record
   are unchanged
 

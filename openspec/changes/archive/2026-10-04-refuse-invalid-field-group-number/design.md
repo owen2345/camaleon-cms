@@ -217,6 +217,17 @@ in other places too: the post save of the admin opens `ActiveRecord::Base.transa
 `PluginRoutes.db_installed?` reads `ActiveRecord::Base.connection`. The other remedy was a
 transaction on the class of the value rows.
 
+**D14. `set_field_values` refuses the group number of an entry with no values.** The maintainer
+chose it on 2026-10-05. `set_field_values` skips an entry with no values, and it read the group
+number after that skip. So an entry with no values and a refused group number got no refusal, and
+the save passed. That entry builds no row, so the save stored no wrong value.
+
+The requirement says that an admin save with a refused group number gets the refusal.
+`set_field_value` refuses the number also for an empty list (D11). The writer reads the group number
+of each entry before the skip. It gives the number of an entry with no values to a row that it does
+not store, as `set_field_value` does. The admin JavaScript sends the index of the group, so no core
+form sends such an entry. The other remedy was a note on the skip.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

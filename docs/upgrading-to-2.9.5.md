@@ -559,6 +559,8 @@ other group number.
 - `set_field_value` with an empty list also refuses the group number, before it deletes a stored value.
   Before, that call raised nothing and deleted the values of the group that the integer cast gave
   (`'1abc'` was group 1). It also deleted the values of a stored negative group.
+- `set_field_values` also refuses the group number of an entry with no values. Before, it skipped
+  that entry, and the save passed.
 - `set_field_values` still reads an absent or empty group number as group 0.
 - A text with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16), gets the
   same refusal on each of the three paths. An empty text in an encoding that is not

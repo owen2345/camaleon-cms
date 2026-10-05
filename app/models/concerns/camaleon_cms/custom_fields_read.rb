@@ -240,7 +240,8 @@ module CamaleonCms
     # text of 1 to 16 ASCII digits. An absent or empty group number is group 0. A value row refuses any other
     # group number, also an empty text in an encoding that is not ASCII-compatible. The method then
     # raises ActiveRecord::RecordInvalid, and the stored values stay. For the exceptions, see
-    # _cama_write_field_values and _cama_field_values_savepoint?.
+    # _cama_write_field_values and _cama_field_values_savepoint?. The method also checks the group
+    # number of an entry with no values.
     #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
@@ -261,7 +262,17 @@ module CamaleonCms
         custom_field_values.delete_all
         datas.each_value do |fields_data|
           fields_data.each do |field_key, values|
-            next if values[:values].blank?
+            # Ruby reads two empty texts as equal in each encoding, and the row refuses an empty text in
+            # an encoding that is not ASCII-compatible.
+            group_number = values[:group_number]
+            group_number = 0 if group_number.nil? || (group_number == '' && group_number.encoding.ascii_compatible?)
+            if values[:values].blank?
+              # An entry with no values builds no row, so no row refuses its group number. The check
+              # gives the refusal of a row.
+              CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: field_key, group_number: group_number)
+                                                   .refuse_invalid_group_number!
+              next
+            end
 
             # Resolve the field id from the trusted slug, not the client-supplied values[:id]: a
             # forged custom_field_id points the row at a different field definition, and the
@@ -271,11 +282,6 @@ module CamaleonCms
             # pass slugs outside this object's registered groups; a permitted browser payload's slug
             # is in the groups its save resolves against, and its id is held to the slug's fields).
             field_id = _cama_field_id_for(field_key, field_groups) || fallback_field_id_for(field_key) || values[:id]
-            # Ruby reads two empty texts as equal in each encoding, and the row refuses an empty text in
-            # an encoding that is not ASCII-compatible.
-            group_number = values[:group_number]
-            group_number = 0 if group_number.nil? || (group_number == '' && group_number.encoding.ascii_compatible?)
-
             order_value = -1
             (
               if values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)

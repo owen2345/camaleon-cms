@@ -158,6 +158,16 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       expect(record.reload.title).to eq('Kept title')
     end
 
+    # An entry with no values builds no row. set_field_values refuses the group number of each entry.
+    it 'refuses the group number of an entry with no values and keeps the stored value' do
+      patch "/admin/post_type/#{post_type.id}/categories/#{category.id}", params: {
+        category: { name: 'Grouped field' },
+        field_options: { '0' => { 'subtitle' => { 'group_number' => 'abc' } } }
+      }
+
+      expect_refusal
+    end
+
     it 'stores the value under the largest group number' do
       update_category('2147483647')
 

@@ -298,6 +298,8 @@ Changes that look free from inside this repository and are not:
     before, and `set_field_value` stored it as given.
   - `set_field_value` also gives the refusal when the list of values is empty. No surveyed consumer
     passes an empty list with a group number.
+  - `set_field_values` also gives the refusal for an entry with no values. The core form sends the
+    index of the group for each entry.
   - `cama_permitted_field_options` gives a group number that is a list or a hash to the row, which
     refuses it. Before, the helper dropped that number. No form of a surveyed consumer sends that
     shape.
