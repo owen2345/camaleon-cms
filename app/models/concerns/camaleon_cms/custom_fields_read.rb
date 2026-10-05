@@ -372,8 +372,8 @@ module CamaleonCms
     private
 
     # The transaction of set_field_value and set_field_values. Inside a transaction of the caller it is
-    # a savepoint. A refusal of a row then rolls the delete back, also when the caller rescues the
-    # refusal and commits.
+    # a savepoint, where Rails permits one (see _cama_field_values_savepoint?). A refusal of a row then
+    # rolls the delete back, also when the caller rescues the refusal and commits.
     #
     # A failed call can leave its rows in the association as unsaved rows. The writer then resets the
     # association: the record reads the stored values again, and its next save stores no row of the
@@ -396,7 +396,7 @@ module CamaleonCms
       field_values = custom_field_values.proxy_association
       built_before = field_values.target.select(&:new_record?)
       begin
-        outcome = ActiveRecord::Base.transaction(requires_new: true) { [yield] }
+        outcome = ActiveRecord::Base.transaction(requires_new: _cama_field_values_savepoint?) { [yield] }
         outcome&.first
       ensure
         unless outcome
@@ -404,6 +404,15 @@ module CamaleonCms
           built_before.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
         end
       end
+    end
+
+    # Rails 8.1 gives the level of ActiveRecord.with_transaction_isolation_level to each new transaction
+    # of the pool, and it refuses a level for a nested transaction. While the pool has such a level, the
+    # writers open no savepoint: inside a transaction of the caller they join it. A refusal that the
+    # caller rescues there then keeps the delete.
+    def _cama_field_values_savepoint?
+      !(ActiveRecord::Base.respond_to?(:pool_transaction_isolation_level) &&
+        ActiveRecord::Base.pool_transaction_isolation_level)
     end
 
     # The fields registered under a slug. Groups share the table and keep their site's id in parent_id, so

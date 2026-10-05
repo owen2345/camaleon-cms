@@ -113,6 +113,16 @@ transaction of the caller, so a caller that rescued the refusal there and commit
 The writers call `transaction(requires_new: true)`. The savepoint covers each refusal of a row, the
 refusal of the value gate included.
 
+Rails 8.1 has `ActiveRecord.with_transaction_isolation_level`. Inside it, Rails gives the isolation
+level to each new transaction of the pool, and it refuses a level for a nested transaction. Inside a
+transaction, its own `create_or_find_by` fails there too. The post save of the admin calls
+`set_field_values` inside a transaction, so Rails refused the savepoint of the writer there, and
+the save failed. The maintainer chose on 2026-10-05 to join the transaction of the caller while the
+pool has an isolation level (`pool_transaction_isolation_level`). The post save does not rescue the
+refusal inside its transaction, so a refused save still rolls back as a whole. A caller that rescues
+the refusal there and commits keeps the delete, as before this change. The other remedy was a note
+on the limit.
+
 **D10. The writers reset the association after an error.** The maintainer chose it on 2026-10-04.
 The rollback restores the database. The record still holds the rows of the call in its
 `custom_field_values` association. After a refused `set_field_values`, the record read those rows,

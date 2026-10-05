@@ -32,7 +32,9 @@ is present since 2.9.3, which added the `to_i` call.
   refuses the text. A lookup with such a text finds no row. A save that skips the validation stops
   with the same refusal.
 - `set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A
-  refusal that the caller rescues there rolls back the delete of the stored values.
+  refusal that the caller rescues there rolls back the delete of the stored values. Inside
+  `ActiveRecord.with_transaction_isolation_level` of Rails 8.1, Rails refuses that savepoint, and
+  the writers join the transaction of the caller.
 - `set_field_value` refuses the group number before its delete. A call with an empty list builds no
   row. Before, that call deleted the stored values of the group that the integer cast gave.
 - After an error, the two writers reset the `custom_field_values` association of the record. The

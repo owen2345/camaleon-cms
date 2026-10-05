@@ -228,6 +228,11 @@ empty list of values builds no row, and that call MUST get the same refusal.
 of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL open a
 savepoint, so the rollback also holds when the caller rescues the refusal and commits.
 
+Rails 8.1 refuses a nested transaction while `ActiveRecord.with_transaction_isolation_level` sets an
+isolation level for the pool. There, the writers SHALL join the transaction of the caller and SHALL
+NOT open a savepoint. A caller that rescues the refusal inside that transaction and commits then
+keeps the delete.
+
 The rollback leaves the rows of the failed call in the `custom_field_values` association of the
 record. After an error of a writer, the writer SHALL reset that association. The record then SHALL
 read the stored values, and its next save MUST NOT store a row of the failed call. An exception that
@@ -314,6 +319,12 @@ that the caller built before the call.
 - **WHEN** a caller runs `set_field_value` or `set_field_values` inside its own transaction with a
   group number that the row refuses, rescues the refusal inside that transaction and commits
 - **THEN** the stored values of the record are unchanged
+
+#### Scenario: The writers join a transaction of the caller that has a pool isolation level
+
+- **WHEN** a caller on Rails 8.1 runs `set_field_value` or `set_field_values` inside its own
+  transaction under `ActiveRecord.with_transaction_isolation_level`
+- **THEN** the writer opens no savepoint, and the call stores its values
 
 #### Scenario: The record reads the stored values after a failed call
 

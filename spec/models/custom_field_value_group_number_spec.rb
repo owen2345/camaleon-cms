@@ -395,6 +395,39 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
+
+    # Rails 8.1 refuses a nested transaction while ActiveRecord.with_transaction_isolation_level sets
+    # a level for the pool, so the writers join the transaction of the caller there. Rails also
+    # refuses that API inside the transaction of an example, so the examples stub the level that the
+    # writers read.
+    context 'when the pool has an isolation level' do
+      before do
+        base = ActiveRecord::Base
+        skip 'This Rails has no pool isolation level' unless base.respond_to?(:pool_transaction_isolation_level)
+
+        allow(base).to receive(:pool_transaction_isolation_level).and_return(:read_committed)
+      end
+
+      it 'keeps the delete when the caller rescues the refusal of set_field_values' do
+        ActiveRecord::Base.transaction do
+          post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+        rescue ActiveRecord::RecordInvalid
+          nil
+        end
+
+        expect(post.reload.get_field_values('note', 1)).to eq([])
+      end
+
+      it 'keeps the stored values when the caller does not rescue the refusal' do
+        expect do
+          ActiveRecord::Base.transaction do
+            post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+          end
+        end.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+    end
   end
 
   # The rollback of a failed call leaves the rows of the call in the association of the record. Each

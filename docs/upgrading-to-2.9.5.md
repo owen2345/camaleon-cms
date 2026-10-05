@@ -596,6 +596,10 @@ for a number outside that range. Before, those databases found and stored such a
 of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
 there. Before, that caller lost the stored values at its commit.
 
+Rails 8.1 refuses that savepoint inside `ActiveRecord.with_transaction_isolation_level`. There, the
+writers join the transaction of the caller. A caller that rescues the refusal there still loses the
+stored values at its commit.
+
 After an error, the two writers also reset the `custom_field_values` association of the record. The
 record reads the stored values again, and its next save stores no row of the failed call. Before,
 the record kept the rows of the failed call: its next save failed, or stored some of those rows.

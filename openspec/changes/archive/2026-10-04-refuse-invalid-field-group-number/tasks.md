@@ -39,6 +39,8 @@
   helper (D12)
 - [x] 2.13 Reset the association after each failed call: an exception of any class, a `throw` or a
   rollback of the call, also in the commit phase, with examples in the model spec (D10)
+- [x] 2.14 Join the transaction of the caller while the pool has an isolation level of Rails 8.1,
+  with examples in the model spec (D9)
 
 ## 3. Documentation
 
