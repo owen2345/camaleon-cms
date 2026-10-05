@@ -375,15 +375,16 @@ module CamaleonCms
     # a savepoint. A refusal of a row then rolls the delete back, also when the caller rescues the
     # refusal and commits.
     #
-    # A failed call can leave its rows in the association as unsaved rows. The reset then makes the
-    # record read the stored values again, and its next save stores no row of the call.
+    # A failed call can leave its rows in the association as unsaved rows. The writer then resets the
+    # association: the record reads the stored values again, and its next save stores no row of the
+    # call.
     #
     # The writer reads the result of the transaction to find a failed call:
     # - An exception of any class and a throw leave no result. A timeout of the caller is one of them.
     # - The transaction returns nil after ActiveRecord::Rollback, also when a commit callback raises it.
     #
-    # The array gives a call that completed a result that is not nil. After a throw, Rails can commit
-    # what the call stored or deleted before it.
+    # The writer puts the value of its block in an array, so a value of nil or false does not start
+    # the reset. After a throw, Rails can commit what the call stored or deleted before it.
     # The reset drops each unsaved row, so the writer puts back the rows that the caller built before
     # the call.
     def _cama_write_field_values
