@@ -65,9 +65,9 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     end
   end
 
-  # The request stops before Rack::TempfileReaper, so the middleware removes the temporary files of
-  # the uploads.
-  it 'removes the temporary files of the uploads when it answers with a 400' do
+  # The request stops before Rack::TempfileReaper, so the middleware removes the temporary files that
+  # Rack recorded for the uploads.
+  it 'removes the recorded temporary files of the uploads when it answers with a 400' do
     env = env_for(multipart_body([['upload', 'data', nil, 'a.txt'], ['note', 'x', 'UTF-16LE']]))
 
     status, = guard.call(env)

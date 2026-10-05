@@ -54,8 +54,9 @@ that middleware before `Rack::MethodOverride`. An API-only host has no `Rack::Me
 an insert before it raises an error at the boot of that host. The request stops before
 `Rack::TempfileReaper`, so the guard removes the temporary files that Rack recorded in
 `rack.tempfiles`. Rack records them after its multipart parser ends. When that parser raises the
-error (a part in ISO-2022-JP with Rack 3.2, each case with Rack 2.2), the env has no such files,
-and Ruby removes them at garbage collection. The same occurred before this change.
+error, the env has no such files, and Ruby removes them at garbage collection. That applies to each
+case with Rack 2.2 and Rack 3.0, and to a part in ISO-2022-JP with invalid bytes with Rack 3.2. The
+same occurred before this change.
 
 **D5. The guard also answers the plain `ArgumentError` of Rack 2.2.** Camaleon supports Rails 6.1,
 and Rails 6.1 and 7.0 need Rack 2. Rack 2.2 raises `Encoding::CompatibilityError` only when the
@@ -66,8 +67,8 @@ with Rack 2.2.
 
 `Rack::QueryParser::InvalidParameterError` is a subclass of `ArgumentError`, and Rack and Rails
 handle it. So the guard answers only an error whose class is `ArgumentError` itself and whose
-message starts with `invalid byte sequence`. With Rack 2.2, that rule also covers a part name with invalid bytes in an
-ASCII-compatible charset.
+message starts with `invalid byte sequence`. With Rack 2.2, that rule also covers a part name with
+invalid bytes in an ASCII-compatible charset.
 
 CI runs Rack 3.2 on each row, so the examples stub the parser. A probe with Rack 2.2.22 backs the
 decision: each probed part in UTF-16, UTF-32 or UTF-7 gets the 400.
