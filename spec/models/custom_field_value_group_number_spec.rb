@@ -408,6 +408,22 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         allow(base).to receive(:pool_transaction_isolation_level).and_return(:read_committed)
       end
 
+      # The SAVEPOINT statements of the block inside a transaction of the caller. The first query of
+      # the caller opens that transaction, which is a savepoint inside the transaction of the example.
+      def savepoints_inside_a_caller_transaction
+        statements = []
+        ActiveRecord::Base.transaction do
+          post.reload
+          subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+            statements << payload[:sql] if payload[:sql].include?('SAVEPOINT')
+          end
+          yield
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+        statements
+      end
+
       it 'keeps the delete when the caller rescues the refusal of set_field_values' do
         ActiveRecord::Base.transaction do
           post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
@@ -418,14 +434,27 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.reload.get_field_values('note', 1)).to eq([])
       end
 
-      it 'keeps the stored values when the caller does not rescue the refusal' do
-        expect do
-          ActiveRecord::Base.transaction do
-            post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
-          end
-        end.to raise_error(ActiveRecord::RecordInvalid)
+      it 'rolls back its delete on a refusal with no transaction of the caller' do
+        expect { post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } }) }
+          .to raise_error(ActiveRecord::RecordInvalid)
 
         expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+
+      it 'opens no savepoint in set_field_value, and the call stores its value' do
+        statements = savepoints_inside_a_caller_transaction { post.set_field_value('note', 'new', group_number: 2) }
+
+        expect(statements).to be_empty
+        expect(post.reload.get_field_values('note', 2)).to eq(['new'])
+      end
+
+      it 'opens no savepoint in set_field_values, and the call stores its values' do
+        statements = savepoints_inside_a_caller_transaction do
+          post.set_field_values({ '0' => { 'note' => { group_number: 2, values: ['new'] } } })
+        end
+
+        expect(statements).to be_empty
+        expect(post.reload.get_field_values('note', 2)).to eq(['new'])
       end
     end
   end
