@@ -244,9 +244,10 @@ encoding error of the parser with the 400. Each other error of the parser stays 
 Rails.
 
 **Who must act.** Nobody, with the default middleware stack. Check your app only if it has its own
-Rack middleware that reads or changes the body of a multipart request. For a PATCH, a PUT or a
-DELETE, Rack now parses the body before the middleware that comes after the guard. Rack already did
-that for a POST.
+Rack middleware that reads or changes the body of a multipart request. Rack now parses that body in
+the guard, before each middleware that comes after it. Before, `Rack::MethodOverride` parsed the
+body of a POST, and Rails parsed the body of each other method later. An API-only app has no
+`Rack::MethodOverride`, so there Rails parsed the body of a POST too.
 
 ---
 

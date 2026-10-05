@@ -44,9 +44,10 @@ exception for Rack 2.2.
 
 **D3. The guard parses a multipart request only, for each request method.** Only a multipart part
 has a charset, so a body with another content type passes with no read. For a POST,
-`Rack::MethodOverride` parses the params at this position already. For a PATCH, a PUT or a DELETE,
-Rails parses them later, so the parse now runs before the middleware that comes after the guard. A
-file part passes, because Rack gives no charset to its name.
+`Rack::MethodOverride` already parses the params soon after this position, in a stack that has it.
+For each other method, and for a POST in an API-only host, Rails parses them later, so the parse
+now runs before the middleware that comes after the guard. A file part passes, because Rack gives
+no charset to its name.
 
 **D4. The guard goes directly after `ActionDispatch::Executor`.** The default stack of Rails has
 that middleware before `Rack::MethodOverride`. An API-only host has no `Rack::MethodOverride`, and
