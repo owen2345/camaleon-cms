@@ -435,8 +435,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
     end
 
-    # A commit callback can raise ActiveRecord::Rollback after the block of the writer ended. The
-    # transaction then rolls back and returns nil.
+    # A before_commit callback can raise ActiveRecord::Rollback after the block of the writer ended.
+    # The transaction then rolls back and returns nil.
     it 'stores no row of the call when the commit of the call rolls back' do
       allow_any_instance_of(described_class).to receive(:before_committed!).and_raise(ActiveRecord::Rollback)
 
