@@ -90,8 +90,9 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
       end
     end
 
-    # The value row refuses a group number that is a list or a hash. The permit gives the shape to
-    # the row and drops its content.
+    # A group number that is a list or a hash is not valid. The permit helper keeps such a group
+    # number, with its content removed, so the custom-field value gets the error of the group number.
+    # Before, Rails dropped the param, and the value went to group 0 with no error.
     context 'with a group number that is not a scalar' do
       def permitted_group_number(group_number)
         entry = { 'id' => '1', 'group_number' => group_number, 'values' => { '0' => 'own' } }
@@ -103,21 +104,21 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
         expect(permitted_group_number('2')).to eq('2')
       end
 
-      it 'gives a list as an empty list' do
+      it 'changes a list to an empty list' do
         expect(permitted_group_number(%w[5 6])).to eq([])
       end
 
-      it 'gives a hash as an empty hash' do
+      it 'changes a hash to an empty hash' do
         expect(permitted_group_number({ 'a' => '5' })).to eq({})
       end
 
       # Rails reads a hash with a numeric key and a hash value as nested attributes. It keeps the key
       # and drops the content of the value.
-      it 'gives a hash of hashes with a numeric key as that key with an empty hash' do
+      it 'changes a hash of hashes with a numeric key to that key with an empty hash' do
         expect(permitted_group_number({ '0' => { 'a' => '5' } })).to eq({ '0' => {} })
       end
 
-      it 'gives a list of hashes as a list of empty hashes' do
+      it 'changes a list of hashes to a list of empty hashes' do
         expect(permitted_group_number([{ 'a' => '5' }])).to eq([{}])
       end
     end

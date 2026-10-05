@@ -185,7 +185,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
     end
 
-    it 'keeps the stored value when the caller rescues the refusal inside its transaction' do
+    it 'keeps the stored value when the caller rescues the error inside its transaction' do
       as_user(contributor)
       post.set_field_value('body', '<p>keep me</p>')
 
@@ -198,7 +198,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
     end
 
-    it 'stores no value of a refused list when the caller saves the post after the refusal' do
+    it 'stores no value of a failed call when the caller saves the post after the error' do
       as_user(contributor)
       post.set_field_value('body', '<p>keep me</p>')
 
@@ -208,9 +208,10 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('body')).to eq(['<p>keep me</p>'])
     end
 
-    # A refused list leaves its first row in the association of the post, and the reset drops each
-    # unsaved row. The writer puts back the row that the caller built before the call.
-    it 'keeps the row that the caller built when the writer refuses a list' do
+    # The failed call leaves its first row in the association of the post, as an unsaved row.
+    # set_field_value resets the association, which removes each unsaved row. It then puts back the row
+    # that the caller built before the call.
+    it 'keeps the row that the caller built when set_field_value fails for a list' do
       as_user(contributor)
       post.set_field_value('body', '<p>keep me</p>')
       post.custom_field_values.build(custom_field_id: post.get_field_object('body').id, custom_field_slug: 'body',

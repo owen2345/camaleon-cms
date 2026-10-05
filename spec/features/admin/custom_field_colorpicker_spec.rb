@@ -32,9 +32,10 @@ RSpec.describe 'the colorpicker custom field', :js do
     page.evaluate_script("jQuery('.c-field-text_box .input-value').val()")
   end
 
-  # A click of the mouse can miss the addon while the page loads its editor, and the picker then
-  # stays closed. The helper clicks the addon through jQuery. It then waits for the open picker, so a
-  # picker that stays closed fails the example.
+  # Opens the color picker. The picker opens on a click of the addon, the small button beside the
+  # input. A click of the mouse can miss the addon while the page loads its text editor, and the
+  # picker then stays closed. So the helper triggers the click through jQuery. It then waits for the
+  # open picker, so the example fails when the picker stays closed.
   def open_picker
     page.execute_script(%(jQuery('.my-colorpicker .input-group-addon').trigger('click');))
     expect(page).to have_css('.colorpicker.dropdown-menu', visible: :visible)
