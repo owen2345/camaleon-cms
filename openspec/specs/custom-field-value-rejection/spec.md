@@ -4,7 +4,8 @@
 Keep every custom-field value safe to render in its position without ever rewriting authored
 content: a value an untrusted author is not permitted to write is refused at save time with an error
 naming the field, so stored values always equal authored values and the frontend may emit them
-verbatim (`editor` markup) or into URL positions (`url`/media types).
+verbatim (`editor` markup) or into URL positions (`url`/media types). A value row also refuses a
+group number that it cannot store, for each author.
 
 ## Requirements
 
