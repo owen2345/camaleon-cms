@@ -84,6 +84,11 @@ module CamaleonCms
         app.middleware.use CamaleonCms::MediaSecurityHeaders
       end
 
+      # The guard must read the params of a multipart request before Rack::MethodOverride. An API-only
+      # host has no Rack::MethodOverride, so the anchor is ActionDispatch::Executor, which the default
+      # stack of Rails always holds before it.
+      app.middleware.insert_after ::ActionDispatch::Executor, CamaleonCms::MultipartEncodingGuard
+
       # Static files
       app.middleware.use ::ActionDispatch::Static, "#{root}/public"
 

@@ -296,6 +296,10 @@ Changes that look free from inside this repository and are not:
   reads the editors. The TinyMCE blur handler in `admin/_data.js` still makes it: `tinymce.triggerSave()`
   writes every editor's textarea, the grid's included, whenever any editor loses focus. The plugin can
   remove the hazard by writing TinyMCE's serialization into the textarea itself.
+- **The `CamaleonCms::MultipartEncodingGuard` middleware** changes no surveyed consumer. It goes
+  directly after `ActionDispatch::Executor` in the stack of each host. It answers a multipart request
+  with a 400 when the param parser of Rack raises an encoding error for a part. No surveyed consumer
+  changes the middleware stack, is an API-only app, or sets a charset for a multipart part.
 
 ## APIs with no surveyed consumer
 
