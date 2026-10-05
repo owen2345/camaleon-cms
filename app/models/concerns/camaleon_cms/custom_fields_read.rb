@@ -378,21 +378,19 @@ module CamaleonCms
     #
     # A failed call can leave its rows in the association as unsaved rows. The writer then resets the
     # association: the record reads the stored values again, and its next save stores no row of the
-    # call.
+    # call. The reset drops each unsaved row, so the writer puts back the rows that the caller built
+    # before the call.
     #
-    # The writer reads the result of the transaction to find a failed call:
+    # The writer puts the value of its block in an array, so a value of nil or false does not start
+    # the reset. It reads the result of the transaction to find a failed call:
     # - An exception of any class and a throw leave no result. A timeout of the caller is one of them.
-    #   A rescue does not see a throw, so the reset is in an ensure block.
+    #   A rescue does not see a throw, so the reset is in an ensure block. After a throw, Rails can
+    #   commit what the call stored or deleted before it.
     # - The transaction returns nil after ActiveRecord::Rollback, also when a commit callback raises it.
     #
     # A callback of a value row can raise ActiveRecord::Rollback before Rails stores the row. Rails
     # ends the save of that row with no error, so the call is not a failed call. The writer goes on, and
     # the row stays in the association as an unsaved row. The design leaves this.
-    #
-    # The writer puts the value of its block in an array, so a value of nil or false does not start
-    # the reset. After a throw, Rails can commit what the call stored or deleted before it.
-    # The reset drops each unsaved row, so the writer puts back the rows that the caller built before
-    # the call.
     def _cama_write_field_values
       field_values = custom_field_values.proxy_association
       built_before = field_values.target.select(&:new_record?)
