@@ -385,9 +385,9 @@ module CamaleonCms
     #   A rescue does not see a throw, so the reset is in an ensure block.
     # - The transaction returns nil after ActiveRecord::Rollback, also when a commit callback raises it.
     #
-    # A callback of a value row can raise ActiveRecord::Rollback before the row is stored. Rails ends
-    # the save of that row with no error, so the call is not a failed call. The writer goes on, and the
-    # row stays in the association as an unsaved row. The design leaves this.
+    # A callback of a value row can raise ActiveRecord::Rollback before Rails stores the row. Rails
+    # ends the save of that row with no error, so the call is not a failed call. The writer goes on, and
+    # the row stays in the association as an unsaved row. The design leaves this.
     #
     # The writer puts the value of its block in an array, so a value of nil or false does not start
     # the reset. After a throw, Rails can commit what the call stored or deleted before it.

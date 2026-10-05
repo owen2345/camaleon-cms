@@ -146,8 +146,8 @@ call. The maintainer chose on 2026-10-04 to put those rows back. Each writer rea
 of the association before its transaction, and adds them to the association after the reset. A
 `set_field_values` call that stores its rows still drops them: its delete clears the association.
 
-A callback of a value row can raise `ActiveRecord::Rollback` before the row is stored. Rails ends
-the save of that row with no error: `create!` returns an unsaved record. The writer goes on, its
+A callback of a value row can raise `ActiveRecord::Rollback` before Rails stores the row. Rails
+ends the save of that row with no error: `create!` returns an unsaved record. The writer goes on, its
 delete stays, and the unsaved row stays in the association. The maintainer chose on 2026-10-05 to
 leave this. It is the behavior of Rails for such a callback, the code before this change did the
 same, and no surveyed consumer adds such a callback. The other remedies were an error for a row
