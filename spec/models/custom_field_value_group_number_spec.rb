@@ -14,12 +14,12 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     group.add_manual_field({ name: 'Note', slug: 'note' }, { field_key: 'text_box' })
   end
 
-  # A column that holds a wider integer can hold a number above the range of the type. An update with
-  # an SQL text skips the type.
-  def store_wide_group_number(row)
+  # A column that holds a wider integer can hold a number outside the range of the type. An update
+  # with an SQL text skips the type.
+  def store_wide_group_number(row, number = 2_147_483_648)
     skip 'The column holds a 4-byte integer' unless described_class.connection.adapter_name.match?(/sqlite/i)
 
-    described_class.where(id: row.id).update_all('group_number = 2147483648') # rubocop:disable Rails/SkipsModelValidations
+    described_class.where(id: row.id).update_all(['group_number = ?', number]) # rubocop:disable Rails/SkipsModelValidations
   end
 
   describe 'set_field_value' do
@@ -315,7 +315,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
   # The type of the group number has the 4-byte range on each database, also where the column holds
   # a wider integer.
-  describe 'a group number above the range of the type' do
+  describe 'a group number outside the range of the type' do
     let(:row) { post.custom_field_values.first }
 
     before { post.set_field_value('note', 'kept', group_number: 1) }
@@ -340,6 +340,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       row.reload.group_number = 2_147_483_648
       expect { row.save(validate: false) }.to raise_error(ActiveModel::RangeError)
       expect(row.reload.group_number).to eq(1)
+    end
+
+    it 'raises ActiveModel::RangeError for a number below the range too' do
+      expect { row.update_attribute(:group_number, -2_147_483_649) } # rubocop:disable Rails/SkipsModelValidations
+        .to raise_error(ActiveModel::RangeError)
+      expect(row.reload.group_number).to eq(1)
+    end
+
+    it 'finds no row in a lookup with a stored number below the range' do
+      store_wide_group_number(row, -2_147_483_649)
+
+      expect(post.get_field_values('note', -2_147_483_649)).to eq([])
     end
 
     context 'with a stored row that holds the number in a wider column' do

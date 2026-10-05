@@ -580,9 +580,9 @@ post when its option for the custom fields is on. Its clone of a post with such 
 `ActiveRecord::RecordInvalid` for the post, with the message "Custom field values is invalid".
 Before, the copy stored that number.
 
-The type of the group number has the 4-byte range on each database. On a database whose column holds
-a wider integer (SQLite, or a `bigint` column), this changes some calls for a number above 2147483647.
-Before, those databases found and stored such a number.
+The type of the group number has the 4-byte range on each database: -2147483648 to 2147483647. On a
+database whose column holds a wider integer (SQLite, or a `bigint` column), this changes some calls
+for a number outside that range. Before, those databases found and stored such a number.
 
 - A lookup (`where`, `get_field_values`) finds no row.
 - A write that skips the validation raises `ActiveModel::RangeError`. Such a write is

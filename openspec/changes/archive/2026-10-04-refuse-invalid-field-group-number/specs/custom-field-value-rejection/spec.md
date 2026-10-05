@@ -31,8 +31,8 @@ A write that skips the validation and the callbacks (for example `update_column`
 
 The type of the group number SHALL have the 4-byte range on each supported database, also where
 the column holds a wider integer (SQLite, a `bigint` column). There, a lookup with a number above
-2147483647 finds no row, and a write that skips the validation raises `ActiveModel::RangeError` for
-that number.
+2147483647 or below -2147483648 finds no row, and a write that skips the validation raises
+`ActiveModel::RangeError` for that number.
 
 A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
 copy of a row with a refused group number MUST get the same refusal.
