@@ -385,10 +385,10 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The rollback of a failed write leaves the rows of the call in the association of the record. Each
+  # The rollback of a failed call leaves the rows of the call in the association of the record. Each
   # writer resets the association, so the record reads the stored values and its next save stores no
   # row of the call.
-  describe 'the record after a failed write' do
+  describe 'the record after a failed call' do
     let(:stored_values) { described_class.where(custom_field_slug: 'note').pluck(:value) }
 
     before { post.set_field_value('note', 'kept', group_number: 1) }

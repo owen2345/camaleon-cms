@@ -311,13 +311,13 @@ that the caller built before the call.
   group number that the row refuses, rescues the refusal inside that transaction and commits
 - **THEN** the stored values of the record are unchanged
 
-#### Scenario: The record reads the stored values after a failed write
+#### Scenario: The record reads the stored values after a failed call
 
 - **WHEN** `set_field_value` or `set_field_values` raises an error, and the caller rescues it and
   goes on with the same record
 - **THEN** the record reads the stored values, and its next save stores no row of the failed call
 
-#### Scenario: The rows that the caller built stay after a failed write
+#### Scenario: The rows that the caller built stay after a failed call
 
 - **WHEN** a caller builds an unsaved row on the `custom_field_values` association, and
   `set_field_value` or `set_field_values` then raises an error
