@@ -374,9 +374,9 @@ module CamaleonCms
 
     private
 
-    # The transaction of set_field_value and set_field_values. Inside a transaction of the caller it is
-    # a savepoint, where Rails permits one (see _cama_field_values_savepoint?). A refusal of a row then
-    # rolls the delete back, also when the caller rescues the refusal and commits.
+    # The transaction of set_field_value and set_field_values. Inside a transaction of the caller it
+    # asks Rails for a savepoint, where Rails permits one (see _cama_field_values_savepoint?). A refusal
+    # of a row then rolls the delete back, also when the caller rescues the refusal and commits.
     #
     # The transaction is on the connection pool of ActiveRecord::Base. With the value rows on another
     # pool, it does not roll back the delete of a refused call. The design leaves this: the post save

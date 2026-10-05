@@ -113,12 +113,15 @@ The master branch of `camaleon-post-clone` copies the value rows of a post, so i
 with such a row raises `ActiveRecord::RecordInvalid`. Only custom code stored such a number: the
 admin form sends the index of the group.
 
-**D9. The writers open a savepoint.** The maintainer chose it on 2026-10-04. `set_field_value` and
+**D9. The writers ask for a savepoint.** The maintainer chose it on 2026-10-04. `set_field_value` and
 `set_field_values` delete stored values before they create the rows. Their transaction joined a
-transaction of the caller, so a caller that rescued the refusal there and committed kept the delete.
+transaction of the caller, so a caller that rescued the refusal there and committed lost the stored
+values.
 The writers call `transaction(requires_new: true)`, with the one exception of the next paragraph.
 The savepoint covers each refusal of a row, the refusal of the value gate included. Each savepoint
-costs two statements. On PostgreSQL, more than 64 savepoints that write in one transaction overflow
+costs two statements. Rails 7.2 and 8.1 open no savepoint for the call when the joinable transaction
+of the caller ran no statement before the call: they restart that transaction after a failed call.
+On PostgreSQL, more than 64 savepoints that write in one transaction overflow
 the subtransaction cache of the session.
 
 Rails 8.1 has `ActiveRecord.with_transaction_isolation_level`. It gives the pool an isolation level

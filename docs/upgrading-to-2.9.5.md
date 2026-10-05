@@ -601,14 +601,15 @@ for a number outside that range. Before, those databases found and stored such a
   pass. On Rails 7.0 or earlier, each save of a row that holds such a number raises
   `ActiveModel::RangeError`.
 
-`set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A refusal
-of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
-there. Before, that caller lost the stored values at its commit.
+`set_field_value` and `set_field_values` ask Rails for a savepoint inside a transaction of the caller.
+A refusal of a value row rolls back their delete of the stored values, also when the caller rescues
+the refusal there. Before, that caller lost the stored values at its commit.
 
-Each savepoint adds two statements to the call. On PostgreSQL, a transaction with more than 64
-savepoints that write overflows the subtransaction cache of its session, which can slow other
-sessions. A caller with a long loop of calls in one transaction can split the loop into shorter
-transactions.
+Each savepoint adds two statements to the call. Rails 7.2 and 8.1 open no savepoint for the call
+when the joinable transaction of the caller ran no statement before the call. They restart that
+transaction after a failed call. On PostgreSQL, a transaction with more than 64 savepoints that
+write overflows the subtransaction cache of its session, which can slow other sessions. A caller
+with a long loop of calls in one transaction can split the loop into shorter transactions.
 
 Rails 8.1 refuses that savepoint while the connection pool has an isolation level.
 `ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`

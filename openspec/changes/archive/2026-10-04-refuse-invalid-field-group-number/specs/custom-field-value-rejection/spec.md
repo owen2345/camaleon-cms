@@ -47,14 +47,14 @@ above 2147483647 in a wider column.
 empty list of values builds no row, and that call MUST get the same refusal.
 
 `set_field_value` and `set_field_values` delete stored values before they create the rows. A refusal
-of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL open a
-savepoint, so the rollback also holds when the caller rescues the refusal and commits. The next
-paragraph gives the exception for a pool with an isolation level.
+of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL ask Rails
+for a savepoint, so the rollback also holds when the caller rescues the refusal and commits. The
+next paragraph gives the exception for a pool with an isolation level.
 
 While the pool has an isolation level, Rails refuses a savepoint. On Rails 8.1,
 `ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`
 can give the pool a level. While the pool has a level and a joinable transaction of the caller is
-open, the writers SHALL NOT open a savepoint. They SHALL run inside that transaction. A
+open, the writers SHALL NOT ask for a savepoint. They SHALL run inside that transaction. A
 failed call then rolls back nothing, unless the transaction of the caller rolls back. A caller that
 rescues the refusal and commits loses the stored values that the call deleted. The rows that the
 call stored before the refusal stay.
