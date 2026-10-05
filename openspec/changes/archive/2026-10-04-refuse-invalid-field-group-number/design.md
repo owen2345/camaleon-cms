@@ -40,8 +40,8 @@ and `'abc'` 0, so a check of the cast value accepts them. The numericality valid
 back to the cast value for `false`. The check accepts the given value only when its text is ASCII
 digits and the number is not above 2147483647. An Integer, and a String of digits, pass.
 
-**D3. The bound is 2147483647 on each database.** SQLite stores an 8-byte integer, so the save of
-2147483648 does not raise there. A value stored on SQLite must also be valid on PostgreSQL and MySQL.
+**D3. The bound is 2147483647 on each database.** Before this change, SQLite stored 2147483648 with
+no error. A value stored on SQLite must also be valid on PostgreSQL and MySQL.
 
 The type of the group number (D7) has the same 4-byte range on each database. Some databases hold a
 wider integer in the column: SQLite, and a host whose column is `bigint`. There,
