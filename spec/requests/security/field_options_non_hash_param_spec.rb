@@ -164,7 +164,7 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       expect(category.reload.get_field_values('subtitle', 2_147_483_647)).to eq(['x'])
     end
 
-    it 'stores the value in the first group when the group number is empty' do
+    it 'stores the value in group 0 when the group number is empty' do
       update_category('')
 
       expect(flash[:error]).to be_nil
