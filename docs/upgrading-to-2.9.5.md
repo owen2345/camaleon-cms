@@ -584,7 +584,8 @@ The type of the group number has the 4-byte range on each database: -2147483648 
 database whose column holds a wider integer (SQLite, or a `bigint` column), this changes some calls
 for a number outside that range. Before, those databases found and stored such a number.
 
-- A lookup (`where`, `get_field_values`) finds no row.
+- A lookup of such a number in the database (`where`, `find_by`) finds no row. `get_field_values`
+  finds the row only when the `custom_field_values` association of the record is loaded.
 - A write that skips the validation raises `ActiveModel::RangeError`. Such a write is
   `update_attribute`, `save(validate: false)`, or a write that also skips the callbacks
   (`update_column`, `update_all` with a hash, `insert_all`). `update_all` with an SQL text skips

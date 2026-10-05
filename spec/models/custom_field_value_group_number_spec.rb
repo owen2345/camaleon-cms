@@ -362,6 +362,12 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.get_field_values('note', 2_147_483_648)).to eq([])
       end
 
+      it 'reads the value of the row through a loaded association' do
+        post.custom_field_values.load
+
+        expect(post.get_field_values('note', 2_147_483_648)).to eq(['kept'])
+      end
+
       it 'reads the stored number and updates the value of the row' do
         expect(row.reload.group_number).to eq(2_147_483_648)
         expect(row.update(value: 'new')).to be(true)
