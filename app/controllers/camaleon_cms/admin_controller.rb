@@ -4,16 +4,25 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    # Security (scan-and-reject policy): a value row refuses a value that a gate refuses, and a group
-    # number outside its range. The writers raise ActiveRecord::RecordInvalid for such a row. A post
-    # type raises the same error for a decorator class option that it refuses in a save hook.
+    # An admin save can raise ActiveRecord::RecordInvalid for one of these records:
+    # - A custom-field value with content that its author is not permitted to save (unsafe HTML, a
+    #   script URL, a shortcode). This is the scan-and-reject policy of docs/security/permissions.md.
+    # - A custom-field value with a group number that is not an integer from 0 to 2147483647.
+    # - A post type whose decorator class option names a class that is not a post decorator.
     #
-    # On a submitted save, the rescue sets a flash error and redirects back, in place of an error page.
-    # The create and the update of a post also roll back what they stored before the values. No other
-    # admin save does.
+    # Without this handler, the admin gets an error page (a 500). The handler puts the error of the
+    # record in a flash message and sends the admin back to the form.
     #
-    # The rescue raises the error again for another record and for a GET or HEAD request. A hook can
-    # write before every admin page, and a redirect then reaches another page that refuses again.
+    # What the failed save stores:
+    # - The create and the update of a post store nothing. They run in one transaction.
+    # - Each other admin save keeps what it stored before the custom-field values, such as the
+    #   category or the user. It stores none of the new values, and the old values stay.
+    #
+    # In two cases the handler raises the error again, and Rails gives its usual error page:
+    # - The record is of another class. The handler knows only the errors of the list above.
+    # - The request is a GET or a HEAD, so the admin submitted no form. The error comes from code that
+    #   runs while a page loads, such as a plugin hook that stores a value before each admin page. A
+    #   redirect does not help: the next page runs the same hook, and the save fails again.
     rescue_from ActiveRecord::RecordInvalid do |exception|
       record = exception.record
       gated = record.is_a?(CamaleonCms::CustomFieldsRelationship) || record.is_a?(CamaleonCms::PostType)
