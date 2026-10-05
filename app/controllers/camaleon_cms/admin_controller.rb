@@ -4,25 +4,16 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    # An admin save can raise ActiveRecord::RecordInvalid for one of these records:
-    # - A custom-field value with content that its author is not permitted to save (unsafe HTML, a
-    #   script URL, a shortcode). This is the scan-and-reject policy of docs/security/permissions.md.
-    # - A custom-field value with a group number that is not an integer from 0 to 2147483647.
-    # - A post type whose decorator class option names a class that is not a post decorator.
+    # Shows a validation error of a submitted admin form as a flash message, not as a 500 page. Two
+    # records raise it:
+    # - A custom-field value: unsafe content (docs/security/permissions.md) or an invalid group number.
+    # - A post type: a decorator class option that names no post decorator.
     #
-    # Without this handler, the admin gets an error page (a 500). The handler puts the error of the
-    # record in a flash message and sends the admin back to the form.
+    # A failed post save stores nothing. Each other save keeps what it stored before the custom-field
+    # values, and the old values stay.
     #
-    # What the failed save stores:
-    # - The create and the update of a post store nothing. They run in one transaction.
-    # - Each other admin save keeps what it stored before the custom-field values, such as the
-    #   category or the user. It stores none of the new values, and the old values stay.
-    #
-    # In two cases the handler raises the error again, and Rails gives its usual error page:
-    # - The record is of another class. The handler knows only the errors of the list above.
-    # - The request is a GET or a HEAD, so the admin submitted no form. The error comes from code that
-    #   runs while a page loads, such as a plugin hook that stores a value before each admin page. A
-    #   redirect does not help: the next page runs the same hook, and the save fails again.
+    # The error is raised again for any other record, and for a GET or HEAD request. No form was
+    # submitted there, and a redirect leads to a page that fails the same way.
     rescue_from ActiveRecord::RecordInvalid do |exception|
       record = exception.record
       gated = record.is_a?(CamaleonCms::CustomFieldsRelationship) || record.is_a?(CamaleonCms::PostType)

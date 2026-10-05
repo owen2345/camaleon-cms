@@ -24,33 +24,21 @@ module CamaleonCms
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
     GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
-    # A field group can repeat on a record. The group number of a value says which copy of the group
-    # holds the value, and the first copy has the number 0. PostgreSQL and MySQL store the number in a
-    # 4-byte integer column, so 2147483647 is the largest number that each database can store.
+    # An author can add a repeatable field group (is_repeat) to a post several times, for example a
+    # "Slide" group with an image and a caption, one time for each slide. group_number is the index
+    # of the slide that a value belongs to: 0 for the first slide, 1 for the second.
+    # The largest index is the largest 4-byte integer. PostgreSQL and MySQL store the column in 4
+    # bytes.
     MAX_GROUP_NUMBER = 2_147_483_647
-    # The largest length of a group number that the caller gives as a text. Rails 8.1.4 reads only the
-    # first 16 bytes of a text when it changes the text to an integer. For a longer text, Rails stores
-    # another number than the number that the validation checked. So a longer text is not valid.
+    # The largest size of a group number String. Rails 8.1.4 casts only the first 16 bytes of a
+    # String to an Integer, so it stores a longer String as another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
-    # The attribute type of the group number.
+    # The Rails integer type with one change. Rails raises an encoding error for a String in an
+    # invalid encoding or in an encoding such as UTF-16. This type returns nil for such a String.
+    # The record keeps the String, so the validation reports an invalid group number.
     #
-    # A caller can give the group number as a text. The integer type of Rails raises an encoding error
-    # for a text with a broken encoding, and for a text in an encoding that is not ASCII-compatible
-    # (UTF-16). This type gives nil for such a text and raises no error. The results:
-    # - A row keeps the text as the caller gave it. The validation reads that text, so the caller
-    #   gets the usual error of a group number that is not valid.
-    # - where(group_number: text) and find_by(group_number: text) find no row.
-    # - update_column, update_all with a hash and insert_all run no validation and no callback. They
-    #   store NULL as the group number for such a text.
-    #
-    # The type has the range of a 4-byte integer (-2147483648 to 2147483647) on each database. SQLite
-    # and a bigint column can hold a larger number, and the maintainer chose to keep the 4-byte range
-    # there too. For a number n outside that range:
-    # - where(group_number: n) and find_by(group_number: n) find no row, also when a row holds n.
-    # - A write of n that runs no validation raises ActiveModel::RangeError (update_column,
-    #   update_all with a hash, insert_all).
-    # - An SQL text is not checked: where('group_number = ?', n) finds the row.
+    # The range is 4 bytes on each database, also on SQLite and on a bigint column (intended).
     class GroupNumberType < ActiveRecord::Type::Integer
       def self.unreadable?(value)
         value.is_a?(String) && !(value.valid_encoding? && value.encoding.ascii_compatible?)
@@ -69,10 +57,8 @@ module CamaleonCms
 
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :group_number_given?
-    # update_attribute and save(validate: false) run no validation. Without this callback, such a save
-    # stores NULL for a group number text that the type cannot read (see GroupNumberType). The
-    # callback stops the save with the error of the group number: save returns false, and save!
-    # raises ActiveRecord::RecordInvalid.
+    # update_attribute and save(validate: false) skip the validation. This callback stops them for a
+    # String that the type cannot cast. Without it, they store NULL.
     before_save :raise_group_number_refusal, if: :group_number_unreadable?
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
     # and friends), regardless of field type, so gate a shortcode in ANY value behind
@@ -93,29 +79,22 @@ module CamaleonCms
       self
     end
 
-    # The error message for a group number that is not valid.
+    # The error message of an invalid group number.
     def group_number_refusal
       cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER)
     end
 
-    # Raises ActiveRecord::RecordInvalid when the group number of this row is not valid. It does
-    # nothing for a valid number. set_field_value and set_field_values call it on a row that they do
-    # not store, to check a group number when they build no row: a call with an empty list of values,
-    # or an entry with no values.
+    # Raises ActiveRecord::RecordInvalid for an invalid group number. set_field_value and
+    # set_field_values call it on an unsaved record when they have no value to create.
     def refuse_invalid_group_number!
       raise_group_number_refusal if group_number_refused?
     end
 
-    # Gives a copy of a row (dup) the group number as the caller gave it to the original row.
+    # dup copies the group number before the type cast. The cast changes 'abc' to a valid 0, so
+    # without this method the copy of an invalid record is valid.
     #
-    # Rails copies each attribute after the integer cast, and the cast changes a group number that is
-    # not valid to a valid one: 'abc' becomes 0, and true becomes 1. Without this method, the copy of a
-    # row with the group number 'abc' is valid, and its save stores group 0. With the group number as
-    # given, the copy gets the same error as the original row.
-    #
-    # A copy is a new row, and a new row is always checked. So the copy of a stored row is not valid
-    # when that row holds a negative number or a number above 2147483647. A row from an earlier
-    # release can hold such a number. The maintainer chose to keep this.
+    # A copy is a new record, and a new record is always validated. So the copy of a stored record
+    # with a negative number from an earlier release is invalid (intended).
     def initialize_dup(other)
       super
       self[:group_number] = other.group_number_before_type_cast
@@ -208,24 +187,20 @@ module CamaleonCms
       end
     end
 
-    # Whether the validation must check the group number.
-    # - A new row is always checked.
-    # - A stored row is checked only when the save changes its group number. So a stored row with a
-    #   negative number from an earlier release stays valid when a caller changes only its value.
-    # - A row with a group number text that the type cannot read is always checked. On a stored row
-    #   with no group number, Rails sees no change for that text, because the type reads it as nil.
+    # Validate the group number of a new record always, and of a stored record only when the number
+    # changes. So code can still update a stored record that holds a negative number from an earlier
+    # release. A String that the type cannot cast is always validated, because Rails sees no change
+    # from nil to it.
     def group_number_given?
       new_record? || will_save_change_to_group_number? || group_number_unreadable?
     end
 
-    # Whether the caller gave a group number text that the type cannot read: a text with a broken
-    # encoding, or in an encoding that is not ASCII-compatible.
+    # Whether the group number is a String that the type cannot cast (see GroupNumberType).
     def group_number_unreadable?
       GroupNumberType.unreadable?(group_number_before_type_cast)
     end
 
-    # Raises ActiveRecord::RecordInvalid with the error of the group number. It adds the message to
-    # the errors of the row only when the row does not hold that message.
+    # Raises ActiveRecord::RecordInvalid with the group number error, and adds that error only once.
     def raise_group_number_refusal
       refusal = group_number_refusal
       errors.add(:base, refusal) unless errors.added?(:base, refusal)
@@ -236,21 +211,16 @@ module CamaleonCms
       errors.add(:base, group_number_refusal) if group_number_refused?
     end
 
-    # Whether the group number is not valid. The check reads the number as the caller gave it, before
-    # the integer cast of Rails. After the cast, a group number that is not valid looks valid: 'abc'
-    # becomes 0, and true becomes 1. Without the check, a number above 2147483647 raises
-    # ActiveModel::RangeError at the save. nil is valid: a row can have no group number.
+    # Reads the group number before the type cast, because the cast hides an invalid one: 'abc'
+    # becomes 0, and true becomes 1. nil is valid: a value can have no group number.
     def group_number_refused?
       given = group_number_before_type_cast
       !(given.nil? || storable_group_number?(given))
     end
 
-    # Whether the given group number is an integer from 0 to 2147483647. The caller can give it as an
-    # Integer, or as a text of 1 to 16 ASCII digits.
-    # - A value of each other class is not valid, also a Symbol that prints as digits (:'5').
-    # - The size of a text is checked first, so the method does not scan a very long text.
-    # - A text that the type cannot read is not valid. The digits check raises an error for such a
-    #   text, so that test comes before the digits check.
+    # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of digits with such a number
+    # ('5'). Each other class is invalid. The size test and the encoding test come first, because
+    # the regexp raises an error for a String in an invalid encoding.
     def storable_group_number?(given)
       return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
       return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
@@ -259,17 +229,11 @@ module CamaleonCms
       given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
     end
 
-    # Gives the error message for the key in the current language, or in English when that language
-    # has no translation of the key.
+    # The message in the current language, or in English when that language has no translation. Only
+    # en.yml has each message of this model.
     #
-    # The current language is the language of the admin or of the site. Only en.yml has each message
-    # of this model. The other admin locale files have only the message of the group number, and some
-    # languages have no admin locale file. Without the English fallback, the admin sees
-    # "translation missing" in those languages.
-    #
-    # The fallback is the English text with its placeholders, so I18n fills in the slug and the other
-    # values one time. A fallback with the values already filled in can fail: a slug can hold the
-    # placeholder syntax of I18n, and I18n then raises an error for a placeholder with no value.
+    # The English default keeps its placeholders, so I18n fills in the slug one time. A slug can
+    # hold the placeholder syntax of I18n, and a second interpolation then raises an error.
     def cama_rejection_message(key, **values)
       full_key = "camaleon_cms.admin.custom_field.message.#{key}"
       I18n.t(full_key, slug: custom_field_slug, **values, default: I18n.t(full_key, locale: :en))
