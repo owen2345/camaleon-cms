@@ -389,6 +389,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   # writer resets the association, so the record reads the stored values and its next save stores no
   # row of the call.
   describe 'the record after a failed write' do
+    let(:stored_values) { described_class.where(custom_field_slug: 'note').pluck(:value) }
+
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
     it 'reads the stored values and saves after a refusal of set_field_values' do
@@ -400,7 +402,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 1)).to eq(['kept'])
       expect(post.get_field_values('note', 0)).to eq([])
       expect(post.update(title: 'Saved')).to be(true)
-      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+      expect(stored_values).to eq(['kept'])
     end
 
     it 'reads the stored values after an error of set_field_values that is not a refusal' do
@@ -424,7 +426,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect { post.set_field_value('note', values, group_number: 2) }.to raise_error(NotImplementedError)
 
       expect(post.save).to be(true)
-      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+      expect(stored_values).to eq(['kept'])
     end
 
     # The transaction of the writer rolls back for ActiveRecord::Rollback and does not raise it again.
@@ -438,7 +440,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.set_field_value('note', values, group_number: 2)).to be_nil
 
       expect(post.save).to be(true)
-      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+      expect(stored_values).to eq(['kept'])
     end
 
     # A before_commit callback can raise ActiveRecord::Rollback after the block of the writer ended.
@@ -450,7 +452,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       allow_any_instance_of(described_class).to receive(:before_committed!).and_call_original
       expect(post.save).to be(true)
-      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+      expect(stored_values).to eq(['kept'])
     end
 
     # Rails can commit what the call stored or deleted before a throw, so the example reads only what
@@ -467,8 +469,6 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     # The reset drops each unsaved row of the association. The writer puts back the rows that the
     # caller built before the call, so the next save of the record stores them.
     context 'with a row that the caller built before the call' do
-      let(:stored_values) { described_class.where(custom_field_slug: 'note').pluck(:value) }
-
       before do
         post.custom_field_values.build(custom_field_id: post.get_field_object('note').id,
                                        custom_field_slug: 'note', value: 'built', group_number: 5)
