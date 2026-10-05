@@ -411,16 +411,12 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       # The SAVEPOINT statements of the block inside a transaction of the caller. The first query of
       # the caller opens that transaction, which is a savepoint inside the transaction of the example.
-      def savepoints_inside_a_caller_transaction
+      def savepoints_inside_a_caller_transaction(&block)
         statements = []
+        collect = ->(*, payload) { statements << payload[:sql] if payload[:sql].include?('SAVEPOINT') }
         ActiveRecord::Base.transaction do
           post.reload
-          subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
-            statements << payload[:sql] if payload[:sql].include?('SAVEPOINT')
-          end
-          yield
-        ensure
-          ActiveSupport::Notifications.unsubscribe(subscriber)
+          ActiveSupport::Notifications.subscribed(collect, 'sql.active_record', &block)
         end
         statements
       end
