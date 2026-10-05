@@ -587,9 +587,9 @@ for a number outside that range. Before, those databases found and stored such a
 - `where(group_number: n)` and `find_by(group_number: n)` find no row for such a number n.
   `where.not(group_number: n)` excludes no row. `get_field_values` finds the row only when the
   `custom_field_values` association of the record is loaded.
-- A write that skips the validation raises `ActiveModel::RangeError`. Such a write is
-  `update_attribute`, `save(validate: false)`, or a write that also skips the callbacks
-  (`update_column`, `update_all` with a hash, `insert_all`).
+- A write that skips the validation raises `ActiveModel::RangeError`:
+  - `update_attribute` and `save(validate: false)`
+  - `update_column`, `update_all` with a hash and `insert_all`, which also skip the callbacks
 - An SQL text skips the type. A condition with it finds the row, and `update_all` with it stores
   the number.
 - An Arel predicate on the group number with such a number can raise `ActiveModel::RangeError`.
