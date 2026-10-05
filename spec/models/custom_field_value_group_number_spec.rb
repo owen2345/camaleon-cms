@@ -49,6 +49,12 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
     end
 
+    it 'raises ArgumentError for a slug with no custom field, before it checks the group number' do
+      expect { post.set_field_value('no-such', 'new', group_number: -1) }
+        .to raise_error(ArgumentError, /no custom field configured/)
+      expect(post.get_field_values('note', 1)).to eq(['kept'])
+    end
+
     it 'removes the stored values of a group with an empty list' do
       post.set_field_value('note', [], group_number: 1)
 
