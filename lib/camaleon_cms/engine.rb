@@ -84,9 +84,10 @@ module CamaleonCms
         app.middleware.use CamaleonCms::MediaSecurityHeaders
       end
 
-      # The guard must read the params of a multipart request before Rack::MethodOverride. An API-only
-      # host has no Rack::MethodOverride, so the anchor is ActionDispatch::Executor, which the default
-      # stack of Rails always holds before it.
+      # CamaleonCms::MultipartEncodingGuard must run before Rack::MethodOverride, which reads the
+      # params of a POST. An API-only host has no Rack::MethodOverride, and an insert before it stops
+      # the boot of that host. So the guard goes after ActionDispatch::Executor. The default stack of
+      # Rails always has that middleware, before Rack::MethodOverride.
       app.middleware.insert_after ::ActionDispatch::Executor, CamaleonCms::MultipartEncodingGuard
 
       # Static files

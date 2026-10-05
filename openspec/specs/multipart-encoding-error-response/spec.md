@@ -9,8 +9,9 @@ Before, the server answered that request with a 500.
 ### Requirement: A multipart request with an encoding error of the param parser gets a 400
 
 The system SHALL answer a multipart request with a 400 when the param parser of Rack raises an
-encoding error for a part. With Rack 3, a part in a charset that is not ASCII-compatible (UTF-16,
-UTF-32, UTF-7) raises that error. So does a part in ISO-2022-JP with bytes that are not valid in
+encoding error for a part. A part can name a charset, and Rack gives that charset to the name of
+the part too. With Rack 3, a part in a charset that is not ASCII-compatible (UTF-16, UTF-32, UTF-7)
+raises that error. So does a part in ISO-2022-JP with bytes that are not valid in
 that charset. The answer MUST be the same for each request method. No controller action SHALL start,
 and the request SHALL store nothing. The system SHALL close the upload files that Rack lists for
 that request.

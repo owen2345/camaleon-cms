@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-# Drives the middleware with a plain downstream app, so each example reads what the guard gives to
-# the next app and what it leaves in the env.
+# Calls the middleware directly, with a small Rack app after it. Each example can check the answer of
+# the middleware, what the next app gets, and what the middleware leaves in the env.
 RSpec.describe CamaleonCms::MultipartEncodingGuard do
   subject(:guard) { described_class.new(downstream) }
 
   let(:boundary) { 'AaB03x' }
   let(:reached) { [] }
-  # The downstream app reads the params, as Rack::MethodOverride and Rails do.
+  # The app after the middleware. It records each request that reaches it. It reads the params, as
+  # Rack::MethodOverride and Rails do.
   let(:downstream) do
     lambda do |env|
       reached << env
@@ -65,8 +66,9 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     end
   end
 
-  # The request stops before Rack::TempfileReaper, which removes the files of the uploads.
-  it 'removes the files of the uploads of a request that it answers' do
+  # Rack stores each uploaded file in a temporary file. Rack::TempfileReaper removes those files, but
+  # it runs after this middleware, and the request stops here. So the middleware removes them.
+  it 'removes the temporary files of the uploads when it answers with a 400' do
     env = env_for(multipart_body([['upload', 'data', nil, 'a.txt'], ['note', 'x', 'UTF-16LE']]))
 
     status, = guard.call(env)
@@ -83,13 +85,13 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     expect(body).to eq(['title,plain,note,x'])
   end
 
-  it 'gives a part of a file in such a charset to the next app, because Rack does not read its text' do
+  it 'gives a file part in such a charset to the next app, because Rack gives no charset to a file part' do
     status, = guard.call(env_for(multipart_body([['upload', 'data', 'UTF-16LE', 'a.txt']])))
 
     expect(status).to eq(200)
   end
 
-  # The guard reads no body that is not multipart.
+  # Only a multipart part can name a charset, so the middleware reads no other body.
   it 'does not read the body of a request that is not multipart' do
     input = StringIO.new('note=x')
     env = env_for('note=x', type: 'application/x-www-form-urlencoded').merge('rack.input' => input)
@@ -99,8 +101,8 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
   end
 
   # Rack 2.2 raises a plain ArgumentError when the bytes of a part name are not valid in the charset
-  # of the part. Rack 3 raises an encoding error for that part, so a stub of the parser stands for
-  # Rack 2.2.
+  # of the part. CI runs Rack 3, which raises an encoding error for that part. So the examples
+  # replace the parser with a stub that raises the error of Rack 2.2.
   describe 'an ArgumentError of the parser' do
     let(:env) { env_for(multipart_body([%w[note x]])) }
 
@@ -136,7 +138,8 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     end
   end
 
-  # Each other error of the parser stays with Rack and Rails: the next app gets the same error.
+  # The middleware does not catch another error of the parser. The request goes on, and the next
+  # app gets the same error when it reads the params.
   it 'gives a request with another error of the parser to the next app' do
     env = env_for(multipart_body([%w[note 1], %w[note[text] 2]]))
 

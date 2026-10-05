@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-# Rack gives the name of a multipart part the charset of that part. For a charset that is not
-# ASCII-compatible (UTF-16LE), the param parser of Rack raised an encoding error, and the server
-# answered with a 500. A browser form sends no charset for a part, so only a hand-made request holds
-# such a part. The guard answers that request with a 400, and no controller action starts.
+# A part of a multipart request can name a charset (Content-Type: text/plain; charset=UTF-16LE), and
+# Rack gives that charset to the name of the part too. For a charset that is not ASCII-compatible, the
+# param parser of Rack then raises an encoding error. Before, the server answered such a request
+# with a 500. A browser form names no charset for a part, so only a hand-made request has such a
+# part. CamaleonCms::MultipartEncodingGuard answers that request with a 400, and no controller
+# action starts.
 RSpec.describe CamaleonCms::MultipartEncodingGuard, type: :request do
   init_site
 
@@ -59,14 +61,14 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard, type: :request do
     end
   end
 
-  it 'answers a POST that a form sends as a PATCH with a 400 and keeps the stored values' do
+  it 'answers a POST with _method=patch with a 400, and the stored values stay' do
     send_multipart(:post, "/admin/post_type/#{post_type.id}/categories/#{category.id}",
                    [%w[_method patch]] + category_parts('UTF-16LE'))
 
     expect_bad_request
   end
 
-  it 'answers a PATCH with a 400 and keeps the stored values' do
+  it 'answers a PATCH with a 400, and the stored values stay' do
     send_multipart(:patch, "/admin/post_type/#{post_type.id}/categories/#{category.id}", category_parts('UTF-16LE'))
 
     expect_bad_request
@@ -89,8 +91,9 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard, type: :request do
     expect(category.get_field_values('subtitle')).to eq(['new'])
   end
 
-  # Rack::MethodOverride reads the params of a POST, so the guard must come before it. The anchor is
-  # ActionDispatch::Executor, because an API-only host has no Rack::MethodOverride.
+  # Rack::MethodOverride reads the params of a POST, so the guard must come before it. The engine
+  # inserts the guard after ActionDispatch::Executor, not before Rack::MethodOverride, because an
+  # API-only host has no Rack::MethodOverride.
   it 'sits after ActionDispatch::Executor and before Rack::MethodOverride in the middleware stack' do
     stack = Rails.application.middleware.map(&:klass)
 

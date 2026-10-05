@@ -28,7 +28,7 @@ what theme/plugin developers should know.
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
-| Sends multipart requests from code that sets a charset for a part, or has its own Rack middleware near `Rack::MethodOverride` | The engine adds the `CamaleonCms::MultipartEncodingGuard` middleware. A multipart request with a part in a charset that is not ASCII-compatible gets a 400, not a 500 ([details](#a-multipart-request-with-an-unreadable-part-charset-gets-a-400)) |
+| Has a client that sends multipart requests with a charset on a part, or has its own Rack middleware that reads the body of a request | A multipart request with a part in a charset that is not ASCII-compatible gets a 400, not a 500. The engine adds the `CamaleonCms::MultipartEncodingGuard` middleware for it ([details](#a-multipart-request-with-an-unreadable-part-charset-gets-a-400)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
@@ -232,24 +232,32 @@ connection the uploader no longer opens, so it raised before reaching a file.
 
 ## A multipart request with an unreadable part charset gets a 400
 
-The engine adds the Rack middleware `CamaleonCms::MultipartEncodingGuard` to the host app, directly
-after `ActionDispatch::Executor`. It applies to each multipart request of the host app, not only to
-the admin.
+**What changed.** A part of a multipart request can name a charset, for example
+`Content-Type: text/plain; charset=UTF-16LE`. For a charset that is not ASCII-compatible (UTF-16,
+UTF-32, UTF-7), Rack cannot read the name of that part. Its param parser then raises an encoding
+error. Before, the server answered such a request with a 500, in each controller of the host app.
+Now the request gets a 400 with the text `Bad Request`, and no controller action starts.
 
-- Rack gives the name of a multipart part the charset of that part. For a charset that is not
-  ASCII-compatible (UTF-16, UTF-32, UTF-7), the param parser of Rack 3 raises an encoding error.
-  Before, the server answered that request with a 500. A browser form sends no charset for a part.
-- The guard answers that request with a 400 and the text `Bad Request`. No controller action starts.
-  The guard writes one line to the error stream of the request (`rack.errors`).
-- A part in ISO-2022-JP with bytes that are not valid in that charset gets the same answer.
-- The guard reads the params of each multipart request with the parser of Rack, before
-  `Rack::MethodOverride`. Rack keeps the result, so Rack and Rails do not parse the body again. For a
-  PATCH, a PUT or a DELETE, the parse now runs before the middleware that comes after the guard.
-- Each other error of the parser stays as it was.
+A browser form names no charset for a part. So only a client that builds the request by hand can
+send such a part.
+
+**How.** The engine adds the Rack middleware `CamaleonCms::MultipartEncodingGuard` to the host app,
+directly after `ActionDispatch::Executor`.
+
+- For each multipart request, the middleware reads the params with the parser of Rack, before
+  `Rack::MethodOverride`. Rack keeps the result, so Rack and Rails do not parse the body again.
+- When the parser raises an encoding error, the middleware answers with the 400. It writes one
+  line to the error stream of the request (`rack.errors`).
+- A part in ISO-2022-JP with bytes that are not valid in that charset gets the 400 too.
 - With Rack 2.2, the parser raises a plain `ArgumentError` when the bytes of the part name are not
-  valid in the charset of the part. The guard answers that error with a 400 too.
+  valid in the charset of the part. That request gets the 400 too.
+- The middleware does not catch another error of the parser. Rack and Rails handle such an error as
+  before.
 
-**Action:** none for a host with the default middleware stack.
+**Who must act.** Nobody, with the default middleware stack. Check your app only if it has its own
+Rack middleware that reads or changes the body of a multipart request. For a PATCH, a PUT or a
+DELETE, Rack now parses the body before the middleware that comes after the guard. Rack did the
+same for a POST before this release.
 
 ---
 
