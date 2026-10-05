@@ -431,6 +431,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.reload.get_field_values('note', 1)).to eq([])
       end
 
+      # The writer also resets the association after a failed call that joined a transaction.
+      it 'saves the record after a refusal that the caller rescues' do
+        ActiveRecord::Base.transaction do
+          post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+        rescue ActiveRecord::RecordInvalid
+          nil
+        end
+
+        expect(post.update(title: 'Saved')).to be(true)
+        expect(described_class.where(custom_field_slug: 'note')).to be_empty
+      end
+
       it 'rolls back its delete on a refusal with no transaction of the caller' do
         expect { post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } }) }
           .to raise_error(ActiveRecord::RecordInvalid)
