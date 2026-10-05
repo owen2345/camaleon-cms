@@ -322,6 +322,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     it 'raises ActiveModel::RangeError in a save that skips the validation' do
       expect { row.update_attribute(:group_number, 2_147_483_648) } # rubocop:disable Rails/SkipsModelValidations
         .to raise_error(ActiveModel::RangeError)
+      row.reload.group_number = 2_147_483_648
       expect { row.save(validate: false) }.to raise_error(ActiveModel::RangeError)
       expect(row.reload.group_number).to eq(1)
     end
