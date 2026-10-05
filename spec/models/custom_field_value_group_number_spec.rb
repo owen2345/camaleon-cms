@@ -469,7 +469,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     # The reset drops each unsaved row of the association. The writer puts back the rows that the
     # caller built before the call, so the next save of the record stores them.
     context 'with a row that the caller built before the call' do
-      before do
+      let!(:built) do
         post.custom_field_values.build(custom_field_id: post.get_field_object('note').id,
                                        custom_field_slug: 'note', value: 'built', group_number: 5)
       end
@@ -495,6 +495,14 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
         expect(post.save).to be(true)
         expect(stored_values).to contain_exactly('kept', 'built')
+      end
+
+      it 'keeps that row unsaved in the association, and the record does not read it' do
+        expect { post.set_field_value('note', 'new', group_number: -1) }.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(post.custom_field_values.target).to include(built)
+        expect(built).to be_new_record
+        expect(post.get_field_values('note', 5)).to eq([])
       end
     end
   end
