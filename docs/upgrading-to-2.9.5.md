@@ -599,8 +599,7 @@ there. Before, that caller lost the stored values at its commit.
 After an error, the two writers also reset the `custom_field_values` association of the record. The
 record reads the stored values again, and its next save stores no row of the failed call. Before,
 the record kept the rows of the failed call: its next save failed, or stored some of those rows.
-The association does not hold the unsaved rows of the failed call after the error. The unsaved rows
-that the caller built before the call stay in the association.
+The unsaved rows that the caller built before the call stay in the association.
 
 ---
 
