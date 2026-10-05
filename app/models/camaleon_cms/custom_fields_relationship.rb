@@ -57,8 +57,8 @@ module CamaleonCms
 
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :group_number_given?
-    # A save that skips the validation must not store a group number text that the type cannot read:
-    # the type reads that text as no number. In that save, save returns false and save! raises the
+    # A save that skips the validation must not store a group number text that the type cannot read.
+    # The type reads that text as no number. In that save, save returns false and save! raises the
     # refusal.
     before_save :refuse_invalid_group_number!, if: :group_number_unreadable?
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
