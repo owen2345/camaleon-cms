@@ -115,9 +115,10 @@ The writers call `transaction(requires_new: true)`, with the one exception of th
 The savepoint covers each refusal of a row, the refusal of the value gate included.
 
 Rails 8.1 has `ActiveRecord.with_transaction_isolation_level`. It gives the pool an isolation level
-inside each transaction that a model class or a record save opens, and Rails refuses a savepoint
-while the pool has a level. The `create_or_find_by` method of Rails fails in such a transaction
-too. The post save of the admin calls `set_field_values` inside `ActiveRecord::Base.transaction`.
+inside each transaction that a model class or a record opens in its block.
+`Model.with_pool_transaction_isolation_level` gives the pool a level inside its block. Rails refuses
+a savepoint while the pool has a level. The `create_or_find_by` method of Rails fails in such a
+transaction too. The post save of the admin calls `set_field_values` inside `ActiveRecord::Base.transaction`.
 With `requires_new: true`, Rails refused the savepoint of the writer there, and the save failed.
 On 2026-10-05, the maintainer chose to ask for no savepoint while the pool has an isolation level
 (`pool_transaction_isolation_level`). In a joinable transaction of the caller, the writers then

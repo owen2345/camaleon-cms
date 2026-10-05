@@ -406,8 +406,9 @@ module CamaleonCms
     end
 
     # While the pool has an isolation level, Rails refuses a savepoint, so the writers ask for none.
-    # Rails 8.1 gives the pool a level inside each transaction that a model class (ActiveRecord::Base
-    # too) or a record save opens under ActiveRecord.with_transaction_isolation_level. Inside an open
+    # Rails 8.1 can give the pool a level. ActiveRecord.with_transaction_isolation_level gives it
+    # inside each transaction that a model class (ActiveRecord::Base too) or a record opens in its
+    # block. Model.with_pool_transaction_isolation_level gives it inside its block. Inside an open
     # joinable transaction of the caller, the writers then join it: a failed call rolls nothing back,
     # unless that transaction rolls back. With no open transaction, they open their own.
     def _cama_field_values_savepoint?

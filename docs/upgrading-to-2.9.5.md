@@ -598,10 +598,13 @@ for a number outside that range. Before, those databases found and stored such a
 of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
 there. Before, that caller lost the stored values at its commit.
 
-Rails 8.1 refuses that savepoint inside a transaction that `Model.transaction` or a record save
-opens under `ActiveRecord.with_transaction_isolation_level`. There, the writers join a joinable
-transaction of the caller. A failed call then rolls back nothing, unless that transaction rolls
-back. A caller that rescues the refusal and commits loses the stored values that the call deleted.
+Rails 8.1 refuses that savepoint while the connection pool has an isolation level.
+`ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`
+can give the pool a level. While the pool has a level inside a joinable transaction of the caller,
+the writers join that transaction. A failed call then rolls back nothing, unless that transaction
+rolls back.
+
+A caller that rescues the refusal there and commits loses the stored values that the call deleted.
 The rows that the call stored before the refusal stay. The release before did the same for a
 refused value.
 

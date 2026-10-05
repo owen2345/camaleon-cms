@@ -33,8 +33,8 @@ is present since 2.9.3, which added the `to_i` call.
   with the same refusal.
 - `set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A
   refusal that the caller rescues there rolls back the delete of the stored values. Rails 8.1
-  refuses that savepoint while the pool has an isolation level
-  (`ActiveRecord.with_transaction_isolation_level`). The writers then join a joinable transaction
+  refuses that savepoint while the pool has an isolation level (for example under
+  `ActiveRecord.with_transaction_isolation_level`). The writers then join a joinable transaction
   of the caller.
 - `set_field_value` refuses the group number before its delete. A call with an empty list builds no
   row. Before, that call deleted the stored values of the group that the integer cast gave.
