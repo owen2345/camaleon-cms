@@ -187,6 +187,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
+    # Ruby reads two empty texts as equal in each encoding. An empty text in UTF-16 is not the empty
+    # group number of a form.
+    it 'gets the refusal of set_field_values for an empty text in UTF-16, and the stored value stays' do
+      payload = { '0' => { 'note' => { group_number: ''.encode('UTF-16LE'), values: ['new'] } } }
+
+      expect { post.set_field_values(payload) }
+        .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
     it 'stops the save of a new row that skips the validation for a text with a broken encoding' do
       row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'new',
                                          group_number: "1\xFF")

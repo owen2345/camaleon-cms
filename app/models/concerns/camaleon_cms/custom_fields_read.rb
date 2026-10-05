@@ -267,10 +267,10 @@ module CamaleonCms
             # pass slugs outside this object's registered groups; a permitted browser payload's slug
             # is in the groups its save resolves against, and its id is held to the slug's fields).
             field_id = _cama_field_id_for(field_key, field_groups) || fallback_field_id_for(field_key) || values[:id]
-            # An absent or empty group number is the first group. The value row refuses a group number
-            # that is not an integer in its range.
+            # An absent or empty group number is group 0. Ruby reads two empty texts as equal in each
+            # encoding, and the row refuses an empty text in an encoding that is not ASCII-compatible.
             group_number = values[:group_number]
-            group_number = 0 if group_number.nil? || group_number == ''
+            group_number = 0 if group_number.nil? || (group_number == '' && group_number.encoding.ascii_compatible?)
 
             order_value = -1
             (
