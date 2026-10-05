@@ -27,7 +27,8 @@ of the row. It stores what the integer cast of the type gives (-1 stays -1, and 
 it raises an error for a value that the type cannot store.
 
 A write that skips the validation and the callbacks (for example `update_column`, `update_all`,
-`insert_all`) is not a write path of this requirement. Such a write stores no group number (NULL) for that text.
+`insert_all`) is not a write path of this requirement. `update_column`, `update_all` with a hash and
+`insert_all` store no group number (NULL) for that text.
 
 The type of the group number SHALL have the 4-byte range on each supported database, also where
 the column holds a wider integer (SQLite, a `bigint` column). There, `where(group_number: n)` and

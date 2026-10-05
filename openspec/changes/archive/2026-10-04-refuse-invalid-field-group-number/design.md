@@ -86,8 +86,8 @@ A save that skips the validation (`update_attribute`, `save(validate: false)`) s
 such a text. The maintainer chose a guard on 2026-10-04. A `before_save` callback raises the
 refusal: `save` returns false, and `save!` raises the refusal. For another refused number, such a
 save runs no check of the row: it stores what the integer cast of the type gives, or it raises an
-error for a value that the type cannot store. `update_column`, `update_all` and `insert_all` skip
-the validation and the callbacks. They store no group number for such a text.
+error for a value that the type cannot store. `update_column`, `update_all` with a hash and
+`insert_all` skip the validation and the callbacks. They store no group number for such a text.
 
 The maintainer chose to leave those three writes on 2026-10-04. Before, Rails raised its own error
 there in most cases. In the other cases it stored the digits at the start of the text, or no

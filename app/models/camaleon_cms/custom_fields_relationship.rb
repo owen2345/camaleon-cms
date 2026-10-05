@@ -32,8 +32,8 @@ module CamaleonCms
     # that text as no number, in a row and in a lookup. The row keeps the text, and the validation
     # refuses it.
     #
-    # update_column, update_all and insert_all skip the validation and the callbacks. They store no
-    # group number for that text.
+    # update_column, update_all with a hash and insert_all skip the validation and the callbacks. They
+    # store no group number for that text.
     #
     # The type has the 4-byte range (-2147483648 to 2147483647) on each database. The design keeps this
     # range where the column holds a wider integer (SQLite, a bigint column). There, for a number n
