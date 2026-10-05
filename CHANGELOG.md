@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- **Bug fix:** A multipart request with a part in a charset that is not ASCII-compatible (UTF-16) gets a 400. Before, the param parser of Rack raised an error, and the server answered with a 500. The engine adds the `CamaleonCms::MultipartEncodingGuard` Rack middleware to the host app. [#1319](https://github.com/owen2345/camaleon-cms/pull/1319).
-  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-multipart-request-with-an-unreadable-part-charset-gets-a-400).
+- **Bug fix:** A multipart request with a part in a charset that is not ASCII-compatible (UTF-16) gets a 400. Before, the param parser of Rack raised an error, and the server answered with a 500. Camaleon adds the `CamaleonCms::MultipartEncodingGuard` Rack middleware to the host app. [#1319](https://github.com/owen2345/camaleon-cms/pull/1319).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-multipart-request-with-a-part-in-utf-16-gets-a-400).
 
 - **Tooling:** The spec suite disables the RSpec monkey patches (`config.disable_monkey_patching!`). A spec file must start with `RSpec.describe`: a bare top-level `describe` fails to load, and the `should` syntax does not exist. Development-only. [#1317](https://github.com/owen2345/camaleon-cms/pull/1317).
 

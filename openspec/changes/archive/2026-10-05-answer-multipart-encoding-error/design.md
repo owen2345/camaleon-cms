@@ -21,59 +21,54 @@ starts, so no `rescue_from` of a controller sees it.
 
 ## Decisions
 
-**D1. A Rack middleware of the engine reads the params first.** The maintainer chose it on
-2026-10-05. `CamaleonCms::MultipartEncodingGuard` reads the params of a multipart request with
-`Rack::Request#POST`. `Rack::MethodOverride` and Rails read the params with the same call. Rack keeps
-the result in the env, so the later readers do not parse the body again. The guard answers an
-`EncodingError` of that call with a 400 and the text `Bad Request`. It writes one line to the error
-stream of the request (`rack.errors`), as `Rack::MethodOverride` does for the errors that it handles.
+The maintainer chose D1 and D5 on 2026-10-05. "The guard" is `CamaleonCms::MultipartEncodingGuard`.
 
-The other remedies were:
+**D1. A Rack middleware of Camaleon parses the params first.** The guard parses the params of a
+multipart request with `Rack::Request#POST`, the call that `Rack::MethodOverride` and Rails use.
+Rack keeps the result in the env, so nothing parses the body twice. The guard answers an
+`EncodingError` of that call with a 400 and the body `Bad Request`. It writes one line to
+`rack.errors`, as `Rack::MethodOverride` does for the errors that it handles. Rejected:
 
-- An entry in `config.action_dispatch.rescue_responses`. It does not cover the POST, and the other
+- An entry in `config.action_dispatch.rescue_responses`. It does not cover a POST, and the other
   methods keep the failsafe 500, because `ShowExceptions` reads the params again.
-- A newer Rack. On 2026-10-05, the newest release was 3.2.7, which has no fix. The main branch of
-  Rack raises `Rack::QueryParser::IncompatibleEncodingError` there, and Rails 8.1.4 maps no such
-  class to a 400.
+- A newer Rack. The newest release on 2026-10-05, 3.2.7, has no fix. The main branch of Rack raises
+  `Rack::QueryParser::IncompatibleEncodingError` there, and Rails 8.1.4 maps no such class to a
+  400.
 
-**D2. The guard answers each `EncodingError` of the parser.**
-`Encoding::CompatibilityError` is the error for a charset that is not ASCII-compatible. Rack 3.2
-changes a part in ISO-2022-JP to UTF-8, and that change raises `Encoding::InvalidByteSequenceError`
-for bytes that are not valid in ISO-2022-JP. Both are an `EncodingError`, and each one is an error of
-the request. Each other error of the parser passes to the next middleware, which gets the same error
-from Rack. So a type conflict of two params and a truncated body keep their answers. D5 holds one
+**D2. The guard answers each `EncodingError` of the parser.** `Encoding::CompatibilityError` is the
+error for a charset that is not ASCII-compatible. Rack 3.2 converts a part in ISO-2022-JP to UTF-8,
+which raises `Encoding::InvalidByteSequenceError` for invalid bytes. Both are errors of the
+request. Each other error of the parser passes to the next middleware, which gets the same error
+from Rack. So a type conflict of two params and a truncated body keep their answers. D5 has one
 exception for Rack 2.2.
 
-**D3. The guard reads a multipart request only, for each request method.** Only a multipart part
-has a charset. A body with another content type passes with no read. For a POST,
-`Rack::MethodOverride` reads the params at this position already. For a PATCH, a PUT or a DELETE,
-Rails reads them later, so the parse now runs before the middleware that comes after the guard. A
-part of a file passes, because Rack gives no charset to the name of such a part.
+**D3. The guard parses a multipart request only, for each request method.** Only a multipart part
+has a charset, so a body with another content type passes with no read. For a POST,
+`Rack::MethodOverride` parses the params at this position already. For a PATCH, a PUT or a DELETE,
+Rails parses them later, so the parse now runs before the middleware that comes after the guard. A
+file part passes, because Rack gives no charset to its name.
 
-**D4. The guard goes directly after `ActionDispatch::Executor`.** The default stack of Rails holds
-`ActionDispatch::Executor` before `Rack::MethodOverride`. An API-only host has no
-`Rack::MethodOverride`, and an insert before it raises an error at the boot of that host.
+**D4. The guard goes directly after `ActionDispatch::Executor`.** The default stack of Rails has
+that middleware before `Rack::MethodOverride`. An API-only host has no `Rack::MethodOverride`, and
+an insert before it raises an error at the boot of that host. The request stops before
+`Rack::TempfileReaper`, so the guard removes the temporary files of the uploads.
 
-The request stops before `Rack::TempfileReaper`, so the guard closes the upload files that Rack
-lists for the request.
-
-**D5. The guard also answers the plain `ArgumentError` of Rack 2.2.** The maintainer chose it on
-2026-10-05: the engine supports Rails 6.1, and Rails 6.1 and 7.0 need Rack 2. Rack 2.2 raises
-`Encoding::CompatibilityError` only when the bytes of the part name are valid in the charset of the
-part. For other bytes it raises a plain `ArgumentError` with the text `invalid byte sequence`. A
-name of 3 bytes in UTF-16LE is an example, and so is an ASCII name in UTF-32. With no answer for
-that error, those requests keep their 500 with Rack 2.2.
+**D5. The guard also answers the plain `ArgumentError` of Rack 2.2.** Camaleon supports Rails 6.1,
+and Rails 6.1 and 7.0 need Rack 2. Rack 2.2 raises `Encoding::CompatibilityError` only when the
+bytes of the part name are valid in the charset of the part. For other bytes it raises a plain
+`ArgumentError` with the message `invalid byte sequence`. A name of 3 bytes in UTF-16LE is an
+example, and so is an ASCII name in UTF-32. Without this decision, those requests keep their 500
+with Rack 2.2.
 
 The param errors of Rack are subclasses of `ArgumentError`, and Rack and Rails handle them. So the
-guard answers only an error whose class is `ArgumentError` itself and whose text starts with
-`invalid byte sequence`. With Rack 2.2, that rule also covers a part name with broken bytes in an
+guard answers only an error whose class is `ArgumentError` itself and whose message starts with
+`invalid byte sequence`. With Rack 2.2, that rule also covers a part name with invalid bytes in an
 ASCII-compatible charset.
 
-CI resolves Rack 3.2 on each row. So the examples give the guard a stub of the parser that raises
-the error of Rack 2.2. A probe with Rack 2.2.22 backs the decision: each probed part in UTF-16,
-UTF-32 or UTF-7 gets the 400.
+CI runs Rack 3.2 on each row, so the examples stub the parser. A probe with Rack 2.2.22 backs the
+decision: each probed part in UTF-16, UTF-32 or UTF-7 gets the 400.
 
 ## Risks / Trade-offs
 
-- A later Rack can keep the name of a part readable. The parser then raises no error for such a
+- A later Rack can keep the name of a part in UTF-8. The parser then raises no error for such a
   part, and the guard passes the request.

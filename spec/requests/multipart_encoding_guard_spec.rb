@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
-# A part of a multipart request can name a charset (Content-Type: text/plain; charset=UTF-16LE), and
-# Rack gives that charset to the name of the part too. For a charset that is not ASCII-compatible, the
-# param parser of Rack then raises an encoding error. Before, the server answered such a request
-# with a 500. A browser form names no charset for a part, so only a hand-made request has such a
-# part. CamaleonCms::MultipartEncodingGuard answers that request with a 400, and no controller
-# action starts.
+# A part of a multipart request can name a charset (Content-Type: text/plain; charset=UTF-16LE). For
+# a charset that is not ASCII-compatible, the param parser of Rack raises an encoding error. Before,
+# the server answered with a 500. CamaleonCms::MultipartEncodingGuard answers with a 400, and no
+# controller action starts.
 RSpec.describe CamaleonCms::MultipartEncodingGuard, type: :request do
   init_site
 
@@ -74,9 +72,8 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard, type: :request do
     expect_bad_request
   end
 
-  # Rack changes a part in ISO-2022-JP to UTF-8, and that change raises an encoding error for bytes
-  # that are not valid in ISO-2022-JP.
-  it 'answers a part with bytes that are not valid in ISO-2022-JP with a 400' do
+  # Rack converts a part in ISO-2022-JP to UTF-8, which raises an encoding error for invalid bytes.
+  it 'answers a part with invalid ISO-2022-JP bytes with a 400' do
     send_multipart(:patch, "/admin/post_type/#{post_type.id}/categories/#{category.id}",
                    [['category[name]', "abc\xFF".b, 'ISO-2022-JP']])
 
@@ -91,9 +88,8 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard, type: :request do
     expect(category.get_field_values('subtitle')).to eq(['new'])
   end
 
-  # Rack::MethodOverride reads the params of a POST, so the guard must come before it. The engine
-  # inserts the guard after ActionDispatch::Executor, not before Rack::MethodOverride, because an
-  # API-only host has no Rack::MethodOverride.
+  # The guard must come before Rack::MethodOverride, which parses the params of a POST. Camaleon
+  # inserts it after ActionDispatch::Executor, because an API-only host has no Rack::MethodOverride.
   it 'sits after ActionDispatch::Executor and before Rack::MethodOverride in the middleware stack' do
     stack = Rails.application.middleware.map(&:klass)
 

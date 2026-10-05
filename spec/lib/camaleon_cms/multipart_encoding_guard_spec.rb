@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
-# Calls the middleware directly, with a small Rack app after it. Each example can check the answer of
-# the middleware, what the next app gets, and what the middleware leaves in the env.
+# Calls the middleware directly, with a small Rack app after it.
 RSpec.describe CamaleonCms::MultipartEncodingGuard do
   subject(:guard) { described_class.new(downstream) }
 
   let(:boundary) { 'AaB03x' }
   let(:reached) { [] }
-  # The app after the middleware. It records each request that reaches it. It reads the params, as
+  # The app after the middleware. It records each request that it gets, and it parses the params, as
   # Rack::MethodOverride and Rails do.
   let(:downstream) do
     lambda do |env|
@@ -66,8 +65,8 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     end
   end
 
-  # Rack stores each uploaded file in a temporary file. Rack::TempfileReaper removes those files, but
-  # it runs after this middleware, and the request stops here. So the middleware removes them.
+  # The request stops before Rack::TempfileReaper, so the middleware removes the temporary files of
+  # the uploads.
   it 'removes the temporary files of the uploads when it answers with a 400' do
     env = env_for(multipart_body([['upload', 'data', nil, 'a.txt'], ['note', 'x', 'UTF-16LE']]))
 
@@ -100,9 +99,8 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     expect(passed.call(env).last).to eq(['0'])
   end
 
-  # Rack 2.2 raises a plain ArgumentError when the bytes of a part name are not valid in the charset
-  # of the part. CI runs Rack 3, which raises an encoding error for that part. So the examples
-  # replace the parser with a stub that raises the error of Rack 2.2.
+  # Rack 2.2 raises a plain ArgumentError for a part name with bytes that are invalid in the charset
+  # of the part. CI runs Rack 3, so the examples stub the parser.
   describe 'an ArgumentError of the parser' do
     let(:env) { env_for(multipart_body([%w[note x]])) }
 
@@ -112,7 +110,7 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
       allow(Rack::Request).to receive(:new).with(env).and_return(request)
     end
 
-    it 'answers with a 400 when the bytes of a part name are not valid in the charset' do
+    it 'answers with a 400 when the bytes of a part name are invalid in the charset' do
       parser_raises(ArgumentError.new('invalid byte sequence in UTF-16LE'))
 
       status, _headers, body = guard.call(env)
@@ -129,8 +127,8 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
       expect(reached).to eq([env])
     end
 
-    # Rack and Rails handle a param error of Rack, which is a subclass of ArgumentError.
-    it 'gives the request to the next app for a param error of Rack with the same text' do
+    # A param error of Rack is a subclass of ArgumentError. Rack and Rails handle it.
+    it 'gives the request to the next app for a param error of Rack with the same message' do
       parser_raises(Rack::QueryParser::InvalidParameterError.new('invalid byte sequence in UTF-8'))
 
       expect { guard.call(env) }.to raise_error(Rack::QueryParser::InvalidParameterError)
@@ -138,8 +136,7 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     end
   end
 
-  # The middleware does not catch another error of the parser. The request goes on, and the next
-  # app gets the same error when it reads the params.
+  # The next app gets the same error when it parses the params.
   it 'gives a request with another error of the parser to the next app' do
     env = env_for(multipart_body([%w[note 1], %w[note[text] 2]]))
 
