@@ -438,6 +438,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
     end
 
+    # Rails can commit what the call stored or deleted before a throw, so the example reads only what
+    # the next save stores.
+    it 'stores no row of the call after a throw out of set_field_values' do
+      allow_any_instance_of(described_class).to receive(:save!).and_throw(:stop)
+
+      catch(:stop) { post.set_field_values({ '0' => { 'note' => { group_number: 2, values: ['new'] } } }) }
+
+      allow_any_instance_of(described_class).to receive(:save!).and_call_original
+      expect { post.save }.not_to change(described_class, :count)
+    end
+
     # The reset drops each unsaved row of the association. The writer puts back the rows that the
     # caller built before the call, so the next save of the record stores them.
     context 'with a row that the caller built before the call' do
