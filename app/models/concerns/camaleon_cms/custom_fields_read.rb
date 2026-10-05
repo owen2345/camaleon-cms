@@ -351,9 +351,10 @@ module CamaleonCms
         custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
         term_order: args[:order], group_number: args[:group_number]
       }
-      # Atomic (audit M7): clear the previous value and write the new one in one transaction, so a
-      # value the scan-and-reject gate refuses (create! -> RecordInvalid) rolls the delete back and
-      # the previously stored value survives instead of being destroyed.
+      # The writer deletes the previous values (the clear option) and creates the new rows in one
+      # transaction. A value that the scan-and-reject gate refuses (create! raises RecordInvalid) rolls
+      # the delete back, so the previous values stay. For the one exception, see
+      # _cama_field_values_savepoint?.
       _cama_write_field_values do
         # A call with an empty list builds no row, so no row refuses the group number. The check gives
         # the refusal of a row before the delete.
