@@ -123,8 +123,9 @@ On 2026-10-05, the maintainer chose to ask for no savepoint while the pool has a
 (`pool_transaction_isolation_level`). In a joinable transaction of the caller, the writers then
 join it. With no open transaction, they open their own. The post save does not rescue the refusal
 inside its transaction, so a refused save still rolls back as a whole. A failed call rolls back
-nothing there by itself. A caller that rescues the refusal and commits keeps what the call deleted
-and stored before the refusal. The release before did the same for a refusal of the value gate.
+nothing there by itself. A caller that rescues the refusal and commits loses the stored values that
+the call deleted. The rows that the call stored before the refusal stay. The release before did the
+same for a refusal of the value gate.
 `ActiveRecord::Rollback` that leaves the block of a writer rolls nothing back there either, and
 the writer returns nil. The other remedy was a note on the limit.
 

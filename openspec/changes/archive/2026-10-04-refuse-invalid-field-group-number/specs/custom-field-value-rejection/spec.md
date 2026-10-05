@@ -55,7 +55,8 @@ While the pool has an isolation level, Rails refuses a savepoint. On Rails 8.1,
 a model class or a record save opens. While the pool has a level and a joinable transaction of the
 caller is open, the writers SHALL NOT open a savepoint. They SHALL run inside that transaction. A
 failed call then rolls back nothing, unless the transaction of the caller rolls back. A caller that
-rescues the refusal and commits keeps what the call deleted and stored before the refusal.
+rescues the refusal and commits loses the stored values that the call deleted. The rows that the
+call stored before the refusal stay.
 
 The rollback leaves the rows of the failed call in the `custom_field_values` association of the
 record. After an error of a writer, the writer SHALL reset that association. The record then SHALL

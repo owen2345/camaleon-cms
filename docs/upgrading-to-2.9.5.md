@@ -601,8 +601,9 @@ there. Before, that caller lost the stored values at its commit.
 Rails 8.1 refuses that savepoint inside a transaction that `Model.transaction` or a record save
 opens under `ActiveRecord.with_transaction_isolation_level`. There, the writers join a joinable
 transaction of the caller. A failed call then rolls back nothing, unless that transaction rolls
-back. A caller that rescues the refusal and commits keeps what the call deleted and stored before
-the refusal. The release before did the same for a refused value.
+back. A caller that rescues the refusal and commits loses the stored values that the call deleted.
+The rows that the call stored before the refusal stay. The release before did the same for a
+refused value.
 
 After an error, the two writers also reset the `custom_field_values` association of the record. The
 record reads the stored values again, and its next save stores no row of the failed call. Before,
