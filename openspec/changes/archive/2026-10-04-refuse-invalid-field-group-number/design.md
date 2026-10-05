@@ -113,7 +113,9 @@ admin form sends the index of the group.
 `set_field_values` delete stored values before they create the rows. Their transaction joined a
 transaction of the caller, so a caller that rescued the refusal there and committed kept the delete.
 The writers call `transaction(requires_new: true)`, with the one exception of the next paragraph.
-The savepoint covers each refusal of a row, the refusal of the value gate included.
+The savepoint covers each refusal of a row, the refusal of the value gate included. Each savepoint
+costs two statements. On PostgreSQL, more than 64 savepoints that write in one transaction overflow
+the subtransaction cache of the session.
 
 Rails 8.1 has `ActiveRecord.with_transaction_isolation_level`. It gives the pool an isolation level
 inside each transaction that a model class or a record opens in its block.

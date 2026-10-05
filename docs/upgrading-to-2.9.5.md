@@ -601,6 +601,11 @@ for a number outside that range. Before, those databases found and stored such a
 of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
 there. Before, that caller lost the stored values at its commit.
 
+Each savepoint adds two statements to the call. On PostgreSQL, a transaction with more than 64
+savepoints that write overflows the subtransaction cache of its session, which can slow other
+sessions. A caller with a long loop of calls in one transaction can split the loop into shorter
+transactions.
+
 Rails 8.1 refuses that savepoint while the connection pool has an isolation level.
 `ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`
 can give the pool a level. While the pool has a level inside a joinable transaction of the caller,
