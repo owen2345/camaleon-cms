@@ -236,12 +236,14 @@ module CamaleonCms
     # }
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
     #
-    # group_number (optional, in each entry) is an integer from 0 to 2147483647, as an Integer or as a
-    # text of 1 to 16 ASCII digits. An absent or empty group number is group 0. A value row refuses any other
-    # group number, also an empty text in an encoding that is not ASCII-compatible. The method then
-    # raises ActiveRecord::RecordInvalid, and the stored values stay. For the exceptions, see
-    # _cama_write_field_values and _cama_field_values_savepoint?. The method also checks the group
-    # number of an entry with no values.
+    # group_number (optional, in each entry) says which copy of a repeated field group holds the
+    # values. It is an integer from 0 to 2147483647. The caller gives it as an Integer or as a text of
+    # 1 to 16 ASCII digits. With no group number, or with an empty text, the values go to group 0.
+    #
+    # For any other group number, the method raises ActiveRecord::RecordInvalid. It also raises that
+    # error for an entry that has such a group number and no values. After the error, the record has
+    # the same stored values as before the call. _cama_write_field_values says how, and it names the
+    # cases where the stored values do not stay.
     #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
@@ -262,13 +264,14 @@ module CamaleonCms
         custom_field_values.delete_all
         datas.each_value do |fields_data|
           fields_data.each do |field_key, values|
-            # Ruby reads two empty texts as equal in each encoding, and the row refuses an empty text in
-            # an encoding that is not ASCII-compatible.
+            # No group number and an empty text mean group 0. An empty text in an encoding that is not
+            # ASCII-compatible (UTF-16) is not valid, and the row must get it as it is. Ruby says that
+            # such a text is equal to '', so the test also reads the encoding.
             group_number = values[:group_number]
             group_number = 0 if group_number.nil? || (group_number == '' && group_number.encoding.ascii_compatible?)
             if values[:values].blank?
-              # An entry with no values builds no row, so no row refuses its group number. The check
-              # gives the refusal of a row.
+              # This entry has no values, so the method builds no row for it, and no row checks its
+              # group number. A row that is not stored checks the number and raises the same error.
               CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: field_key, group_number: group_number)
                                                    .refuse_invalid_group_number!
               next
@@ -333,8 +336,11 @@ module CamaleonCms
     #                 1 to 16 ASCII digits.
     #   clear: (boolean, default true) if true, will remove previous values and set these values,
     #                                  if not will append values
-    # The method raises ArgumentError when no custom field has the slug `key`. For any other group
-    # number it raises ActiveRecord::RecordInvalid, and the stored values stay.
+    # Errors:
+    # - ArgumentError when no custom field has the slug `key`.
+    # - ActiveRecord::RecordInvalid for a group number that is not valid, and for a value that its
+    #   author is not permitted to save. The record then has the same stored values as before the
+    #   call. _cama_write_field_values names the cases where the stored values do not stay.
     # sample: my_post.set_field_value('subtitle', 'Sub Title')
     # sample: set values for a field (for fields that support multiple values)
     # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
@@ -358,13 +364,14 @@ module CamaleonCms
         custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
         term_order: args[:order], group_number: args[:group_number]
       }
-      # The writer deletes the previous values (the clear option) and creates the new rows in one
-      # transaction. A value that the scan-and-reject gate refuses (create! raises RecordInvalid) rolls
-      # the delete back, so the previous values stay. For the exceptions, see _cama_write_field_values
-      # and _cama_field_values_savepoint?.
+      # The delete of the old values (the clear option) and the create of the new values run in one
+      # transaction. create! raises ActiveRecord::RecordInvalid for a value that its author is not
+      # permitted to save. The transaction then rolls back the delete, and the old values stay.
       _cama_write_field_values do
-        # A call with an empty list builds no row, so no row refuses the group number. The check gives
-        # the refusal of a row before the delete.
+        # Check the group number before the delete. With an empty list of values, the method builds no
+        # row, so no row checks the number. A row that is not stored checks it and raises the same
+        # error. Without this check, the delete removes the values of another group: it reads '1abc'
+        # as group 1.
         CamaleonCms::CustomFieldsRelationship.new(v.slice(:custom_field_slug, :group_number))
                                              .refuse_invalid_group_number!
         if args[:clear]
@@ -381,30 +388,42 @@ module CamaleonCms
 
     private
 
-    # The transaction of set_field_value and set_field_values. Inside a transaction of the caller it
-    # asks Rails for a savepoint, where Rails permits one (see _cama_field_values_savepoint?). A refusal
-    # of a row then rolls the delete back, also when the caller rescues the refusal and commits. The
-    # writer runs a statement first (see _cama_run_statement_in_caller_transaction).
+    # Runs the block of set_field_value or set_field_values in a database transaction. Both methods
+    # delete stored values and then create the new values. When a new value is not valid, the
+    # transaction rolls back, so the record keeps the values that it had before the call.
     #
-    # The transaction is on the connection pool of ActiveRecord::Base. With the value rows on another
-    # pool, it does not roll back the delete of a refused call. The design leaves this: the post save
-    # of the admin opens its transaction on that pool too.
+    # A caller can run these methods inside its own transaction, rescue the error and commit. Without
+    # a savepoint, that commit keeps the delete of the failed call, and the old values are lost. So
+    # the method asks Rails for a savepoint (requires_new), and the rollback undoes only this call.
+    # - Rails opens the savepoint only after a statement ran in the transaction of the caller. See
+    #   _cama_run_statement_in_caller_transaction.
+    # - Rails 8.1 permits no savepoint while the connection pool has an isolation level. See
+    #   _cama_field_values_savepoint? for that case.
     #
-    # A failed call can leave its rows in the association as unsaved rows. The writer then resets the
-    # association: the record reads the stored values again, and its next save stores no row of the
-    # call. The reset drops each unsaved row, so the writer puts back the rows that the caller built
-    # before the call.
+    # The transaction is on the connection pool of ActiveRecord::Base. A host can put the models of
+    # the engine on another pool. This transaction then does not cover the custom-field values, and a
+    # failed call does not roll back its delete. The maintainer chose to keep this: the post save of
+    # the admin uses the pool of ActiveRecord::Base too.
     #
-    # The writer puts the value of its block in an array, so a value of nil or false does not start
-    # the reset. It reads the result of the transaction to find a failed call:
-    # - An exception of any class and a throw leave no result. A timeout of the caller is one of them.
-    #   A rescue does not see a throw, so the reset is in an ensure block. After a throw, Rails can
-    #   commit what the call stored or deleted before it.
-    # - The transaction returns nil after ActiveRecord::Rollback, also when a commit callback raises it.
+    # After a failed call, the custom_field_values association of the record still holds the rows that
+    # the call built, as unsaved rows. Without a cleanup, the record reads the values of those rows,
+    # and its next save fails or stores some of them. So the method resets the association after a
+    # failed call, and the record reads the stored values again. The reset also removes the unsaved
+    # rows that the caller built before the call, so the method puts those rows back.
     #
-    # A callback of a value row can raise ActiveRecord::Rollback before Rails stores the row. Rails
-    # ends the save of that row with no error, so the call is not a failed call. The writer goes on, and
-    # the row stays in the association as an unsaved row. The design leaves this.
+    # How the method finds a failed call: it puts the result of the block in an array. `outcome` is
+    # that array, or nil when the call failed:
+    # - An exception of any class or a throw left the block. A timeout of the caller can do that. A
+    #   rescue does not catch a throw, so the cleanup is in an ensure block. After a throw, Rails can
+    #   commit the transaction, and the work of the call before the throw then stays in the database.
+    # - ActiveRecord::Rollback rolled the transaction back. Rails then gives nil and raises no error.
+    #   A commit callback can raise ActiveRecord::Rollback too.
+    # The array keeps a block result of nil or false apart from a failed call.
+    #
+    # One case is not a failed call. A callback of a custom-field value can raise
+    # ActiveRecord::Rollback before Rails stores the row. Rails ends the save of that row with no
+    # error. The method goes on, and the row stays in the association as an unsaved row. The
+    # maintainer chose to keep this.
     def _cama_write_field_values
       field_values = custom_field_values.proxy_association
       built_before = field_values.target.select(&:new_record?)
@@ -421,20 +440,29 @@ module CamaleonCms
       end
     end
 
-    # Rails opens no savepoint for requires_new when no statement ran in the joinable transaction of
-    # the caller. After a failed call, it restarts that transaction. On SQLite, the restart is a
-    # ROLLBACK and a BEGIN, and another connection can take the write lock between the two. One
-    # statement in the transaction of the caller makes Rails open a savepoint. The query cache must
-    # not answer that statement.
+    # Runs one statement (SELECT 1) in an open transaction of the caller, so that Rails opens a real
+    # savepoint for the transaction of _cama_write_field_values.
+    #
+    # Rails 7.2 and 8.1 open no savepoint when no statement ran yet in the transaction of the caller.
+    # When the call then fails, Rails rolls back the whole transaction of the caller and begins it
+    # again. On SQLite, that is two statements: a ROLLBACK and a BEGIN. Another connection can take
+    # the write lock between the two. The BEGIN then fails, and with Rails 8.1 the caller gets an
+    # internal error of Rails in place of ActiveRecord::RecordInvalid.
+    #
+    # After one statement in its transaction, Rails opens the savepoint. The query cache can answer a
+    # SELECT with no statement to the database, so the statement runs with the cache off.
     def _cama_run_statement_in_caller_transaction
       ActiveRecord::Base.connection_pool.with_connection do |connection|
         ActiveRecord::Base.uncached { connection.select_value('SELECT 1') } if connection.transaction_open?
       end
     end
 
-    # Deletes the stored rows of the relation. A loaded association keeps the rows that an SQL delete
-    # removes, and get_field_values reads a loaded association. So the writer also drops those rows
-    # from a loaded association, and the record does not read a deleted value.
+    # Deletes the stored rows of the given relation with one SQL DELETE.
+    #
+    # An SQL DELETE does not change a loaded custom_field_values association: the deleted rows stay in
+    # it. get_field_values reads a loaded association, so the record still reads the deleted values.
+    # For a loaded association, the method reads the ids of the rows before the DELETE and removes
+    # those rows from the association after it. That is one more query, only for a loaded association.
     def _cama_delete_field_values(stored)
       return stored.delete_all unless custom_field_values.loaded?
 
@@ -443,12 +471,20 @@ module CamaleonCms
       custom_field_values.proxy_association.target.reject! { |row| deleted_ids.include?(row.id) }
     end
 
-    # While the pool has an isolation level, Rails refuses a savepoint, so the writers ask for none.
-    # Rails 8.1 can give the pool a level. ActiveRecord.with_transaction_isolation_level gives it
-    # inside each transaction that a model class (ActiveRecord::Base too) or a record opens in its
-    # block. Model.with_pool_transaction_isolation_level gives it inside its block. Inside an open
-    # joinable transaction of the caller, the writers then join it: a failed call rolls nothing back,
-    # unless that transaction rolls back. With no open transaction, they open their own.
+    # Whether _cama_write_field_values asks Rails for a savepoint. The answer is no while the
+    # connection pool has a transaction isolation level, because Rails raises an error for a savepoint
+    # there.
+    #
+    # Since Rails 8.1, two methods give the pool an isolation level:
+    # - ActiveRecord.with_transaction_isolation_level gives it to each transaction that a model class
+    #   or a record opens in its block. ActiveRecord::Base is such a class.
+    # - Model.with_pool_transaction_isolation_level gives it inside its block.
+    #
+    # With no savepoint, set_field_value and set_field_values run inside the open transaction of the
+    # caller. A failed call then rolls back nothing by itself: the stored values come back only when
+    # the transaction of the caller rolls back. A caller that rescues the error and commits loses the
+    # values that the call deleted. With no open transaction, the two methods open their own
+    # transaction, and a failed call rolls back as usual.
     def _cama_field_values_savepoint?
       !ActiveRecord::Base.try(:pool_transaction_isolation_level)
     end
