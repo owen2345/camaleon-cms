@@ -396,10 +396,10 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
-    # Rails 8.1 refuses a nested transaction while ActiveRecord.with_transaction_isolation_level sets
-    # a level for the pool, so the writers join the transaction of the caller there. Rails also
-    # refuses that API inside the transaction of an example, so the examples stub the level that the
-    # writers read.
+    # While the pool has an isolation level, Rails 8.1 refuses a savepoint, so the writers ask for
+    # none. Inside the transaction of an example, Rails refuses each model transaction under
+    # ActiveRecord.with_transaction_isolation_level, so the examples stub the level that the writers
+    # read.
     context 'when the pool has an isolation level' do
       before do
         base = ActiveRecord::Base

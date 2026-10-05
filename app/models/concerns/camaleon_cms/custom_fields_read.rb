@@ -238,7 +238,8 @@ module CamaleonCms
     #
     # group_number (optional, in each entry) is an integer from 0 to 2147483647, as an Integer or as a
     # text of ASCII digits. An absent or empty group number is group 0. A value row refuses any other
-    # group number: the method raises ActiveRecord::RecordInvalid, and the stored values stay.
+    # group number: the method raises ActiveRecord::RecordInvalid, and the stored values stay (for the
+    # one exception, see _cama_field_values_savepoint?).
     #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
@@ -406,10 +407,11 @@ module CamaleonCms
       end
     end
 
-    # Rails 8.1 gives the level of ActiveRecord.with_transaction_isolation_level to each new transaction
-    # of the pool, and it refuses a level for a nested transaction. While the pool has such a level, the
-    # writers open no savepoint: inside a transaction of the caller they join it. A refusal that the
-    # caller rescues there then keeps the delete.
+    # While the pool has an isolation level, Rails refuses a savepoint, so the writers ask for none.
+    # Rails 8.1 gives the pool a level inside each transaction that a model class (ActiveRecord::Base
+    # too) or a record save opens under ActiveRecord.with_transaction_isolation_level. Inside an open
+    # joinable transaction of the caller, the writers then join it: a failed call rolls nothing back,
+    # unless that transaction rolls back. With no open transaction, they open their own.
     def _cama_field_values_savepoint?
       !(ActiveRecord::Base.respond_to?(:pool_transaction_isolation_level) &&
         ActiveRecord::Base.pool_transaction_isolation_level)

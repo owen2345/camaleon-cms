@@ -110,18 +110,22 @@ admin form sends the index of the group.
 **D9. The writers open a savepoint.** The maintainer chose it on 2026-10-04. `set_field_value` and
 `set_field_values` delete stored values before they create the rows. Their transaction joined a
 transaction of the caller, so a caller that rescued the refusal there and committed kept the delete.
-The writers call `transaction(requires_new: true)`. The savepoint covers each refusal of a row, the
-refusal of the value gate included.
+The writers call `transaction(requires_new: true)`, with the one exception of the next paragraph.
+The savepoint covers each refusal of a row, the refusal of the value gate included.
 
-Rails 8.1 has `ActiveRecord.with_transaction_isolation_level`. Inside it, Rails gives the isolation
-level to each new transaction of the pool, and it refuses a level for a nested transaction. Inside a
-transaction, its own `create_or_find_by` fails there too. The post save of the admin calls
-`set_field_values` inside a transaction, so Rails refused the savepoint of the writer there, and
-the save failed. The maintainer chose on 2026-10-05 to join the transaction of the caller while the
-pool has an isolation level (`pool_transaction_isolation_level`). The post save does not rescue the
-refusal inside its transaction, so a refused save still rolls back as a whole. A caller that rescues
-the refusal there and commits keeps the delete, as before this change. The other remedy was a note
-on the limit.
+Rails 8.1 has `ActiveRecord.with_transaction_isolation_level`. It gives the pool an isolation level
+inside each transaction that a model class or a record save opens, and Rails refuses a savepoint
+while the pool has a level. The `create_or_find_by` method of Rails fails in such a transaction
+too. The post save of the admin calls `set_field_values` inside `ActiveRecord::Base.transaction`.
+With `requires_new: true`, Rails refused the savepoint of the writer there, and the save failed.
+On 2026-10-05, the maintainer chose to ask for no savepoint while the pool has an isolation level
+(`pool_transaction_isolation_level`). In a joinable transaction of the caller, the writers then
+join it. With no open transaction, they open their own. The post save does not rescue the refusal
+inside its transaction, so a refused save still rolls back as a whole. A failed call rolls back
+nothing there by itself. A caller that rescues the refusal and commits keeps what the call deleted
+and stored before the refusal. The release before did the same for a refusal of the value gate.
+`ActiveRecord::Rollback` that leaves the block of a writer rolls nothing back there either, and
+the writer returns nil. The other remedy was a note on the limit.
 
 **D10. The writers reset the association after an error.** The maintainer chose it on 2026-10-04.
 The rollback restores the database. The record still holds the rows of the call in its
