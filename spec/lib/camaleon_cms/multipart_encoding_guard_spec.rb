@@ -127,7 +127,7 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
       expect(reached).to eq([env])
     end
 
-    # A param error of Rack is a subclass of ArgumentError. Rack and Rails handle it.
+    # Rack::QueryParser::InvalidParameterError is a subclass of ArgumentError. Rack and Rails handle it.
     it 'gives the request to the next app for a param error of Rack with the same message' do
       parser_raises(Rack::QueryParser::InvalidParameterError.new('invalid byte sequence in UTF-8'))
 

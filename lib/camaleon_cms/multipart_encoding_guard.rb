@@ -46,9 +46,9 @@ module CamaleonCms
       false
     end
 
-    # Whether the error is the plain ArgumentError of Rack 2.2 (see the class comment). The param
-    # errors of Rack are subclasses of ArgumentError. Rack and Rails handle them, so they give
-    # false.
+    # Whether the error is the plain ArgumentError of Rack 2.2 (see the class comment).
+    # Rack::QueryParser::InvalidParameterError is a subclass of ArgumentError. Rack and Rails handle
+    # it, so it gives false.
     def invalid_part_name?(error)
       error.instance_of?(ArgumentError) && error.message.start_with?('invalid byte sequence')
     end

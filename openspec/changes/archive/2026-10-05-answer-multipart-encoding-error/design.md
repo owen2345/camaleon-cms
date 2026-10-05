@@ -64,9 +64,9 @@ bytes of the part name are valid in the charset of the part. For other bytes it 
 example, and so is an ASCII name in UTF-32. Without this decision, those requests keep their 500
 with Rack 2.2.
 
-The param errors of Rack are subclasses of `ArgumentError`, and Rack and Rails handle them. So the
-guard answers only an error whose class is `ArgumentError` itself and whose message starts with
-`invalid byte sequence`. With Rack 2.2, that rule also covers a part name with invalid bytes in an
+`Rack::QueryParser::InvalidParameterError` is a subclass of `ArgumentError`, and Rack and Rails
+handle it. So the guard answers only an error whose class is `ArgumentError` itself and whose
+message starts with `invalid byte sequence`. With Rack 2.2, that rule also covers a part name with invalid bytes in an
 ASCII-compatible charset.
 
 CI runs Rack 3.2 on each row, so the examples stub the parser. A probe with Rack 2.2.22 backs the
