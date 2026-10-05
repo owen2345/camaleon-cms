@@ -51,7 +51,10 @@ file part passes, because Rack gives no charset to its name.
 **D4. The guard goes directly after `ActionDispatch::Executor`.** The default stack of Rails has
 that middleware before `Rack::MethodOverride`. An API-only host has no `Rack::MethodOverride`, and
 an insert before it raises an error at the boot of that host. The request stops before
-`Rack::TempfileReaper`, so the guard removes the temporary files of the uploads.
+`Rack::TempfileReaper`, so the guard removes the temporary files that Rack recorded in
+`rack.tempfiles`. Rack records them after its multipart parser ends. When that parser raises the
+error (a part in ISO-2022-JP with Rack 3.2, each case with Rack 2.2), the env has no such files,
+and Ruby removes them at garbage collection. The same occurred before this change.
 
 **D5. The guard also answers the plain `ArgumentError` of Rack 2.2.** Camaleon supports Rails 6.1,
 and Rails 6.1 and 7.0 need Rack 2. Rack 2.2 raises `Encoding::CompatibilityError` only when the

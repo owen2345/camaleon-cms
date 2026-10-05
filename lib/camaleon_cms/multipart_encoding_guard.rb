@@ -22,8 +22,9 @@ module CamaleonCms
     def call(env)
       return @app.call(env) unless unreadable_part?(env)
 
-      # The request stops here, before Rack::TempfileReaper. So remove the temporary files of its
-      # uploads here.
+      # The request stops here, before Rack::TempfileReaper. So remove the temporary files that Rack
+      # recorded for its uploads. Rack records none when its multipart parser raises the error. Ruby
+      # then removes the files at garbage collection.
       env[Rack::RACK_TEMPFILES]&.each(&:close!)
       env[Rack::RACK_ERRORS]&.puts('A multipart part has an encoding that the param parser cannot read')
       [400, { 'content-type' => 'text/plain; charset=utf-8' }, ['Bad Request']]

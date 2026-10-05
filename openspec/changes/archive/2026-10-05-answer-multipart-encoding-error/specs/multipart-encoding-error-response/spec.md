@@ -7,8 +7,10 @@ part too. The param parser of Rack then raises an encoding error for a part in a
 not ASCII-compatible (UTF-16, UTF-32, UTF-7), and for a part in ISO-2022-JP with invalid bytes.
 
 The system SHALL answer such a request with a 400, for each request method. No controller action
-SHALL start, and the request SHALL store nothing. The system SHALL remove the temporary files of
-the uploads of that request.
+SHALL start, and the request SHALL store nothing. The system SHALL remove the temporary files that
+Rack recorded for the uploads of that request. Rack records none when its multipart parser raises
+the error: a part in ISO-2022-JP with invalid bytes, and each case with Rack 2.2. Ruby then removes
+the files at garbage collection.
 
 `CamaleonCms::MultipartEncodingGuard` (the guard) gives that answer:
 
