@@ -555,7 +555,8 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
   (`'1abc'` was group 1). It also deleted the values of a stored negative group.
 - `set_field_values` still reads an absent or empty group number as group 0.
 - A text with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16), gets the
-  same refusal on each of the three paths.
+  same refusal on each of the three paths. An empty text in an encoding that is not
+  ASCII-compatible gets it too.
 - A save that skips the validation (`update_attribute`, `save(validate: false)`) stores nothing for
   such a text. `save` returns false, and `save!` raises the refusal. For another refused group
   number, such a save runs no check of the row, as before. It stores what the integer cast of the

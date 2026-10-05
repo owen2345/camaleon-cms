@@ -60,7 +60,8 @@ negative number stays valid, so `update_field_value` can still change its value.
 
 **D5. Nil passes, and `set_field_values` maps an absent or empty number to 0.** `camaleon_export_import`
 passes the number of an exported row, which can be nil. A form can express "no number" only as an
-empty text, and the core forms always send a number.
+empty text, and the core forms always send a number. An empty text in an encoding that is not
+ASCII-compatible is the text of D7, and the row refuses it.
 
 **D6. `set_field_values` no longer clamps a negative number to 0.** The clamp was a transform. The
 row refuses the number, as the remedy rule asks.

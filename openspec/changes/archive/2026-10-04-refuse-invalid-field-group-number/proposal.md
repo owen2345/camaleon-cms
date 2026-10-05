@@ -31,7 +31,8 @@ number of the request to the row. The `NoMethodError` is present since 2.9.3, wh
   ASCII-compatible (UTF-16). The integer type of Rails raises its own error for such a text, so the
   group number has its own integer type. The type reads the text as no number, and the validation
   refuses the text. A lookup with such a text finds no row. A save that skips the validation stops
-  with the same refusal.
+  with the same refusal. An empty text in an encoding that is not ASCII-compatible gets the refusal
+  too.
 - The type of the group number has the 4-byte range on each database. Where the column holds a
   wider integer (SQLite, a `bigint` column), `where(group_number: n)` and `find_by(group_number: n)`
   find no row for a number n outside that range. A write that gives n as a value and skips the
