@@ -25,8 +25,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   describe 'set_field_value' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
-    # The check takes ASCII digits only, with no line end after them.
-    [2_147_483_648, -1, true, 1.5, '1abc', "1\n", "\uFF11\uFF12", [1], :'5'].each do |group_number|
+    # The check takes ASCII digits only, with no line end after them. An empty text holds no digit.
+    [2_147_483_648, -1, true, 1.5, '1abc', '', "1\n", "\uFF11\uFF12", [1], :'5'].each do |group_number|
       it "refuses the group number #{group_number.inspect} and keeps the stored value" do
         expect { post.set_field_value('note', 'new', group_number: group_number) }
           .to raise_error(ActiveRecord::RecordInvalid, /group number/)
