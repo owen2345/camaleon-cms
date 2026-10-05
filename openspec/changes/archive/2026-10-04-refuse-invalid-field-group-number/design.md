@@ -73,8 +73,9 @@ an encoding that is not ASCII-compatible (UTF-16, UTF-7), before the validation 
 The group number has its own integer type, `GroupNumberType`. The maintainer chose the type on
 2026-10-04. The type reads such a text as no number, and the row keeps the text. The validation
 reads the text and refuses it. The type covers each write to the attribute (`group_number=`, `[]=`,
-`write_attribute`) and each lookup. No request can send such a text, because Rails answers it with
-a 400. Only Ruby code can pass it.
+`write_attribute`) and each lookup. No request can send such a text. Rails answers a text with a
+broken encoding with a 400. A multipart part in an encoding that is not ASCII-compatible stops the
+request with an encoding error. Only Ruby code can pass it.
 
 A lookup with such a text finds no row, as a lookup with a text that is not a number does in Rails.
 `find_or_create_by!` looks the number up first. It reaches the row after the lookup, and the row
