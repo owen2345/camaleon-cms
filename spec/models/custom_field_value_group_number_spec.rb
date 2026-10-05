@@ -422,14 +422,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         statements
       end
 
-      it 'keeps the delete when the caller rescues the refusal of set_field_values' do
+      it 'loses the deleted values and keeps the rows before the refusal when the caller rescues it' do
+        payload = { '0' => { 'note' => { group_number: 0, values: ['fresh'] } },
+                    '1' => { 'note' => { group_number: -1, values: ['new'] } } }
+
         ActiveRecord::Base.transaction do
-          post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+          post.set_field_values(payload)
         rescue ActiveRecord::RecordInvalid
           nil
         end
 
         expect(post.reload.get_field_values('note', 1)).to eq([])
+        expect(post.get_field_values('note', 0)).to eq(['fresh'])
       end
 
       # The writer also resets the association after a failed call that joined a transaction.
