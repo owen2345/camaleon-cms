@@ -83,8 +83,8 @@ now. The type replaced three guards: a writer and a
 A save that skips the validation (`update_attribute`, `save(validate: false)`) stored no number for
 such a text. The maintainer chose a guard on 2026-10-04. A `before_save` callback raises the
 refusal: `save` returns false, and `save!` raises the refusal. The guard covers that text only. For
-another refused number, such a save does what Rails does for an integer column: it stores the cast
-of the number, or it raises the error of Rails (a list, a number above the range). `update_column`,
+another refused number, such a save runs no check of the row: it stores what the integer cast of
+the type gives, or it raises an error for a value that the type cannot store. `update_column`,
 `update_all` and `insert_all` skip the validation and the callbacks. They store no group number for
 such a text.
 
