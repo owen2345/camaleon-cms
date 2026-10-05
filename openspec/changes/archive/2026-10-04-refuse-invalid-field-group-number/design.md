@@ -228,6 +228,18 @@ of each entry before the skip. It gives the number of an entry with no values to
 not store, as `set_field_value` does. The admin JavaScript sends the index of the group, so no core
 form sends such an entry. The other remedy was a note on the skip.
 
+**D15. `set_field_value` drops the rows that it deletes from a loaded association.** The maintainer
+chose it on 2026-10-05. `set_field_value` deletes the stored values with an SQL delete on a relation.
+A loaded `custom_field_values` association kept those rows, and `get_field_values` reads a loaded
+association. So the same record read the deleted values and the new values.
+`get_field_values_hash` loads the association. The master branch has the same lines.
+
+When the association is loaded, the writer reads the ids of the stored rows before the delete. After
+the delete, it drops the rows with those ids from the association. That is one more query, only for
+a loaded association. The unsaved rows that the caller built stay. `set_field_values` needs no such
+step: its delete clears the association (D10). The other remedy was a reset of the association
+after each call, which drops the unsaved rows of the caller.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

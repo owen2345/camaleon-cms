@@ -678,6 +678,93 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # set_field_value deletes the stored values with an SQL delete, which leaves the rows in a loaded
+  # association. The writer drops those rows from the association, so the record reads the new values.
+  describe 'a loaded association after set_field_value' do
+    let(:value_rows) { /\ASELECT\b.*custom_fields_relationships/im }
+
+    before do
+      post.set_field_value('note', 'old', group_number: 1)
+      post.set_field_value('note', 'other', group_number: 2)
+    end
+
+    context 'when the association is loaded' do
+      before { post.custom_field_values.load }
+
+      it 'reads the new value and not the deleted value' do
+        post.set_field_value('note', 'new', group_number: 1)
+
+        expect(post.get_field_values('note', 1)).to eq(['new'])
+        expect(post.get_field_value('note', nil, 1)).to eq('new')
+      end
+
+      it 'reads each value of a new list' do
+        post.set_field_value('note', %w[first second], group_number: 1)
+
+        expect(post.get_field_values('note', 1)).to eq(%w[first second])
+      end
+
+      it 'reads no value after a call with an empty list' do
+        post.set_field_value('note', [], group_number: 1)
+
+        expect(post.get_field_values('note', 1)).to eq([])
+      end
+
+      it 'keeps the association loaded with the rows of the other groups' do
+        post.set_field_value('note', 'new', group_number: 1)
+
+        expect(post.custom_field_values).to be_loaded
+        expect(post.custom_field_values.target.map(&:value)).to eq(%w[other new])
+        expect(post.custom_field_values.target).to all(be_persisted)
+      end
+
+      it 'keeps an unsaved row that the caller built, and the next save stores it' do
+        built = post.custom_field_values.build(custom_field_id: post.get_field_object('note').id,
+                                               custom_field_slug: 'note', value: 'built', group_number: 5)
+
+        post.set_field_value('note', 'new', group_number: 1)
+
+        expect(post.custom_field_values.target).to include(built)
+        expect(post.save).to be(true)
+        expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to contain_exactly('other', 'new',
+                                                                                                  'built')
+      end
+
+      it 'reads the stored and the new value after a call that does not clear the stored values' do
+        post.set_field_value('note', 'new', group_number: 1, clear: false)
+
+        expect(post.get_field_values('note', 1)).to eq(%w[old new])
+      end
+
+      # The delete of set_field_values clears the association, so that writer needs no such step.
+      it 'reads the new values only after set_field_values' do
+        post.set_field_values({ '0' => { 'note' => { group_number: 1, values: ['new'] } } })
+
+        expect(post.get_field_values('note', 1)).to eq(['new'])
+        expect(post.get_field_values('note', 2)).to eq([])
+      end
+
+      it 'reads the new value after get_field_values_hash loaded the association' do
+        record = CamaleonCms::Post.find(post.id)
+        record.get_field_values_hash
+
+        record.set_field_value('note', 'new', group_number: 1)
+
+        expect(record.get_field_values('note', 1)).to eq(['new'])
+      end
+    end
+
+    it 'reads no id of a value row and does not load the association when it is not loaded' do
+      record = CamaleonCms::Post.find(post.id)
+
+      selects = sql_queries(matching: value_rows) { record.set_field_value('note', 'new', group_number: 1) }
+
+      expect(selects).to be_empty
+      expect(record.custom_field_values).not_to be_loaded
+      expect(record.get_field_values('note', 1)).to eq(['new'])
+    end
+  end
+
   # Rails ends the save of the row with no error, so the call is not a failed call. The stub of
   # valid? stands for such a callback.
   describe 'a callback of a value row that raises ActiveRecord::Rollback' do

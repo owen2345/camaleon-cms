@@ -368,7 +368,8 @@ module CamaleonCms
         CamaleonCms::CustomFieldsRelationship.new(v.slice(:custom_field_slug, :group_number))
                                              .refuse_invalid_group_number!
         if args[:clear]
-          custom_field_values.where({ custom_field_slug: key, group_number: args[:group_number] }).delete_all
+          _cama_delete_field_values(custom_field_values.where(custom_field_slug: key,
+                                                              group_number: args[:group_number]))
         end
         if value.is_a?(Array)
           value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
@@ -415,6 +416,17 @@ module CamaleonCms
           built_before.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
         end
       end
+    end
+
+    # Deletes the stored rows of the relation. A loaded association keeps the rows that an SQL delete
+    # removes, and get_field_values reads a loaded association. So the writer also drops those rows
+    # from a loaded association, and the record does not read a deleted value.
+    def _cama_delete_field_values(stored)
+      return stored.delete_all unless custom_field_values.loaded?
+
+      deleted_ids = stored.ids
+      stored.delete_all
+      custom_field_values.proxy_association.target.reject! { |row| deleted_ids.include?(row.id) }
     end
 
     # While the pool has an isolation level, Rails refuses a savepoint, so the writers ask for none.

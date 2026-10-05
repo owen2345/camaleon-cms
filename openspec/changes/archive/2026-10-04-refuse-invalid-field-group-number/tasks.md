@@ -45,6 +45,8 @@
   specs (D2)
 - [x] 2.16 Check the group number of an entry with no values in `set_field_values`, with model and
   request examples (D14)
+- [x] 2.17 Drop the rows that `set_field_value` deletes from a loaded association, with examples in
+  the model spec (D15)
 
 ## 3. Documentation
 

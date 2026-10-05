@@ -314,6 +314,9 @@ Changes that look free from inside this repository and are not:
   read `custom_field_values` through `proxy_association`, so it must be an association. A model that
   defines it as a plain relation gets `NoMethodError`. No surveyed consumer does.
 
+- **`set_field_value` on a record with a loaded `custom_field_values` association** drops the rows
+  that it deletes from that association. Before, the record also read the deleted values. Code that
+  relied on that read gets the new values only.
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
   back as written, while TinyMCE hands content back in its own serialization (`rgb(255, 204, 0)` read back

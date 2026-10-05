@@ -51,6 +51,8 @@ number of the request to the row. The `NoMethodError` is present since 2.9.3, wh
   row. Before, that call deleted the stored values of the group that the integer cast gave.
 - `set_field_values` refuses the group number of an entry with no values. Before, it skipped that
   entry and did not read the number.
+- `set_field_value` drops the rows that it deletes from a loaded `custom_field_values` association.
+  Before, the record also read the deleted values.
 - After an error, the two writers reset the `custom_field_values` association of the record. The
   record reads the stored values again, and its next save stores no row of the failed call. The
   unsaved rows that the caller built before the call stay in the association.

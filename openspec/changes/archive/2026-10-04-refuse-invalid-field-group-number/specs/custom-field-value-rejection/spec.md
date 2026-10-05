@@ -72,6 +72,11 @@ The writers open their transaction on the connection pool of `ActiveRecord::Base
 this requirement needs the value rows on that pool. On another pool, that transaction does not roll
 back the delete of a refused call.
 
+`set_field_value` deletes stored values with an SQL delete, which leaves those rows in a loaded
+`custom_field_values` association. After that delete, a loaded association of the record SHALL NOT
+hold a row that the call deleted. The record then SHALL read the new values only. The call SHALL
+NOT load an association that is not loaded.
+
 The rollback leaves the rows of the failed call in the `custom_field_values` association of the
 record. After an error of a writer, the writer SHALL reset that association. The record then SHALL
 read the stored values, and its next save MUST NOT store a row of the failed call. An exception that
@@ -177,6 +182,13 @@ the unsaved row stays in the association.
 - **WHEN** a caller on Rails 8.1 runs `set_field_value` or `set_field_values` inside a joinable
   `Model.transaction` that starts under `ActiveRecord.with_transaction_isolation_level`
 - **THEN** the writer opens no savepoint, and the call stores its values
+
+#### Scenario: A record with a loaded association reads the new values after set_field_value
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `set_field_value` stores a
+  new value for a group that holds a stored value
+- **THEN** the record reads the new value and not the deleted value, and the association stays
+  loaded
 
 #### Scenario: The record reads the stored values after a failed call
 

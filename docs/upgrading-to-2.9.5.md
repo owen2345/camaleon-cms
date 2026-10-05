@@ -645,6 +645,10 @@ record reads the stored values again, and its next save stores no row of the fai
 the record kept the rows of the failed call: its next save failed, or stored some of those rows.
 The unsaved rows that the caller built before the call stay in the association.
 
+After a successful `set_field_value`, a record with a loaded `custom_field_values` association reads
+the new values only. Before, it also read the values that the call deleted.
+`get_field_values` reads a loaded association, and `get_field_values_hash` loads it.
+
 A callback of a value row that raises `ActiveRecord::Rollback` before Rails stores the row is not
 such an error. As before, the writer goes on, and the row stays in the association as an unsaved row.
 
