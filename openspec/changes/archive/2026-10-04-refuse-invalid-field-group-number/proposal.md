@@ -12,8 +12,9 @@ permits it as any scalar. The column is a 4-byte integer on PostgreSQL and MySQL
 - `AdminController` rescues `ActiveRecord::RecordInvalid` for a value row, not these two errors.
 
 `custom-field-value-filtering` says that an authenticated caller MUST NOT turn a malformed
-field-options param into a 500. The range error is present in 2.9.0 and later. The `NoMethodError`
-is present since 2.9.3, which added the `to_i` call.
+field-options param into a 500. The range error is not new: release 2.4.4.5 already gives the group
+number of the request to the row. The `NoMethodError` is present since 2.9.3, which added the
+`to_i` call.
 
 ## What Changes
 
