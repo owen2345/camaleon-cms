@@ -248,8 +248,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(row.reload.group_number).to eq(0)
     end
 
-    # Array#to_i of this application makes the cast of a list a list, which the type cannot store.
-    # The error is ArgumentError or ActiveModel::RangeError, by the Rails version.
+    # Array#to_i of the engine (lib/ext/array.rb) makes the cast of a list a list, which the type
+    # cannot store. The error is ArgumentError or ActiveModel::RangeError, by the Rails version.
     it 'raises an error for a list of numbers' do
       expect { row.update_attribute(:group_number, [1]) }.to raise_error(StandardError) # rubocop:disable Rails/SkipsModelValidations
       expect(row.reload.group_number).to eq(3)
@@ -462,6 +462,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect(post.set_field_value('note', 'new', group_number: 2)).to be_nil
 
+      # With the stub still active, the save of the post rolls back and hides a row of the call.
       allow_any_instance_of(described_class).to receive(:before_committed!).and_call_original
       expect(post.save).to be(true)
       expect(stored_values).to eq(['kept'])

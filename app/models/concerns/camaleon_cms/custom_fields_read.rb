@@ -381,6 +381,7 @@ module CamaleonCms
     #
     # The writer reads the result of the transaction to find a failed call:
     # - An exception of any class and a throw leave no result. A timeout of the caller is one of them.
+    #   A rescue does not see a throw, so the reset is in an ensure block.
     # - The transaction returns nil after ActiveRecord::Rollback, also when a commit callback raises it.
     #
     # The writer puts the value of its block in an array, so a value of nil or false does not start
