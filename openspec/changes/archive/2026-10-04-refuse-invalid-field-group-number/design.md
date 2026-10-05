@@ -119,8 +119,11 @@ transaction of the caller, so a caller that rescued the refusal there and commit
 values.
 The writers call `transaction(requires_new: true)`, with the one exception of the next paragraph.
 The savepoint covers each refusal of a row, the refusal of the value gate included. Each savepoint
-costs two statements. Rails 7.2 and 8.1 open no savepoint for the call when the joinable transaction
-of the caller ran no statement before the call: they restart that transaction after a failed call.
+costs two statements. Rails 7.2 and 8.1 open no savepoint when no statement ran in the joinable
+transaction of the caller before the writer opens its own transaction. In that case, Rails restarts
+the transaction of the caller after a failed call that ran a statement. `set_field_value` looks up
+its field before it opens its transaction, unless the caller gives `field_id`. That lookup is a
+statement, unless the query cache serves it.
 On PostgreSQL, more than 64 savepoints that write in one transaction overflow
 the subtransaction cache of the session.
 
