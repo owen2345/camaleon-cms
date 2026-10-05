@@ -6,8 +6,8 @@
 # post_content_unfiltered_html for the post type) store exactly what they wrote. Field types that
 # render through escaping ERB as element content carry no gate.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
-  let(:site) { create(:site) }
-  let(:post_type) { create(:post_type, site: site) }
+  let(:post_type) { installed_post_type }
+  let(:site) { post_type.site }
   let(:admin) { create(:user, role: 'admin', site: site) }
   let(:contributor) { create(:user, role: 'contributor', site: site) }
   let(:post) { create(:post, post_type: post_type, owner: contributor) }
