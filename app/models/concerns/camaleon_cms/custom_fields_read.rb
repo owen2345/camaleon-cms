@@ -378,9 +378,9 @@ module CamaleonCms
     # a savepoint, where Rails permits one (see _cama_field_values_savepoint?). A refusal of a row then
     # rolls the delete back, also when the caller rescues the refusal and commits.
     #
-    # The transaction is on the connection pool of ActiveRecord::Base, as before this design. With the
-    # value rows on another pool, it does not roll back the delete of a refused call. The design leaves
-    # this: the post save of the admin and the routes of the engine use that pool too.
+    # The transaction is on the connection pool of ActiveRecord::Base. With the value rows on another
+    # pool, it does not roll back the delete of a refused call. The design leaves this: the post save
+    # of the admin opens its transaction on that pool too.
     #
     # A failed call can leave its rows in the association as unsaved rows. The writer then resets the
     # association: the record reads the stored values again, and its next save stores no row of the
