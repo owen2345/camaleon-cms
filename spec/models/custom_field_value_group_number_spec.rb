@@ -363,8 +363,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 0)).to eq([])
     end
 
-    # A timeout of the caller stops a writer with an exception that is not a StandardError, as
-    # NotImplementedError is not one.
+    # A timeout of the caller can stop a writer with an exception that is not a StandardError.
+    # NotImplementedError is such an exception.
     it 'stores no row of the call after an exception of set_field_value that is not a StandardError' do
       values = ['first']
       values.define_singleton_method(:each) do |&block|
@@ -373,6 +373,20 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
 
       expect { post.set_field_value('note', values, group_number: 2) }.to raise_error(NotImplementedError)
+
+      expect(post.save).to be(true)
+      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+    end
+
+    # The transaction of the writer rolls back for ActiveRecord::Rollback and does not raise it again.
+    it 'stores no row of the call when the call rolls back with ActiveRecord::Rollback' do
+      values = ['first']
+      values.define_singleton_method(:each) do |&block|
+        super(&block)
+        raise ActiveRecord::Rollback
+      end
+
+      expect(post.set_field_value('note', values, group_number: 2)).to be_nil
 
       expect(post.save).to be(true)
       expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])

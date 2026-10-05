@@ -373,18 +373,25 @@ module CamaleonCms
     # a savepoint. A refusal of a row then rolls the delete back, also when the caller rescues the
     # refusal and commits.
     #
-    # The rollback leaves the rows of the call in the association. An exception of any class stops the
-    # call and starts the reset. The record then reads the stored values again, and its next save
-    # stores no row of the call. A timeout of the caller raises an exception that is not a
-    # StandardError, so the reset is in an ensure block.
+    # The rollback leaves the rows of the call in the association. When the call does not complete, the
+    # reset makes the record read the stored values again. The next save of the record then stores no
+    # row of the call.
+    #
+    # A call does not complete in three cases:
+    # - An exception of any class stops it.
+    # - A throw leaves it.
+    # - It rolls back with ActiveRecord::Rollback, which the transaction does not raise again.
+    #
+    # A timeout of the caller is one of the first two cases, so the reset is in an ensure block.
     # The reset drops each unsaved row, so the writer puts back the rows that the caller built before
     # the call.
-    def _cama_write_field_values(&block)
+    def _cama_write_field_values
       field_values = custom_field_values.proxy_association
       built_before = field_values.target.select(&:new_record?)
       begin
-        result = ActiveRecord::Base.transaction(requires_new: true, &block)
-        written = true
+        completed = false
+        result = ActiveRecord::Base.transaction(requires_new: true) { yield.tap { completed = true } }
+        written = completed
         result
       ensure
         unless written
