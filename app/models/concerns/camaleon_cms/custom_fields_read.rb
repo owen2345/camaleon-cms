@@ -235,9 +235,11 @@ module CamaleonCms
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
+    #
     # group_number (optional, in each entry) is an integer from 0 to 2147483647, as an Integer or as a
     # text of ASCII digits. An absent or empty group number is group 0. A value row refuses any other
     # group number: the method raises ActiveRecord::RecordInvalid, and the stored values stay.
+    #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
     # groups (get_field_groups returns its posts'), a post's post type groups (get_field_groups adds the
