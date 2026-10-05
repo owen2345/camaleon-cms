@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-- **Bug fix:** An admin save of custom fields no longer fails with a 500 for a group number above 2147483647 or for a JSON boolean. A custom-field value is valid only with no group number, or with an integer from 0 to 2147483647. For any other group number, the admin shows an error, and the stored values stay. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
-  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-custom-field-value-refuses-a-group-number-outside-its-range).
+- **Bug fix:** The group number of a custom-field value is now validated: nil, or an integer from 0 to 2147483647. Before, an admin save with a larger number or a JSON boolean failed with a 500. Now the admin shows an error, and the stored values stay. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#custom-field-group-numbers-are-validated).
 
 - **Bug fix:** After `set_field_value`, a record with a loaded `custom_field_values` association reads the new values only. Before, it also read the values that the call deleted. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
-  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-custom-field-value-refuses-a-group-number-outside-its-range).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#custom-field-group-numbers-are-validated).
 
 - **Bug fix:** A multipart request with a part in a charset that is not ASCII-compatible (UTF-16) gets a 400. Before, the param parser of Rack raised an error, and the server answered with a 500. Camaleon adds the `CamaleonCms::MultipartEncodingGuard` Rack middleware to the host app. [#1319](https://github.com/owen2345/camaleon-cms/pull/1319).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-multipart-request-with-a-part-in-utf-16-gets-a-400).
