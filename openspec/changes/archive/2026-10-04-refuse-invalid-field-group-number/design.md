@@ -42,11 +42,12 @@ digits and the number is not above 2147483647. An Integer, and a String of digit
 2147483648 does not raise there. A value stored on SQLite must also be valid on PostgreSQL and MySQL.
 
 The type of the group number (D7) has the same 4-byte range on each database. Some databases hold a
-wider integer in the column: SQLite, and a host whose column is `bigint`. There, a lookup with a
-number above 2147483647 or below -2147483648 finds no row. A write that skips the validation raises
-`ActiveModel::RangeError` for that number: `update_attribute`, `save(validate: false)`,
-`update_column`, `update_all` with a hash and `insert_all`. `update_all` with an SQL text skips
-the type and stores the number. Before, those databases found and stored such a
+wider integer in the column: SQLite, and a host whose column is `bigint`. There,
+`where(group_number: n)` and `find_by(group_number: n)` find no row for a number n above 2147483647
+or below -2147483648. A write that skips the validation raises `ActiveModel::RangeError` for that
+number: `update_attribute`, `save(validate: false)`, `update_column`, `update_all` with a hash and
+`insert_all`. An SQL text skips the type. On those databases, a condition with it finds the row, and
+`update_all` with it stores the number. Before, those databases found and stored such a
 number. On Rails 7.0 or earlier, each save of a row that holds such a number raises that error:
 those versions serialize each attribute of the row again after a save.
 

@@ -584,12 +584,15 @@ The type of the group number has the 4-byte range on each database: -2147483648 
 database whose column holds a wider integer (SQLite, or a `bigint` column), this changes some calls
 for a number outside that range. Before, those databases found and stored such a number.
 
-- A lookup of such a number in the database (`where`, `find_by`) finds no row. `get_field_values`
-  finds the row only when the `custom_field_values` association of the record is loaded.
+- `where(group_number: n)` and `find_by(group_number: n)` find no row for such a number n.
+  `where.not(group_number: n)` excludes no row. `get_field_values` finds the row only when the
+  `custom_field_values` association of the record is loaded.
 - A write that skips the validation raises `ActiveModel::RangeError`. Such a write is
   `update_attribute`, `save(validate: false)`, or a write that also skips the callbacks
-  (`update_column`, `update_all` with a hash, `insert_all`). `update_all` with an SQL text skips
-  the type and stores the number.
+  (`update_column`, `update_all` with a hash, `insert_all`).
+- An SQL text skips the type. A condition with it finds the row, and `update_all` with it stores
+  the number.
+- An Arel predicate on the group number with such a number can raise `ActiveModel::RangeError`.
 - On Rails 7.1 or later, a read of the stored number and an update of the value of the row still
   pass. On Rails 7.0 or earlier, each save of a row that holds such a number raises
   `ActiveModel::RangeError`.

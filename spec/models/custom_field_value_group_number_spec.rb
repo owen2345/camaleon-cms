@@ -347,7 +347,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
         it 'finds no row in a lookup' do
           expect(post.custom_field_values.where(group_number: number)).to be_empty
+          expect(post.custom_field_values.find_by(group_number: number)).to be_nil
           expect(post.get_field_values('note', number)).to eq([])
+        end
+
+        it 'finds the row with an SQL text, and where.not excludes no row' do
+          expect(post.custom_field_values.where('group_number = ?', number)).to eq([row])
+          expect(post.custom_field_values.where.not(group_number: number)).to eq([row])
         end
 
         it 'reads the value of the row through a loaded association' do

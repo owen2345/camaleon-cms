@@ -36,9 +36,10 @@ module CamaleonCms
     # group number for that text.
     #
     # The type has the 4-byte range (-2147483648 to 2147483647) on each database. The design keeps this
-    # range where the column holds a wider integer (SQLite, a bigint column). There, a lookup of a
-    # number outside that range (where, find_by) finds no row, and a write that skips the validation
-    # raises ActiveModel::RangeError for it. update_all with an SQL text skips the type.
+    # range where the column holds a wider integer (SQLite, a bigint column). There, for a number n
+    # outside that range, where(group_number: n) and find_by(group_number: n) find no row. A write
+    # that gives n as a value and skips the validation raises ActiveModel::RangeError. An SQL text
+    # skips the type.
     class GroupNumberType < ActiveRecord::Type::Integer
       def self.unreadable?(value)
         value.is_a?(String) && !(value.valid_encoding? && value.encoding.ascii_compatible?)

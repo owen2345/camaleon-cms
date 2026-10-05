@@ -210,10 +210,10 @@ A write that skips the validation and the callbacks (for example `update_column`
 `insert_all`) is not a write path of this requirement. Such a write stores no group number (NULL) for that text.
 
 The type of the group number SHALL have the 4-byte range on each supported database, also where
-the column holds a wider integer (SQLite, a `bigint` column). There, a lookup with a number above
-2147483647 or below -2147483648 finds no row, and a write that skips the validation raises
-`ActiveModel::RangeError` for that number. `update_all` with an SQL text skips the type and stores
-the number.
+the column holds a wider integer (SQLite, a `bigint` column). There, `where(group_number: n)` and
+`find_by(group_number: n)` find no row for a number n above 2147483647 or below -2147483648. A
+write that gives n as a value and skips the validation raises `ActiveModel::RangeError`. An SQL
+text skips the type.
 
 A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
 copy of a row with a refused group number MUST get the same refusal.
