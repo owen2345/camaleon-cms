@@ -548,6 +548,8 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 - `set_field_values` stored a negative number in group 0 before.
 - `set_field_values` read a text that is not digits with `to_i` before: `'abc'` was group 0, and `'1abc'`
   was group 1.
+- Each writer read `' 5'`, `'+5'`, `'1_0'`, `'2.5'` and `2.5` as group 5, 5, 10, 2 and 2 before. The row
+  refuses each of them now.
 - `set_field_value` stored a negative number as given before.
 - `set_field_value` stored no group number for an empty text before. Pass nil for no group number.
 - `set_field_value` with an empty list also refuses the group number, before it deletes a stored value.
