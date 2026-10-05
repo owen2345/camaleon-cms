@@ -197,6 +197,14 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
+    # An empty text in an ASCII-compatible encoding is the empty group number of a form. A multipart
+    # request can send it in a binary encoding.
+    it 'stores the value in group 0 for an empty text in a binary encoding' do
+      post.set_field_values({ '0' => { 'note' => { group_number: ''.b, values: ['new'] } } })
+
+      expect(post.reload.get_field_values('note', 0)).to eq(['new'])
+    end
+
     it 'stops the save of a new row that skips the validation for a text with a broken encoding' do
       row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'new',
                                          group_number: "1\xFF")
