@@ -320,57 +320,46 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
-    it 'raises ActiveModel::RangeError in a write that skips the validation and the callbacks' do
-      attrs = { custom_field_id: row.custom_field_id, custom_field_slug: 'note', value: 'bulk',
-                group_number: 2_147_483_648 }
+    [2_147_483_648, -2_147_483_649].each do |number|
+      it "raises ActiveModel::RangeError for #{number} in a write that skips the validation and the callbacks" do
+        attrs = { custom_field_id: row.custom_field_id, custom_field_slug: 'note', value: 'bulk', group_number: number }
 
-      expect { row.update_column(:group_number, 2_147_483_648) } # rubocop:disable Rails/SkipsModelValidations
-        .to raise_error(ActiveModel::RangeError)
-      expect { described_class.where(id: row.id).update_all(group_number: 2_147_483_648) } # rubocop:disable Rails/SkipsModelValidations
-        .to raise_error(ActiveModel::RangeError)
-      expect { described_class.insert_all([attrs]) } # rubocop:disable Rails/SkipsModelValidations
-        .to raise_error(ActiveModel::RangeError)
-      expect(row.reload.group_number).to eq(1)
-      expect(described_class.where(value: 'bulk')).to be_empty
-    end
-
-    it 'raises ActiveModel::RangeError in a save that skips the validation' do
-      expect { row.update_attribute(:group_number, 2_147_483_648) } # rubocop:disable Rails/SkipsModelValidations
-        .to raise_error(ActiveModel::RangeError)
-      row.reload.group_number = 2_147_483_648
-      expect { row.save(validate: false) }.to raise_error(ActiveModel::RangeError)
-      expect(row.reload.group_number).to eq(1)
-    end
-
-    it 'raises ActiveModel::RangeError for a number below the range too' do
-      expect { row.update_attribute(:group_number, -2_147_483_649) } # rubocop:disable Rails/SkipsModelValidations
-        .to raise_error(ActiveModel::RangeError)
-      expect(row.reload.group_number).to eq(1)
-    end
-
-    it 'finds no row in a lookup with a stored number below the range' do
-      store_wide_group_number(row, -2_147_483_649)
-
-      expect(post.get_field_values('note', -2_147_483_649)).to eq([])
-    end
-
-    context 'with a stored row that holds the number in a wider column' do
-      before { store_wide_group_number(row) }
-
-      it 'finds no row in a lookup' do
-        expect(post.custom_field_values.where(group_number: 2_147_483_648)).to be_empty
-        expect(post.get_field_values('note', 2_147_483_648)).to eq([])
+        expect { row.update_column(:group_number, number) } # rubocop:disable Rails/SkipsModelValidations
+          .to raise_error(ActiveModel::RangeError)
+        expect { described_class.where(id: row.id).update_all(group_number: number) } # rubocop:disable Rails/SkipsModelValidations
+          .to raise_error(ActiveModel::RangeError)
+        expect { described_class.insert_all([attrs]) } # rubocop:disable Rails/SkipsModelValidations
+          .to raise_error(ActiveModel::RangeError)
+        expect(row.reload.group_number).to eq(1)
+        expect(described_class.where(value: 'bulk')).to be_empty
       end
 
-      it 'reads the value of the row through a loaded association' do
-        post.custom_field_values.load
-
-        expect(post.get_field_values('note', 2_147_483_648)).to eq(['kept'])
+      it "raises ActiveModel::RangeError for #{number} in a save that skips the validation" do
+        expect { row.update_attribute(:group_number, number) } # rubocop:disable Rails/SkipsModelValidations
+          .to raise_error(ActiveModel::RangeError)
+        row.reload.group_number = number
+        expect { row.save(validate: false) }.to raise_error(ActiveModel::RangeError)
+        expect(row.reload.group_number).to eq(1)
       end
 
-      it 'reads the stored number and updates the value of the row' do
-        expect(row.reload.group_number).to eq(2_147_483_648)
-        expect(row.update(value: 'new')).to be(true)
+      context "with a stored row that holds #{number} in a wider column" do
+        before { store_wide_group_number(row, number) }
+
+        it 'finds no row in a lookup' do
+          expect(post.custom_field_values.where(group_number: number)).to be_empty
+          expect(post.get_field_values('note', number)).to eq([])
+        end
+
+        it 'reads the value of the row through a loaded association' do
+          post.custom_field_values.load
+
+          expect(post.get_field_values('note', number)).to eq(['kept'])
+        end
+
+        it 'reads the stored number and updates the value of the row' do
+          expect(row.reload.group_number).to eq(number)
+          expect(row.update(value: 'new')).to be(true)
+        end
       end
     end
   end
