@@ -72,6 +72,12 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect(post.custom_field_values.where(group_number: nil).pluck(:value)).to eq(['unset'])
     end
+
+    it 'returns the row that it stored' do
+      row = post.set_field_value('note', 'new', group_number: 2)
+
+      expect(row).to eq(described_class.find_by!(value: 'new'))
+    end
   end
 
   # The check of the writer reads the group number of the row, not the errors that the row holds.
