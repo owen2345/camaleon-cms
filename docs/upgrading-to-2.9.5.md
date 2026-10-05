@@ -559,7 +559,7 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
 - A save that skips the validation (`update_attribute`, `save(validate: false)`) stores nothing for
   such a text. `save` returns false, and `save!` raises the refusal. For another refused group
   number, such a save runs no check of the row, as before. It stores what the integer cast of the
-  type gives (`'abc'` becomes 0), or it raises an error for a value that the type cannot store.
+  type gives (`'abc'` becomes 0). When the type cannot store that value, it raises an error.
 - A lookup with such a text (`where`, `find_by`, `get_field_values`) finds no row.
   `find_or_create_by!` gets the same refusal.
 - `update_column`, `update_all` and `insert_all` skip the validation and the callbacks. They store no
