@@ -218,6 +218,29 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The before_save guard stops a save that skips the validation for an unreadable text only. For
+  # another refused number, such a save does what Rails does for an integer column.
+  describe 'a save that skips the validation with a refused number that the type can read' do
+    let(:row) { post.custom_field_values.first }
+
+    before { post.set_field_value('note', 'kept', group_number: 3) }
+
+    it 'stores the cast of the number' do
+      expect(row.update_attribute(:group_number, -1)).to be(true) # rubocop:disable Rails/SkipsModelValidations
+      expect(row.reload.group_number).to eq(-1)
+
+      row.group_number = 'abc'
+      expect(row.save(validate: false)).to be(true)
+      expect(row.reload.group_number).to eq(0)
+    end
+
+    # The error is ArgumentError or ActiveModel::RangeError, by the Rails version.
+    it 'raises the error of Rails for a list' do
+      expect { row.update_attribute(:group_number, [1]) }.to raise_error(StandardError) # rubocop:disable Rails/SkipsModelValidations
+      expect(row.reload.group_number).to eq(3)
+    end
+  end
+
   # A copy takes the cast value of each attribute, and the cast hides a group number that the row
   # refuses. The copy keeps the group number as the caller gave it.
   describe 'a copy of a row' do
