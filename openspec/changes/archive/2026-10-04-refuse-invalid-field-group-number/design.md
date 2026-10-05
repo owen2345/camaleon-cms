@@ -131,6 +131,13 @@ call. The maintainer chose on 2026-10-04 to put those rows back. Each writer rea
 of the association before its transaction, and adds them to the association after the reset. A
 `set_field_values` call that stores its rows still drops them: its delete clears the association.
 
+A callback of a value row can raise `ActiveRecord::Rollback` before the row is stored. Rails ends
+the save of that row with no error: `create!` returns an unsaved record. The writer goes on, its
+delete stays, and the unsaved row stays in the association. The maintainer chose on 2026-10-05 to
+leave this. It is the behavior of Rails for such a callback, the code before this change did the
+same, and no surveyed consumer adds such a callback. The other remedies were an error for a row
+that is not stored, and a reset after each call.
+
 **D11. `set_field_value` refuses the group number before its delete.** The maintainer chose it on
 2026-10-04. A call with an empty list builds no row, so no row refused the group number. The lookup
 of the delete cast the number, and the call deleted the stored values of that group: `'1abc'` and

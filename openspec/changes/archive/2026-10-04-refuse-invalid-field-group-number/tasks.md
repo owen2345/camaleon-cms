@@ -50,6 +50,8 @@
   in the requirement and in a comment on the type (D3)
 - [x] 3.5 Record the refusal of the copy of a stored row that holds a number outside the range in the
   upgrade note, in the requirement, in the ecosystem survey and in a comment on the row (D8)
+- [x] 3.6 Record a callback of a value row that raises `ActiveRecord::Rollback` in the upgrade note,
+  in the requirement and in a comment on the writer, with an example in the model spec (D10)
 
 ## 4. Verification and release steps
 

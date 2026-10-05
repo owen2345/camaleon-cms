@@ -235,6 +235,10 @@ is not a `StandardError` is such an error. So are a `throw` out of the call and 
 call with `ActiveRecord::Rollback`. A timeout of the caller stops the call in one of the first two
 ways.
 
+A callback of a value row that raises `ActiveRecord::Rollback` before the row is stored is not an
+error of a writer. Rails ends the save of that row with no error. The writer then goes on, and the
+unsaved row stays in the association.
+
 The reset drops each unsaved row of the association, so the writer SHALL put back the unsaved rows
 that the caller built before the call.
 

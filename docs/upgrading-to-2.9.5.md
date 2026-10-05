@@ -601,6 +601,9 @@ record reads the stored values again, and its next save stores no row of the fai
 the record kept the rows of the failed call: its next save failed, or stored some of those rows.
 The unsaved rows that the caller built before the call stay in the association.
 
+A callback of a value row that raises `ActiveRecord::Rollback` before the row is stored is not such
+an error. As before, the writer goes on, and the row stays in the association as an unsaved row.
+
 ---
 
 ## Recommended rollout

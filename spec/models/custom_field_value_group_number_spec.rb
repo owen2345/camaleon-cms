@@ -479,6 +479,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect { post.save }.not_to change(described_class, :count)
     end
 
+    # A callback of a row can raise ActiveRecord::Rollback before the row is stored. Rails ends the
+    # save of that row with no error, so the call is not a failed call. The stub of valid? stands for
+    # such a callback.
+    it 'goes on with an unsaved row when a callback of a row raises ActiveRecord::Rollback' do
+      allow_any_instance_of(described_class).to receive(:valid?).and_raise(ActiveRecord::Rollback)
+
+      row = post.set_field_value('note', 'new', group_number: 2)
+
+      expect(row).to be_new_record
+      expect(post.custom_field_values.target).to include(row)
+    end
+
     # The reset drops each unsaved row of the association. The writer puts back the rows that the
     # caller built before the call, so the next save of the record stores them.
     context 'with a row that the caller built before the call' do
