@@ -400,7 +400,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     # While the pool has an isolation level, Rails 8.1 refuses a savepoint, so the writers ask for
     # none. Inside the transaction of an example, Rails refuses each model transaction under
     # ActiveRecord.with_transaction_isolation_level, so the examples stub the level that the writers
-    # read.
+    # read. A group with no such transaction commits its rows on the shared site of the suite, so the
+    # design keeps the stub.
     context 'when the pool has an isolation level' do
       before do
         base = ActiveRecord::Base

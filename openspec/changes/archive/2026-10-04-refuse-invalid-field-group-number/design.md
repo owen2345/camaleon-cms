@@ -131,6 +131,12 @@ same for a refusal of the value gate.
 `ActiveRecord::Rollback` that leaves the block of a writer rolls nothing back there either, and
 the writer returns nil. The other remedy was a note on the limit.
 
+No example uses the isolation level API of Rails itself. Inside the transaction of an example,
+Rails refuses each model transaction under that API. A group of examples with no such transaction
+can use it, but that group commits its rows on the site that the suite shares, and SQLite sets a
+level in its shared-cache mode only. On 2026-10-05, the maintainer chose to keep the examples that
+stub `pool_transaction_isolation_level`. Probes with the API back the notes of this decision.
+
 **D10. The writers reset the association after an error.** The maintainer chose it on 2026-10-04.
 The rollback restores the database. The record still holds the rows of the call in its
 `custom_field_values` association. After a refused `set_field_values`, the record read those rows,
