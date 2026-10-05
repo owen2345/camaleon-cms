@@ -443,6 +443,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(described_class.where(custom_field_slug: 'note')).to be_empty
       end
 
+      # The post save of the admin does not rescue the refusal inside its transaction.
+      it 'keeps the stored values when the caller does not rescue the refusal' do
+        expect do
+          ActiveRecord::Base.transaction do
+            post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+          end
+        end.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+
       it 'rolls back its delete on a refusal with no transaction of the caller' do
         expect { post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } }) }
           .to raise_error(ActiveRecord::RecordInvalid)
