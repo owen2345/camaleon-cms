@@ -75,7 +75,8 @@ The group number has its own integer type, `GroupNumberType`. The maintainer cho
 reads the text and refuses it. The type covers each write to the attribute (`group_number=`, `[]=`,
 `write_attribute`) and each lookup. No request can send such a text. Rails answers a text with a
 broken encoding with a 400. A multipart part in an encoding that is not ASCII-compatible stops the
-request with an encoding error. Only Ruby code can pass it.
+request with an encoding error, which is a 500 before the save, as before this change. Only Ruby
+code can pass it.
 
 A lookup with such a text finds no row, as a lookup with a text that is not a number does in Rails.
 `find_or_create_by!` looks the number up first. It reaches the row after the lookup, and the row
@@ -94,8 +95,8 @@ error for a value that the type cannot store. `update_column`, `update_all` with
 The maintainer chose to leave those three writes on 2026-10-04. Before, Rails raised its own error
 there in most cases. In the other cases it stored the digits at the start of the text, or no
 number. The type only maps a value, so it cannot keep the stored number. A refusal is possible for
-`update_column` only: `update_all` and `insert_all` cast the value first, with the cast that the row
-uses. Rails gives those writes no check for other values: `'abc'` becomes NULL or 0.
+`update_column` only: `update_all` with a hash and `insert_all` cast the value first, with the cast
+that the row uses. Rails gives those writes no check for other values: `'abc'` becomes NULL or 0.
 
 **D8. A copy of a row keeps the given group number.** A copy (`dup`) takes the cast value of each
 attribute. The cast hides a group number that the row refuses: `'abc'` becomes 0, `true` becomes 1,
