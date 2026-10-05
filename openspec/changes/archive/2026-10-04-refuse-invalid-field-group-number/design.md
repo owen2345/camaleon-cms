@@ -46,7 +46,8 @@ wider integer in the column: SQLite, and a host whose column is `bigint`. There,
 number above 2147483647 finds no row. A write that skips the validation raises
 `ActiveModel::RangeError` for that number: `update_attribute`, `save(validate: false)`,
 `update_column`, `update_all` and `insert_all`. Before, those databases found and stored such a
-number.
+number. On Rails 7.0 or earlier, each save of a row that holds such a number raises that error:
+those versions serialize each attribute of the row again after a save.
 
 The maintainer chose to leave that range on 2026-10-04. A type that takes the range of the column is
 possible. The admin form sends the index of the group, so only custom code can store such a number.

@@ -584,7 +584,9 @@ Before, those databases found and stored such a number.
 - A write that skips the validation raises `ActiveModel::RangeError`. Such a write is
   `update_attribute`, `save(validate: false)`, or a write that also skips the callbacks
   (`update_column`, `update_all`, `insert_all`).
-- A read of the stored number and an update of the value of the row still pass.
+- On Rails 7.1 or later, a read of the stored number and an update of the value of the row still
+  pass. On Rails 7.0 or earlier, each save of a row that holds such a number raises
+  `ActiveModel::RangeError`.
 
 `set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A refusal
 of a value row rolls back their delete of the stored values, also when the caller rescues the refusal
