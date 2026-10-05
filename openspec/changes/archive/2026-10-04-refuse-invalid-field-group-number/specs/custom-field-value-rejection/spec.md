@@ -67,8 +67,8 @@ The rollback leaves the rows of the failed call in the `custom_field_values` ass
 record. After an error of a writer, the writer SHALL reset that association. The record then SHALL
 read the stored values, and its next save MUST NOT store a row of the failed call. An exception that
 is not a `StandardError` is such an error. So are a `throw` out of the call and a rollback of the
-call with `ActiveRecord::Rollback`. A timeout of the caller stops the call in one of the first two
-ways.
+call with `ActiveRecord::Rollback`. A timeout of the caller stops the call with an exception or
+with a `throw`. After a `throw`, Rails can commit what the call stored or deleted before it.
 
 The reset drops each unsaved row of the association, so the writer SHALL put back the unsaved rows
 that the caller built before the call.

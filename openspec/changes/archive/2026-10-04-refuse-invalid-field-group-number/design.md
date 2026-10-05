@@ -146,8 +146,9 @@ The rollback restores the database. The record still holds the rows of the call 
 and its next save failed. After a refused list of `set_field_value`, the next save of the record
 stored the rows before the refused value. Each writer resets the association when its transaction
 raises an error of any class, so the record reads the stored values again. The reset is in an
-`ensure` block: a timeout of the caller stops the writer with an exception that is not a
-`StandardError`, or with a `throw`. The reset also runs when the call rolls back with
+`ensure` block: a timeout of the caller can stop the writer with an exception that is not a
+`StandardError`, or with a `throw`. After a `throw`, Rails can commit what the call stored or
+deleted before it. The reset also runs when the call rolls back with
 `ActiveRecord::Rollback`, which the transaction does not raise again.
 
 The reset also covers a refusal of the value gate. The other remedy was a note that tells the
