@@ -426,6 +426,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
     end
 
+    # A commit callback can raise ActiveRecord::Rollback after the block of the writer ended. The
+    # transaction then rolls back and returns nil.
+    it 'stores no row of the call when the commit of the call rolls back' do
+      allow_any_instance_of(described_class).to receive(:before_committed!).and_raise(ActiveRecord::Rollback)
+
+      expect(post.set_field_value('note', 'new', group_number: 2)).to be_nil
+
+      allow_any_instance_of(described_class).to receive(:before_committed!).and_call_original
+      expect(post.save).to be(true)
+      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to eq(['kept'])
+    end
+
     # The reset drops each unsaved row of the association. The writer puts back the rows that the
     # caller built before the call, so the next save of the record stores them.
     context 'with a row that the caller built before the call' do

@@ -37,8 +37,8 @@
 - [x] 2.12 Give a group number that is a list or a hash to the row in `cama_permitted_field_options`,
   so an admin save gets the refusal, with examples in the request spec and in the spec of the permit
   helper (D12)
-- [x] 2.13 Reset the association when the call does not complete: an exception of any class, a
-  `throw` or a rollback of the call, with examples in the model spec (D10)
+- [x] 2.13 Reset the association after each failed call: an exception of any class, a `throw` or a
+  rollback of the call, also in the commit phase, with examples in the model spec (D10)
 
 ## 3. Documentation
 

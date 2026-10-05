@@ -375,28 +375,25 @@ module CamaleonCms
     # a savepoint. A refusal of a row then rolls the delete back, also when the caller rescues the
     # refusal and commits.
     #
-    # The rollback leaves the rows of the call in the association. When the call does not complete, the
-    # reset makes the record read the stored values again. The next save of the record then stores no
-    # row of the call.
+    # A failed call can leave its rows in the association as unsaved rows. The reset then makes the
+    # record read the stored values again, and its next save stores no row of the call.
     #
-    # A call does not complete in three cases:
-    # - An exception of any class stops it.
-    # - A throw leaves it.
-    # - It rolls back with ActiveRecord::Rollback, which the transaction does not raise again.
+    # The writer reads the result of the transaction to find a failed call:
+    # - An exception of any class and a throw leave no result. A timeout of the caller is one of them.
+    # - The transaction returns nil after ActiveRecord::Rollback, also when a commit callback raises it.
     #
-    # A timeout of the caller is one of the first two cases, so the reset is in an ensure block.
+    # The array gives a call that completed a result that is not nil. After a throw, Rails can commit
+    # what the call stored before it.
     # The reset drops each unsaved row, so the writer puts back the rows that the caller built before
     # the call.
     def _cama_write_field_values
       field_values = custom_field_values.proxy_association
       built_before = field_values.target.select(&:new_record?)
       begin
-        completed = false
-        result = ActiveRecord::Base.transaction(requires_new: true) { yield.tap { completed = true } }
-        written = completed
-        result
+        outcome = ActiveRecord::Base.transaction(requires_new: true) { [yield] }
+        outcome&.first
       ensure
-        unless written
+        unless outcome
           custom_field_values.reset
           built_before.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
         end
