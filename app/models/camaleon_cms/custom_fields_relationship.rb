@@ -29,8 +29,8 @@ module CamaleonCms
 
     # The integer type of the group number. The integer type of Rails raises its own error for a text
     # with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16). This type reads
-    # that text as no number, in a row and in a lookup. The row keeps the text, and the validation
-    # refuses it.
+    # that text as no number in a row. A hash condition with that text (where, find_by) finds no row.
+    # The row keeps the text, and the validation refuses it.
     #
     # update_column, update_all with a hash and insert_all skip the validation and the callbacks. They
     # store no group number for that text.
