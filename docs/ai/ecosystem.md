@@ -308,6 +308,10 @@ Changes that look free from inside this repository and are not:
 - **The reset of the `custom_field_values` association after an error of `set_field_value` or
   `set_field_values`** changes no surveyed consumer. No consumer rescues an error of the two writers.
   The unsaved rows that a caller built on the association before the call stay.
+  The two writers read the association through `proxy_association`. So `custom_field_values` must be
+  the `has_many` association that `CommonRelationships` gives. A model that defines
+  `custom_field_values` as a plain relation gets `NoMethodError` from the two writers. No surveyed
+  consumer does.
 
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
