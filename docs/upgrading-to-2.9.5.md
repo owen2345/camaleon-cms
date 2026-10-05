@@ -593,7 +593,13 @@ for a number outside that range. Before, those databases found and stored such a
   `custom_field_values` association of the record is loaded.
 - A write that skips the validation raises `ActiveModel::RangeError`:
   - `update_attribute` and `save(validate: false)`
-  - `update_column`, `update_all` with a hash and `insert_all`, which also skip the callbacks
+  - `update_column`, `update_all` with a hash, `insert_all` and `upsert_all`, which also skip the
+    callbacks
+- Some calls on a stored row that holds such a number raise `ActiveModel::RangeError`:
+  - `attributes_for_database`
+  - `Marshal.dump` of the row with the marshalling format 7.1. `load_defaults 7.1` and later set
+    that format. `Marshal.dump` of a record with the row in a loaded association raises it too.
+  - A cache write of the row with that format (`Rails.cache.write`, `Rails.cache.fetch`)
 - An SQL text skips the type. A condition with it finds the row, and `update_all` with it stores
   the number.
 - An Arel predicate on the group number with such a number can raise `ActiveModel::RangeError`.

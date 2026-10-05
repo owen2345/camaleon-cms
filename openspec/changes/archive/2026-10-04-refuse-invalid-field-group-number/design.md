@@ -47,11 +47,17 @@ The type of the group number (D7) has the same 4-byte range on each database. So
 wider integer in the column: SQLite, and a host whose column is `bigint`. There,
 `where(group_number: n)` and `find_by(group_number: n)` find no row for a number n above 2147483647
 or below -2147483648. A write that skips the validation raises `ActiveModel::RangeError` for that
-number: `update_attribute`, `save(validate: false)`, `update_column`, `update_all` with a hash and
-`insert_all`. An SQL text skips the type. On those databases, a condition with it finds the row, and
-`update_all` with it stores the number. Before, those databases found and stored such a
-number. On Rails 7.0 or earlier, each save of a row that holds such a number raises that error:
-those versions serialize each attribute of the row again after a save.
+number: `update_attribute`, `save(validate: false)`, `update_column`, `update_all` with a hash,
+`insert_all` and `upsert_all`. An SQL text skips the type. On those databases, a condition with it
+finds the row, and `update_all` with it stores the number. Before, those databases found and stored
+such a number. On Rails 7.0 or earlier, each save of a row that holds such a number raises that
+error: those versions serialize each attribute of the row again after a save.
+
+Some calls serialize each attribute of a stored row. For a row that holds such a number, they raise
+that error. `attributes_for_database` is one. `Marshal.dump` of the row is another, with the
+marshalling format 7.1, which `load_defaults 7.1` and later set. `Marshal.dump` of a record with
+the row in a loaded association raises it too, and so does a cache write of the row. With the
+format 6.1, `Marshal.dump` and the cache write pass.
 
 The maintainer chose to leave that range on 2026-10-04. A type that takes the range of the column is
 possible. The admin form sends the index of the group, so only custom code can store such a number.
