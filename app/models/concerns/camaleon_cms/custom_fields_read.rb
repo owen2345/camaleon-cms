@@ -413,8 +413,7 @@ module CamaleonCms
     # joinable transaction of the caller, the writers then join it: a failed call rolls nothing back,
     # unless that transaction rolls back. With no open transaction, they open their own.
     def _cama_field_values_savepoint?
-      !(ActiveRecord::Base.respond_to?(:pool_transaction_isolation_level) &&
-        ActiveRecord::Base.pool_transaction_isolation_level)
+      !ActiveRecord::Base.try(:pool_transaction_isolation_level)
     end
 
     # The fields registered under a slug. Groups share the table and keep their site's id in parent_id, so
