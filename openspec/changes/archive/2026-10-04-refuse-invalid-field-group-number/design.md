@@ -131,11 +131,23 @@ transaction of the caller, so a caller that rescued the refusal there and commit
 values.
 The writers call `transaction(requires_new: true)`, with the one exception of the next paragraph.
 The savepoint covers each refusal of a row, the refusal of the value gate included. Each savepoint
-costs two statements. Rails 7.2 and 8.1 open no savepoint when no statement ran in the joinable
-transaction of the caller before the writer opens its own transaction. In that case, Rails restarts
-the transaction of the caller after a failed call that ran a statement. `set_field_value` looks up
-its field before it opens its transaction, unless the caller gives `field_id`. That lookup is a
-statement, unless the query cache serves it.
+costs two statements.
+
+Rails 7.2 and 8.1 open no savepoint when no statement ran in the joinable transaction of the caller
+before the writer opens its own transaction. In that case, Rails restarts the transaction of the
+caller after a failed call that ran a statement. On SQLite, the restart is a ROLLBACK and a BEGIN.
+With Rails 8.1, another connection can take the write lock between the two and hold it past the
+busy timeout. The caller then gets
+`ActiveRecord::ConnectionAdapters::TransactionInstrumenter::InstrumentationNotStartedError` in place
+of the refusal. The stored values stay.
+
+On 2026-10-05, the maintainer chose to make Rails open the savepoint. Before the writers open their
+transaction, they run one statement (`SELECT 1`) in an open transaction of the caller. A statement
+that the query cache answers does not reach the database, so that statement goes past the cache.
+Rails documents no option that stops the restart. The remedy relies on its rule that it does not
+restart a transaction that ran a statement. While the pool has an isolation level, the
+writers ask for no savepoint and run no such statement. The other remedy was a note on the restart.
+
 On PostgreSQL, more than 64 savepoints that write in one transaction overflow
 the subtransaction cache of the session.
 

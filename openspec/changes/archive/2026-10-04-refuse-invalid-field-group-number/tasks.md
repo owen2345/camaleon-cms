@@ -47,6 +47,8 @@
   request examples (D14)
 - [x] 2.17 Drop the rows that `set_field_value` deletes from a loaded association, with examples in
   the model spec (D15)
+- [x] 2.18 Run one statement in the transaction of the caller before the writers ask for the
+  savepoint, with model examples (D9)
 
 ## 3. Documentation
 

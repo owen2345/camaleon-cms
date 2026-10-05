@@ -43,7 +43,8 @@ number of the request to the row. The `NoMethodError` is present since 2.9.3, wh
   number, or a number above 2147483647 in a wider column, gets the refusal. Before, the copy stored
   that number.
 - `set_field_value` and `set_field_values` ask for a savepoint inside a transaction of the caller. A
-  refusal that the caller rescues there rolls back the delete of the stored values. Rails 8.1
+  refusal that the caller rescues there rolls back the delete of the stored values. The writers run
+  one statement in that transaction first, so Rails opens the savepoint. Rails 8.1
   refuses that savepoint while the pool has an isolation level (for example under
   `ActiveRecord.with_transaction_isolation_level`). The writers then join a joinable transaction
   of the caller.

@@ -58,7 +58,9 @@ row, and that entry MUST get the same refusal.
 `set_field_value` and `set_field_values` delete stored values before they create the rows. A refusal
 of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL ask Rails
 for a savepoint, so the rollback also holds when the caller rescues the refusal and commits. The
-next paragraph gives the exception for a pool with an isolation level.
+writers SHALL run one statement in that transaction before they ask. With no statement there, Rails
+opens no savepoint, and it restarts the transaction of the caller after a failed call. The next
+paragraph gives the exception for a pool with an isolation level.
 
 While the pool has an isolation level, Rails refuses a savepoint. On Rails 8.1,
 `ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`
@@ -176,6 +178,13 @@ the unsaved row stays in the association.
   `set_field_values` inside its own transaction with a group number that the row refuses, rescues
   the refusal inside that transaction and commits
 - **THEN** the stored values of the record are unchanged
+
+#### Scenario: A failed call in a new transaction of the caller rolls back to a savepoint
+
+- **WHEN** the pool has no isolation level, a caller opens a transaction, and `set_field_value` or
+  `set_field_values` is its first statement and fails after its delete
+- **THEN** the writer rolls back to a savepoint of its own, and Rails does not restart the
+  transaction of the caller
 
 #### Scenario: The writers join a transaction of the caller that has a pool isolation level
 

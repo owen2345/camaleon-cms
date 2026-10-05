@@ -616,11 +616,14 @@ for a number outside that range. Before, those databases found and stored such a
 A refusal of a value row rolls back their delete of the stored values, also when the caller rescues
 the refusal there. Before, that caller lost the stored values at its commit.
 
-Each savepoint adds two statements to the call. Rails 7.2 and 8.1 open no savepoint when no
-statement ran in the joinable transaction of the caller before the writer opens its own
-transaction. In that case, Rails restarts the transaction of the caller after a failed call that
-ran a statement. `set_field_value` looks up its field before it opens its transaction, unless the
-caller gives `field_id`. That lookup is a statement, unless the query cache serves it.
+Inside an open transaction of the caller, each call adds three statements: `SELECT 1` and the two
+statements of the savepoint. Rails 7.2 and 8.1 open no savepoint when no statement ran in the
+joinable transaction of the caller. They restart that transaction after a failed call. The writers
+run `SELECT 1` first, so Rails opens the savepoint. That statement goes past the query cache.
+
+On SQLite with Rails 8.1, another connection can take the write lock inside such a restart. The
+caller then gets an `InstrumentationNotStartedError` of Rails in place of the refusal. The savepoint
+has no such window.
 
 On PostgreSQL, a transaction with more than 64 savepoints that write overflows the subtransaction
 cache of its session, which can slow other sessions. A caller with a long loop of calls in one

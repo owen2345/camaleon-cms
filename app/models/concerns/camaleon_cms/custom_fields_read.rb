@@ -383,7 +383,8 @@ module CamaleonCms
 
     # The transaction of set_field_value and set_field_values. Inside a transaction of the caller it
     # asks Rails for a savepoint, where Rails permits one (see _cama_field_values_savepoint?). A refusal
-    # of a row then rolls the delete back, also when the caller rescues the refusal and commits.
+    # of a row then rolls the delete back, also when the caller rescues the refusal and commits. The
+    # writer runs a statement first (see _cama_run_statement_in_caller_transaction).
     #
     # The transaction is on the connection pool of ActiveRecord::Base. With the value rows on another
     # pool, it does not roll back the delete of a refused call. The design leaves this: the post save
@@ -408,13 +409,26 @@ module CamaleonCms
       field_values = custom_field_values.proxy_association
       built_before = field_values.target.select(&:new_record?)
       begin
-        outcome = ActiveRecord::Base.transaction(requires_new: _cama_field_values_savepoint?) { [yield] }
+        savepoint = _cama_field_values_savepoint?
+        _cama_run_statement_in_caller_transaction if savepoint
+        outcome = ActiveRecord::Base.transaction(requires_new: savepoint) { [yield] }
         outcome&.first
       ensure
         unless outcome
           custom_field_values.reset
           built_before.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
         end
+      end
+    end
+
+    # Rails opens no savepoint for requires_new when no statement ran in the joinable transaction of
+    # the caller. After a failed call, it restarts that transaction. On SQLite, the restart is a
+    # ROLLBACK and a BEGIN, and another connection can take the write lock between the two. One
+    # statement in the transaction of the caller makes Rails open a savepoint. The query cache must
+    # not answer that statement.
+    def _cama_run_statement_in_caller_transaction
+      ActiveRecord::Base.connection_pool.with_connection do |connection|
+        ActiveRecord::Base.uncached { connection.select_value('SELECT 1') } if connection.transaction_open?
       end
     end
 

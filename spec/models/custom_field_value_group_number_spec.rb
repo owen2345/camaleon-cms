@@ -455,6 +455,67 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
+    # Rails opens no savepoint for the writer when no statement ran in the transaction of the caller.
+    # After a failed call, it restarts that transaction. On SQLite, the restart is two statements, and
+    # another connection can take the write lock between them. The writers run a statement first, so
+    # Rails opens a savepoint.
+    context 'when no statement ran in the transaction of the caller' do
+      let(:field_id) { post.get_field_object('note').id }
+
+      before { field_id }
+
+      # The savepoint statements of a block that is the first code of a transaction of the caller.
+      def savepoint_statements_in_a_new_caller_transaction
+        statements = []
+        collect = ->(*, payload) { statements << payload[:sql] if payload[:sql].match?(/\A(ROLLBACK TO )?SAVEPOINT/) }
+        ActiveSupport::Notifications.subscribed(collect, 'sql.active_record') do
+          ActiveRecord::Base.transaction do
+            yield
+          rescue ActiveRecord::RecordInvalid, ActiveModel::RangeError
+            nil
+          end
+        end
+        statements
+      end
+
+      def expect_a_rollback_to_a_savepoint_of_the_writer(statements)
+        savepoints = statements.grep(/\ASAVEPOINT/)
+
+        expect(savepoints.size).to eq(2)
+        expect(statements.last).to eq("ROLLBACK TO #{savepoints.last}")
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+
+      it 'rolls a failed set_field_value back to a savepoint of the writer' do
+        statements = savepoint_statements_in_a_new_caller_transaction do
+          post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
+        end
+
+        expect_a_rollback_to_a_savepoint_of_the_writer(statements)
+      end
+
+      # The query cache can hold the statement of the writer. A statement that the cache answers does
+      # not reach the database, and Rails then opens no savepoint.
+      it 'rolls a failed call back to a savepoint of the writer when the query cache holds the statement' do
+        statements = ActiveRecord::Base.cache do
+          ActiveRecord::Base.connection.select_value('SELECT 1')
+          savepoint_statements_in_a_new_caller_transaction do
+            post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
+          end
+        end
+
+        expect_a_rollback_to_a_savepoint_of_the_writer(statements)
+      end
+
+      it 'rolls a refused set_field_values back to a savepoint of the writer' do
+        statements = savepoint_statements_in_a_new_caller_transaction do
+          post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+        end
+
+        expect_a_rollback_to_a_savepoint_of_the_writer(statements)
+      end
+    end
+
     # While the pool has an isolation level, Rails 8.1 refuses a savepoint, so the writers ask for
     # none. Inside the transaction of an example, Rails refuses each model transaction under
     # ActiveRecord.with_transaction_isolation_level, so the examples stub the level that the writers
@@ -542,6 +603,15 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
         expect(statements).to be_empty
         expect(post.reload.get_field_values('note', 2)).to eq(['new'])
+      end
+
+      # The writers run a statement before their transaction only when they ask for a savepoint.
+      it 'runs no statement before the transaction of the writer' do
+        probes = sql_queries(matching: /\ASELECT 1\z/) do
+          ActiveRecord::Base.transaction { post.set_field_value('note', 'new', group_number: 2) }
+        end
+
+        expect(probes).to be_empty
       end
 
       it 'opens no savepoint in set_field_values, and the call stores its values' do
