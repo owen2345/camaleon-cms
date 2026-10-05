@@ -104,9 +104,9 @@ a number outside the range gets the refusal. Such a number is negative, or above
 wider column. Before, the copy stored that number. The maintainer chose to leave that refusal on
 2026-10-04.
 
-`camaleon-post-clone` copies the value rows of a post, so its clone of a post with such a row raises
-`ActiveRecord::RecordInvalid`. Only custom code stored such a number: the admin form sends the index
-of the group.
+The master branch of `camaleon-post-clone` copies the value rows of a post, so its clone of a post
+with such a row raises `ActiveRecord::RecordInvalid`. Only custom code stored such a number: the
+admin form sends the index of the group.
 
 **D9. The writers open a savepoint.** The maintainer chose it on 2026-10-04. `set_field_value` and
 `set_field_values` delete stored values before they create the rows. Their transaction joined a
