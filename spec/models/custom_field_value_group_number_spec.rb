@@ -617,6 +617,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The writers give their block to one private method. A block value of nil or false is not a
+  # failed call, so that method does not reset the association.
+  describe 'a block of a writer that returns nil or false' do
+    [nil, false].each do |value|
+      it "returns #{value.inspect} and keeps the association loaded" do
+        post.custom_field_values.load
+
+        expect(post.send(:_cama_write_field_values) { value }).to be(value)
+        expect(post.custom_field_values).to be_loaded
+      end
+    end
+  end
+
   it 'gives the refusal in each language of the admin' do
     files = Dir[CamaleonCms::Engine.root.join('config/locales/camaleon_cms/admin/*.yml')]
     locales = files.map { |file| YAML.load_file(file).keys.first }
