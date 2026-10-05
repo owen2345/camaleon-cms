@@ -458,7 +458,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     it 'stores no row of the call after a throw out of set_field_values' do
       allow_any_instance_of(described_class).to receive(:save!).and_throw(:stop)
 
-      catch(:stop) { post.set_field_values({ '0' => { 'note' => { group_number: 2, values: ['new'] } } }) }
+      expect { post.set_field_values({ '0' => { 'note' => { group_number: 2, values: ['new'] } } }) }
+        .to throw_symbol(:stop)
 
       allow_any_instance_of(described_class).to receive(:save!).and_call_original
       expect { post.save }.not_to change(described_class, :count)
