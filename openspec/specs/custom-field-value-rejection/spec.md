@@ -191,8 +191,8 @@ change the number to a valid one. A new row is always checked. A stored row SHAL
 when its group number changes. An admin save that reaches the controller with a refused group number
 MUST NOT answer with a 500: it SHALL redirect back with the error and leave the stored values of the
 record unchanged. A request with a param in a broken encoding gets a 400 before the controller. A
-multipart request with a part in an encoding that is not ASCII-compatible gets a 500 before the
-controller. An absent or empty group number in an admin save SHALL mean group 0.
+multipart request with a part in an encoding that is not ASCII-compatible stops before the
+controller too. An absent or empty group number in an admin save SHALL mean group 0.
 
 In an admin save, a group number that is a list or a hash MUST get the same refusal. An empty list
 is a list. `cama_permitted_field_options` SHALL give that shape to the row, with no content. It

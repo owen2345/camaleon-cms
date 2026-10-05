@@ -83,8 +83,7 @@ The group number has its own integer type, `GroupNumberType`. The maintainer cho
 reads the text and refuses it. The type covers each write to the attribute (`group_number=`, `[]=`,
 `write_attribute`) and each lookup. No request can send such a text. Rails answers a text with a
 broken encoding with a 400. A multipart part in an encoding that is not ASCII-compatible stops the
-request with an encoding error, which is a 500 before the save, as before this change. Only Ruby
-code can pass it.
+request with an encoding error of Rack before the save. Only Ruby code can pass such a text.
 
 A lookup with such a text finds no row, as a lookup with a text that is not a number does in Rails.
 `find_or_create_by!` looks the number up first. It reaches the row after the lookup, and the row
