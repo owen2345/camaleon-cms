@@ -3,7 +3,8 @@
 ## 1. Reproduce first
 
 - [x] 1.1 Add examples to `spec/requests/security/field_options_non_hash_param_spec.rb`: a category
-  update with a group number above the range, a negative number, a text, a JSON boolean and a file
+  update with a group number above the range, a negative number, a String that is not digits, a JSON
+  boolean and a file
   redirects with the error and keeps the stored value. Confirm that they fail on the unfixed code
 - [x] 1.2 Add `spec/models/custom_field_value_group_number_spec.rb`: `set_field_value` refuses such
   numbers and keeps the stored value, a nil number and the largest number pass, a stored row with a
@@ -14,10 +15,10 @@
 - [x] 2.1 Validate the group number in `CamaleonCms::CustomFieldsRelationship` (D1 to D4) and add
   the message to each admin locale file
 - [x] 2.2 Give the group number to the value as the request sent it, in `set_field_values` (D5, D6)
-- [x] 2.3 Refuse a group number text with a broken encoding, or in an encoding that is not
+- [x] 2.3 Refuse a group number String in an invalid encoding, or in an encoding that is not
   ASCII-compatible, in the value model and before the lookup of `set_field_value`, with examples in
   the model spec (D7)
-- [x] 2.4 Stop a save that skips the validation for such a text with a `before_save` callback, with
+- [x] 2.4 Stop a save that skips the validation for such a String with a `before_save` callback, with
   examples in the model spec (D7)
 - [x] 2.5 Give the cast a Symbol in `write_attribute`, so `[]=` gets the same error, with examples in the
   model spec (D7)
@@ -41,7 +42,7 @@
   rollback of the call, also in the commit phase, with examples in the model spec (D10)
 - [x] 2.14 Run inside the transaction of the caller while the pool has an isolation level (Rails 8.1),
   with examples in the model spec (D9)
-- [x] 2.15 Refuse a group number text of more than 16 bytes, with examples in the model and request
+- [x] 2.15 Refuse a group number String of more than 16 bytes, with examples in the model and request
   specs (D2)
 - [x] 2.16 Check the group number of an entry with no values in `set_field_values`, with model and
   request examples (D14)
@@ -58,7 +59,7 @@
   in the requirement (D7)
 - [x] 3.4 Record the 4-byte range of the type on a column for a larger integer in the upgrade note,
   in the requirement and in a comment on the type (D3)
-- [x] 3.5 Record that the copy of a stored value with a number outside the range is not valid: in
+- [x] 3.5 Record that the copy of a stored value with a number outside the range is invalid: in
   the upgrade note, in the requirement, in the ecosystem survey and in a comment of the model (D8)
 - [x] 3.6 Record a callback of a value that raises `ActiveRecord::Rollback` in the upgrade note, in
   the requirement and in a comment of `_cama_write_field_values`, with an example in the model spec
