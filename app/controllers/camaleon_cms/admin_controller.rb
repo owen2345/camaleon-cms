@@ -4,14 +4,16 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    # Security (scan-and-reject policy): custom-field values save after their parent through
-    # `custom_field_values.create!`, and a post type's decorator class option is checked when a save
-    # hook writes it, so a value a gate refuses arrives here as RecordInvalid. Surface the refusal of a
-    # submitted save as a flash error naming the problem instead of a 500. The create and the update of
-    # a post also roll back the attributes of the post. No other admin save rolls back what it stored
-    # before the values. A refusal that comes while serving a page (a GET or HEAD, such as a hook
-    # writing before every admin page) is raised: a redirect would only reach another page that
-    # refuses again.
+    # Security (scan-and-reject policy): a value row refuses a value that a gate refuses, and a group
+    # number outside its range. The writers raise ActiveRecord::RecordInvalid for such a row. A post
+    # type raises the same error for a decorator class option that it refuses in a save hook.
+    #
+    # On a submitted save, the rescue sets a flash error and redirects back, in place of an error page.
+    # The create and the update of a post also roll back what they stored before the values. No other
+    # admin save does.
+    #
+    # The rescue raises the error again for another record and for a GET or HEAD request. A hook can
+    # write before every admin page, and a redirect then reaches another page that refuses again.
     rescue_from ActiveRecord::RecordInvalid do |exception|
       record = exception.record
       gated = record.is_a?(CamaleonCms::CustomFieldsRelationship) || record.is_a?(CamaleonCms::PostType)
