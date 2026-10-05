@@ -286,6 +286,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(described_class.where(value: 'bulk')).to be_empty
     end
 
+    it 'raises ActiveModel::RangeError in a save that skips the validation' do
+      expect { row.update_attribute(:group_number, 2_147_483_648) } # rubocop:disable Rails/SkipsModelValidations
+        .to raise_error(ActiveModel::RangeError)
+      expect { row.save(validate: false) }.to raise_error(ActiveModel::RangeError)
+      expect(row.reload.group_number).to eq(1)
+    end
+
     context 'with a stored row that holds the number in a wider column' do
       before { store_wide_group_number(row) }
 

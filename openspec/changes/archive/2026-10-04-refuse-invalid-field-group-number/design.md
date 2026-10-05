@@ -43,8 +43,10 @@ digits and the number is not above 2147483647. An Integer, and a String of digit
 
 The type of the group number (D7) has the same 4-byte range on each database. Some databases hold a
 wider integer in the column: SQLite, and a host whose column is `bigint`. There, a lookup with a
-number above 2147483647 finds no row. `update_column`, `update_all` and `insert_all` raise
-`ActiveModel::RangeError` for that number. Before, those databases found and stored such a number.
+number above 2147483647 finds no row. A write that skips the validation raises
+`ActiveModel::RangeError` for that number: `update_attribute`, `save(validate: false)`,
+`update_column`, `update_all` and `insert_all`. Before, those databases found and stored such a
+number.
 
 The maintainer chose to leave that range on 2026-10-04. A type that takes the range of the column is
 possible. The admin form sends the index of the group, so only custom code can store such a number.

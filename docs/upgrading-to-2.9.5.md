@@ -578,9 +578,13 @@ Before, the copy stored that number.
 
 The type of the group number has the 4-byte range on each database. On a database whose column holds
 a wider integer (SQLite, or a `bigint` column), this changes some calls for a number above 2147483647.
-A lookup (`where`, `get_field_values`) finds no row. `update_column`, `update_all` and `insert_all`
-raise `ActiveModel::RangeError`. Before, those databases found and stored such a number. A read of
-the stored number and an update of the value of the row still pass.
+Before, those databases found and stored such a number.
+
+- A lookup (`where`, `get_field_values`) finds no row.
+- A write that skips the validation raises `ActiveModel::RangeError`. Such a write is
+  `update_attribute`, `save(validate: false)`, or a write that also skips the callbacks
+  (`update_column`, `update_all`, `insert_all`).
+- A read of the stored number and an update of the value of the row still pass.
 
 `set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A refusal
 of a value row rolls back their delete of the stored values, also when the caller rescues the refusal

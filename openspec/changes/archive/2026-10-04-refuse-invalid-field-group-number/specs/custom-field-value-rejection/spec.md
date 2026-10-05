@@ -25,13 +25,13 @@ A save that skips the validation (`update_attribute`, `save(validate: false)`) i
 this requirement for that text only. For another refused group number, such a save stores the cast
 of the number, as Rails does for an integer column: -1 for -1, and 0 for `abc`.
 
-A write that skips the validation and the callbacks (`update_column`, `update_all`, `insert_all`)
-is not a write path of this requirement. Such a write stores no group number (NULL) for that text.
+A write that skips the validation and the callbacks (for example `update_column`, `update_all`,
+`insert_all`) is not a write path of this requirement. Such a write stores no group number (NULL) for that text.
 
 The type of the group number SHALL have the 4-byte range on each supported database, also where
 the column holds a wider integer (SQLite, a `bigint` column). There, a lookup with a number above
-2147483647 finds no row, and a write that skips the validation and the callbacks raises
-`ActiveModel::RangeError` for that number.
+2147483647 finds no row, and a write that skips the validation raises `ActiveModel::RangeError` for
+that number.
 
 A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
 copy of a row with a refused group number MUST get the same refusal.
