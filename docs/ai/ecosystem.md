@@ -286,37 +286,39 @@ Changes that look free from inside this repository and are not:
 - **Dropping a field-options entry under a key that names no allowed slug** (#1315) changes no surveyed
   consumer. Rails passes such an entry through the permit when a group holds a numeric key. No form of
   a surveyed consumer sends that shape.
-- **The refusal of a group number that is not nil or an integer from 0 to 2147483647** changes no
-  surveyed consumer. A custom-field value row gives the refusal.
-  - `camaleon_export_import` is the only one that passes a group number to `set_field_value`: the
-    number of an exported row, an integer or nil.
-  - Each page that posts raw params to `set_field_values` renders the core form or holds no custom
-    field. The admin JavaScript sets the group number of the core form to the index of the group. The
-    settings pages of `camaleon_sitemap_customizer` and of `camaleon-spree` hold no custom field, so
-    they send no group number.
-  - A negative number raises `ActiveRecord::RecordInvalid` now. `set_field_values` stored it in group 0
-    before, and `set_field_value` stored it as given.
-  - `set_field_value` also gives the refusal when the list of values is empty. No surveyed consumer
-    passes an empty list with a group number.
-  - `set_field_values` also gives the refusal for an entry with no values. The core form sends the
+- **A group number that is not valid** changes no surveyed consumer. A custom-field value is now
+  valid only with no group number, or with an integer from 0 to 2147483647. The save of a value
+  with another group number raises `ActiveRecord::RecordInvalid`.
+  - `camaleon_export_import` is the only consumer that passes a group number to `set_field_value`.
+    It passes the number of an exported row, which is an integer or nil.
+  - Each consumer page that posts raw params to `set_field_values` renders the core form or holds
+    no custom field. The admin JavaScript sets the group number of the core form to the index of
+    the group. The settings pages of `camaleon_sitemap_customizer` and of `camaleon-spree` hold no
+    custom field, so they send no group number.
+  - A negative number now raises the error. Before, `set_field_values` stored it in group 0, and
+    `set_field_value` stored it as given.
+  - `set_field_value` also raises the error for a call with an empty list of values. No surveyed
+    consumer passes an empty list with a group number.
+  - `set_field_values` also raises the error for an entry with no values. The core form sends the
     index of the group for each entry.
-  - `cama_permitted_field_options` gives a group number that is a list or a hash to the row, which
-    refuses it. Before, the helper dropped that number. No form of a surveyed consumer sends that
-    shape.
+  - `cama_permitted_field_options` now keeps a group number that is a list or a hash, with its
+    content removed, and the save raises the error. Before, the helper dropped such a number. No
+    form of a surveyed consumer sends a list or a hash.
   - The master branch of `camaleon-post-clone` copies the value rows of a post with `deep_clone`. A
-    copy is a new row, so the clone of a post that holds a row with a negative group number raises
-    `ActiveRecord::RecordInvalid`.
-    Only custom code stored such a number, and no surveyed consumer does.
-- **The reset of the `custom_field_values` association after an error of `set_field_value` or
-  `set_field_values`** changes no surveyed consumer. No consumer rescues an error of the two writers.
-  The unsaved rows that a caller built on the association before the call stay.
-- **The `has_many` association that the two writers need** changes no surveyed consumer. The writers
-  read `custom_field_values` through `proxy_association`, so it must be an association. A model that
-  defines it as a plain relation gets `NoMethodError`. No surveyed consumer does.
-
-- **`set_field_value` on a record with a loaded `custom_field_values` association** drops the rows
-  that it deletes from that association. Before, the record also read the deleted values. Code that
-  relied on that read gets the new values only.
+    copy is a new row, and a new row is always checked. So the clone of a post raises
+    `ActiveRecord::RecordInvalid` when the post holds a row with a negative group number. Only
+    custom code stored such a number, and no surveyed consumer does.
+- **The reset of the `custom_field_values` association after an error** changes no surveyed
+  consumer. After an error of `set_field_value` or `set_field_values`, the record reads its stored
+  values again. No consumer rescues an error of those two methods. The unsaved rows that a caller
+  built on the association before the call stay.
+- **`custom_field_values` must be a `has_many` association** for `set_field_value` and
+  `set_field_values`, which read it through `proxy_association`. A model that defines
+  `custom_field_values` as a plain relation gets `NoMethodError`. No surveyed consumer has such a
+  model.
+- **`set_field_value` on a record with a loaded `custom_field_values` association** removes the
+  rows that it deletes from that association. Before, the record also read the deleted values.
+  Code that relied on that read gets only the new values.
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
   back as written, while TinyMCE hands content back in its own serialization (`rgb(255, 204, 0)` read back

@@ -34,7 +34,7 @@ what theme/plugin developers should know.
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
 | Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
 | Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The number must be nil or an integer from 0 to 2147483647. The two methods raise `ActiveRecord::RecordInvalid` for any other number. After an error, the record reads the stored values again ([details](#a-custom-field-value-refuses-a-group-number-outside-its-range)) |
-| Copies a custom-field value row (`dup`), or runs the master branch of `camaleon-post-clone` with its option for the custom fields on | A copy of a stored row with a negative group number, or one above 2147483647 in a wider column, gets the refusal. Its `save` returns false. The clone of a post with such a row raises `ActiveRecord::RecordInvalid` ([details](#a-custom-field-value-refuses-a-group-number-outside-its-range)) |
+| Copies a custom-field value row (`dup`), or runs the master branch of `camaleon-post-clone` with its option for the custom fields on | The copy of a stored row is not valid when that row has a negative group number, or a number above 2147483647 (SQLite or a `bigint` column can hold one). Its `save` returns false. The clone of a post with such a row raises `ActiveRecord::RecordInvalid` ([details](#a-custom-field-value-refuses-a-group-number-outside-its-range)) |
 
 ---
 
@@ -541,123 +541,151 @@ both were silently dropped since 2.9.2.
 
 ### A custom-field value refuses a group number outside its range
 
-A custom-field value row accepts a group number only when it is nil or an integer from 0 to 2147483647.
-The caller gives the integer as an Integer or as a text of 1 to 16 ASCII digits. `set_field_value`,
-`set_field_values` and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` for any
-other group number.
+A field group can repeat on a record. The group number of a custom-field value says which copy of the
+group holds the value, and the first copy has the number 0.
 
-- A number above 2147483647 raised `ActiveModel::RangeError` before, on PostgreSQL and on MySQL.
-- `set_field_values` stored a negative number in group 0 before.
-- `set_field_values` read a text that is not digits with `to_i` before: `'abc'` was group 0, and `'1abc'`
-  was group 1.
-- Each writer read `' 5'`, `'+5'`, `'1_0'`, `'2.5'` and `2.5` as group 5, 5, 10, 2 and 2 before. The row
-  refuses each of them now.
-- A text of more than 16 digits gets the refusal, also when its number is in the range
-  (`00000000000000005`). The integer cast of Rails 8.1.4 reads only the first 16 bytes of a text.
-- `set_field_value` stored a negative number as given before.
-- `set_field_value` stored no group number for an empty text before. Pass nil for no group number.
-- `set_field_value` with an empty list also refuses the group number, before it deletes a stored value.
-  Before, that call raised nothing and deleted the values of the group that the integer cast gave
-  (`'1abc'` was group 1). It also deleted the values of a stored negative group.
-- `set_field_values` also refuses the group number of an entry with no values. Before, it skipped
+A group number is now valid only when it is nil or an integer from 0 to 2147483647. Code can give the
+integer as an Integer or as a text of 1 to 16 ASCII digits. For any other group number, the save of
+the value fails with `ActiveRecord::RecordInvalid`. This applies to `set_field_value`, to
+`set_field_values` and to a direct `custom_field_values.create!`.
+
+In the admin, a save with such a group number shows the error in a flash message, and the record
+keeps its stored values. The core admin forms send the index of the group, so they send a valid
+number.
+
+**Who must act:** check plugin or theme code that passes a group number to `set_field_value` or
+`set_field_values`. Also check code that rescues an error of those two methods.
+
+**Group numbers that fail now**
+
+| Group number | Before | Now |
+| --- | --- | --- |
+| A number above 2147483647 | `ActiveModel::RangeError` on PostgreSQL and on MySQL | Not valid |
+| A negative number in `set_field_values` | Stored in group 0 | Not valid |
+| A negative number in `set_field_value` | Stored as given | Not valid |
+| A text that is not digits in `set_field_values` (`'abc'`, `'1abc'`) | Read with `to_i`: group 0 and group 1 | Not valid |
+| `' 5'`, `'+5'`, `'1_0'`, `'2.5'` and `2.5` | Read as group 5, 5, 10, 2 and 2 | Not valid |
+| A text of more than 16 digits (`'00000000000000005'`) | Read as its number | Not valid. Rails 8.1.4 reads only the first 16 bytes of a text |
+| An empty text in `set_field_value` | Stored with no group number | Not valid. Pass nil for no group number |
+| A list or a hash in an admin request | The value went to group 0 | Not valid |
+| `true`, `false` or a file in an admin request | `NoMethodError` | Not valid |
+
+`set_field_values` still reads an absent or empty group number as group 0.
+
+`cama_permitted_field_options` now keeps a group number that is a list or a hash, with its content
+removed. Before, the helper dropped such a group number.
+
+**Calls and entries with no values**
+
+- `set_field_value` with an empty list of values now checks the group number first. For a number
+  that is not valid, it raises the error and deletes nothing. Before, the call raised no error. It
+  deleted the stored values of the group that Rails read from the text: `'1abc'` was group 1. It
+  also deleted the values of a stored negative group.
+- `set_field_values` now checks the group number of an entry that has no values. Before, it skipped
   that entry, and the save passed.
-- `set_field_values` still reads an absent or empty group number as group 0.
-- A text with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16), gets the
-  same refusal on each of the three paths. An empty text in an encoding that is not
-  ASCII-compatible gets it too.
-- A save that skips the validation (`update_attribute`, `save(validate: false)`) stores nothing for
-  such a text. `save` returns false, and `save!` raises the refusal. For another refused group
-  number, such a save runs no check of the row, as before. It stores what the integer cast of the
-  type gives (`'abc'` becomes 0). When the type cannot store that value, it raises an error.
-- A lookup with such a text (`where`, `find_by`, `get_field_values`) finds no row.
-  `find_or_create_by!` gets the same refusal.
-- `update_column`, `update_all` with a hash and `insert_all` skip the validation and the callbacks.
-  They store no group number (NULL) for such a text. Before, the outcome differed by the write and
-  by the Rails version. It was an error of Rails, the digits at the start of the text, or no number.
 
-An admin save that sends a refused group number shows an error and keeps the stored values of the
-record. A stored row that holds a negative group number stays valid until code changes that number.
+**A group number text in a broken encoding**
 
-`cama_permitted_field_options` gives a group number that is a list or a hash to the row, with no
-content. The row refuses it. Before, the helper dropped that number, and the save stored the value
-in group 0.
+A text with a broken encoding is not valid. A text in an encoding that is not ASCII-compatible
+(UTF-16) is not valid either, also when it is empty. For such a text:
 
-A copy of a stored row (`dup`) is a new row, so the row checks its group number. The copy of a row
-that holds a negative number gets the refusal. So does the copy of a row that holds a number above
-2147483647 in a wider column. The master branch of `camaleon-post-clone` copies the value rows of a
-post when its option for the custom fields is on. Its clone of a post with such a row raises
-`ActiveRecord::RecordInvalid` for the post, with the message "Custom field values is invalid".
-Before, the copy stored that number.
+- `set_field_value`, `set_field_values` and `create!` raise the same `ActiveRecord::RecordInvalid`.
+- `where`, `find_by` and `get_field_values` find no row. `find_or_create_by!` raises
+  `ActiveRecord::RecordInvalid`.
+- `update_attribute` and `save(validate: false)` store nothing. `save` returns false, and `save!`
+  raises `ActiveRecord::RecordInvalid`.
+- `update_column`, `update_all` with a hash and `insert_all` run no validation and no callback. They
+  store NULL as the group number. Before, the result depended on the method and on the Rails
+  version. It was an error of Rails, the digits at the start of the text, or NULL.
 
-The type of the group number has the 4-byte range on each database: -2147483648 to 2147483647. On a
-database whose column holds a wider integer (SQLite, or a `bigint` column), this changes some calls
-for a number outside that range. Before, those databases found and stored such a number.
+**Saves that run no validation**
 
-- `where(group_number: n)` and `find_by(group_number: n)` find no row for such a number n.
+`update_attribute` and `save(validate: false)` run no validation, as before. For each other group
+number that is not valid, they store what the integer cast of Rails gives: `'abc'` becomes 0. They
+raise an error when the type cannot store the value.
+
+**Stored rows with a group number that is not valid now**
+
+- A stored row with a negative group number stays valid until code changes that number. Code can
+  still change the value of such a row.
+- A copy of a row (`dup`) is a new row, and a new row is always checked. The copy of a stored row
+  with a negative group number is not valid, and its `save` returns false. The same applies to a
+  stored row with a number above 2147483647, which SQLite or a `bigint` column can hold. Before, the
+  copy stored that number.
+- The master branch of `camaleon-post-clone` copies the value rows of a post when its option for
+  the custom fields is on. Its clone of a post with such a row raises `ActiveRecord::RecordInvalid`
+  for the post, with the message "Custom field values is invalid".
+
+**A column that holds a larger integer (SQLite, or a `bigint` column)**
+
+The group number attribute now has the range of a 4-byte integer on each database: -2147483648 to
+2147483647. SQLite and a `bigint` column can hold a larger number. Before, Rails found and stored
+such a number there. Now, for a number n outside the range:
+
+- `where(group_number: n)` and `find_by(group_number: n)` find no row, also when a row holds n.
   `where.not(group_number: n)` excludes no row. `get_field_values` finds the row only when the
   `custom_field_values` association of the record is loaded.
-- A write that skips the validation raises `ActiveModel::RangeError`:
+- A write of n that runs no validation raises `ActiveModel::RangeError`:
   - `update_attribute` and `save(validate: false)`
-  - `update_column`, `update_all` with a hash, `insert_all` and `upsert_all`, which also skip the
-    callbacks
-- Some calls on a stored row that holds such a number raise `ActiveModel::RangeError`:
+  - `update_column`, `update_all` with a hash, `insert_all` and `upsert_all`, which also run no
+    callback
+- For a stored row that holds n, these calls raise `ActiveModel::RangeError`:
   - `attributes_for_database`
   - `Marshal.dump` of the row with the marshalling format 7.1. `load_defaults 7.1` and later set
     that format. `Marshal.dump` of a record with the row in a loaded association raises it too.
   - A cache write of the row with that format (`Rails.cache.write`, `Rails.cache.fetch`)
-- An SQL text skips the type. A condition with it finds the row, and `update_all` with it stores
-  the number.
-- An Arel predicate on the group number with such a number can raise `ActiveModel::RangeError`.
-- On Rails 7.1 or later, a read of the stored number and an update of the value of the row still
-  pass. On Rails 7.0 or earlier, each save of a row that holds such a number raises
-  `ActiveModel::RangeError`.
+- An SQL text is not checked. `where('group_number = ?', n)` finds the row, and `update_all` with an
+  SQL text stores n.
+- An Arel predicate on the group number with n can raise `ActiveModel::RangeError`.
+- On Rails 7.1 or later, code can still read n from a stored row and update the value of that row.
+  On Rails 7.0 or earlier, each save of a row that holds n raises `ActiveModel::RangeError`.
 
-`set_field_value` and `set_field_values` ask Rails for a savepoint inside a transaction of the caller.
-A refusal of a value row rolls back their delete of the stored values, also when the caller rescues
-the refusal there. Before, that caller lost the stored values at its commit.
+**The transaction of `set_field_value` and `set_field_values`**
 
-Inside an open transaction of the caller, each call adds three statements: `SELECT 1` and the two
-statements of the savepoint. Rails 7.2 and 8.1 open no savepoint when no statement ran in the
-joinable transaction of the caller. They restart that transaction after a failed call. The writers
-run `SELECT 1` first, so Rails opens the savepoint. That statement goes past the query cache.
+Both methods delete stored values and then create the new values, in one transaction. When a new
+value is not valid, the transaction rolls back, and the record keeps its old values.
 
-On SQLite with Rails 8.1, another connection can take the write lock inside such a restart. The
-caller then gets an `InstrumentationNotStartedError` of Rails in place of the refusal. The savepoint
-has no such window.
+- **Inside a transaction of your code.** The two methods now ask Rails for a savepoint. When your
+  code rescues their error and commits, only the failed call rolls back, and the old values stay.
+  Before, that commit kept the delete of the failed call, and the old values were lost.
+  - Each call inside your transaction adds three statements: `SELECT 1` and the two statements of
+    the savepoint.
+  - The `SELECT 1` makes Rails open the savepoint. Rails 7.2 and 8.1 open no savepoint when no
+    statement ran yet in your transaction. After a failed call, they roll back your whole
+    transaction and begin it again. On SQLite with Rails 8.1, another connection can take the write
+    lock between those two statements. Your code then gets `InstrumentationNotStartedError` in place
+    of `ActiveRecord::RecordInvalid`. The `SELECT 1` runs with the query cache off.
+  - On PostgreSQL, more than 64 savepoints that write in one transaction overflow the subtransaction
+    cache of the session, which can slow other sessions. If your code calls the two methods in a
+    long loop inside one transaction, split the loop into shorter transactions.
+- **With a transaction isolation level on the connection pool (Rails 8.1).**
+  `ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`
+  give the pool an isolation level, and Rails then permits no savepoint. Inside your open
+  transaction, the two methods run with no savepoint.
+  - A failed call rolls back nothing by itself. The old values come back only when your transaction
+    rolls back.
+  - If your code rescues the error and commits, the values that the call deleted are lost. The rows
+    that the call stored before the error stay. The release before did the same for a value that
+    its author was not permitted to save.
+- **With the custom-field values on another connection pool.** The two methods open their
+  transaction on the pool of `ActiveRecord::Base`, as before. That transaction does not cover rows
+  on another pool, so a failed call does not roll back its delete there.
 
-On PostgreSQL, a transaction with more than 64 savepoints that write overflows the subtransaction
-cache of its session, which can slow other sessions. A caller with a long loop of calls in one
-transaction can split the loop into shorter transactions.
+**The record after a call**
 
-Rails 8.1 refuses that savepoint while the connection pool has an isolation level.
-`ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`
-can give the pool a level. While the pool has a level inside a joinable transaction of the caller,
-the writers join that transaction. A failed call then rolls back nothing, unless that transaction
-rolls back.
-
-A caller that rescues the refusal there and commits loses the stored values that the call deleted.
-The rows that the call stored before the refusal stay. The release before did the same for a
-refused value.
-
-The two writers open their transaction on the connection pool of `ActiveRecord::Base`, as before.
-With the value rows on another pool, that transaction does not roll back the delete of a refused
-call.
-
-After an error, the two writers also reset the `custom_field_values` association of the record. The
-record reads the stored values again, and its next save stores no row of the failed call. Before,
-the record kept the rows of the failed call: its next save failed, or stored some of those rows.
-The unsaved rows that the caller built before the call stay in the association.
-
-After a successful `set_field_value`, a record with a loaded `custom_field_values` association reads
-the new values only. Before, it also read the values that the call deleted.
-`get_field_values` reads a loaded association, and `get_field_values_hash` loads it.
-
-A callback of a value row that raises `ActiveRecord::Rollback` before Rails stores the row is not
-such an error. As before, the writer goes on, and the row stays in the association as an unsaved row.
-
-The two writers read `custom_field_values` through `proxy_association`, so it must be an association.
-A model whose `custom_field_values` returns a plain relation gets `NoMethodError` from them, and
-they store nothing. Before, the writers stored the values of such a model.
+- After a failed call, the two methods reset the `custom_field_values` association of the record.
+  The record reads its stored values again, and its next save stores no row of the failed call.
+  Before, the record kept the rows of the failed call: its next save failed, or stored some of
+  those rows. The unsaved rows that your code built on the association before the call stay.
+- After a successful `set_field_value`, a record with a loaded `custom_field_values` association
+  reads only the new values. Before, it also read the values that the call deleted.
+  `get_field_values` reads a loaded association, and `get_field_values_hash` loads it.
+- A callback of a custom-field value can raise `ActiveRecord::Rollback` before Rails stores the
+  row. That is not a failed call. As before, the method goes on, and the row stays in the
+  association as an unsaved row.
+- The two methods read `custom_field_values` through `proxy_association`, so `custom_field_values`
+  must be an association. On a model that defines it as a plain relation, the two methods raise
+  `NoMethodError` and store nothing. Before, they stored the values of such a model.
 
 ---
 
