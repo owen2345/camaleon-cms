@@ -90,9 +90,9 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
       end
     end
 
-    # A group number that is a list or a hash is not valid. The permit helper keeps such a group
-    # number, with its content removed, so the custom-field value gets the error of the group number.
-    # Before, Rails dropped the param, and the value went to group 0 with no error.
+    # The permit helper keeps a group number that is a list or a hash, with its content removed, so
+    # the custom-field value fails its validation. Before, Rails dropped such a group number, and
+    # the value went to group 0 with no error.
     context 'with a group number that is not a scalar' do
       def permitted_group_number(group_number)
         entry = { 'id' => '1', 'group_number' => group_number, 'values' => { '0' => 'own' } }

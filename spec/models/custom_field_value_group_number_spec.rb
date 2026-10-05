@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-# A field group can repeat on a record. The group number of a custom-field value says which copy of
-# the group holds the value, and the first copy has the number 0. PostgreSQL and MySQL store the number
-# in a 4-byte integer column. Before, a number above that range raised ActiveModel::RangeError at the
-# save. Now a group number is valid only when it is nil or an integer from 0 to 2147483647. For any
-# other group number, the save fails with ActiveRecord::RecordInvalid.
+# An author can add a repeatable field group to a post several times. The group number of a
+# custom-field value is the index of the copy that the value belongs to, from 0. It is valid when it
+# is nil, an Integer from 0 to 2147483647, or a String of digits with such a number. For each other
+# group number, the save raises ActiveRecord::RecordInvalid.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   let(:post_type) { installed_post_type }
   let(:post) { create(:post, post_type: post_type) }
@@ -16,9 +15,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     group.add_manual_field({ name: 'Note', slug: 'note' }, { field_key: 'text_box' })
   end
 
-  # Stores a group number outside the 4-byte range in a stored row. Only a column that holds a larger
-  # integer can store it (SQLite here). The update uses an SQL text, because Rails does not check the
-  # range of a number in an SQL text.
+  # Stores a group number outside the 4-byte range in a stored row. Only a wider column can hold it
+  # (SQLite here). The update uses an SQL string, because Rails does not check the range there.
   def store_wide_group_number(row, number = 2_147_483_648)
     skip 'The column holds a 4-byte integer' unless described_class.connection.adapter_name.match?(/sqlite/i)
 
@@ -28,8 +26,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   describe 'set_field_value' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
-    # A group number text is valid only when it holds ASCII digits and no other character. So a line
-    # end after the digits, full-width digits and an empty text are not valid.
+    # A group number String is valid only when each character is an ASCII digit.
     [2_147_483_648, -1, true, 1.5, '1abc', '', "1\n", "\uFF11\uFF12", [1], :'5'].each do |group_number|
       it "refuses the group number #{group_number.inspect} and keeps the stored value" do
         expect { post.set_field_value('note', 'new', group_number: group_number) }
@@ -38,8 +35,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
-    # A call with an empty list of values builds no row, so no row checks the group number.
-    # set_field_value checks the number before it deletes the stored values.
+    # With an empty list of values, set_field_value creates no row that validates the group number.
+    # So it validates the number itself, before it deletes the stored values.
     ['1abc', true, 1.5, -1, [1], "1\xFF"].each do |group_number|
       it "refuses the group number #{group_number.inspect} with an empty list of values, and the stored value stays" do
         expect { post.set_field_value('note', [], group_number: group_number) }
@@ -70,22 +67,20 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 2_147_483_647)).to eq(['last'])
     end
 
-    it 'stores a value under a group number that the caller gives as a text of digits' do
+    it 'stores a value under a group number given as a String of digits' do
       post.set_field_value('note', 'second', group_number: '2')
 
       expect(post.get_field_values('note', 2)).to eq(['second'])
     end
 
-    # Rails 8.1.4 reads only the first 16 bytes of a text when it changes the text to an integer. For a
-    # longer text, Rails stores another number than the number that the validation checked. So a text
-    # of more than 16 digits is not valid.
-    it 'stores a value under a group number that the caller gives as a text of 16 digits' do
+    # Rails 8.1.4 casts only the first 16 bytes of a String, so a longer String is invalid.
+    it 'stores a value under a group number given as a String of 16 digits' do
       post.set_field_value('note', 'padded', group_number: "#{'0' * 15}7")
 
       expect(post.get_field_values('note', 7)).to eq(['padded'])
     end
 
-    it 'refuses a group number that the caller gives as a text of 17 digits and keeps the stored value' do
+    it 'refuses a group number given as a String of 17 digits and keeps the stored value' do
       expect { post.set_field_value('note', 'new', group_number: "#{'0' * 16}1") }
         .to raise_error(ActiveRecord::RecordInvalid, /group number/)
       expect(post.custom_field_values.pluck(:value, :group_number)).to eq([['kept', 1]])
@@ -104,16 +99,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # set_field_values builds no row for an entry with no values, so no row checks the group number of
-  # that entry. The method checks the group number of each entry itself.
+  # set_field_values creates no row for an entry with no values, so it validates the group number of
+  # that entry itself.
   describe 'set_field_values with an entry that has no values' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
-    { "the text 'abc' and an empty hash of values" => { group_number: 'abc', values: {} },
+    { "the String 'abc' and an empty hash of values" => { group_number: 'abc', values: {} },
       'a negative number and an empty list of values' => { group_number: -1, values: [] },
       'a number above the range and no values' => { group_number: 2_147_483_648 },
-      'a text with a broken encoding and no values' => { group_number: "1\xFF", values: nil },
-      'an empty text in UTF-16 and no values' => { group_number: ''.encode('UTF-16LE') } }.each do |kind, entry|
+      'a String with a broken encoding and no values' => { group_number: "1\xFF", values: nil },
+      'an empty String in UTF-16 and no values' => { group_number: ''.encode('UTF-16LE') } }.each do |kind, entry|
       it "refuses an entry with #{kind}, and the stored value stays" do
         expect { post.set_field_values({ '0' => { 'note' => entry } }) }
           .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
@@ -140,8 +135,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The method checks the group number that the row holds now. It does not read the errors that an
-  # earlier validation left on the row.
+  # The method validates the current group number, not the errors of an earlier validation.
   describe 'refuse_invalid_group_number!' do
     let(:row) { described_class.new(custom_field_slug: 'note', group_number: -1) }
 
@@ -159,10 +153,10 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The integer cast of Rails raises an encoding error for a text with a broken encoding, and for a
-  # text in an encoding that is not ASCII-compatible. The type of the group number keeps such a text
-  # away from that cast. The row is then not valid, with the usual error of the group number.
-  describe 'a group number text that the integer cast cannot read' do
+  # Rails raises an encoding error when it casts a String in an invalid encoding, or in an encoding
+  # such as UTF-16, to an Integer. The group number type returns nil for such a String, and the row
+  # gets the usual group number error.
+  describe 'a group number String that Rails cannot cast' do
     let(:field_id) { post.get_field_object('note').id }
 
     before { post.set_field_value('note', 'kept', group_number: 1) }
@@ -170,19 +164,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     { 'with a broken encoding' => "1\xFF",
       'in UTF-16' => '1'.encode('UTF-16LE'),
       'in UTF-7' => (+'1').force_encoding('UTF-7') }.each do |kind, group_number|
-      it "set_field_value raises the group number error for a text #{kind}, and the stored value stays" do
+      it "set_field_value raises the group number error for a String #{kind}, and the stored value stays" do
         expect { post.set_field_value('note', 'new', group_number: group_number) }
           .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
         expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
 
-      it "set_field_values raises the group number error for a text #{kind}, and the stored value stays" do
+      it "set_field_values raises the group number error for a String #{kind}, and the stored value stays" do
         expect { post.set_field_values({ '0' => { 'note' => { group_number: group_number, values: ['new'] } } }) }
           .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
         expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
 
-      it "create! on the association raises the group number error for a text #{kind}" do
+      it "create! on the association raises the group number error for a String #{kind}" do
         attrs = { custom_field_id: field_id, custom_field_slug: 'note', value: 'new', group_number: group_number }
 
         expect { post.custom_field_values.create!(attrs) }
@@ -190,7 +184,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
 
-      it "the update of a stored row fails for a text #{kind}, and the stored number stays" do
+      it "the update of a stored row fails for a String #{kind}, and the stored number stays" do
         row = post.custom_field_values.first
 
         expect(row.update(group_number: group_number)).to be(false)
@@ -198,7 +192,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.reload.group_number).to eq(1)
       end
 
-      it "update_attribute returns false for a text #{kind}, and the stored number stays" do
+      it "update_attribute returns false for a String #{kind}, and the stored number stays" do
         row = post.custom_field_values.first
 
         expect(row.update_attribute(:group_number, group_number)).to be(false) # rubocop:disable Rails/SkipsModelValidations
@@ -206,7 +200,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.reload.group_number).to eq(1)
       end
 
-      it "the save of a stored row fails when []= writes a text #{kind}, and the stored number stays" do
+      it "the save of a stored row fails when []= writes a String #{kind}, and the stored number stays" do
         row = post.custom_field_values.first
         row[:group_number] = group_number
 
@@ -215,7 +209,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(row.reload.group_number).to eq(1)
       end
 
-      it "the save of a new row fails when write_attribute writes a text #{kind}" do
+      it "the save of a new row fails when write_attribute writes a String #{kind}" do
         row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'new')
         row.write_attribute(:group_number, group_number)
 
@@ -224,7 +218,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.custom_field_values.reload.pluck(:value)).to eq(['kept'])
       end
 
-      it "find_or_create_by! raises the group number error for a text #{kind}, and the stored value stays" do
+      it "find_or_create_by! raises the group number error for a String #{kind}, and the stored value stays" do
         attrs = { custom_field_id: field_id, custom_field_slug: 'note', value: 'new', group_number: group_number }
 
         expect { post.custom_field_values.find_or_create_by!(attrs) }
@@ -232,14 +226,14 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
 
-      it "finds no row in a lookup for a text #{kind}" do
+      it "finds no row in a lookup for a String #{kind}" do
         post.set_field_value('note', 'unset', group_number: nil)
 
         expect(post.custom_field_values.where(group_number: group_number)).to be_empty
         expect(post.get_field_values('note', group_number)).to eq([])
       end
 
-      it "update_column, update_all and insert_all store no group number for a text #{kind}" do
+      it "update_column, update_all and insert_all store no group number for a String #{kind}" do
         row = post.custom_field_values.first
         attrs = { custom_field_id: field_id, custom_field_slug: 'note', value: 'bulk', group_number: group_number }
 
@@ -255,10 +249,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
-    # A form sends an empty group number as an empty text, which means group 0. An empty text in
-    # UTF-16 is not that text, and it is not valid. Ruby says that the two texts are equal, so
-    # set_field_values also reads the encoding.
-    it 'set_field_values raises the group number error for an empty text in UTF-16, and the stored value stays' do
+    # A form sends an empty group number as '', which means group 0. An empty UTF-16 String is
+    # invalid. Ruby says that the two are equal, so set_field_values also reads the encoding.
+    it 'set_field_values raises the group number error for an empty String in UTF-16, and the stored value stays' do
       payload = { '0' => { 'note' => { group_number: ''.encode('UTF-16LE'), values: ['new'] } } }
 
       expect { post.set_field_values(payload) }
@@ -266,15 +259,15 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
-    # An empty text in an ASCII-compatible encoding means group 0. A multipart request can send the
-    # empty group number of a form in a binary encoding.
-    it 'stores the value in group 0 for an empty text in a binary encoding' do
+    # A multipart request can send the empty group number of a form in a binary encoding. It also
+    # means group 0.
+    it 'stores the value in group 0 for an empty String in a binary encoding' do
       post.set_field_values({ '0' => { 'note' => { group_number: ''.b, values: ['new'] } } })
 
       expect(post.reload.get_field_values('note', 0)).to eq(['new'])
     end
 
-    it 'save(validate: false) stores no new row for a text with a broken encoding' do
+    it 'save(validate: false) stores no new row for a String with a broken encoding' do
       row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'new',
                                          group_number: "1\xFF")
 
@@ -285,7 +278,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.custom_field_values.reload.pluck(:value)).to eq(['kept'])
     end
 
-    it 'the update of a stored row with no group number fails for a text with a broken encoding' do
+    it 'the update of a stored row with no group number fails for a String with a broken encoding' do
       post.set_field_value('note', 'unset', group_number: nil)
       row = post.custom_field_values.find_by(group_number: nil)
 
@@ -295,15 +288,15 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # update_attribute and save(validate: false) run no validation. A before_save callback stops them
-  # only for a text that the type cannot read. For each other group number that is not valid, they
-  # run no check: they store what the integer cast of Rails gives.
-  describe 'a save with no validation and a group number that is not valid' do
+  # update_attribute and save(validate: false) skip the validation. A before_save callback stops
+  # them only for a String that the type cannot cast. They store each other invalid group number as
+  # Rails casts it.
+  describe 'a save that skips the validation, with an invalid group number' do
     let(:row) { post.custom_field_values.first }
 
     before { post.set_field_value('note', 'kept', group_number: 3) }
 
-    it 'stores what the integer cast of Rails gives' do
+    it 'stores the number that the Rails cast returns' do
       expect(row.update_attribute(:group_number, -1)).to be(true) # rubocop:disable Rails/SkipsModelValidations
       expect(row.reload.group_number).to eq(-1)
 
@@ -312,27 +305,25 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(row.reload.group_number).to eq(0)
     end
 
-    # The engine adds Array#to_i (lib/ext/array.rb), so the integer cast of a list gives a list. The
-    # type cannot store a list. The error class depends on the Rails version: ArgumentError or
-    # ActiveModel::RangeError.
+    # Camaleon adds Array#to_i (lib/ext/array.rb), so Rails casts a list to a list, which the type
+    # cannot store. The error class depends on the Rails version.
     it 'raises an error for a list of numbers' do
       expect { row.update_attribute(:group_number, [1]) }.to raise_error(StandardError) # rubocop:disable Rails/SkipsModelValidations
       expect(row.reload.group_number).to eq(3)
     end
   end
 
-  # Rails copies each attribute of a row after the integer cast, and the cast changes a group number
-  # that is not valid to a valid one ('abc' becomes 0). The copy must keep the group number as the
-  # caller gave it to the original row, so the copy is not valid either.
-  describe 'a copy of a row' do
+  # dup copies each attribute after the type cast, and the cast changes 'abc' to a valid 0. The copy
+  # must keep the group number as given, so the copy of an invalid row is invalid too.
+  describe 'a copy of a row (dup)' do
     let(:field_id) { post.get_field_object('note').id }
 
     before { post.set_field_value('note', 'kept', group_number: 3) }
 
-    { 'a text that is not digits' => 'abc',
+    { 'a String that is not digits' => 'abc',
       'a boolean' => true,
-      'a text with a broken encoding' => "1\xFF",
-      'a text in UTF-16' => '1'.encode('UTF-16LE') }.each do |kind, group_number|
+      'a String with a broken encoding' => "1\xFF",
+      'a String in UTF-16' => '1'.encode('UTF-16LE') }.each do |kind, group_number|
       it "the save of the copy fails when the group number of the original row is #{kind}" do
         row = post.custom_field_values.new(custom_field_id: field_id, custom_field_slug: 'note', value: 'copy',
                                            group_number: group_number)
@@ -358,8 +349,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(copy.reload.group_number).to be_nil
     end
 
-    # A copy is a new row, and a new row is always checked. A stored row can hold a group number that
-    # is not valid for a new row, such as a negative number from an earlier release.
+    # A copy is a new row, and a new row is always validated. A stored row can hold a group number
+    # that is invalid for a new row, such as a negative number from an earlier release.
     it 'the save of the copy fails for a stored row that holds a negative group number' do
       row = post.custom_field_values.first
       row.update_column(:group_number, -1) # rubocop:disable Rails/SkipsModelValidations
@@ -379,8 +370,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The type of the group number has the range of a 4-byte integer on each database. SQLite and a
-  # bigint column can hold a larger number. The examples show what Rails does with such a number.
+  # The group number type has a 4-byte range on each database. SQLite and a bigint column can hold a
+  # larger number. The examples show what Rails does with such a number.
   describe 'a group number outside the range of the type' do
     let(:row) { post.custom_field_values.first }
 
@@ -417,7 +408,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
           expect(post.get_field_values('note', number)).to eq([])
         end
 
-        it 'finds the row with an SQL text, and where.not excludes no row' do
+        it 'finds the row with an SQL string, and where.not excludes no row' do
           expect(post.custom_field_values.where('group_number = ?', number)).to eq([row])
           expect(post.custom_field_values.where.not(group_number: number)).to eq([row])
         end
@@ -436,11 +427,11 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # A caller can run the two methods inside its own transaction, rescue their error there and commit.
-  # The stored values must stay in that case too.
-  # - set_field_values deletes the stored values before a row finds the group number that is not
-  #   valid. Its savepoint rolls that delete back.
-  # - set_field_value checks the group number before its delete, so it runs no DELETE at all.
+  # A caller can run the two methods inside its own transaction, rescue their error and commit. The
+  # stored values must stay.
+  # - set_field_values deletes the stored values before a row fails its validation. A savepoint
+  #   rolls that delete back.
+  # - set_field_value validates the group number before its delete, so it runs no DELETE.
   # custom_field_value_rejection_spec.rb covers a set_field_value call that fails after its delete.
   describe 'a failed call inside a transaction of the caller' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
@@ -468,17 +459,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
-    # Rails opens no savepoint for the two methods when no statement ran yet in the transaction of the
-    # caller. After a failed call, Rails then rolls back the whole transaction of the caller and begins
-    # it again. On SQLite, that is two statements, and another connection can take the write lock
-    # between them. So the two methods run one statement (SELECT 1) first, and Rails opens a savepoint.
+    # Rails opens no savepoint before the first statement in the transaction of the caller. After a
+    # failed call, it rolls back that whole transaction and begins it again, and on SQLite another
+    # connection can take the write lock in between. So the two methods run SELECT 1 first.
     context 'when no statement ran in the transaction of the caller' do
       let(:field_id) { post.get_field_object('note').id }
 
       before { field_id }
 
-      # Opens a transaction of the caller and runs the block as its first code. Gives the SAVEPOINT
-      # and ROLLBACK TO SAVEPOINT statements that the block ran.
+      # Opens a transaction of the caller and runs the block as its first code. Returns the
+      # SAVEPOINT and ROLLBACK TO SAVEPOINT statements that the block ran.
       def savepoint_statements_in_a_new_caller_transaction
         statements = []
         collect = ->(*, payload) { statements << payload[:sql] if payload[:sql].match?(/\A(ROLLBACK TO )?SAVEPOINT/) }
@@ -508,8 +498,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect_a_rollback_to_a_savepoint_of_the_writer(statements)
       end
 
-      # The query cache can hold the answer of SELECT 1. A statement that the cache answers does not
-      # reach the database, and Rails then opens no savepoint. So SELECT 1 runs with the cache off.
+      # A SELECT 1 that the query cache answers does not reach the database, and Rails then opens no
+      # savepoint. So SELECT 1 runs with the cache off.
       it 'rolls a failed call back to its own savepoint when the query cache holds SELECT 1' do
         statements = ActiveRecord::Base.cache do
           ActiveRecord::Base.connection.select_value('SELECT 1')
@@ -530,14 +520,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
-    # Rails 8.1 can give the connection pool a transaction isolation level. Rails then raises an error
-    # for a savepoint, so the two methods ask for none. They run inside the transaction of the caller.
+    # Rails 8.1 can give the connection pool a transaction isolation level. Rails then raises an
+    # error for a savepoint, so the two methods ask for none and run in the transaction of the
+    # caller.
     #
-    # The examples stub the reader of the level, pool_transaction_isolation_level. They cannot use the
-    # real API (ActiveRecord.with_transaction_isolation_level): each example runs in a transaction, and
-    # Rails raises an error for a model transaction inside it under that API. Examples outside a
-    # transaction can use the real API. But they commit rows on the site that the suite shares, and
-    # SQLite sets a level only in its shared-cache mode. The maintainer chose to keep the stub.
+    # The examples stub pool_transaction_isolation_level (intended). The real API,
+    # ActiveRecord.with_transaction_isolation_level, raises an error inside the transaction of an
+    # example.
     context 'when the pool has an isolation level' do
       before do
         base = ActiveRecord::Base
@@ -546,9 +535,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         allow(base).to receive(:pool_transaction_isolation_level).and_return(:read_committed)
       end
 
-      # Gives the SAVEPOINT statements that the block runs inside a transaction of the caller. The
-      # caller runs a query first (post.reload). That query opens the transaction of the caller, which
-      # is a savepoint of its own inside the transaction of the example. The collector starts after it.
+      # Returns the SAVEPOINT statements that the block runs inside a transaction of the caller. The
+      # caller runs a query first (post.reload), which opens that transaction as a savepoint inside
+      # the transaction of the example. The collector starts after it.
       def savepoints_inside_a_caller_transaction(&block)
         statements = []
         collect = ->(*, payload) { statements << payload[:sql] if payload[:sql].include?('SAVEPOINT') }
@@ -573,9 +562,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.get_field_values('note', 0)).to eq(['fresh'])
       end
 
-      # With no savepoint, a delete of the call is not rolled back when the caller rescues the error.
-      # Rails reads the text 1abc as group 1 in the delete. So the stored value of group 1 stays only
-      # because set_field_value checks the group number before the delete.
+      # With no savepoint, a rescued error does not roll back a delete of the call. The delete reads
+      # '1abc' as group 1. So the value of group 1 stays only because set_field_value validates the
+      # group number before the delete.
       it 'set_field_value keeps the stored value when the caller rescues its group number error' do
         ActiveRecord::Base.transaction do
           post.set_field_value('note', 'new', group_number: '1abc')
@@ -587,7 +576,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
 
       # The failed call left an unsaved row in the association of the post. set_field_values removes
-      # it, so the next save of the post passes and stores no row of the failed call.
+      # it, so the next save of the post stores no row of the failed call.
       it 'saves the record after an error that the caller rescues' do
         ActiveRecord::Base.transaction do
           post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
@@ -599,8 +588,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(described_class.where(custom_field_slug: 'note')).to be_empty
       end
 
-      # The post save of the admin is such a caller: it does not rescue the error inside its
-      # transaction, so the whole transaction rolls back.
+      # The post save of the admin is such a caller. It does not rescue the error, so its whole
+      # transaction rolls back.
       it 'keeps the stored values when the caller does not rescue the error' do
         expect do
           ActiveRecord::Base.transaction do
@@ -645,10 +634,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The rollback of a failed call restores the database. The custom_field_values association of the
-  # record still holds the rows that the call built, as unsaved rows. The two methods reset the
-  # association after a failed call. The record then reads the stored values, and its next save
-  # stores no row of the failed call.
+  # The rollback of a failed call restores the database, but the custom_field_values association
+  # still holds the unsaved rows of the call. The two methods reset the association. The record then
+  # reads the stored values, and its next save stores no row of the failed call.
   describe 'the record after a failed call' do
     let(:stored_values) { described_class.where(custom_field_slug: 'note').pluck(:value) }
 
@@ -675,8 +663,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 0)).to eq([])
     end
 
-    # A timeout of the caller can stop the two methods with an exception that is not a StandardError.
-    # NotImplementedError stands for such an exception here.
+    # A timeout of the caller can raise an exception that is not a StandardError.
+    # NotImplementedError is the example of such an exception here.
     it 'stores no row of the call after an exception of set_field_value that is not a StandardError' do
       values = ['first']
       values.define_singleton_method(:each) do |&block|
@@ -690,7 +678,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(stored_values).to eq(['kept'])
     end
 
-    # For ActiveRecord::Rollback, Rails rolls the transaction back and raises no error to the caller.
+    # For ActiveRecord::Rollback, Rails rolls the transaction back and raises no error.
     # set_field_value then returns nil.
     it 'stores no row of the call when the call rolls back with ActiveRecord::Rollback' do
       values = ['first']
@@ -705,7 +693,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(stored_values).to eq(['kept'])
     end
 
-    # A before_commit callback runs after the block of set_field_value ended. When it raises
+    # A before_commit callback runs after the block of set_field_value. When it raises
     # ActiveRecord::Rollback, Rails rolls the transaction back, and set_field_value returns nil.
     it 'stores no row of the call when the commit of the call rolls back' do
       allow_any_instance_of(described_class).to receive(:before_committed!).and_raise(ActiveRecord::Rollback)
@@ -719,8 +707,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(stored_values).to eq(['kept'])
     end
 
-    # After a throw, Rails can commit the work that the call did before the throw. So the example does
-    # not read the stored values. It checks only that the next save of the post stores no new row.
+    # After a throw, Rails can commit the work that the call did before the throw. So the example
+    # checks only that the next save of the post stores no new row.
     it 'stores no row of the call after a throw out of set_field_values' do
       allow_any_instance_of(described_class).to receive(:save!).and_throw(:stop)
 
@@ -730,8 +718,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect { post.save }.not_to change(described_class, :count)
     end
 
-    # The reset of the association removes each unsaved row, also a row that the caller built before
-    # the call. The two methods put those rows back, so the next save of the record stores them.
+    # The reset of the association also removes the unsaved rows that the caller built before the
+    # call. The two methods put them back, so the next save of the record stores them.
     context 'with a row that the caller built before the call' do
       let!(:built) do
         post.custom_field_values.build(custom_field_id: post.get_field_object('note').id,
@@ -771,9 +759,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # set_field_value deletes the stored values with an SQL DELETE. An SQL DELETE does not change a
-  # loaded association, so the deleted rows stay in it, and get_field_values reads them. The method
-  # removes those rows from a loaded association. The record then reads only the new values.
+  # set_field_value deletes the stored values with an SQL DELETE, which leaves the deleted rows in a
+  # loaded association, where get_field_values reads them. The method removes them from a loaded
+  # association, so the record reads only the new values.
   describe 'a loaded association after set_field_value' do
     let(:value_rows) { /\ASELECT\b.*custom_fields_relationships/im }
 
@@ -830,8 +818,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         expect(post.get_field_values('note', 1)).to eq(%w[old new])
       end
 
-      # set_field_values deletes through the association, which empties a loaded association. So it
-      # needs no such step.
+      # set_field_values deletes through the association, which empties a loaded association.
       it 'reads the new values only after set_field_values' do
         post.set_field_values({ '0' => { 'note' => { group_number: 1, values: ['new'] } } })
 
@@ -860,9 +847,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # A callback of a row can raise ActiveRecord::Rollback before Rails stores the row. Rails then ends
-  # the save of that row with no error and stores nothing. set_field_value sees no error, so it goes
-  # on. The stub of valid? stands for such a callback.
+  # A callback of a row can raise ActiveRecord::Rollback before Rails stores the row. Rails then
+  # stores nothing and raises no error, so set_field_value goes on (intended). The stub of valid? is
+  # such a callback here.
   describe 'a callback of a value row that raises ActiveRecord::Rollback' do
     it 'raises no error, and the row stays in the association as an unsaved row' do
       allow_any_instance_of(described_class).to receive(:valid?).and_raise(ActiveRecord::Rollback)
@@ -874,9 +861,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # set_field_value and set_field_values give their block to _cama_write_field_values. That method
-  # resets the association only after a failed call. A block that returns nil or false is not a
-  # failed call.
+  # _cama_write_field_values runs the block of set_field_value and set_field_values. It resets the
+  # association only after a failed call. A block that returns nil or false is not a failed call.
   describe 'a block of _cama_write_field_values that returns nil or false' do
     [nil, false].each do |value|
       it "returns #{value.inspect} and keeps the association loaded" do
@@ -904,9 +890,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # A plugin can pass raw request params to set_field_values. The slug is then a key of the request,
-  # so it can hold the placeholder syntax of I18n. A language with no message uses the English
-  # message, and the slug must show in it as the request sent it. No locale file has the locale xx.
+  # A plugin can pass raw request params to set_field_values, so a slug can hold the placeholder
+  # syntax of I18n. A language with no message uses the English message, and the slug must show in
+  # it as sent. No locale file has the locale xx.
   it 'shows a slug with the placeholder syntax of I18n in the English message of a language with no message' do
     slug = '100%{x} a%%b' # rubocop:disable Style/FormatStringToken
     row = described_class.new(custom_field_slug: slug, group_number: -1)

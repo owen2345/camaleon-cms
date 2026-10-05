@@ -80,14 +80,11 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     expect(category.get_field_values('subtitle')).to eq(['kept'])
   end
 
-  # Before, set_field_values took the group number from the request and only changed a negative
-  # number to 0. A number above 2147483647 raised ActiveModel::RangeError at the save, and a JSON
-  # boolean raised NoMethodError. Each one was a 500. Now a custom-field value with such a group number
-  # is not valid, and the admin gets the error of the group number in a flash message.
-  #
-  # Before, the permit helper kept a group number only when it was a scalar. Rails dropped a list or a
-  # hash, and set_field_values stored the value in group 0 with no error. Now the permit helper keeps
-  # a list or a hash, with its content removed, so the admin gets the same error.
+  # Before, these group numbers gave a 500 or a value in the wrong group:
+  # - A number above 2147483647 raised ActiveModel::RangeError, and a JSON boolean raised
+  #   NoMethodError.
+  # - Rails dropped a list or a hash, and the value went to group 0 with no error.
+  # Now the custom-field value is invalid, and the admin gets the error in a flash message.
   describe 'a group number that is not an integer from 0 to 2147483647' do
     let(:category) { post_type.categories.create!(name: 'Grouped field', slug: 'grouped-field') }
     let(:refusal) do
@@ -114,7 +111,7 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       'negative' => '-1',
       'not a number' => 'abc',
       'a number with text after it' => '0abc',
-      'a text of 17 digits' => '00000000000000000',
+      'a String of 17 digits' => '00000000000000000',
       'a list' => ['5'],
       'a hash' => { 'a' => '5' },
       'a hash of hashes with a numeric key' => { '0' => { 'a' => '5' } },
@@ -141,9 +138,9 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       expect_refusal
     end
 
-    # The post save stores the post and its custom-field values in one transaction. So a group number
-    # that is not valid also rolls back the new attributes of the post.
-    it 'stores no attribute of a post when the save of the post sends a group number that is not valid' do
+    # The post save stores the post and its custom-field values in one transaction. So an invalid
+    # group number also rolls back the new attributes of the post.
+    it 'stores no attribute of a post when the save of the post sends an invalid group number' do
       group = CamaleonCms::CustomFieldGroup.create!(name: 'Post fields', slug: 'post-fields',
                                                     object_class: 'PostType_Post', objectid: post_type.id,
                                                     site: current_site)
@@ -160,8 +157,8 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       expect(record.reload.title).to eq('Kept title')
     end
 
-    # set_field_values builds no row for an entry with no values. It still checks the group number of
-    # that entry.
+    # set_field_values creates no row for an entry with no values. It still validates the group
+    # number of that entry.
     it 'refuses the group number of an entry with no values and keeps the stored value' do
       patch "/admin/post_type/#{post_type.id}/categories/#{category.id}", params: {
         category: { name: 'Grouped field' },

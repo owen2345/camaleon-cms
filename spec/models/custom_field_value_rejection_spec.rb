@@ -208,9 +208,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('body')).to eq(['<p>keep me</p>'])
     end
 
-    # The failed call leaves its first row in the association of the post, as an unsaved row.
-    # set_field_value resets the association, which removes each unsaved row. It then puts back the row
-    # that the caller built before the call.
+    # After the failed call, set_field_value resets the association of the post, which removes each
+    # unsaved row. It then puts back the row that the caller built before the call.
     it 'keeps the row that the caller built when set_field_value fails for a list' do
       as_user(contributor)
       post.set_field_value('body', '<p>keep me</p>')
