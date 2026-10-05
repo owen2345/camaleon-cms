@@ -59,6 +59,10 @@ failed call then rolls back nothing, unless the transaction of the caller rolls 
 rescues the refusal and commits loses the stored values that the call deleted. The rows that the
 call stored before the refusal stay.
 
+The writers open their transaction on the connection pool of `ActiveRecord::Base`. The rollback of
+this requirement needs the value rows on that pool. On another pool, that transaction does not roll
+back the delete of a refused call.
+
 The rollback leaves the rows of the failed call in the `custom_field_values` association of the
 record. After an error of a writer, the writer SHALL reset that association. The record then SHALL
 read the stored values, and its next save MUST NOT store a row of the failed call. An exception that

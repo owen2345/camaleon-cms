@@ -611,6 +611,10 @@ A caller that rescues the refusal there and commits loses the stored values that
 The rows that the call stored before the refusal stay. The release before did the same for a
 refused value.
 
+The two writers open their transaction on the connection pool of `ActiveRecord::Base`, as before.
+With the value rows on another pool, that transaction does not roll back the delete of a refused
+call.
+
 After an error, the two writers also reset the `custom_field_values` association of the record. The
 record reads the stored values again, and its next save stores no row of the failed call. Before,
 the record kept the rows of the failed call: its next save failed, or stored some of those rows.

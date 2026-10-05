@@ -175,6 +175,17 @@ a hash to the row with no content, and the row refuses the shape.
 The filter also covers a list that holds a hash or a list. The other remedy was to leave the permit
 and to say in the requirement that the permit drops such a number.
 
+**D13. The writers keep the connection pool of `ActiveRecord::Base`.** The transaction of the
+writers is `ActiveRecord::Base.transaction`, as before this change. The writers also read the
+isolation level of that pool. A host can put the models of the engine on a pool of their own
+(`CamaleonRecord.establish_connection`). There, that transaction does not cover the value rows, and
+it does not roll back the delete of a refused call. The code before this change did the same.
+
+On 2026-10-05, the maintainer chose to leave this. The engine uses the pool of `ActiveRecord::Base`
+in other places too: the post save of the admin opens `ActiveRecord::Base.transaction`, and
+`PluginRoutes.db_installed?` reads `ActiveRecord::Base.connection`. The other remedy was a
+transaction on the class of the value rows.
+
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a text that is not digits to

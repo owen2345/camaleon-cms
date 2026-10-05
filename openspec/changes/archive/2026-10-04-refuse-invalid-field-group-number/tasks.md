@@ -54,6 +54,8 @@
   upgrade note, in the requirement, in the ecosystem survey and in a comment on the row (D8)
 - [x] 3.6 Record a callback of a value row that raises `ActiveRecord::Rollback` in the upgrade note,
   in the requirement and in a comment on the writer, with an example in the model spec (D10)
+- [x] 3.7 Record the connection pool of the transaction of the writers in the upgrade note, in the
+  requirement and in a comment on the writer (D13)
 
 ## 4. Verification and release steps
 
