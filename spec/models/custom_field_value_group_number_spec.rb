@@ -377,19 +377,22 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   end
 
   # A caller can hold a transaction of its own and rescue the refusal inside it. set_field_values
-  # deletes the stored values before a row refuses the number, and its transaction rolls that delete
-  # back. set_field_value refuses the number before its delete. The spec of the value gate covers the
-  # same rollback of set_field_value.
+  # deletes the stored values before a row refuses the number, and its savepoint rolls that delete
+  # back. set_field_value refuses the number before its delete, so that call runs no delete. The spec
+  # of the value gate covers the rollback of a delete of set_field_value.
   describe 'a refusal inside a transaction of the caller' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
-    it 'keeps the stored value when the caller rescues the refusal of set_field_value' do
-      ActiveRecord::Base.transaction do
-        post.set_field_value('note', 'new', group_number: '1abc')
-      rescue ActiveRecord::RecordInvalid
-        nil
+    it 'runs no delete and keeps the stored value when the caller rescues the refusal of set_field_value' do
+      deletes = sql_queries(matching: /\A\s*DELETE\b/i) do
+        ActiveRecord::Base.transaction do
+          post.set_field_value('note', 'new', group_number: '1abc')
+        rescue ActiveRecord::RecordInvalid
+          nil
+        end
       end
 
+      expect(deletes).to be_empty
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
@@ -441,6 +444,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
         expect(post.reload.get_field_values('note', 1)).to eq([])
         expect(post.get_field_values('note', 0)).to eq(['fresh'])
+      end
+
+      # The join does not roll back a delete of the call. The text 1abc casts to group 1, so only the
+      # check before the delete keeps the stored value.
+      it 'keeps the stored value when the caller rescues the refusal of set_field_value' do
+        ActiveRecord::Base.transaction do
+          post.set_field_value('note', 'new', group_number: '1abc')
+        rescue ActiveRecord::RecordInvalid
+          nil
+        end
+
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
 
       # The writer also resets the association after a failed call that joined a transaction.
