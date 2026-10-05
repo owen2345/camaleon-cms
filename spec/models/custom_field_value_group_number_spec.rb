@@ -469,7 +469,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
                      locale: :en, slug: 'note', max: described_class::MAX_GROUP_NUMBER)
 
     locales.each do |locale|
-      row = post.custom_field_values.new(custom_field_slug: 'note', group_number: -1)
+      row = described_class.new(custom_field_slug: 'note', group_number: -1)
       I18n.with_locale(locale) { row.valid? }
 
       expect(row.errors[:base].first).to include("'note'", '2147483647'), locale
