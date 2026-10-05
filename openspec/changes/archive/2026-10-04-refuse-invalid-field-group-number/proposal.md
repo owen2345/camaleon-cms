@@ -31,6 +31,15 @@ is present since 2.9.3, which added the `to_i` call.
   group number has its own integer type. The type reads the text as no number, and the validation
   refuses the text. A lookup with such a text finds no row. A save that skips the validation stops
   with the same refusal.
+- The type of the group number has the 4-byte range on each database. Where the column holds a
+  wider integer (SQLite, a `bigint` column), `where(group_number: n)` and `find_by(group_number: n)`
+  find no row for a number n outside that range. A write that gives n as a value and skips the
+  validation raises `ActiveModel::RangeError`. Before, those databases found and stored such a
+  number.
+- A copy (`dup`) of a row keeps the group number as the caller gave it to the original row. A copy
+  is a new row, so the row checks that number. The copy of a stored row that holds a negative
+  number, or a number above 2147483647 in a wider column, gets the refusal. Before, the copy stored
+  that number.
 - `set_field_value` and `set_field_values` open a savepoint inside a transaction of the caller. A
   refusal that the caller rescues there rolls back the delete of the stored values. Rails 8.1
   refuses that savepoint while the pool has an isolation level (for example under
@@ -72,4 +81,6 @@ None.
   `spec/controllers/concerns/camaleon_cms/admin/custom_fields_concern_spec.rb`.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the refusal.
 - Ecosystem: `camaleon_export_import` passes an exported row's group number to `set_field_value`, an
-  integer or nil. Both pass. `docs/ai/ecosystem.md` records the survey.
+  integer or nil. Both pass. The master branch of `camaleon-post-clone` copies the value rows of a
+  post, so its clone of a post with a refused stored number raises `ActiveRecord::RecordInvalid`.
+  `docs/ai/ecosystem.md` records the survey.
