@@ -632,6 +632,10 @@ The unsaved rows that the caller built before the call stay in the association.
 A callback of a value row that raises `ActiveRecord::Rollback` before Rails stores the row is not
 such an error. As before, the writer goes on, and the row stays in the association as an unsaved row.
 
+The two writers read `custom_field_values` through `proxy_association`, so it must be an association.
+A model whose `custom_field_values` returns a plain relation gets `NoMethodError` from them, and
+they store nothing. Before, the writers stored the values of such a model.
+
 ---
 
 ## Recommended rollout
