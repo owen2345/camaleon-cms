@@ -542,8 +542,9 @@ both were silently dropped since 2.9.2.
 ### A custom-field value refuses a group number outside its range
 
 A custom-field value row accepts a group number only when it is nil or an integer from 0 to 2147483647.
-The caller gives the integer as an Integer or as a text of ASCII digits. `set_field_value`, `set_field_values`
-and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` for any other group number.
+The caller gives the integer as an Integer or as a text of 1 to 16 ASCII digits. `set_field_value`,
+`set_field_values` and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` for any
+other group number.
 
 - A number above 2147483647 raised `ActiveModel::RangeError` before, on PostgreSQL and on MySQL.
 - `set_field_values` stored a negative number in group 0 before.
@@ -551,6 +552,8 @@ and a direct `custom_field_values.create!` raise `ActiveRecord::RecordInvalid` f
   was group 1.
 - Each writer read `' 5'`, `'+5'`, `'1_0'`, `'2.5'` and `2.5` as group 5, 5, 10, 2 and 2 before. The row
   refuses each of them now.
+- A text of more than 16 digits gets the refusal, also when its number is in the range
+  (`00000000000000005`). The integer cast of Rails 8.1.4 reads only the first 16 bytes of a text.
 - `set_field_value` stored a negative number as given before.
 - `set_field_value` stored no group number for an empty text before. Pass nil for no group number.
 - `set_field_value` with an empty list also refuses the group number, before it deletes a stored value.

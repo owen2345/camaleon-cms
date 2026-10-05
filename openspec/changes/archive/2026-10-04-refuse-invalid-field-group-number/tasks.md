@@ -41,6 +41,8 @@
   rollback of the call, also in the commit phase, with examples in the model spec (D10)
 - [x] 2.14 Join the transaction of the caller while the pool has an isolation level of Rails 8.1,
   with examples in the model spec (D9)
+- [x] 2.15 Refuse a group number text of more than 16 bytes, with examples in the model and request
+  specs (D2)
 
 ## 3. Documentation
 

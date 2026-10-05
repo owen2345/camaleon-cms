@@ -237,7 +237,7 @@ module CamaleonCms
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
     #
     # group_number (optional, in each entry) is an integer from 0 to 2147483647, as an Integer or as a
-    # text of ASCII digits. An absent or empty group number is group 0. A value row refuses any other
+    # text of 1 to 16 ASCII digits. An absent or empty group number is group 0. A value row refuses any other
     # group number, also an empty text in an encoding that is not ASCII-compatible. The method then
     # raises ActiveRecord::RecordInvalid, and the stored values stay. For the exceptions, see
     # _cama_write_field_values and _cama_field_values_savepoint?.
@@ -324,7 +324,7 @@ module CamaleonCms
     #   order: order or position of the field value
     #   group_number: number of the group (only for custom field group with is_repeat enabled).
     #                 It is nil, or an integer from 0 to 2147483647 as an Integer or as a text of
-    #                 ASCII digits.
+    #                 1 to 16 ASCII digits.
     #   clear: (boolean, default true) if true, will remove previous values and set these values,
     #                                  if not will append values
     # The method raises ArgumentError when no custom field has the slug `key`. For any other group

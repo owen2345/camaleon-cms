@@ -19,7 +19,7 @@ number of the request to the row. The `NoMethodError` is present since 2.9.3, wh
 ## What Changes
 
 - `CamaleonCms::CustomFieldsRelationship` validates `group_number`: an integer from 0 to 2147483647.
-  The validation reads the value before the integer cast. It runs on a new row, and on a stored row
+  A text holds 1 to 16 ASCII digits. The validation reads the value before the integer cast. It runs on a new row, and on a stored row
   only when the number changes. A nil group number passes.
 - `set_field_values` gives the group number to the row as the request sent it. An absent or empty
   group number is still group 0. The lower clamp and the `to_i` call go.

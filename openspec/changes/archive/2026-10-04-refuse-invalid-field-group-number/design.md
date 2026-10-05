@@ -40,6 +40,12 @@ and `'abc'` 0, so a check of the cast value accepts them. The numericality valid
 back to the cast value for `false`. The check accepts the given value only when its text is ASCII
 digits and the number is not above 2147483647. An Integer, and a String of digits, pass.
 
+On 2026-10-05, the maintainer chose a limit of 16 digits for a text. The integer cast of Rails 8.1.4
+reads the first 16 bytes of a text, and the check read the whole text. A text of 17 zeros and a 7
+passed the check as 7, and the row stored 0. The check refuses a text of more than 16 bytes before
+it scans the text, so it does not scan a long text. The other remedy was a limit of 10 digits, the
+length of 2147483647.
+
 **D3. The bound is 2147483647 on each database.** Before this change, SQLite stored 2147483648 with
 no error. A value stored on SQLite must also be valid on PostgreSQL and MySQL.
 

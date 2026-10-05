@@ -26,6 +26,9 @@ module CamaleonCms
     GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
     # A group number is an index from 0. PostgreSQL and MySQL store it in a 4-byte integer column.
     MAX_GROUP_NUMBER = 2_147_483_647
+    # The integer cast of Rails 8.1.4 reads the first 16 bytes of a text. The row refuses a longer
+    # text, so the cast and the check read the same number.
+    MAX_GROUP_NUMBER_DIGITS = 16
 
     # The integer type of the group number. The integer type of Rails raises its own error for a text
     # with a broken encoding, or in an encoding that is not ASCII-compatible (UTF-16). This type reads
@@ -218,13 +221,16 @@ module CamaleonCms
       !(given.nil? || storable_group_number?(given))
     end
 
-    # An Integer or a text of ASCII digits. A Symbol can print as digits, and the cast makes it nil.
-    # The digits check raises for a text that the type cannot read.
+    # An Integer, or a text of 1 to 16 ASCII digits. A Symbol can print as digits, and the cast makes
+    # it nil. The digits check raises for a text that the type cannot read.
+    #
+    # The size check comes first, so the row does not scan a long text.
     def storable_group_number?(given)
-      return false unless given.is_a?(Integer) || given.is_a?(String)
+      return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
+      return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
       return false if GroupNumberType.unreadable?(given)
 
-      given.to_s.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
+      given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
     end
 
     # A missing translation must not hide the message. The process locale follows the language of the

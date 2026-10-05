@@ -184,15 +184,19 @@ callers); permitted browser payloads always name registered slugs.
 ### Requirement: A value row refuses a group number outside the range of the column
 
 A custom-field value row SHALL accept a group number only when it is nil or an integer from 0 to
-2147483647, given as an Integer or as a text of ASCII digits. The row MUST refuse any other group
-number (a larger number, a negative number, a boolean, a text that is not digits, a file) with an
-error that names the field, on each write path and on each supported database. The row SHALL NOT
-change the number to a valid one. A new row is always checked. A stored row SHALL be checked only
-when its group number changes. An admin save that reaches the controller with a refused group number
-MUST NOT answer with a 500: it SHALL redirect back with the error and leave the stored values of the
-record unchanged. A request with a param in a broken encoding gets a 400 before the controller. A
-multipart request with a part in an encoding that is not ASCII-compatible stops before the
-controller too. An absent or empty group number in an admin save SHALL mean group 0.
+2147483647, given as an Integer or as a text of 1 to 16 ASCII digits. The row MUST refuse any other
+group number with an error that names the field, on each write path and on each supported database.
+Examples are a larger number, a negative number, a boolean and a file. So are a text that is not
+digits and a text of more than 16 digits.
+
+The row SHALL NOT change the number to a valid one. A new row is always checked. A stored row SHALL
+be checked only when its group number changes.
+
+An admin save that reaches the controller with a refused group number MUST NOT answer with a 500: it
+SHALL redirect back with the error and leave the stored values of the record unchanged. A request
+with a param in a broken encoding gets a 400 before the controller. A multipart request with a part
+in an encoding that is not ASCII-compatible stops before the controller too. An absent or empty
+group number in an admin save SHALL mean group 0.
 
 In an admin save, a group number that is a list or a hash MUST get the same refusal. An empty list
 is a list. `cama_permitted_field_options` SHALL give that shape to the row, with no content. It
@@ -282,6 +286,11 @@ the unsaved row stays in the association.
 #### Scenario: A negative group number or a text that is not digits is refused
 
 - **WHEN** a save submits a group number of `-1`, `abc` or `0abc`
+- **THEN** the save is refused and no value row is stored for it
+
+#### Scenario: A text of more than 16 digits is refused
+
+- **WHEN** a save submits a group number text of 17 digits whose number is in the range
 - **THEN** the save is refused and no value row is stored for it
 
 #### Scenario: The largest group number is stored

@@ -72,6 +72,20 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 2)).to eq(['second'])
     end
 
+    # Rails 8.1.4 reads the first 16 bytes of a text in the integer cast. The row takes a text of 16
+    # digits or fewer, so the cast and the check read the same number.
+    it 'stores a value under a group number that the caller gives as a text of 16 digits' do
+      post.set_field_value('note', 'padded', group_number: "#{'0' * 15}7")
+
+      expect(post.get_field_values('note', 7)).to eq(['padded'])
+    end
+
+    it 'refuses a group number that the caller gives as a text of 17 digits and keeps the stored value' do
+      expect { post.set_field_value('note', 'new', group_number: "#{'0' * 16}1") }
+        .to raise_error(ActiveRecord::RecordInvalid, /group number/)
+      expect(post.custom_field_values.pluck(:value, :group_number)).to eq([['kept', 1]])
+    end
+
     it 'stores a value with no group number' do
       post.set_field_value('note', 'unset', group_number: nil)
 

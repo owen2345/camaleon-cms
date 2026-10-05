@@ -112,6 +112,7 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
       'negative' => '-1',
       'not a number' => 'abc',
       'a number with text after it' => '0abc',
+      'a text of 17 digits' => '00000000000000000',
       'a list' => ['5'],
       'a hash' => { 'a' => '5' },
       'a hash of hashes with a numeric key' => { '0' => { 'a' => '5' } },
