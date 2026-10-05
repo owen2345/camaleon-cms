@@ -603,9 +603,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # A callback of a value row can raise ActiveRecord::Rollback before Rails stores the row. Rails ends
-  # the save of that row with no error, so the call is not a failed call. The stub of valid? stands
-  # for such a callback.
+  # Rails ends the save of the row with no error, so the call is not a failed call. The stub of
+  # valid? stands for such a callback.
   describe 'a callback of a value row that raises ActiveRecord::Rollback' do
     it 'lets the writer go on, and the row stays in the association as an unsaved row' do
       allow_any_instance_of(described_class).to receive(:valid?).and_raise(ActiveRecord::Rollback)
