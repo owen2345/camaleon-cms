@@ -4,8 +4,8 @@
 Keep every custom-field value safe to render in its position without ever rewriting authored
 content: a value an untrusted author is not permitted to write is refused at save time with an error
 naming the field, so stored values always equal authored values and the frontend may emit them
-verbatim (`editor` markup) or into URL positions (`url`/media types). A value row also refuses a
-group number that it cannot store, for each author.
+verbatim (`editor` markup) or into URL positions (`url`/media types). A custom-field value with a
+group number that the database cannot store is not valid either, for each author.
 
 ## Requirements
 
@@ -181,98 +181,107 @@ callers); permitted browser payloads always name registered slugs.
 - **WHEN** a value is saved for a slug while a different field's `id` is submitted alongside it
 - **THEN** the stored row's `custom_field_id` is the id of the field the slug names
 
-### Requirement: A value row refuses a group number outside the range of the column
+### Requirement: A custom-field value refuses a group number outside its range
 
-A custom-field value row SHALL accept a group number only when it is nil or an integer from 0 to
-2147483647, given as an Integer or as a text of 1 to 16 ASCII digits. The row MUST refuse any other
-group number with an error that names the field, on each write path and on each supported database.
-Examples are a larger number, a negative number, a boolean and a file. So are a text that is not
-digits and a text of more than 16 digits.
+In this requirement, "a value" is a custom-field value row (`CamaleonCms::CustomFieldsRelationship`).
+"The two writers" are `set_field_value` and `set_field_values`. "The group number error" is
+`ActiveRecord::RecordInvalid` with a message that names the field.
 
-The row SHALL NOT change the number to a valid one. A new row is always checked. A stored row SHALL
-be checked only when its group number changes.
+A value SHALL be valid only when its group number is nil or an integer from 0 to 2147483647. A
+caller gives the integer as an Integer or as a text of 1 to 16 ASCII digits. For any other group
+number, the save of the value MUST fail with the group number error, on each write path and on each
+supported database. Examples are a larger number, a negative number, a boolean and a file. So are a
+text that is not digits and a text of more than 16 digits.
 
-An admin save that reaches the controller with a refused group number MUST NOT answer with a 500: it
-SHALL redirect back with the error and leave the stored values of the record unchanged. A request
-with a param in a broken encoding gets a 400 before the controller. A multipart request with a part
-in an encoding that is not ASCII-compatible stops before the controller too. An absent or empty
-group number in an admin save SHALL mean group 0.
+The system SHALL NOT change a group number that is not valid to a valid one. A new value is always
+checked. A stored value SHALL be checked only when a save changes its group number.
 
-In an admin save, a group number that is a list or a hash MUST get the same refusal. An empty list
-is a list. `cama_permitted_field_options` SHALL give that shape to the row, with no content. It
-SHALL NOT drop the number, because `set_field_values` reads an absent number as group 0.
+**Admin saves.** An admin save that reaches the controller with such a group number MUST NOT answer
+with a 500. It SHALL redirect back with the error, and the record SHALL keep its stored values. Two
+kinds of request stop before the controller. A request with a param in a broken encoding gets a 400.
+A multipart request with a part in an encoding that is not ASCII-compatible stops in the param
+parser. An absent or empty group number in an admin save SHALL mean group 0.
 
-A group number text with a broken encoding, or in an encoding that is not ASCII-compatible, SHALL
-get the same refusal on each write path. The integer cast of Rails raises its own error for that
-text, and that error MUST NOT replace the refusal. A save that skips the validation MUST NOT store
-a group number for that text: it SHALL stop with the same refusal. A lookup with that text SHALL
-find no row, so a write that looks the number up first SHALL get the same refusal.
+A group number that an admin save sends as a list or a hash MUST get the group number error too. An
+empty list is a list. `cama_permitted_field_options` SHALL keep such a group number, with its
+content removed. It SHALL NOT drop it, because `set_field_values` reads an absent group number as
+group 0.
 
-A save that skips the validation (`update_attribute`, `save(validate: false)`) is a write path of
-this requirement for that text only. For another refused group number, such a save runs no check
-of the row. It stores what the integer cast of the type gives (-1 stays -1, and `abc` becomes 0), or
-it raises an error for a value that the type cannot store.
+**A text that Rails cannot read as a number.** The integer cast of Rails raises an encoding error
+for a text with a broken encoding, and for a text in an encoding that is not ASCII-compatible. For
+such a group number text:
 
-A write that skips the validation and the callbacks (for example `update_column`, `update_all`,
-`insert_all`) is not a write path of this requirement. `update_column`, `update_all` with a hash and
-`insert_all` store no group number (NULL) for that text.
+- Each write path MUST fail with the group number error, not with the encoding error of Rails.
+- A lookup (`where`, `find_by`) SHALL find no row. So a write that looks the number up first
+  (`find_or_create_by!`) gets the group number error.
+- `update_attribute` and `save(validate: false)` run no validation. They MUST NOT store a group
+  number for such a text: they SHALL stop with the group number error.
+- `update_column`, `update_all` with a hash and `insert_all` run no validation and no callback. They
+  are not write paths of this requirement. They store NULL as the group number for such a text.
 
-The type of the group number SHALL have the 4-byte range on each supported database, also where
-the column holds a wider integer (SQLite, a `bigint` column). There, `where(group_number: n)` and
-`find_by(group_number: n)` find no row for a number n above 2147483647 or below -2147483648. A
-write that gives n as a value and skips the validation raises `ActiveModel::RangeError`. An SQL
-text skips the type.
+For each other group number that is not valid, `update_attribute` and `save(validate: false)` run
+no check. They store what the integer cast gives (-1 stays -1, and `abc` becomes 0), or they raise
+an error for a value that the type cannot store.
 
-A copy of a row (`dup`) SHALL keep the group number as the caller gave it to the original row. The
-copy of a row with a refused group number MUST get the same refusal.
+**The range of the type.** The group number attribute SHALL have the range of a 4-byte integer on
+each supported database, also where the column can hold a larger integer (SQLite, a `bigint`
+column). There, for a number n above 2147483647 or below -2147483648, `where(group_number: n)` and
+`find_by(group_number: n)` find no row. A write that gives n and runs no validation raises
+`ActiveModel::RangeError`. An SQL text is not checked.
 
-A copy is a new row, so the row SHALL check its group number. The copy of a stored row that holds
-a negative number MUST get the same refusal. So MUST the copy of a stored row that holds a number
-above 2147483647 in a wider column.
+**A copy of a value.** A copy (`dup`) SHALL keep the group number as the caller gave it to the
+original value. So the copy of a value with a group number that is not valid MUST get the group
+number error. A copy is a new value, and a new value is always checked. So the copy of a stored
+value with a negative group number MUST get the group number error. So MUST the copy of a stored
+value with a number above 2147483647, which a column for a larger integer can hold.
 
-`set_field_value` SHALL check the group number before it deletes a stored value. A call with an
-empty list of values builds no row, and that call MUST get the same refusal.
+**Calls with no values.** `set_field_value` SHALL check the group number before it deletes a stored
+value. A call with an empty list of values builds no row, and that call MUST get the group number
+error too. `set_field_values` SHALL check the group number of each entry. An entry with no values
+builds no row, and that entry MUST get the group number error too.
 
-`set_field_values` SHALL check the group number of each entry. An entry with no values builds no
-row, and that entry MUST get the same refusal.
+**The rollback.** The two writers delete stored values before they create the new values. When a
+new value is not valid, that delete MUST roll back, so the record keeps its stored values.
 
-`set_field_value` and `set_field_values` delete stored values before they create the rows. A refusal
-of a row MUST roll that delete back. Inside a transaction of the caller, the writers SHALL ask Rails
-for a savepoint, so the rollback also holds when the caller rescues the refusal and commits. The
-writers SHALL run one statement in that transaction before they ask. With no statement there, Rails
-opens no savepoint, and it restarts the transaction of the caller after a failed call. The next
-paragraph gives the exception for a pool with an isolation level.
+A caller can run a writer inside its own transaction, rescue the error and commit. The stored
+values MUST stay in that case too. So the writers SHALL ask Rails for a savepoint inside a
+transaction of the caller. They SHALL run one statement in that transaction first. With no
+statement there, Rails opens no savepoint, and it restarts the whole transaction of the caller
+after a failed call.
 
-While the pool has an isolation level, Rails refuses a savepoint. On Rails 8.1,
+Rails permits no savepoint while the connection pool has an isolation level. On Rails 8.1,
 `ActiveRecord.with_transaction_isolation_level` and `Model.with_pool_transaction_isolation_level`
-can give the pool a level. While the pool has a level and a joinable transaction of the caller is
-open, the writers SHALL NOT ask for a savepoint. They SHALL run inside that transaction. A
-failed call then rolls back nothing, unless the transaction of the caller rolls back. A caller that
-rescues the refusal and commits loses the stored values that the call deleted. The rows that the
-call stored before the refusal stay.
+give the pool a level. While the pool has a level and a joinable transaction of the caller is
+open, the writers SHALL NOT ask for a savepoint. They SHALL run inside that transaction. A failed
+call then rolls back nothing by itself: the stored values come back only when the transaction of
+the caller rolls back. A caller that rescues the error and commits loses the stored values that the
+call deleted. The values that the call stored before the error stay.
 
 The writers open their transaction on the connection pool of `ActiveRecord::Base`. The rollback of
-this requirement needs the value rows on that pool. On another pool, that transaction does not roll
-back the delete of a refused call.
+this requirement needs the values on that pool. With the values on another pool, a failed call
+does not roll back its delete.
 
-`set_field_value` deletes stored values with an SQL delete, which leaves those rows in a loaded
-`custom_field_values` association. After that delete, a loaded association of the record SHALL NOT
-hold a row that the call deleted. The record then SHALL read the new values only. The call SHALL
-NOT load an association that is not loaded.
+**The record after a call.** `set_field_value` deletes stored values with an SQL DELETE, which does
+not change a loaded `custom_field_values` association. After that delete, a loaded association of
+the record SHALL NOT hold a row that the call deleted, so the record reads only the new values. The
+call SHALL NOT load an association that is not loaded.
 
-The rollback leaves the rows of the failed call in the `custom_field_values` association of the
-record. After an error of a writer, the writer SHALL reset that association. The record then SHALL
-read the stored values, and its next save MUST NOT store a row of the failed call. An exception that
-is not a `StandardError` is such an error. So are a `throw` out of the call and a rollback of the
-call with `ActiveRecord::Rollback`. A timeout of the caller stops the call with an exception or
-with a `throw`. After a `throw`, Rails can commit what the call stored or deleted before it.
+After a failed call, the `custom_field_values` association of the record still holds the rows that
+the call built. The writer SHALL reset that association. The record then SHALL read its stored
+values, and its next save MUST NOT store a row of the failed call. A failed call is each of these:
 
-The reset drops each unsaved row of the association, so the writer SHALL put back the unsaved rows
-that the caller built before the call.
+- An exception of any class leaves the call, also an exception that is not a `StandardError`.
+- A `throw` leaves the call. After a `throw`, Rails can commit the work that the call did before it.
+- `ActiveRecord::Rollback` rolls the call back.
 
-A callback of a value row that raises `ActiveRecord::Rollback` before Rails stores the row is not
-an error of a writer. Rails ends the save of that row with no error. The writer then goes on, and
-the unsaved row stays in the association.
+A timeout of the caller stops the call with an exception or with a `throw`.
+
+The reset removes each unsaved row of the association. So the writer SHALL put back the unsaved
+rows that the caller built before the call.
+
+One case is not a failed call. A callback of a value can raise `ActiveRecord::Rollback` before
+Rails stores the row. Rails ends the save of that row with no error. The writer goes on, and the
+unsaved row stays in the association.
 
 #### Scenario: A group number above the range is refused in an admin save
 
@@ -296,68 +305,68 @@ the unsaved row stays in the association.
 #### Scenario: A negative group number or a text that is not digits is refused
 
 - **WHEN** a save submits a group number of `-1`, `abc` or `0abc`
-- **THEN** the save is refused and no value row is stored for it
+- **THEN** the save fails with the group number error, and no value is stored for it
 
 #### Scenario: A text of more than 16 digits is refused
 
 - **WHEN** a save submits a group number text of 17 digits whose number is in the range
-- **THEN** the save is refused and no value row is stored for it
+- **THEN** the save fails with the group number error, and no value is stored for it
 
 #### Scenario: The largest group number is stored
 
 - **WHEN** a save submits a group number of 2147483647
 - **THEN** the value is stored under that group number
 
-#### Scenario: A stored row with a negative group number stays writable
+#### Scenario: A stored value with a negative group number stays writable
 
-- **WHEN** a stored row holds a negative group number and a caller updates only its value
+- **WHEN** a stored value holds a negative group number and a caller updates only its content
 - **THEN** the update succeeds
 
 #### Scenario: A group number text that the integer cast cannot read is refused
 
 - **WHEN** `set_field_value`, `set_field_values` or a direct `custom_field_values.create!` gets a
   group number text with a broken encoding, or in an encoding that is not ASCII-compatible
-- **THEN** the caller gets the refusal that names the field, and the stored values of the record
-  are unchanged
+- **THEN** the caller gets the group number error, and the stored values of the record are
+  unchanged
 
-#### Scenario: A save that skips the validation stops for a text that the integer cast cannot read
+#### Scenario: A save with no validation stops for a text that the integer cast cannot read
 
-- **WHEN** `update_attribute` or `save(validate: false)` saves a row with a group number text with a
-  broken encoding, or in an encoding that is not ASCII-compatible
-- **THEN** the save returns false, the row holds the refusal that names the field, and the stored
-  row is unchanged
+- **WHEN** `update_attribute` or `save(validate: false)` saves a value with a group number text with
+  a broken encoding, or in an encoding that is not ASCII-compatible
+- **THEN** the save returns false, the value holds the message of the group number error, and the
+  stored value is unchanged
 
-#### Scenario: A write that looks the number up first is refused
+#### Scenario: A write that looks the number up first gets the group number error
 
 - **WHEN** `custom_field_values.find_or_create_by!` gets a group number text with a broken
   encoding, or in an encoding that is not ASCII-compatible
-- **THEN** the lookup finds no row, the caller gets the refusal that names the field, and the
-  stored values of the record are unchanged
+- **THEN** the lookup finds no row, the caller gets the group number error, and the stored values
+  of the record are unchanged
 
-#### Scenario: A copy of a row with a refused group number is refused
+#### Scenario: A copy of a value with a group number that is not valid is not valid
 
-- **WHEN** a caller copies a row with `dup`, and the row holds a group number that the row refuses
-- **THEN** the save of the copy returns false, the copy holds the refusal that names the field, and
-  the save stores no row
+- **WHEN** a caller copies a value with `dup`, and the value holds a group number that is not valid
+- **THEN** the save of the copy returns false, the copy holds the message of the group number
+  error, and the save stores no row
 
-#### Scenario: An empty list with a refused group number is refused
+#### Scenario: A call with an empty list and a group number that is not valid fails
 
-- **WHEN** `set_field_value` gets an empty list of values and a group number that a row refuses
-- **THEN** the caller gets the refusal that names the field, and the stored values of the record
-  are unchanged
+- **WHEN** `set_field_value` gets an empty list of values and a group number that is not valid
+- **THEN** the caller gets the group number error, and the stored values of the record are
+  unchanged
 
-#### Scenario: An entry with no values and a refused group number is refused
+#### Scenario: An entry with no values and a group number that is not valid fails
 
 - **WHEN** `set_field_values` or an admin save gets an entry with no values and a group number that
-  a row refuses
-- **THEN** the caller gets the refusal that names the field, and the stored values of the record
-  are unchanged
+  is not valid
+- **THEN** the caller gets the group number error, and the stored values of the record are
+  unchanged
 
-#### Scenario: A refusal inside a transaction of the caller keeps the stored values
+#### Scenario: A failed call inside a transaction of the caller keeps the stored values
 
 - **WHEN** the pool has no isolation level, and a caller runs `set_field_value` or
-  `set_field_values` inside its own transaction with a group number that the row refuses, rescues
-  the refusal inside that transaction and commits
+  `set_field_values` inside its own transaction with a group number that is not valid, rescues the
+  error inside that transaction and commits
 - **THEN** the stored values of the record are unchanged
 
 #### Scenario: A failed call in a new transaction of the caller rolls back to a savepoint
@@ -367,7 +376,7 @@ the unsaved row stays in the association.
 - **THEN** the writer rolls back to a savepoint of its own, and Rails does not restart the
   transaction of the caller
 
-#### Scenario: The writers join a transaction of the caller that has a pool isolation level
+#### Scenario: The writers run inside a transaction of the caller that has a pool isolation level
 
 - **WHEN** a caller on Rails 8.1 runs `set_field_value` or `set_field_values` inside a joinable
   `Model.transaction` that starts under `ActiveRecord.with_transaction_isolation_level`
