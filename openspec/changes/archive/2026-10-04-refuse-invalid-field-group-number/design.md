@@ -9,7 +9,8 @@ reaches it: `set_field_values`, `set_field_value` and a direct `custom_field_val
 
 **Goals:**
 
-- No admin save answers a group number in the request with a 500.
+- No admin save that reaches the controller answers a group number in the request with a 500. D7
+  holds the requests that stop before the controller.
 - A refused group number stores no value row and removes no stored value. D9 and D13 hold the
   exceptions.
 - The same rule holds on SQLite, PostgreSQL and MySQL.
