@@ -383,7 +383,7 @@ module CamaleonCms
     # - The transaction returns nil after ActiveRecord::Rollback, also when a commit callback raises it.
     #
     # The array gives a call that completed a result that is not nil. After a throw, Rails can commit
-    # what the call stored before it.
+    # what the call stored or deleted before it.
     # The reset drops each unsaved row, so the writer puts back the rows that the caller built before
     # the call.
     def _cama_write_field_values
