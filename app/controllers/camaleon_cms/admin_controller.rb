@@ -4,16 +4,16 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    # Shows a validation error of a submitted admin form as a flash message, not as a 500 page. Two
-    # records raise it:
+    # Shows the ActiveRecord::RecordInvalid of a submitted admin form as a flash message, not as a 500
+    # page. These records raise ActiveRecord::RecordInvalid in an admin save:
     # - A custom-field value: unsafe content (docs/security/permissions.md) or an invalid group number.
     # - A post type: a decorator class option that names no post decorator.
     #
     # A failed create or update of a post stores nothing. Each other save, a draft save included, keeps
     # what it stored before the custom-field values, and the old values stay.
     #
-    # The error is raised again for any other record, and for a GET or HEAD request. No form was
-    # submitted there, and a redirect leads to a page that fails the same way.
+    # The error is raised again for any other record, and for a GET or HEAD request. A GET or HEAD
+    # request submits no form, and a redirect leads to a page that fails the same way.
     rescue_from ActiveRecord::RecordInvalid do |exception|
       record = exception.record
       gated = record.is_a?(CamaleonCms::CustomFieldsRelationship) || record.is_a?(CamaleonCms::PostType)
