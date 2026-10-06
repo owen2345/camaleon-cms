@@ -13,7 +13,6 @@ A text can obey each rule of the other sections and still be hard to understand.
 - Explain a term of the domain one time, with an example of what the user sees.
 - Each sentence must make sense alone. Do not write a sentence that only points back to the sentence before it.
 - Give the cause with the effect. Say who does what, and what the user or the caller gets.
-- Use a list for cases and conditions.
 - Read each sentence alone after you write or change a text. Ask what the sentence tells a developer who reads the code for the first time.
 
 ## Scope
@@ -70,9 +69,9 @@ Apply the standard to the prose that you add or change. These limits apply:
 | Saving the post fires the hook; it'll run the callbacks. | The hook runs the callbacks when the author saves the post. |
 | The value has been cached and should be reused. | The model caches the value. The next call must use the same value. |
 | Bail out if the site isn't there. | Return if the site does not exist. |
-| A value row refuses a value that a gate refuses. | The save of a custom-field value fails when its author is not permitted to save its content. |
-| The create or update of a post rolls back what it stored. No other admin save does. | The create or update of a post stores nothing. Each other admin save keeps what it stored before the custom-field values. |
-| A redirect then reaches another page that refuses again. | A redirect does not help: the next page runs the same hook, and the save fails again. |
-| A field group can repeat on a record. The group number of a value says which copy of the group holds the value. | An author can add a repeatable field group to a post several times, for example a "Slide" group for each slide. The group number of a value is the index of its slide, from 0. |
-| Code can give the integer as an Integer or as a text of 1 to 16 ASCII digits. | The group number is an Integer, or a String of 1 to 16 digits such as `'5'`. |
-| The core admin forms send the index of the group. | The admin forms of Camaleon send the index of the group. |
+| The gate refuses the payload. | The save fails, because the author is not permitted to save this content. |
+| It fails. | The save fails, and the author sees the error in a flash message. |
+| This does not help. | A redirect does not help: the next page runs the same check, and the save fails again. |
+| A post type groups the posts. | A post type is a kind of content, for example "News" or "Product". Each post belongs to one post type. |
+| The method takes the id as an integer or as a text. | The method takes the id as an `Integer` or a `String`. |
+| The core runs the hook. | Camaleon runs the hook. |
