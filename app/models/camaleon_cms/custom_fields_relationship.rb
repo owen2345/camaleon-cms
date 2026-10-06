@@ -82,7 +82,7 @@ module CamaleonCms
 
     # The error message of an invalid group number.
     def group_number_refusal
-      cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER)
+      cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER, digits: MAX_GROUP_NUMBER_DIGITS)
     end
 
     # Raises ActiveRecord::RecordInvalid for an invalid group number. The writers call it on an

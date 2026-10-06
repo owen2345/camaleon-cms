@@ -94,7 +94,7 @@ es:
         custom_group_support_multiple: 'Soporta multiple grupos?'
         message:
           custom_group_error: 'Error grupo de campos personalizados'
-          group_number_invalid: "El número de grupo del campo '%{slug}' debe ser un número entero de 0 a %{max}."
+          group_number_invalid: "El número de grupo del campo '%{slug}' debe ser un número entero de 0 a %{max}, con un máximo de %{digits} dígitos."
           custom_created: 'El grupo de campos personalizados se ha creado.'
           custom_updated: 'El grupo de campos personalizados se ha actualizado.'
         fields:

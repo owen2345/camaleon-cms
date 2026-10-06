@@ -96,7 +96,7 @@ uk:
       custom_field:
         message:
           custom_group_error: 'Помилка групи полів, що настроюються'
-          group_number_invalid: "Номер групи поля '%{slug}' має бути цілим числом від 0 до %{max}."
+          group_number_invalid: "Номер групи поля '%{slug}' має бути цілим числом від 0 до %{max}, не більше %{digits} цифр."
           custom_created: 'Група полів, що настроюються була створена.'
           custom_updated: 'Група полів, що настроюються була оновлена.'
         fields:

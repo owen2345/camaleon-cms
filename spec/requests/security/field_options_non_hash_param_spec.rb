@@ -88,7 +88,8 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
   describe 'a group number that is not an integer from 0 to 2147483647' do
     let(:category) { post_type.categories.create!(name: 'Grouped field', slug: 'grouped-field') }
     let(:refusal) do
-      I18n.t('camaleon_cms.admin.custom_field.message.group_number_invalid', slug: 'subtitle', max: 2_147_483_647)
+      I18n.t('camaleon_cms.admin.custom_field.message.group_number_invalid', slug: 'subtitle', max: 2_147_483_647,
+                                                                             digits: 16)
     end
 
     before { category.set_field_value('subtitle', 'kept') }

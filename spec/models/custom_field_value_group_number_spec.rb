@@ -867,18 +867,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  it 'gives the group number error in each language of the admin' do
+  it 'gives the group number error with its range and its 16-digit limit in each language of the admin' do
     files = Dir[CamaleonCms::Engine.root.join('config/locales/camaleon_cms/admin/*.yml')]
     locales = files.map { |file| YAML.load_file(file).keys.first }
     expect(locales).to include('en', 'es', 'zh-CN')
     english = I18n.t('camaleon_cms.admin.custom_field.message.group_number_invalid',
-                     locale: :en, slug: 'note', max: described_class::MAX_GROUP_NUMBER)
+                     locale: :en, slug: 'note', max: described_class::MAX_GROUP_NUMBER,
+                     digits: described_class::MAX_GROUP_NUMBER_DIGITS)
 
     locales.each do |locale|
       row = described_class.new(custom_field_slug: 'note', group_number: -1)
       I18n.with_locale(locale) { row.valid? }
 
-      expect(row.errors[:base].first).to include("'note'", '2147483647'), locale
+      expect(row.errors[:base].first).to include("'note'", '2147483647', '16'), locale
       expect(row.errors[:base].first).not_to eq(english), locale unless locale == 'en'
     end
   end
@@ -889,7 +890,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   it 'shows a slug with the placeholder syntax of I18n in the English message of a language with no message' do
     slug = '100%{x} a%%b' # rubocop:disable Style/FormatStringToken
     row = described_class.new(custom_field_slug: slug, group_number: -1)
-    refusal = "The group number of the '#{slug}' field must be a whole number from 0 to 2147483647."
+    refusal = "The group number of the '#{slug}' field must be a whole number from 0 to 2147483647, " \
+              'with at most 16 digits.'
 
     I18n.with_locale(:xx) { row.valid? }
 
