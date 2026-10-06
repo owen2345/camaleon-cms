@@ -9,8 +9,8 @@ module CamaleonCms
     # - A custom-field value: unsafe content (docs/security/permissions.md) or an invalid group number.
     # - A post type: a decorator class option that names no post decorator.
     #
-    # A failed post save stores nothing. Each other save keeps what it stored before the custom-field
-    # values, and the old values stay.
+    # A failed create or update of a post stores nothing. Each other save, a draft save included, keeps
+    # what it stored before the custom-field values, and the old values stay.
     #
     # The error is raised again for any other record, and for a GET or HEAD request. No form was
     # submitted there, and a redirect leads to a page that fails the same way.
