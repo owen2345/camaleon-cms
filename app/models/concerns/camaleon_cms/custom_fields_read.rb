@@ -332,7 +332,8 @@ module CamaleonCms
     #   clear: (boolean, default true) if true, will remove previous values and set these values,
     #                                  if not will append values
     # Errors:
-    # - ArgumentError when the args give no field_id and no custom field has the slug `key`.
+    # - ArgumentError when the args give no field_id and no custom field of the record has the slug
+    #   `key`.
     # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
     #   not permitted to save. The record keeps its stored values, with the limits that
     #   _cama_write_field_values names.
