@@ -430,7 +430,7 @@ module CamaleonCms
     def _cama_delete_field_values(stored)
       return stored.delete_all unless custom_field_values.loaded?
 
-      deleted_ids = stored.ids
+      deleted_ids = stored.ids.to_set
       stored.delete_all
       custom_field_values.proxy_association.target.reject! { |row| deleted_ids.include?(row.id) }
     end
