@@ -84,14 +84,15 @@ module CamaleonCms
       cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER)
     end
 
-    # Raises ActiveRecord::RecordInvalid for an invalid group number. set_field_value and
-    # set_field_values call it on an unsaved record when they have no value to create.
+    # Raises ActiveRecord::RecordInvalid for an invalid group number. The writers call it on an
+    # unsaved record: set_field_value before it deletes stored values, and set_field_values for an
+    # entry with no values.
     def refuse_invalid_group_number!
       raise_group_number_refusal if group_number_refused?
     end
 
-    # dup copies the group number before the type cast. The cast changes 'abc' to a valid 0, so
-    # without this method the copy of an invalid record is valid.
+    # Rails copies (dup) each attribute after the type cast, which changes 'abc' to a valid 0. So this
+    # method copies the group number before the cast, and the copy of an invalid record is invalid.
     #
     # A copy is a new record, and a new record is always validated. So the copy of a stored record
     # with a negative number from an earlier release is invalid (intended).
