@@ -432,8 +432,8 @@ module CamaleonCms
     end
 
     # False while the connection pool has a transaction isolation level (Rails 8.1), because Rails
-    # raises an error for a savepoint there. The call then runs in the transaction of the caller.
-    # Only a rollback of that transaction brings back the values that a failed call deleted.
+    # raises an error for a savepoint there. Inside a transaction of the caller, the call then runs
+    # in that transaction. Only a rollback of it brings back the values that a failed call deleted.
     def _cama_field_values_savepoint?
       !ActiveRecord::Base.try(:pool_transaction_isolation_level)
     end

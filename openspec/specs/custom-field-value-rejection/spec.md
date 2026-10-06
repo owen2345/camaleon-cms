@@ -217,9 +217,10 @@ each supported database. The system SHALL NOT change an invalid group number to 
   the caller rescues the error and commits. They SHALL run one statement in that transaction
   first, because Rails opens no savepoint before the first statement.
 - **A pool with an isolation level.** Rails 8.1 permits no savepoint while the connection pool has
-  a transaction isolation level. The two methods then SHALL NOT ask for a savepoint: they run in
-  the transaction of the caller, and only a rollback of that transaction restores the deleted
-  values. The transaction of the two methods is on the connection pool of `ActiveRecord::Base`.
+  a transaction isolation level. The two methods then SHALL NOT ask for a savepoint. Inside a
+  transaction of the caller, they run in that transaction, and only a rollback of it restores the
+  deleted values. The transaction of the two methods is on the connection pool of
+  `ActiveRecord::Base`.
 - **The record after a call.** After a failed call, the two methods SHALL reset the
   `custom_field_values` association of the record. The record then SHALL read its stored values,
   and its next save MUST NOT store a value of the failed call. A failed call is an exception of any
