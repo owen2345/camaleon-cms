@@ -73,13 +73,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_values('note', 2)).to eq(['second'])
     end
 
-    # Rails 8.1.4 casts only the first 16 bytes of a String, so a longer String is invalid.
     it 'stores a value under a group number given as a String of 16 digits' do
       post.set_field_value('note', 'padded', group_number: "#{'0' * 15}7")
 
       expect(post.get_field_values('note', 7)).to eq(['padded'])
     end
 
+    # Rails 8.1.4 casts only the first 16 bytes of a String, so a longer String is invalid.
     it 'refuses a group number given as a String of 17 digits and keeps the stored value' do
       expect { post.set_field_value('note', 'new', group_number: "#{'0' * 16}1") }
         .to raise_error(ActiveRecord::RecordInvalid, /group number/)
@@ -153,7 +153,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # Rails raises an encoding error when it casts a String in an invalid encoding to an Integer. Rails
+  # Rails raises an ArgumentError when it casts a String in an invalid encoding to an Integer. Rails
   # also raises an encoding error when it looks up a String in an encoding such as UTF-16. The group
   # number type returns nil for such a String, and the row gets the usual group number error.
   describe 'a group number String that Rails cannot cast' do

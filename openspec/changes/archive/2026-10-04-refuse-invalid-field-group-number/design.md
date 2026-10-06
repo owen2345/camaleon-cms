@@ -12,7 +12,7 @@
 - The **two methods** are `set_field_value` and `set_field_values`. Each one deletes stored values
   and then creates the new values.
 - An **uncastable String** is a String in an invalid encoding, or in an encoding that is not
-  ASCII-compatible (UTF-16, UTF-7). Rails raises an encoding error for it in the integer cast
+  ASCII-compatible (UTF-16, UTF-7). Rails raises an error for it in the integer cast
   (an invalid encoding, UTF-7) or in a lookup (UTF-16).
 
 ## Context
@@ -87,7 +87,7 @@ number.
 the input with no notice.
 
 **D7. An uncastable String is invalid.** Before this change, the caller did not get the group number
-error. Rails raised an encoding error, or stored NULL for a UTF-16 String. The group number now has
+error. Rails raised an error, or stored NULL for a UTF-16 String. The group number now has
 its own integer type, `GroupNumberType`. The type returns nil for an uncastable String. The value
 keeps the String, and the validation adds the group number error.
 
@@ -95,7 +95,8 @@ keeps the String, and the validation adds the group number error.
   group number error.
 - `update_attribute` and `save(validate: false)` skip the validation. A `before_save` callback
   stops them with the group number error. Without it, they store NULL. For each other invalid
-  group number, those two saves run no check, as before.
+  group number, those two saves run no validation, as before. A number outside the 4-byte range
+  raises `ActiveModel::RangeError` (D3).
 - `update_column`, `update_all` with a hash and `insert_all` run no validation and no callback.
   They store NULL for such a String (left as is). A type can only change one value to another
   value, so it cannot keep the number that the row held before.
@@ -190,6 +191,7 @@ reset of the association after each call, which removes the unsaved values of th
 ## Risks / Trade-offs
 
 - A plugin or theme that passes a negative number, a Float or a String that is not digits to
-  `set_field_value` gets `ActiveRecord::RecordInvalid`. No surveyed consumer does.
+  `set_field_value` gets `ActiveRecord::RecordInvalid`. No surveyed consumer does, except the import
+  of `camaleon_export_import` for a value with a stored negative number.
 - Outside `AdminController`, no code rescues that `RecordInvalid`. No Camaleon caller outside the
   admin takes the group number from a request.

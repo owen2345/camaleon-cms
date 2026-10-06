@@ -27,8 +27,8 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   `set_field_values` with no values MUST get the error too.
 - **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
-  encoding error for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
-  lookup raises the error. For such a group number, each write path MUST fail with the group number
+  `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
+  lookup raises an encoding error. For such a group number, each write path MUST fail with the group number
   error. A lookup (`where`, `find_by`) SHALL find no row. `update_attribute` and
   `save(validate: false)` MUST NOT store it.
   `update_column`, `update_all` with a hash and `insert_all` are not write paths of this

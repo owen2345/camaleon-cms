@@ -65,6 +65,7 @@ None.
   `spec/controllers/concerns/camaleon_cms/admin/custom_fields_concern_spec.rb`.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers what changes.
 - Ecosystem: `camaleon_export_import` passes the stored group number of an exported value to
-  `set_field_value`, which is an integer or nil. The master branch of `camaleon-post-clone` copies
+  `set_field_value`, which is an integer or nil. Its import raises for a value with a stored
+  negative number. The master branch of `camaleon-post-clone` copies
   the custom-field values of a post, so its clone of a post with a stored negative group number
   raises `ActiveRecord::RecordInvalid`. `docs/ai/ecosystem.md` records the survey.
