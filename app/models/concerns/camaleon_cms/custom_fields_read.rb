@@ -365,7 +365,7 @@ module CamaleonCms
       _cama_write_field_values do
         # Validate the group number before the delete. With an empty list of values, nothing else
         # validates it, and the delete reads '1abc' as group 1.
-        CamaleonCms::CustomFieldsRelationship.new(v.slice(:custom_field_slug, :group_number))
+        CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: key, group_number: args[:group_number])
                                              .refuse_invalid_group_number!
         if args[:clear]
           _cama_delete_field_values(custom_field_values.where(custom_field_slug: key,
