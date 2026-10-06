@@ -288,7 +288,7 @@ Changes that look free from inside this repository and are not:
   a surveyed consumer sends that shape.
 - **The validation of the group number of a custom-field value** (#1318) changes no surveyed
   consumer for a group number that Camaleon stores. A valid group number is nil, or an integer from
-  0 to 2147483647 (an Integer, or a String of up to 16 digits). Any other number raises
+  0 to 2147483647 (an Integer, or a String of 1 to 16 digits). Any other number raises
   `ActiveRecord::RecordInvalid`, also in a call with no values.
   - `camaleon_export_import` is the only consumer that passes a group number to `set_field_value`.
     It passes the stored number of an exported value, with no rescue. So the import of a value with a
