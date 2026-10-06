@@ -754,7 +754,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
   # set_field_value deletes the stored values with an SQL DELETE, which leaves the deleted rows in a
   # loaded association, where get_field_values reads them. The method removes them from a loaded
-  # association, so the record reads only the new values.
+  # association, so the record no longer reads them.
   describe 'a loaded association after set_field_value' do
     let(:value_rows) { /\ASELECT\b.*custom_fields_relationships/im }
 

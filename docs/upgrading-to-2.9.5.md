@@ -581,8 +581,8 @@ removed, so the save fails.
   rescues the error and commits, the old values stay. Before, they were lost.
 - After a failed call, the record reads its stored values again. Before, it kept the unsaved values
   of the failed call, and its next save failed or stored some of them.
-- After `set_field_value`, a record with a loaded `custom_field_values` association reads only the
-  new values. Before, it also read the deleted values.
+- After `set_field_value`, a loaded `custom_field_values` association no longer holds the values
+  that the call deleted. Before, the record still read them.
 
 **Stored values with a negative group number**
 

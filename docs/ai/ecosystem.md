@@ -302,7 +302,8 @@ Changes that look free from inside this repository and are not:
 - **`set_field_value` and `set_field_values` after #1318** change no surveyed consumer.
   - After an error, the record reads its stored values again. No consumer rescues an error of the
     two methods.
-  - After `set_field_value`, a loaded `custom_field_values` association holds only the new values.
+  - After `set_field_value`, a loaded `custom_field_values` association no longer holds the values
+    that the call deleted.
   - Both methods need `custom_field_values` to be a `has_many` association. No consumer defines it
     as a plain relation.
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
