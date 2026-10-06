@@ -34,7 +34,7 @@ each supported database. The system SHALL NOT change an invalid group number to 
   create the new values. When a new value is invalid, that delete MUST roll back. Inside a
   transaction of the caller, the two methods SHALL use a savepoint, so the stored values stay when
   the caller rescues the error and commits. They SHALL run one statement in that transaction
-  first, because Rails opens no savepoint before the first statement.
+  first, because Rails 7.2 and later open no savepoint before the first statement.
 - **A pool with an isolation level.** Rails 8.1 permits no savepoint while the connection pool has
   a transaction isolation level. The two methods then SHALL NOT ask for a savepoint. Inside a
   transaction of the caller, they run in that transaction, and only a rollback of it restores the

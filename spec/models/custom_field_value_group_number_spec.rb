@@ -459,8 +459,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
-    # Rails opens no savepoint before the first statement in the transaction of the caller. So the
-    # two methods run SELECT 1 first (see _cama_run_statement_in_caller_transaction).
+    # Rails 7.2 and later open no savepoint before the first statement in the transaction of the
+    # caller. So the two methods run SELECT 1 first (see _cama_run_statement_in_caller_transaction).
     context 'when no statement ran in the transaction of the caller' do
       let(:field_id) { post.get_field_object('note').id }
 
