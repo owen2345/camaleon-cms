@@ -10,13 +10,16 @@ Before, the server answered that request with a 500.
 
 A part of a multipart request can name a charset, and Rack gives that charset to the name of the
 part too. The param parser of Rack then raises an encoding error for a part in a charset that is
-not ASCII-compatible (UTF-16, UTF-32, UTF-7), and for a part in ISO-2022-JP with invalid bytes.
+not ASCII-compatible (UTF-16, UTF-32, UTF-7), and for a part in ISO-2022-JP with invalid bytes. A
+file part can name the charset of its file name (`filename*=UTF-16LE''a.txt`), and the parser
+raises the error for a file name in such a charset too.
 
 The system SHALL answer such a request with a 400, for each request method. No controller action
 SHALL start, and the request SHALL store nothing. The system SHALL remove the temporary files that
 Rack recorded for the uploads of that request. Rack records none when its multipart parser raises
-the error: each such request with Rack 2.2 or Rack 3.0, and a part in ISO-2022-JP with invalid bytes
-with Rack 3.2. Ruby then removes the files at garbage collection.
+the error, and Ruby then removes the files at garbage collection. Rack 2.2 and Rack 3.0 record
+none for each such request. Rack 3.2 records none for a part in ISO-2022-JP with invalid bytes and
+for a file name in such a charset.
 
 `CamaleonCms::MultipartEncodingGuard` (the guard) gives that answer:
 
@@ -25,7 +28,8 @@ with Rack 3.2. Ruby then removes the files at garbage collection.
   when the bytes of the part name are invalid in the charset of the part.
 - It SHALL NOT answer another error of the parser. A param error of Rack that is a subclass of
   `ArgumentError` SHALL pass. Rack and Rails handle such an error as before.
-- A file part SHALL pass, because Rack gives no charset to the name of a file part.
+- The charset in the `Content-Type` of a file part SHALL cause no 400, because Rack does not give
+  that charset to the name of a file part.
 
 #### Scenario: A POST with a part in UTF-16 gets a 400
 
@@ -47,6 +51,11 @@ with Rack 3.2. Ruby then removes the files at garbage collection.
 
 - **WHEN** the param parser raises an error of the class `ArgumentError` itself, with a message
   that starts with `invalid byte sequence`, for a multipart request
+- **THEN** the response is a 400, and the next middleware does not get the request
+
+#### Scenario: A file name in UTF-16 gets a 400
+
+- **WHEN** a multipart request has a file part with `filename*=UTF-16LE''a.txt`
 - **THEN** the response is a 400, and the next middleware does not get the request
 
 #### Scenario: Another error of the parser stays with Rack and Rails

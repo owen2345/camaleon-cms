@@ -84,10 +84,22 @@ RSpec.describe CamaleonCms::MultipartEncodingGuard do
     expect(body).to eq(['title,plain,note,x'])
   end
 
-  it 'gives a file part in such a charset to the next app, because Rack gives no charset to a file part' do
+  # Rack does not give the charset in the Content-Type of a file part to the name of that part.
+  it 'gives a file part with such a charset in its Content-Type to the next app' do
     status, = guard.call(env_for(multipart_body([['upload', 'data', 'UTF-16LE', 'a.txt']])))
 
     expect(status).to eq(200)
+  end
+
+  # A file part can name the charset of its file name. The parser of Rack raises an encoding error
+  # for a file name in a charset that is not ASCII-compatible.
+  it 'answers a file part whose file name is in such a charset with a 400' do
+    part = "--#{boundary}\r\nContent-Disposition: form-data; name=\"upload\"; filename*=UTF-16LE''a.txt\r\n\r\ndata\r\n"
+
+    status, = guard.call(env_for("#{part}--#{boundary}--\r\n".b))
+
+    expect(status).to eq(400)
+    expect(reached).to be_empty
   end
 
   # Only a multipart part can name a charset, so the middleware reads no other body.

@@ -46,8 +46,10 @@ exception for Rack 2.2.
 has a charset, so a body with another content type passes with no read. For a POST,
 `Rack::MethodOverride` already parses the params soon after this position, in a stack that has it.
 For each other method, and for a POST in an API-only host, Rails parses them later, so the parse
-now runs before the middleware that comes after the guard. A file part passes, because Rack gives
-no charset to its name.
+now runs before the middleware that comes after the guard. The charset in the `Content-Type` of a
+file part causes no 400, because Rack does not give that charset to the name of a file part. A file
+name in such a charset (`filename*=UTF-16LE''a.txt`) raises an `EncodingError` in the parser, so
+that request gets the 400 (D2).
 
 **D4. The guard goes directly after `ActionDispatch::Executor`.** The default stack of Rails has
 that middleware before `Rack::MethodOverride`. An API-only host has no `Rack::MethodOverride`, and
@@ -55,8 +57,8 @@ an insert before it raises an error at the boot of that host. The request stops 
 `Rack::TempfileReaper`, so the guard removes the temporary files that Rack recorded in
 `rack.tempfiles`. Rack records them after its multipart parser ends. When that parser raises the
 error, the env has no such files, and Ruby removes them at garbage collection. That applies to each
-case with Rack 2.2 and Rack 3.0, and to a part in ISO-2022-JP with invalid bytes with Rack 3.2. The
-same occurred before this change.
+case with Rack 2.2 and Rack 3.0. With Rack 3.2, it applies to a part in ISO-2022-JP with invalid
+bytes and to a file name in such a charset. The same occurred before this change.
 
 **D5. The guard also answers the plain `ArgumentError` of Rack 2.2.** Camaleon supports Rails 6.1,
 and Rails 6.1 and 7.0 need Rack 2. Rack 2.2 raises `Encoding::CompatibilityError` only when the
