@@ -1,6 +1,6 @@
 # Prose Standard
 
-All prose follows ASD-STE100 Simplified Technical English. A person must understand the prose easily, and the prose must be short. Clear prose comes first, but long prose is hard to read too. The maintainer set this standard on 2026-10-04 and put the clarity rule first on 2026-10-05. The rules for short prose and plain names came on 2026-10-06.
+All prose follows ASD-STE100 Simplified Technical English. A person must understand the prose easily, and the prose must be short. Clear prose comes first, but long prose is hard to read too.
 
 ## Clear prose comes first
 
