@@ -9,8 +9,9 @@ module CamaleonCms
   # with a 500. No browser form sends such a part.
   #
   # The middleware parses the params of a multipart request before Rack::MethodOverride does. Rack
-  # keeps the result in the env, so nothing parses the body twice. Each other error of the parser
-  # passes: Rack and Rails handle it as before.
+  # keeps the result in the env for the calls that come later. Each other error of the parser
+  # passes: Rack and Rails handle it as before. Rack 2.2 does not keep such an error, so there each
+  # later call parses the body again.
   #
   # Rack 2.2 raises a plain ArgumentError ("invalid byte sequence") for some of those parts. The
   # middleware answers that error with a 400 too.

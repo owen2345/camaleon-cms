@@ -25,7 +25,8 @@ The maintainer chose D1 and D5 on 2026-10-05. "The guard" is `CamaleonCms::Multi
 
 **D1. A Rack middleware of Camaleon parses the params first.** The guard parses the params of a
 multipart request with `Rack::Request#POST`, the call that `Rack::MethodOverride` and Rails use.
-Rack keeps the result in the env, so nothing parses the body twice. The guard answers an
+Rack keeps the result in the env for the calls that come later. Rack 2.2 does not keep an error of
+the parser, so there each later call parses a body with an error again. The guard answers an
 `EncodingError` of that call with a 400 and the body `Bad Request`. It writes one line to
 `rack.errors`, as `Rack::MethodOverride` does for the errors that it handles. Rejected:
 

@@ -21,8 +21,8 @@ controller of the host. No browser form sends such a part. A param in invalid UT
 - Camaleon adds the Rack middleware `CamaleonCms::MultipartEncodingGuard` to the host app, directly
   after `ActionDispatch::Executor`. That position is before `Rack::MethodOverride`.
 - The guard parses the params of a multipart request with the parser of Rack. It answers an
-  encoding error of the parser with a 400. Rack keeps the result of the parse, so nothing parses
-  the body twice.
+  encoding error of the parser with a 400. Rack keeps the result of the parse for the calls that
+  come later.
 - The guard also answers the plain `ArgumentError` that Rack 2.2 raises for such a part.
 - Each other error of the parser passes to the next middleware, as before.
 - `docs/upgrading-to-2.9.5.md` tells host apps about the middleware.
