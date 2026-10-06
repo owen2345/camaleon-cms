@@ -560,9 +560,9 @@ the record keeps its stored values. The admin forms of Camaleon always send a va
 
 | Group number | Before | Now |
 | --- | --- | --- |
-| A number above 2147483647 | `ActiveModel::RangeError` on PostgreSQL and on MySQL | Invalid |
+| A number above 2147483647 | `ActiveModel::RangeError` on PostgreSQL and on MySQL. SQLite stored it up to 9223372036854775807 | Invalid |
 | A negative number | `set_field_values` stored it in group 0. `set_field_value` stored it as given | Invalid |
-| A String that is not digits only (`'abc'`, `'1abc'`, `' 5'`, `'2.5'`), or a Float | Read with `to_i`: group 0, 1, 5 and 2 | Invalid |
+| A String that is not digits only (`'abc'`, `'1abc'`, `' 5'`, `'2.5'`), or a Float | `'abc'` went to group 0, `'1abc'` to 1, `' 5'` to 5, `'2.5'` and 2.5 to 2. For `'abc'`, `set_field_value` deleted no stored value | Invalid |
 | A String of more than 16 digits | Read as its number. On Rails 8.1.4 with a 4-byte column (PostgreSQL, MySQL), `set_field_value` deleted the values of that number, but stored the new value under the number of its first 16 digits | Invalid |
 | `''` in `set_field_value` | Stored with no group number | Invalid. Pass nil for no group number |
 | A list or a hash in an admin request | The value went to group 0 | Invalid |
@@ -594,7 +594,8 @@ so its clone of such a post raises `ActiveRecord::RecordInvalid`.
 **Limits**
 
 - `update_attribute`, `save(validate: false)`, `update_column`, `update_all` and `insert_all` skip
-  the validation, as before.
+  the validation, as before. `update_attribute` and `save(validate: false)` now refuse a String that
+  the type cannot cast.
 - The group number has a 4-byte range also on SQLite and on a `bigint` column, which can hold a
   larger number. For a stored number n outside that range:
   - `where(group_number: n)` finds no row.
