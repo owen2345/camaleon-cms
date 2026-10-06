@@ -414,9 +414,10 @@ module CamaleonCms
 
     # Makes Rails open a real savepoint for _cama_write_field_values. Rails 7.2 and 8.1 open none
     # before the first statement in the transaction of the caller. After a failed call, they roll
-    # back that whole transaction and begin it again, and on SQLite another connection can take the
-    # write lock in between. So this method runs SELECT 1 there. The query cache is off, because a
-    # cached SELECT sends no statement.
+    # back that whole transaction and begin it again. On SQLite, another connection can take the
+    # write lock in between, and the caller then gets an internal error of Rails, not
+    # ActiveRecord::RecordInvalid. So this method runs SELECT 1 there. The query cache is off,
+    # because a cached SELECT sends no statement.
     def _cama_run_statement_in_caller_transaction
       ActiveRecord::Base.connection_pool.with_connection do |connection|
         ActiveRecord::Base.uncached { connection.select_value('SELECT 1') } if connection.transaction_open?

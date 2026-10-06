@@ -459,9 +459,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
-    # Rails opens no savepoint before the first statement in the transaction of the caller. After a
-    # failed call, it rolls back that whole transaction and begins it again, and on SQLite another
-    # connection can take the write lock in between. So the two methods run SELECT 1 first.
+    # Rails opens no savepoint before the first statement in the transaction of the caller. So the
+    # two methods run SELECT 1 first (see _cama_run_statement_in_caller_transaction).
     context 'when no statement ran in the transaction of the caller' do
       let(:field_id) { post.get_field_object('note').id }
 
