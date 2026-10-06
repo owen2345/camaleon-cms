@@ -332,8 +332,8 @@ module CamaleonCms
     #   clear: (boolean, default true) if true, will remove previous values and set these values,
     #                                  if not will append values
     # Errors:
-    # - ArgumentError when the args give no field_id and no custom field of the record has the slug
-    #   `key`.
+    # - ArgumentError when the args give no field_id and no field group of the record has a field with
+    #   the slug `key`. For a post, the field groups of its post type count too.
     # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
     #   not permitted to save. The record keeps its stored values, with the limits that
     #   _cama_write_field_values names.
@@ -392,8 +392,8 @@ module CamaleonCms
     #   failed call.
     #
     # Intended limits:
-    # - While the pool has a transaction isolation level, the call asks for no savepoint (see
-    #   _cama_field_values_savepoint?).
+    # - While the pool has a transaction isolation level, a failed call inside a transaction of the
+    #   caller does not roll back its delete (see _cama_field_values_savepoint?).
     # - The transaction is on the connection pool of ActiveRecord::Base. It does not cover a host
     #   that puts the Camaleon models on another pool.
     # - A callback of a value can raise ActiveRecord::Rollback before the INSERT. Rails then raises
