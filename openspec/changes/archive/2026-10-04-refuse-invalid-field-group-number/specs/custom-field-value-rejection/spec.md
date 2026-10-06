@@ -8,7 +8,9 @@ custom-field value is the index of the copy that the value belongs to, from 0.
 A value SHALL be valid only when its group number is nil, an Integer from 0 to 2147483647, or a
 String of 1 to 16 digits with such a number. For any other group number, the save MUST fail with
 `ActiveRecord::RecordInvalid` and a message that names the field ("the group number error"), on
-each supported database. The system SHALL NOT change an invalid group number to a valid one.
+each supported database. The system SHALL NOT change an invalid group number to a valid one. The
+writes that skip the validation (`update_attribute`, `save(validate: false)`) are the exception:
+they store a castable group number as Rails casts it, as before.
 
 - **When the validation runs.** A new value is always validated. A stored value SHALL be validated
   only when a save changes its group number. A copy (`dup`) is a new value, and it SHALL keep the
@@ -25,7 +27,8 @@ each supported database. The system SHALL NOT change an invalid group number to 
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
   encoding error for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
   lookup raises the error. For such a group number, each write path MUST fail with the group number
-  error. A lookup (`where`, `find_by`) SHALL find no row. `update_attribute` and `save(validate: false)` MUST NOT store it.
+  error. A lookup (`where`, `find_by`) SHALL find no row. `update_attribute` and
+  `save(validate: false)` MUST NOT store it.
   `update_column`, `update_all` with a hash and `insert_all` are not write paths of this
   requirement: they store NULL.
 - **The range of the attribute.** The group number attribute SHALL have the range of a 4-byte
