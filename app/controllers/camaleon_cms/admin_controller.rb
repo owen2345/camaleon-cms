@@ -6,11 +6,13 @@ module CamaleonCms
     end
     # Shows the ActiveRecord::RecordInvalid of a custom-field value or a post type in a submitted admin
     # form as a flash message, not as a 500 page. The causes of the error:
-    # - A custom-field value: unsafe content (docs/security/permissions.md) or an invalid group number.
+    # - A custom-field value: unsafe content (docs/security/permissions.md), an invalid group number, or
+    #   a slug that names no custom field.
     # - A post type: a decorator class option that names no post decorator.
     #
-    # A failed create or update of a post stores nothing. Each other save, a draft save included, keeps
-    # what it stored before the custom-field values, and the old values stay.
+    # A failed create or update of a post stores no attribute, meta, option or custom-field value of
+    # the post. Each other save, a draft save included, keeps what it stored before the custom-field
+    # values, and the old values stay.
     #
     # The error is raised again for any other record, and for a GET or HEAD request. A GET or HEAD
     # request submits no form, and a redirect leads to a page that fails the same way.
