@@ -239,8 +239,8 @@ module CamaleonCms
     # group_number (optional, in each entry): the index of the copy of a repeatable field group that
     # the values belong to, from 0. An author can add such a group to a post several times. It is an
     # Integer from 0 to 2147483647, or a String of 1 to 16 digits ('5'). nil and '' mean group 0.
-    # Each other group number raises ActiveRecord::RecordInvalid, and the record keeps its stored
-    # values.
+    # Each other group number raises ActiveRecord::RecordInvalid. The record then keeps its stored
+    # values, with the limits that _cama_write_field_values names.
     #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
@@ -333,7 +333,8 @@ module CamaleonCms
     # Errors:
     # - ArgumentError when no custom field has the slug `key`.
     # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
-    #   not permitted to save. The record keeps its stored values.
+    #   not permitted to save. The record keeps its stored values, with the limits that
+    #   _cama_write_field_values names.
     # sample: my_post.set_field_value('subtitle', 'Sub Title')
     # sample: set values for a field (for fields that support multiple values)
     # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
@@ -389,6 +390,8 @@ module CamaleonCms
     #   failed call.
     #
     # Intended limits:
+    # - While the pool has a transaction isolation level, the call asks for no savepoint (see
+    #   _cama_field_values_savepoint?).
     # - The transaction is on the connection pool of ActiveRecord::Base. It does not cover a host
     #   that puts the Camaleon models on another pool.
     # - A callback of a value can raise ActiveRecord::Rollback before the INSERT. Rails then raises
