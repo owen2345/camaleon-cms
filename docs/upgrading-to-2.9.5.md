@@ -563,7 +563,7 @@ the record keeps its stored values. The admin forms of Camaleon always send a va
 | A number above 2147483647 | `ActiveModel::RangeError` on PostgreSQL and on MySQL | Invalid |
 | A negative number | `set_field_values` stored it in group 0. `set_field_value` stored it as given | Invalid |
 | A String that is not digits only (`'abc'`, `'1abc'`, `' 5'`, `'2.5'`), or a Float | Read with `to_i`: group 0, 1, 5 and 2 | Invalid |
-| A String of more than 16 digits | Read as its number. On Rails 8.1.4, `set_field_value` deleted the values of that number, but stored the new value under the number of its first 16 digits | Invalid |
+| A String of more than 16 digits | Read as its number. On Rails 8.1.4 with a 4-byte column (PostgreSQL, MySQL), `set_field_value` deleted the values of that number, but stored the new value under the number of its first 16 digits | Invalid |
 | `''` in `set_field_value` | Stored with no group number | Invalid. Pass nil for no group number |
 | A list or a hash in an admin request | The value went to group 0 | Invalid |
 | `true`, `false` or a file in an admin request | `NoMethodError` | Invalid |
