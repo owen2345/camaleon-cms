@@ -28,7 +28,7 @@ what theme/plugin developers should know.
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
-| Has a client that sends multipart requests with a charset on a part, or has its own Rack middleware that reads the body of a request | A multipart request with a part in a charset that is not ASCII-compatible (UTF-16) gets a 400, not a 500. Camaleon adds the `CamaleonCms::MultipartEncodingGuard` middleware for it ([details](#a-multipart-request-with-a-part-in-utf-16-gets-a-400)) |
+| Has a client that sends multipart requests with a charset on a part, or has its own Rack middleware that must run before Rack parses the body of a request | A multipart request with a part in a charset that is not ASCII-compatible (UTF-16) gets a 400, not a 500. Camaleon adds the `CamaleonCms::MultipartEncodingGuard` middleware for it ([details](#a-multipart-request-with-a-part-in-utf-16-gets-a-400)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
@@ -244,10 +244,16 @@ encoding error of the parser with the 400. Each other error of the parser stays 
 Rails.
 
 **Who must act.** Nobody, with the default middleware stack. Check your app only if it has its own
-Rack middleware that reads or changes the body of a multipart request. Rack now parses that body in
-the guard, before each middleware that comes after it. Before, `Rack::MethodOverride` parsed the
-body of a POST, and Rails parsed the body of each other method later. An API-only app has no
-`Rack::MethodOverride`, so there Rails parsed the body of a POST too.
+Rack middleware that must run before Rack parses the body of a multipart request. Such a
+middleware does one of these:
+
+- It reads or changes that body.
+- It sets an option of the parser, for example `rack.multipart.tempfile_factory`.
+- It refuses a request before the parse, for example for its size.
+
+Rack now parses that body in the guard, before each middleware that comes after the guard. Before,
+`Rack::MethodOverride` parsed the body of a POST, and Rails parsed the body of each other method
+later. An API-only app has no `Rack::MethodOverride`, so there Rails parsed the body of a POST too.
 
 ---
 
