@@ -245,13 +245,13 @@ after `ActionDispatch::Executor`. It parses the params of each multipart request
 encoding error of the parser with the 400. Each other error of the parser stays with Rack and
 Rails.
 
-**Who must act.** Nobody, with the default middleware stack. Check your app only if it has its own
-Rack middleware that must run before Rack parses the body of a multipart request. Such a
-middleware does one of these:
+**Who must act.** Nobody, with the default middleware stack. Check your app if it has its own Rack
+middleware that must run before Rack parses the body of a multipart request. Examples:
 
-- It reads or changes that body.
-- It sets an option of the parser, for example `rack.multipart.tempfile_factory`.
-- It refuses a request before the parse, for example for its size.
+- A middleware that reads or changes that body.
+- A middleware that changes a header that the parser reads, for example `Content-Type`.
+- A middleware that sets an option of the parser, for example `rack.multipart.tempfile_factory`.
+- A middleware that refuses a request before the parse, for example for its size.
 
 Rack now parses that body in the guard, before each middleware that comes after the guard. Before,
 `Rack::MethodOverride` parsed the body of a POST, and Rails parsed the body of each other method
