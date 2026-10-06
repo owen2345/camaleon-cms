@@ -87,9 +87,9 @@ number.
 the input with no notice.
 
 **D7. An uncastable String is invalid.** Before this change, the caller did not get the group number
-error. Rails raised an encoding error, or, on Rails 7.1 and later, stored NULL for a UTF-16 String. The group number now has its own integer
-type, `GroupNumberType`. The type returns nil for an uncastable String. The value keeps the String,
-and the validation adds the group number error.
+error. Rails raised an encoding error, or stored NULL for a UTF-16 String. The group number now has
+its own integer type, `GroupNumberType`. The type returns nil for an uncastable String. The value
+keeps the String, and the validation adds the group number error.
 
 - A lookup with such a String finds no row. So `find_or_create_by!` creates a value, which gets the
   group number error.
