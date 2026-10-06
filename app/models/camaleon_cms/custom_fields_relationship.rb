@@ -218,9 +218,9 @@ module CamaleonCms
       !(given.nil? || storable_group_number?(given))
     end
 
-    # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of digits with such a number
-    # ('5'). Each other class is invalid. The size test and the encoding test come first, because
-    # the regexp raises an error for a String in an invalid encoding.
+    # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
+    # digits with such a number ('5'). Each other class is invalid. The size test and the encoding
+    # test come first, because the regexp raises an error for a String in an invalid encoding.
     def storable_group_number?(given)
       return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
       return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS

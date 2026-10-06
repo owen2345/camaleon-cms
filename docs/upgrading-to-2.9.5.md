@@ -33,7 +33,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
 | Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
-| Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The group number must be nil or an integer from 0 to 2147483647. The two methods raise `ActiveRecord::RecordInvalid` for any other number ([details](#custom-field-group-numbers-are-validated)) |
+| Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer or a String of digits). The two methods raise `ActiveRecord::RecordInvalid` for any other number ([details](#custom-field-group-numbers-are-validated)) |
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 
 ---
@@ -545,11 +545,15 @@ An author can add a repeatable field group to a post several times, for example 
 time for each slide. The group number of a custom-field value is the index of the slide that the
 value belongs to: 0 for the first slide.
 
-A group number is now valid only when it is nil, an Integer from 0 to 2147483647, or a String of
-digits with such a number (`'5'`). For any other group number, `set_field_value`, `set_field_values`
-and `custom_field_values.create!` raise `ActiveRecord::RecordInvalid`. In the admin, the save shows
-the error in a flash message, and the record keeps its stored values. The admin forms of Camaleon
-always send a valid number.
+A group number is now valid only in these cases:
+
+- nil.
+- An Integer from 0 to 2147483647.
+- A String of 1 to 16 digits with such a number (`'5'`).
+
+For any other group number, `set_field_value`, `set_field_values` and `custom_field_values.create!`
+raise `ActiveRecord::RecordInvalid`. In the admin, the save shows the error in a flash message, and
+the record keeps its stored values. The admin forms of Camaleon always send a valid number.
 
 **Who must act:** check plugin or theme code that passes a group number to `set_field_value` or
 `set_field_values`, or that rescues an error of those two methods.

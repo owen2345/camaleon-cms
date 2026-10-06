@@ -74,5 +74,5 @@ Apply the standard to the prose that you add or change. These limits apply:
 | The create or update of a post rolls back what it stored. No other admin save does. | The create or update of a post stores nothing. Each other admin save keeps what it stored before the custom-field values. |
 | A redirect then reaches another page that refuses again. | A redirect does not help: the next page runs the same hook, and the save fails again. |
 | A field group can repeat on a record. The group number of a value says which copy of the group holds the value. | An author can add a repeatable field group to a post several times, for example a "Slide" group for each slide. The group number of a value is the index of its slide, from 0. |
-| Code can give the integer as an Integer or as a text of 1 to 16 ASCII digits. | The group number is an Integer, or a String of digits such as `'5'`. |
+| Code can give the integer as an Integer or as a text of 1 to 16 ASCII digits. | The group number is an Integer, or a String of 1 to 16 digits such as `'5'`. |
 | The core admin forms send the index of the group. | The admin forms of Camaleon send the index of the group. |

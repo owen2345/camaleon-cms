@@ -236,10 +236,11 @@ module CamaleonCms
     # }
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
     #
-    # group_number (optional, in each entry): an author can fill in a repeatable field group several
-    # times, and this is the index of the copy that the values belong to (0 for the first copy). It
-    # is an Integer from 0 to 2147483647, or a String of digits ('5'). nil and '' mean group 0. Each
-    # other group number raises ActiveRecord::RecordInvalid, and the record keeps its stored values.
+    # group_number (optional, in each entry): the index of the copy of a repeatable field group that
+    # the values belong to, from 0. An author can add such a group to a post several times. It is an
+    # Integer from 0 to 2147483647, or a String of 1 to 16 digits ('5'). nil and '' mean group 0.
+    # Each other group number raises ActiveRecord::RecordInvalid, and the record keeps its stored
+    # values.
     #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
@@ -326,7 +327,7 @@ module CamaleonCms
     #   field_id: (integer optional) identifier of the custom field
     #   order: order or position of the field value
     #   group_number: number of the group (only for custom field group with is_repeat enabled).
-    #                 nil, an Integer from 0 to 2147483647, or a String of digits ('5').
+    #                 nil, an Integer from 0 to 2147483647, or a String of 1 to 16 digits ('5').
     #   clear: (boolean, default true) if true, will remove previous values and set these values,
     #                                  if not will append values
     # Errors:
