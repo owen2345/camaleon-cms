@@ -596,9 +596,11 @@ so its clone of such a post raises `ActiveRecord::RecordInvalid`.
 - `update_attribute`, `save(validate: false)`, `update_column`, `update_all` and `insert_all` skip
   the validation, as before.
 - The group number has a 4-byte range also on SQLite and on a `bigint` column, which can hold a
-  larger number. For such a stored number n, `where(group_number: n)` finds no row, and a write of n
-  or a serialization of the row (`Marshal.dump`, a cache write) can raise `ActiveModel::RangeError`.
-  On Rails 7.0 or earlier, each save of such a row raises it.
+  larger number. For a stored number n outside that range:
+  - `where(group_number: n)` finds no row.
+  - A write of n, or a serialization of the row (`Marshal.dump`, a cache write), can raise
+    `ActiveModel::RangeError`.
+  - On Rails 7.0 or earlier, each save of the row raises `ActiveModel::RangeError`.
 - Rails 8.1 permits no savepoint while the connection pool has a transaction isolation level
   (`with_transaction_isolation_level`). A failed call that your code rescues inside its own
   transaction then loses the values that the call deleted.
