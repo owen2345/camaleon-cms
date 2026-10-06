@@ -469,16 +469,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       # Opens a transaction of the caller and runs the block as its first code. Returns the
       # SAVEPOINT and ROLLBACK TO SAVEPOINT statements that the block ran.
       def savepoint_statements_in_a_new_caller_transaction
-        statements = []
-        collect = ->(*, payload) { statements << payload[:sql] if payload[:sql].match?(/\A(ROLLBACK TO )?SAVEPOINT/) }
-        ActiveSupport::Notifications.subscribed(collect, 'sql.active_record') do
+        sql_queries(matching: /\A(ROLLBACK TO )?SAVEPOINT/, include_transactions: true) do
           ActiveRecord::Base.transaction do
             yield
           rescue ActiveRecord::RecordInvalid, ActiveModel::RangeError
             nil
           end
         end
-        statements
       end
 
       def expect_a_rollback_to_a_savepoint_of_the_writer(statements)
@@ -538,13 +535,10 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       # caller runs a query first (post.reload), which opens that transaction as a savepoint inside
       # the transaction of the example. The collector starts after it.
       def savepoints_inside_a_caller_transaction(&block)
-        statements = []
-        collect = ->(*, payload) { statements << payload[:sql] if payload[:sql].include?('SAVEPOINT') }
         ActiveRecord::Base.transaction do
           post.reload
-          ActiveSupport::Notifications.subscribed(collect, 'sql.active_record', &block)
+          sql_queries(matching: /SAVEPOINT/, include_transactions: true, &block)
         end
-        statements
       end
 
       it 'loses the old values and keeps the new rows before the error, when the caller rescues the error' do
