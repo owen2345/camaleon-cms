@@ -24,14 +24,14 @@ module CamaleonCms
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
     GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
-    # An author can add a repeatable field group (is_repeat) to a post several times, for example a
-    # "Slide" group with an image and a caption, one time for each slide. group_number is the index
-    # of the slide that a value belongs to: 0 for the first slide, 1 for the second.
-    # The largest index is the largest 4-byte integer. PostgreSQL and MySQL store the column in 4
-    # bytes.
+    # An author can add a repeatable field group (is_repeat) to a post several times. For example, a
+    # "Slide" group holds an image and a caption, and the author adds it one time for each slide.
+    # group_number is the index of the slide that a value belongs to: 0 for the first slide, 1 for
+    # the second. The largest index is the largest 4-byte integer. PostgreSQL and MySQL store the
+    # column in 4 bytes.
     MAX_GROUP_NUMBER = 2_147_483_647
     # The largest size of a group number String. Rails 8.1.4 casts only the first 16 bytes of a
-    # String to an Integer, so it stores a longer String as another number than the validated one.
+    # String to an Integer. So it stores a longer String as another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
     # The Rails integer type with one change. Rails raises an encoding error for a String in an

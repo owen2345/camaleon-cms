@@ -556,7 +556,7 @@ raise `ActiveRecord::RecordInvalid`. In the admin, the save shows the error in a
 the record keeps its stored values. The admin forms of Camaleon always send a valid number.
 
 **Who must act:** check plugin or theme code that passes a group number to `set_field_value` or
-`set_field_values`, or that rescues an error of those two methods.
+`set_field_values`. Also check code that rescues an error of those two methods.
 
 | Group number | Before | Now |
 | --- | --- | --- |
