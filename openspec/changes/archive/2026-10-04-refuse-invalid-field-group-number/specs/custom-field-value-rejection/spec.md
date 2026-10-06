@@ -9,8 +9,9 @@ A value SHALL be valid only when its group number is nil, an Integer from 0 to 2
 String of 1 to 16 digits with such a number. For any other group number, the save MUST fail with
 `ActiveRecord::RecordInvalid` and a message that names the field ("the group number error"), on
 each supported database. The system SHALL NOT change an invalid group number to a valid one. The
-writes that skip the validation (`update_attribute`, `save(validate: false)`) are the exception:
-they store a castable group number inside the 4-byte range as Rails casts it, as before.
+writes that skip the validation (`update_attribute`, `save(validate: false)`, `update_column`,
+`update_all` with a hash, `insert_all`) are the exception: they store a castable group number inside
+the 4-byte range as Rails casts it, as before.
 
 - **When the validation runs.** A new value is always validated. A stored value SHALL be validated
   only when a save changes its group number. A copy (`dup`) is a new value, and it SHALL keep the
