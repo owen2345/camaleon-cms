@@ -35,8 +35,9 @@ module CamaleonCms
     # another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
-    # The Rails integer type with one change. Rails raises an encoding error for a String in an
-    # invalid encoding or in an encoding such as UTF-16. This type returns nil for such a String.
+    # The Rails integer type with one change. The integer cast of Rails raises ArgumentError for a
+    # String in an invalid encoding. For a String in an encoding such as UTF-16, a lookup raises an
+    # encoding error. This type returns nil for such a String.
     # The record keeps the String, so the validation reports an invalid group number.
     #
     # The range is 4 bytes on each database, also on SQLite and on a bigint column (intended).
