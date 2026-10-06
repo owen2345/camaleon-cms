@@ -2,8 +2,8 @@
 
 # An author can add a repeatable field group to a post several times. The group number of a
 # custom-field value is the index of the copy that the value belongs to, from 0. It is valid when it
-# is nil, an Integer from 0 to 2147483647, or a String of digits with such a number. For each other
-# group number, the save raises ActiveRecord::RecordInvalid.
+# is nil, an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a number. For each
+# other group number, the save raises ActiveRecord::RecordInvalid.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   let(:post_type) { installed_post_type }
   let(:post) { create(:post, post_type: post_type) }

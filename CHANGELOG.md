@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** The group number of a custom-field value is now validated: nil, or an integer from 0 to 2147483647 (an Integer or a String of digits). Before, an admin save with a larger number on PostgreSQL or MySQL, or a JSON boolean, failed with a 500. Now the admin shows an error, and the stored values stay. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
+- **Bug fix:** The group number of a custom-field value is now validated: nil, or an integer from 0 to 2147483647 (an Integer, or a String of up to 16 digits). Before, an admin save with a larger number on PostgreSQL or MySQL, or a JSON boolean, failed with a 500. Now the admin shows an error, and the stored values stay. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#custom-field-group-numbers-are-validated).
 
 - **Bug fix:** After `set_field_value`, a record with a loaded `custom_field_values` association reads the new values only. Before, it also read the values that the call deleted. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
