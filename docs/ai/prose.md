@@ -4,7 +4,7 @@ All prose follows ASD-STE100 Simplified Technical English. A person must underst
 
 ## Clear prose comes first
 
-A text can obey each rule of the other sections and still be hard to understand. Such a text is a defect.
+A text can obey each rule of the other sections and still be hard to understand. A text that is hard to understand is a defect.
 
 - Write for a developer who reads the code for the first time. That reader did not see the PR, its design notes or its review.
 - Use the plain name of a thing. Do not use a label that only the authors of the change know.
@@ -14,7 +14,7 @@ A text can obey each rule of the other sections and still be hard to understand.
 - Each sentence must make sense alone. Do not write a sentence that only points back to the sentence before it.
 - Give the cause with the effect. Say who does what, and what the user or the caller gets.
 - Use a list for cases and conditions.
-- Read each sentence alone after you write or change a text. Ask what the sentence tells that reader.
+- Read each sentence alone after you write or change a text. Ask what the sentence tells a developer who reads the code for the first time.
 
 ## Scope
 

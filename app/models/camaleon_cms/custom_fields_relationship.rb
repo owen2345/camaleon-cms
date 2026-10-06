@@ -57,8 +57,8 @@ module CamaleonCms
 
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :group_number_given?
-    # update_attribute and save(validate: false) skip the validation. This callback stops them for a
-    # String that the type cannot cast. Without it, they store NULL.
+    # update_attribute and save(validate: false) skip the validation, and they store NULL for a String
+    # that the type cannot cast. This callback raises the group number error for such a String.
     before_save :raise_group_number_refusal, if: :group_number_unreadable?
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
     # and friends), regardless of field type, so gate a shortcode in ANY value behind
