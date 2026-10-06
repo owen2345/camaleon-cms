@@ -1,5 +1,5 @@
 /*
-	jQuery tagEditor v1.0.16
+	jQuery tagEditor v1.0.21
     Copyright (c) 2014 Simon Steinberger / Pixabay
     GitHub: https://github.com/Pixabay/jQuery-tagEditor
 	License: http://www.opensource.org/licenses/mit-license.php
@@ -7,10 +7,15 @@
 
 (function($){
     // auto grow input (stackoverflow.com/questions/931207)
-    $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.html(t.replace(/&/g,"&amp;").replace(/\s/g,"&nbsp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"));var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.bind("keyup keydown focus",s)};
+    $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.text(t);var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.on("keyup keydown focus",s)};
 
     // plugin with val as parameter for public methods
     $.fn.tagEditor = function(options, val, blur){
+
+        // helper
+        function escape(tag) {
+            return tag.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
 
         // build options dictionary with default values
         var blur_result, o = $.extend({}, $.fn.tagEditor.defaults, options), selector = this;
@@ -20,7 +25,6 @@
 
         // public methods
         if (typeof options == 'string') {
-
             // depending on selector, response may contain tag lists of multiple editor instances
             var response = [];
             selector.each(function(){
@@ -31,13 +35,13 @@
                 else if (options == 'addTag') {
                     if (o.maxTags && ed.data('tags').length >= o.maxTags) return false;
                     // insert new tag
-                    $('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag"></div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>').appendTo(ed).find('.tag-editor-tag')
+                    $('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag"></div><div class="tag-editor-delete"><i></i></div></li>').appendTo(ed).find('.tag-editor-tag')
                         .html('<input type="text" maxlength="'+o.maxLength+'">').addClass('active').find('input').val(val).blur();
                     if (!blur) ed.click();
                     else $('.placeholder', ed).remove();
                 } else if (options == 'removeTag') {
                     // trigger delete on matching tag, then click editor to create a new tag
-                    $('.tag-editor-tag', ed).filter(function(){return $(this).html()==val;}).closest('li').find('.tag-editor-delete').click();
+                    $('.tag-editor-tag', ed).filter(function(){return $(this).text()==val;}).closest('li').find('.tag-editor-delete').click();
                     if (!blur) ed.click();
                 } else if (options == 'destroy') {
                     el.removeClass('tag-editor-hidden-src').removeData('options').off('focus.tag-editor').next('.tag-editor').remove();
@@ -47,22 +51,21 @@
         }
 
         // delete selected tags on backspace, delete, ctrl+x
-        function delete_selected_tags(e){
+        if (window.getSelection) $(document).off('keydown.tag-editor').on('keydown.tag-editor', function(e){
             if (e.which == 8 || e.which == 46 || e.ctrlKey && e.which == 88) {
                 try {
-                    var sel = getSelection(), el = $(sel.getRangeAt(0).commonAncestorContainer);
+                    var sel = getSelection(), el = document.activeElement.tagName != 'INPUT' ? $(sel.getRangeAt(0).startContainer.parentNode).closest('.tag-editor') : 0;
                 } catch(e){ el = 0; }
-                if (el && el.hasClass('tag-editor')) {
+                if (sel.rangeCount > 0 && el && el.length) {
                     var tags = [], splits = sel.toString().split(el.prev().data('options').dregex);
-                    for (i=0; i<splits.length; i++){ var tag = $.trim(splits[i]); if (tag) tags.push(tag); }
+                    for (i=0; i<splits.length; i++){ var tag = splits[i].trim(); if (tag) tags.push(tag); }
                     $('.tag-editor-tag', el).each(function(){
-                        if (~$.inArray($(this).html(), tags)) $(this).closest('li').find('.tag-editor-delete').click();
+                        if (~$.inArray($(this).text(), tags)) $(this).closest('li').find('.tag-editor-delete').click();
                     });
                     return false;
                 }
             }
-        }
-        if (window.getSelection) $(document).off('keydown.tag-editor').on('keydown.tag-editor', delete_selected_tags);
+        });
 
         return selector.each(function(){
             var el = $(this), tag_list = []; // cache current tags
@@ -77,7 +80,7 @@
             ed.append('<li style="width:1px">&nbsp;</li>');
 
             // markup for new tag
-            var new_tag = '<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag"></div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>';
+            var new_tag = '<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag"></div><div class="tag-editor-delete"><i></i></div></li>';
 
             // helper: update global data
             function set_placeholder(){
@@ -89,7 +92,7 @@
             function update_globals(init){
                 var old_tags = tag_list.toString();
                 tag_list = $('.tag-editor-tag:not(.deleted)', ed).map(function(i, e) {
-                    var val = $.trim($(this).hasClass('active') ? $(this).find('input').val() : $(e).text());
+                    var val = ($(this).hasClass('active') ? $(this).find('input').val() : $(e).text()).trim();
                     if (val) return val;
                 }).get();
                 ed.data('tags', tag_list);
@@ -142,7 +145,7 @@
                 if ($(this).prev().hasClass('active')) { $(this).closest('li').find('input').caret(-1); return false; }
 
                 var li = $(this).closest('li'), tag = li.find('.tag-editor-tag');
-                if (o.beforeTagDelete(el, ed, tag_list, tag.html()) === false) return false;
+                if (o.beforeTagDelete(el, ed, tag_list, tag.text()) === false) return false;
                 tag.addClass('deleted').animate({width: 0}, o.animateDelete, function(){ li.remove(); set_placeholder(); });
                 update_globals();
                 return false;
@@ -153,7 +156,7 @@
                 ed.on('mousedown', '.tag-editor-tag', function(e){
                     if (e.ctrlKey || e.which > 1) {
                         var li = $(this).closest('li'), tag = li.find('.tag-editor-tag');
-                        if (o.beforeTagDelete(el, ed, tag_list, tag.html()) === false) return false;
+                        if (o.beforeTagDelete(el, ed, tag_list, tag.text()) === false) return false;
                         tag.addClass('deleted').animate({width: 0}, o.animateDelete, function(){ li.remove(); set_placeholder(); });
                         update_globals();
                         return false;
@@ -165,10 +168,10 @@
                 if (o.clickDelete && (e.ctrlKey || e.which > 1)) return false;
 
                 if (!$(this).hasClass('active')) {
-                    var tag = $(this).html();
+                    var tag = $(this).text();
                     // guess cursor position in text input
                     var left_percent = Math.abs(($(this).offset().left - e.pageX)/$(this).width()), caret_pos = parseInt(tag.length*left_percent),
-                        input = $(this).html('<input type="text" maxlength="'+o.maxLength+'" value="'+tag+'">').addClass('active').find('input');
+                        input = $(this).html('<input type="text" maxlength="'+o.maxLength+'" value="'+escape(tag)+'">').addClass('active').find('input');
                         input.data('old_tag', tag).tagEditorInput().focus().caret(caret_pos);
                     if (o.autocomplete) {
                         var aco = $.extend({}, o.autocomplete);
@@ -185,19 +188,19 @@
 
             // helper: split into multiple tags, e.g. after paste
             function split_cleanup(input){
-                var li = input.closest('li'), sub_tags = input.val().replace(/ +/, ' ').split(o.dregex), old_tag = input.data('old_tag');
-                var old_tags = tag_list.slice(0), exceeded = false; // copy tag_list
+                var li = input.closest('li'), sub_tags = input.val().replace(/ +/, ' ').split(o.dregex),
+                    old_tag = input.data('old_tag'), old_tags = tag_list.slice(0), exceeded = false, cb_val; // copy tag_list
                 for (var i=0; i<sub_tags.length; i++) {
-                    tag = $.trim(sub_tags[i]).slice(0, o.maxLength);
-                    if (tag) {
-                        if (o.forceLowercase) tag = tag.toLowerCase();
-                        tag = o.beforeTagSave(el, ed, old_tags, old_tag, tag) || tag;
-                        // remove duplicates
-                        if (o.removeDuplicates && ~$.inArray(tag, old_tags))
-                            $('.tag-editor-tag', ed).each(function(){ if ($(this).html() == tag) $(this).closest('li').remove(); });
-                        old_tags.push(tag);
-                        li.before('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+tag+'</div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>');
-                    }
+                    tag = sub_tags[i].trim().slice(0, o.maxLength);
+                    if (o.forceLowercase) tag = tag.toLowerCase();
+                    cb_val = o.beforeTagSave(el, ed, old_tags, old_tag, tag);
+                    tag = cb_val || tag;
+                    if (cb_val === false || !tag) continue;
+                    // remove duplicates
+                    if (o.removeDuplicates && ~$.inArray(tag, old_tags))
+                        $('.tag-editor-tag', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
+                    old_tags.push(tag);
+                    li.before('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+escape(tag)+'</div><div class="tag-editor-delete"><i></i></div></li>');
                     if (o.maxTags && old_tags.length >= o.maxTags) { exceeded = true; break; }
                 }
                 input.attr('maxlength', o.maxLength).removeData('old_tag').val('')
@@ -207,7 +210,7 @@
 
             ed.on('blur', 'input', function(e){
                 e.stopPropagation();
-                var input = $(this), old_tag = input.data('old_tag'), tag = $.trim(input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]));
+                var input = $(this), old_tag = input.data('old_tag'), tag = input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]).trim();
                 if (!tag) {
                     if (old_tag && o.beforeTagDelete(el, ed, tag_list, old_tag) === false) {
                         input.val(old_tag).focus();
@@ -221,12 +224,23 @@
                 else if (tag.indexOf(o.delimiter[0])>=0) { split_cleanup(input); return; }
                 else if (tag != old_tag) {
                     if (o.forceLowercase) tag = tag.toLowerCase();
-                    tag = o.beforeTagSave(el, ed, tag_list, old_tag, tag) || tag;
+                    cb_val = o.beforeTagSave(el, ed, tag_list, old_tag, tag);
+                    tag = cb_val || tag;
+                    if (cb_val === false) {
+                        if (old_tag) {
+                            input.val(old_tag).focus();
+                            blur_result = false;
+                            update_globals();
+                            return;
+                        }
+                        try { input.closest('li').remove(); } catch(e){}
+                        if (old_tag) update_globals();
+                    }
                     // remove duplicates
-                    if (o.removeDuplicates)
-                        $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).html() == tag) $(this).closest('li').remove(); });
+                    else if (o.removeDuplicates)
+                        $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
                 }
-                input.parent().html(tag).removeClass('active');
+                input.parent().html(escape(tag)).removeClass('active');
                 if (tag != old_tag) update_globals();
                 set_placeholder();
             });
@@ -288,7 +302,7 @@
                     }
                 }
                 // del key
-                else if (e.which == 46 && (!$.trim($t.val()) || ($t.caret() == $t.val().length))) {
+                else if (e.which == 46 && (!$t.val().trim() || ($t.caret() == $t.val().length))) {
                     var next_tag = $t.closest('li').next('li').find('.tag-editor-tag');
                     if (next_tag.length) next_tag.click().find('input').caret(0);
                     else if ($t.val()) ed.click();
@@ -297,6 +311,10 @@
                 // enter key
                 else if (e.which == 13) {
                     ed.trigger('click', [$t.closest('li').next('li').find('.tag-editor-tag')]);
+
+                    // trigger blur if maxTags limit is reached
+                    if (o.maxTags && ed.data('tags').length >= o.maxTags) ed.find('input').blur();
+
                     return false;
                 }
                 // pos1
@@ -314,11 +332,11 @@
             var tags = o.initialTags.length ? o.initialTags : el.val().split(o.dregex);
             for (var i=0; i<tags.length; i++) {
                 if (o.maxTags && i >= o.maxTags) break;
-                var tag = $.trim(tags[i].replace(/ +/, ' '));
+                var tag = tags[i].replace(/ +/, ' ').trim();
                 if (tag) {
                     if (o.forceLowercase) tag = tag.toLowerCase();
                     tag_list.push(tag);
-                    ed.append('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+tag+'</div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>');
+                    ed.append('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+escape(tag)+'</div><div class="tag-editor-delete"><i></i></div></li>');
                 }
             }
             update_globals(true); // true -> no onChange callback
