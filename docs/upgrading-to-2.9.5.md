@@ -234,9 +234,11 @@ connection the uploader no longer opens, so it raised before reaching a file.
 
 A part of a multipart request can name a charset, for example
 `Content-Type: text/plain; charset=UTF-16LE`. For a charset that is not ASCII-compatible (UTF-16,
-UTF-32, UTF-7), the param parser of Rack raises an encoding error. Before, the server answered such
-a request with a 500, in each controller of the host app. Now the request gets a 400 with the body
-`Bad Request`, and no controller action starts. No browser form sends such a part.
+UTF-32, UTF-7), the param parser of Rack raises an encoding error. Rack 3.2 converts a part in
+ISO-2022-JP to UTF-8, so that part gets the error only for bytes that Rack cannot convert. Before,
+the server answered such a request with a 500, in each controller of the host app. Now the request
+gets a 400 with the body `Bad Request`, and no controller action starts. No browser form sends such
+a part.
 
 Camaleon adds the Rack middleware `CamaleonCms::MultipartEncodingGuard` to the host app, directly
 after `ActionDispatch::Executor`. It parses the params of each multipart request, and it answers an

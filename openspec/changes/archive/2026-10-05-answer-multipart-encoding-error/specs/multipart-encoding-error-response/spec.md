@@ -4,9 +4,10 @@
 
 A part of a multipart request can name a charset, and Rack gives that charset to the name of the
 part too. The param parser of Rack then raises an encoding error for a part in a charset that is
-not ASCII-compatible (UTF-16, UTF-32, UTF-7), and for a part in ISO-2022-JP with invalid bytes. A
-file part can name the charset of its file name (`filename*=UTF-16LE''a.txt`), and the parser
-raises the error for a file name in such a charset too.
+not ASCII-compatible (UTF-16, UTF-32, UTF-7). Rack 3.2 converts a part in ISO-2022-JP to UTF-8, so
+that part gets the error only for bytes that Rack cannot convert. A file part can name the charset
+of its file name (`filename*=UTF-16LE''a.txt`), and the parser raises the error for a file name in
+a charset that is not ASCII-compatible too.
 
 The system SHALL answer such a request with a 400, for each request method. No controller action
 SHALL start, and the request SHALL store nothing. The system SHALL remove the temporary files that
