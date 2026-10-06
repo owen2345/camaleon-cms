@@ -297,7 +297,7 @@ Changes that look free from inside this repository and are not:
   writes every editor's textarea, the grid's included, whenever any editor loses focus. The plugin can
   remove the hazard by writing TinyMCE's serialization into the textarea itself.
 - **The `CamaleonCms::MultipartEncodingGuard` middleware** (#1319) changes no surveyed consumer. It
-  goes directly after `ActionDispatch::Executor` in the stack of each host, and answers a multipart
+  goes directly after `ActionDispatch::Executor` in the stack of each host. It answers a multipart
   request with a 400 when the param parser of Rack raises an encoding error. No surveyed consumer
   changes the middleware stack, is an API-only app, or sets a charset for a multipart part.
 
