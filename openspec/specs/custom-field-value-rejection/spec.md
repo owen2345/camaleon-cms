@@ -192,7 +192,8 @@ String of 1 to 16 digits with such a number. For any other group number, the sav
 each supported database. The system SHALL NOT change an invalid group number to a valid one. The
 writes that skip the validation (`update_attribute`, `save(validate: false)`, `update_column`,
 `update_all` with a hash, `insert_all`) are the exception: they store a castable group number inside
-the 4-byte range as Rails casts it, as before.
+the 4-byte range as Rails casts it, as before. For a String with no leading digit (`'abc'`),
+`update_column` stores NULL.
 
 - **When the validation runs.** A new value is always validated. A stored value SHALL be validated
   only when a save changes its group number. A copy (`dup`) is a new value, and it SHALL keep the
