@@ -65,7 +65,7 @@ bytes and to a file name in such a charset. The same occurred before this change
 and Rails 6.1 and 7.0 need Rack 2. Rack 2.2 raises `Encoding::CompatibilityError` only when the
 bytes of the part name are valid in the charset of the part. For other bytes it raises a plain
 `ArgumentError` with the message `invalid byte sequence`. A name of 3 bytes in UTF-16LE is an
-example, and so is an ASCII name in UTF-32. Without this decision, those requests keep their 500
+example, and so is an ASCII name in UTF-32LE. Without this decision, those requests keep their 500
 with Rack 2.2.
 
 `Rack::QueryParser::InvalidParameterError` is a subclass of `ArgumentError`, and Rack and Rails
