@@ -31,7 +31,7 @@ module CamaleonCms
     # column in 4 bytes.
     MAX_GROUP_NUMBER = 2_147_483_647
     # The largest size of a group number String. Rails 8.1.4 casts only the first 16 bytes of a
-    # String to an Integer. So it stores a longer String as another number than the validated one.
+    # String to an Integer. So Rails stores a longer String as another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
     # The Rails integer type with one change. Rails raises an encoding error for a String in an

@@ -37,7 +37,7 @@ Before pushing, `AGENTS.md` "Verify before pushing" passes, as scoped there.
 
 ## Phase 3: Commit Guidelines
 
-**One fix per commit by default, committed as soon as it is green.** When a review or an audit turns up several defects, they all land in the same PR, each as its own commit with the spec that reproduces it (spec-only or docs-only where that is the whole fix; say in the message when a spec is infeasible and why). Commit each fix as soon as its specs pass and the `AGENTS.md` checks are clean for what it touched. Do this before you start an unrelated fix. Small related fixes can share a commit. Unrelated fixes never share a commit, also on a pushed PR branch.
+**One fix per commit by default, committed as soon as it is green.** When a review or an audit turns up several defects, they all land in the same PR, each as its own commit with the spec that reproduces it (spec-only or docs-only where that is the whole fix; say in the message when a spec is infeasible and why). Commit each fix as soon as its specs pass and the `AGENTS.md` checks are clean for what it touched. Commit a fix before you start an unrelated fix. Small related fixes can share a commit. Unrelated fixes never share a commit, also on a pushed PR branch.
 
 **A fix and its notes go in one commit.** The commit of a fix holds the code, the spec and the documents that record the fix. Those documents are the OpenSpec artifacts, the upgrade guide and other docs. Do not add those notes in a later commit, which leaves a commit where the code and the documents disagree. The Phase 4 changelog entry and the OpenSpec archive step stay commits of their own.
 

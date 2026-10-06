@@ -237,10 +237,10 @@ module CamaleonCms
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
     #
     # group_number (optional, in each entry): the index of the copy of a repeatable field group that
-    # the values belong to, from 0. An author can add such a group to a post several times. It is an
-    # Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a number ('5'). nil and
-    # '' mean group 0. Each other group number raises ActiveRecord::RecordInvalid. The record then
-    # keeps its stored values, with the limits that _cama_write_field_values names.
+    # the values belong to, from 0. An author can add such a group to a post several times. The group
+    # number is an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a number
+    # ('5'). nil and '' mean group 0. Each other group number raises ActiveRecord::RecordInvalid. The
+    # record then keeps its stored values, with the limits that _cama_write_field_values names.
     #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
