@@ -30,8 +30,9 @@ module CamaleonCms
     # the second. The largest index is the largest 4-byte integer. PostgreSQL and MySQL store the
     # column in 4 bytes.
     MAX_GROUP_NUMBER = 2_147_483_647
-    # The largest size of a group number String. Rails 8.1.4 casts only the first 16 bytes of a
-    # String to an Integer. So Rails stores a longer String as another number than the validated one.
+    # The largest number of bytes in a group number String, one byte for each ASCII digit. Rails 8.1.4
+    # casts only the first 16 bytes of a String to an Integer. So Rails can store a longer String as
+    # another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
     # The Rails integer type with one change. Rails raises an encoding error for a String in an
@@ -56,7 +57,7 @@ module CamaleonCms
     attribute :group_number, GroupNumberType.new
 
     validate :reject_untrusted_dangerous_value
-    validate :reject_invalid_group_number, if: :group_number_given?
+    validate :reject_invalid_group_number, if: :validate_group_number?
     # update_attribute and save(validate: false) skip the validation, and they store NULL for a String
     # that the type cannot cast. This callback refuses such a String: save and update_attribute return
     # false, and save! raises ActiveRecord::RecordInvalid.
@@ -189,11 +190,10 @@ module CamaleonCms
       end
     end
 
-    # Validate the group number of a new record always, and of a stored record only when the number
-    # changes. So code can still update a stored record that holds a negative number from an earlier
-    # release. A String that the type cannot cast is always validated, because Rails sees no change
-    # from nil to it.
-    def group_number_given?
+    # True for a new record, and for a stored record whose group number changes. So code can still
+    # update a stored record that holds a negative number from an earlier release. Also true for a
+    # String that the type cannot cast, because Rails sees no change from nil to it.
+    def validate_group_number?
       new_record? || will_save_change_to_group_number? || group_number_unreadable?
     end
 
@@ -221,8 +221,8 @@ module CamaleonCms
     end
 
     # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
-    # digits with such a number ('5'). Each other class is invalid. The size test and the encoding
-    # test come first, because the regexp raises an error for a String in an invalid encoding.
+    # digits with such a number ('5'). Each other class is invalid. The encoding test comes before the
+    # regexp, because the regexp raises an error for a String in an invalid encoding.
     def storable_group_number?(given)
       return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
       return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
@@ -232,7 +232,7 @@ module CamaleonCms
     end
 
     # The message in the current language, or in English when that language has no translation. Only
-    # en.yml has each message of this model.
+    # en.yml has the messages value_too_large, value_rejected_uri and value_rejected_html.
     #
     # The English default keeps its placeholders, so I18n fills in the slug one time. A slug can
     # hold the placeholder syntax of I18n, and a second interpolation then raises an error.
