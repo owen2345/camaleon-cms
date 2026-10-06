@@ -12,7 +12,8 @@
 - The **two methods** are `set_field_value` and `set_field_values`. Each one deletes stored values
   and then creates the new values.
 - An **uncastable String** is a String in an invalid encoding, or in an encoding that is not
-  ASCII-compatible (UTF-16, UTF-7). The integer cast of Rails raises an encoding error for it.
+  ASCII-compatible (UTF-16, UTF-7). Rails raises an encoding error for it in the integer cast
+  (an invalid encoding, UTF-7) or in a lookup (UTF-16).
 
 ## Context
 
@@ -85,8 +86,8 @@ number.
 **D6. `set_field_values` no longer changes a negative number to 0.** That change was a transform of
 the input with no notice.
 
-**D7. An uncastable String is invalid.** Rails raises its encoding error before the validation
-runs, so the caller did not get the group number error. The group number now has its own integer
+**D7. An uncastable String is invalid.** Before this change, the caller did not get the group number
+error. Rails raised an encoding error, or, on Rails 7.1 and later, stored NULL for a UTF-16 String. The group number now has its own integer
 type, `GroupNumberType`. The type returns nil for an uncastable String. The value keeps the String,
 and the validation adds the group number error.
 

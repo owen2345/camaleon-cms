@@ -153,9 +153,9 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # Rails raises an encoding error when it casts a String in an invalid encoding, or in an encoding
-  # such as UTF-16, to an Integer. The group number type returns nil for such a String, and the row
-  # gets the usual group number error.
+  # Rails raises an encoding error when it casts a String in an invalid encoding to an Integer, and
+  # when it looks up a String in an encoding such as UTF-16. The group number type returns nil for
+  # such a String, and the row gets the usual group number error.
   describe 'a group number String that Rails cannot cast' do
     let(:field_id) { post.get_field_object('note').id }
 

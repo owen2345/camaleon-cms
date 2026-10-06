@@ -202,9 +202,10 @@ each supported database. The system SHALL NOT change an invalid group number to 
 - **Calls with no values.** `set_field_value` with an empty list of values MUST get the error, and
   it SHALL validate the group number before it deletes a stored value. An entry of
   `set_field_values` with no values MUST get the error too.
-- **A String that Rails cannot cast.** Rails raises an encoding error when it casts a String in an
-  invalid encoding, or in an encoding that is not ASCII-compatible (UTF-16), to an Integer. For
-  such a group number, each write path MUST fail with the group number error. A lookup (`where`,
+- **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
+  encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
+  encoding error for an invalid encoding. For UTF-16, the cast returns nil, and a lookup raises the
+  error. For such a group number, each write path MUST fail with the group number error. A lookup (`where`,
   `find_by`) SHALL find no row. `update_attribute` and `save(validate: false)` MUST NOT store it.
   `update_column`, `update_all` with a hash and `insert_all` are not write paths of this
   requirement: they store NULL.
