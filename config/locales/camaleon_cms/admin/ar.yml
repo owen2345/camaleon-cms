@@ -98,6 +98,7 @@ ar:
       custom_field:
         message:
           custom_group_error: 'Error custom field group'
+          group_number_invalid: "رقم المجموعة للحقل '%{slug}' يجب أن يكون عددًا صحيحًا من 0 إلى %{max}، بحد أقصى %{digits} أرقام."
           custom_created: 'The custom field group has been created.'
           custom_updated: 'The custom field group has been updated.'
         fields:

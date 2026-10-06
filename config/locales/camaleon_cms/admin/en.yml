@@ -100,6 +100,7 @@ en:
         custom_group_support_multiple: Support multiple groups
         message:
           custom_group_error: 'Error custom field group'
+          group_number_invalid: "The group number of the '%{slug}' field must be a whole number from 0 to %{max}, with at most %{digits} digits."
           value_rejected_html: "The '%{slug}' field contains HTML that is not allowed for your role (for example scripts, event handlers or embeds). Remove it, or ask an administrator for the unfiltered-content permission."
           value_rejected_uri: "The '%{slug}' field contains a script-capable URL (javascript:/data:), which is not allowed."
           value_too_large: "The '%{slug}' field is too large to store; please shorten it."

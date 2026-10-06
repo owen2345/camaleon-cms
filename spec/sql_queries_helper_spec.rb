@@ -77,4 +77,16 @@ RSpec.describe SqlQueriesHelper do
 
     expect(queries).to eq(['SELECT "posts".* FROM "posts"'])
   end
+
+  it 'collects the TRANSACTION statements only when include_transactions is true' do
+    statements = lambda do
+      ActiveSupport::Notifications.instrument('sql.active_record', sql: 'SAVEPOINT active_record_1',
+                                                                   name: 'TRANSACTION')
+      issue(['SELECT "posts".* FROM "posts"'])
+    end
+
+    expect(sql_queries(&statements)).to eq(['SELECT "posts".* FROM "posts"'])
+    expect(sql_queries(include_transactions: true, &statements))
+      .to eq(['SAVEPOINT active_record_1', 'SELECT "posts".* FROM "posts"'])
+  end
 end

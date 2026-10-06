@@ -33,6 +33,8 @@ what theme/plugin developers should know.
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
 | Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
+| Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). The two methods raise `ActiveRecord::RecordInvalid` for any other number ([details](#custom-field-group-numbers-are-validated)) |
+| Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 
 ---
 
@@ -536,6 +538,81 @@ remove that step when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;
 both were silently dropped since 2.9.2.
+
+### Custom-field group numbers are validated
+
+An author can add a repeatable field group to a post several times, for example a "Slide" group, one
+time for each slide. The group number of a custom-field value is the index of the slide that the
+value belongs to: 0 for the first slide.
+
+A group number is now valid only in these cases:
+
+- nil.
+- An Integer from 0 to 2147483647.
+- A String of 1 to 16 digits with such a number (`'5'`).
+
+For any other group number, `set_field_value`, `set_field_values` and `custom_field_values.create!`
+raise `ActiveRecord::RecordInvalid`. In the admin, the save shows the error in a flash message, and
+the record keeps its stored values. The admin forms of Camaleon always send a valid number.
+
+**Who must act:** check plugin or theme code that passes a group number to `set_field_value` or
+`set_field_values`. Also check code that rescues an error of those two methods.
+
+| Group number | Before | Now |
+| --- | --- | --- |
+| A number above 2147483647 | `ActiveModel::RangeError` on PostgreSQL and on MySQL. SQLite stored it up to 9223372036854775807 | Invalid |
+| A negative number | `set_field_values` stored it in group 0. `set_field_value` stored it as given | Invalid |
+| A String that is not digits only (`'abc'`, `'1abc'`, `' 5'`, `'2.5'`), or a Float | `'abc'` went to group 0, `'1abc'` to 1, `' 5'` to 5, `'2.5'` and 2.5 to 2. For `'abc'`, `set_field_value` deleted no stored value | Invalid |
+| A String of more than 16 digits | Read as its number. On Rails 8.1.4 with a 4-byte column (PostgreSQL, MySQL), `set_field_value` deleted the values of that number, but stored the new value under the number of its first 16 digits | Invalid |
+| `''` in `set_field_value` | Stored with no group number | Invalid. Pass nil for no group number |
+| A list or a hash in an admin request | The value went to group 0 | Invalid |
+| `true`, `false` or a file in an admin request | `NoMethodError` | Invalid |
+
+`set_field_values` still reads an absent or empty group number as group 0.
+`cama_permitted_field_options` now keeps a group number that is a list or a hash, with its content
+removed, so the save fails.
+
+**Other changes of `set_field_value` and `set_field_values`**
+
+- Both methods validate the group number also when they get no value to store: an empty list, or an
+  entry with no values. Before, `set_field_value` with an empty list deleted the values of the
+  group that `to_i` gave: `'1abc'` was group 1.
+- Inside a transaction of your code, a failed call now rolls back to a savepoint. When your code
+  rescues the error and commits, the old values stay. Before, they were lost.
+- After a failed call, the record reads its stored values again. Before, it kept the unsaved values
+  of the failed call, and its next save failed or stored some of them.
+- After `set_field_value`, a loaded `custom_field_values` association no longer holds the values
+  that the call deleted. Before, the record still read them.
+
+**Stored values with a negative group number**
+
+A value from an earlier release can hold a negative group number. Code can still update such a
+value while the number stays. A copy of it (`dup`) is validated as a new value, so its `save`
+returns false. The master branch of `camaleon-post-clone` copies the custom-field values of a post,
+so its clone of such a post raises `ActiveRecord::RecordInvalid`.
+
+**Limits**
+
+- `update_attribute`, `save(validate: false)`, `update_column`, `update_all` and `insert_all` skip
+  the validation, as before. `update_attribute` and `save(validate: false)` now refuse a String that
+  the type cannot cast.
+- The group number has a 4-byte range also on SQLite and on a `bigint` column, which can hold a
+  larger number. For a stored number n outside that range:
+  - `where(group_number: n)` finds no row.
+  - A write of n, or a serialization of the row (`Marshal.dump`, a cache write), can raise
+    `ActiveModel::RangeError`.
+  - On Rails 7.0 or earlier, each save of the row raises `ActiveModel::RangeError`.
+- Rails 8.1 permits no savepoint while the connection pool has a transaction isolation level
+  (`with_transaction_isolation_level`). A failed call that your code rescues inside its own
+  transaction then loses the values that the call deleted.
+- On PostgreSQL, more than 64 calls in one transaction can slow other sessions, because each call
+  is a savepoint that writes. Split a long loop into shorter transactions.
+- The transaction of the two methods is on the connection pool of `ActiveRecord::Base`, as before.
+  It does not cover custom-field values on another pool.
+- A callback of a custom-field value that raises `ActiveRecord::Rollback` is not a failed call, as
+  before.
+- `custom_field_values` must be a `has_many` association. On a model that defines it as a plain
+  relation, the two methods now raise `NoMethodError`.
 
 ---
 

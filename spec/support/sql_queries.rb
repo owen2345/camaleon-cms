@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 # Collect the SQL a block issues, optionally only the statements matching `matching`: a pattern, or a list of
-# patterns a statement must all match. Skips SCHEMA/TRANSACTION noise. Shared by specs that assert query
-# shape or N+1 behaviour.
+# patterns a statement must all match. Skips SCHEMA noise, and TRANSACTION statements (BEGIN, SAVEPOINT,
+# COMMIT) unless `include_transactions` is true. Shared by specs that assert query shape or N+1 behaviour.
 module SqlQueriesHelper
   # What precedes a statement's opening: whitespace, or a comment such as a query log tag
   STATEMENT_LEAD = %r{\A\s*(?:/\*.*?\*/\s*)*}m
@@ -17,12 +17,13 @@ module SqlQueriesHelper
   # An UPDATE of the metas table, which it names right after its opening
   METAS_UPDATE = /#{STATEMENT_LEAD}UPDATE\s+#{METAS_TABLE}/i
 
-  def sql_queries(matching: nil)
+  def sql_queries(matching: nil, include_transactions: false)
     patterns = Array(matching)
+    skipped = include_transactions ? /SCHEMA/i : /SCHEMA|TRANSACTION/i
     queries = []
     sub = ActiveSupport::Notifications.subscribe('sql.active_record') do |*args|
       payload = args.last
-      next if payload[:name].to_s.match?(/SCHEMA|TRANSACTION/i)
+      next if payload[:name].to_s.match?(skipped)
 
       queries << payload[:sql] if patterns.all? { |pattern| payload[:sql].match?(pattern) }
     end

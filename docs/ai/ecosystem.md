@@ -72,7 +72,7 @@ Each shows on the core PR as its own check, `<member> / RSpec`, with the member'
 | `camaleon_image_optimizer` | `~> 2.0` | **2025-07** | `before_upload` only — rewrites the file in place and rebinds `settings[:uploaded_io]`, **after** the content scan; re-fires on the crop path's re-entry into `upload_file` |
 | `camaleon_lazy_loader` | `~> 2.0` | 2022-01 | Writes `response.body`; shares `@skip_lazy_loader` across hooks; reads `front_cache`'s private `@_plugin_do_cache`; binds `on_render_sitemap` with an arity-1 handler that ignores the payload |
 | `camaleon_export_import` | no gemspec (drop-in folder) | 2016-09 | Heaviest consumer found: seven `class_eval` patches from `app_before_load`; writes `content`, `content_filtered`, `user_id`, `post_class` from uploaded JSON; `cama_tmp_upload(params[:url])` with no options, path round-tripped to the client; hard-codes the `object_class` string grammar in five places; `posts.destroy_all`/`nav_menus.destroy_all` on client flags |
-| `camaleon-post-clone` | Gemfile, `>= 2.9.4` | 2026-09 | `deep_clone` + `save!` of a core Post, copying `content` verbatim, with `term_relationships` and `metas`, plus **`field_values` when its custom-fields option is on** (an association 2.8.0 renamed to `custom_field_values`, so that option raises); `set_field_values(params[:field_options])` unfiltered; `add_custom_field_group`/`add_manual_field`; renders the core partial `camaleon_cms/admin/settings/custom_fields/render`; `get_valid_post_slug`, `String#translations`, `Hash#to_translate`, `PostDecorator#the_edit_url`; the `edit_post` hook appends raw HTML to `args[:extra_settings]` and the `plugin_options` hook a link to `args[:links]` |
+| `camaleon-post-clone` | Gemfile, `>= 2.9.4` | 2026-09 | `deep_clone` + `save!` of a Camaleon Post, copying `content` verbatim, with `term_relationships` and `metas`, plus **`field_values` when its custom-fields option is on** (an association that Camaleon 2.8.0 renamed to `custom_field_values`: release 0.0.1 of the plugin raises when that option is on, and its master branch copies `custom_field_values`); `set_field_values(params[:field_options])` unfiltered; `add_custom_field_group`/`add_manual_field`; renders the Camaleon partial `camaleon_cms/admin/settings/custom_fields/render`; `get_valid_post_slug`, `String#translations`, `Hash#to_translate`, `PostDecorator#the_edit_url`; the `edit_post` hook appends raw HTML to `args[:extra_settings]` and the `plugin_options` hook a link to `args[:links]` |
 | `camaleon_post_created_at` | **`>= 2.3.5`** (only explicit constraint) | 2016-11 | Reads the controller ivar `@post` inside `new_post`/`edit_post`; appends raw HTML to `args[:extra_settings]`; injects `post[created_at]` into core strong params |
 | `camaleon-post-order-plugin` | no | 2019-12 | `list_post` hook calling `append_asset_libraries` + `cama_content_append`; `update_column('post_order')` direct on core posts; JS hard-coupled to the admin post-list DOM (`#posts-table-list`, `tr[data-id]`) |
 | `cama_external_menu` | no | 2018-10 | `on_external_menu` sets `args[:parsed_menu] = false` — the entire access check, and it **fails open**; calls bare `current_user` and `.role` |
@@ -286,7 +286,26 @@ Changes that look free from inside this repository and are not:
 - **Dropping a field-options entry under a key that names no allowed slug** (#1315) changes no surveyed
   consumer. Rails passes such an entry through the permit when a group holds a numeric key. No form of
   a surveyed consumer sends that shape.
-
+- **The validation of the group number of a custom-field value** (#1318) changes no surveyed
+  consumer for a group number that Camaleon stores. A valid group number is nil, or an integer from
+  0 to 2147483647 (an Integer, or a String of 1 to 16 digits). Any other number raises
+  `ActiveRecord::RecordInvalid`, also in a call with no values.
+  - `camaleon_export_import` is the only consumer that passes a group number to `set_field_value`.
+    It passes the stored number of an exported value, with no rescue. So the import of a value with a
+    stored negative group number raises `ActiveRecord::RecordInvalid`. Only custom code stored such a
+    number. The import of `cama_contact_form` calls the same helper.
+  - Each consumer page that posts raw params to `set_field_values` renders the Camaleon form or
+    holds no custom field. The form sends the index of the group.
+  - The master branch of `camaleon-post-clone` copies the custom-field values of a post. A copy is
+    validated as a new value. So the clone of a post with a stored negative group number raises
+    `ActiveRecord::RecordInvalid`. Only custom code stored such a number.
+- **`set_field_value` and `set_field_values` after #1318** change no surveyed consumer.
+  - After an error, the record reads its stored values again. No consumer rescues an error of the
+    two methods.
+  - After `set_field_value`, a loaded `custom_field_values` association no longer holds the values
+    that the call deleted.
+  - Both methods need `custom_field_values` to be a `has_many` association. No consumer defines it
+    as a plain relation.
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
   back as written, while TinyMCE hands content back in its own serialization (`rgb(255, 204, 0)` read back

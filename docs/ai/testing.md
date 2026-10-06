@@ -25,7 +25,8 @@ confirm_dialog         # accept JS dialogs
 
 `sql_queries(matching:) { … }` collects the SQL a block issues, only the statements matching a pattern, or every
 pattern of a list, when given, `metas_selects { … }` the SELECTs against the metas table and `metas_updates { … }`
-the UPDATEs of it (`spec/support/sql_queries.rb`); count them to pin a query profile.
+the UPDATEs of it (`spec/support/sql_queries.rb`); count them to pin a query profile. `sql_queries` skips the
+BEGIN, SAVEPOINT and COMMIT statements unless you pass `include_transactions: true`.
 
 `rolled_back_transaction { … }` runs a block in a savepoint of its own and rolls it back, for specs of what a
 rollback leaves on the records the block wrote.

@@ -80,6 +80,111 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     expect(category.get_field_values('subtitle')).to eq(['kept'])
   end
 
+  # Before, these group numbers gave a 500 or a value in the wrong group:
+  # - A number above 2147483647 raised ActiveModel::RangeError on PostgreSQL and MySQL. SQLite raised
+  #   the same error above 9223372036854775807.
+  # - A JSON boolean raised NoMethodError.
+  # - Rails dropped a list or a hash, and the value went to group 0 with no error.
+  # Now the custom-field value is invalid, and the admin gets the error in a flash message.
+  describe 'a group number that is not an integer from 0 to 2147483647' do
+    let(:category) { post_type.categories.create!(name: 'Grouped field', slug: 'grouped-field') }
+    let(:refusal) do
+      I18n.t('camaleon_cms.admin.custom_field.message.group_number_invalid', slug: 'subtitle', max: 2_147_483_647,
+                                                                             digits: 16)
+    end
+
+    before { category.set_field_value('subtitle', 'kept') }
+
+    def expect_refusal
+      expect(response).to have_http_status(:found)
+      expect(flash[:error]).to include(refusal)
+      expect(category.reload.get_field_values('subtitle')).to eq(['kept'])
+    end
+
+    def update_category(group_number, **options)
+      patch "/admin/post_type/#{post_type.id}/categories/#{category.id}", params: {
+        category: { name: 'Grouped field' },
+        field_options: { '0' => { 'subtitle' => { 'group_number' => group_number, 'values' => { '0' => 'x' } } } }
+      }, **options
+    end
+
+    { 'above the range of each database' => '99999999999999999999',
+      'above the range of a 4-byte column' => '2147483648',
+      'negative' => '-1',
+      'not a number' => 'abc',
+      'a number with text after it' => '0abc',
+      'a String of 17 digits' => '00000000000000000',
+      'a list' => ['5'],
+      'a hash' => { 'a' => '5' },
+      'a hash of hashes with a numeric key' => { '0' => { 'a' => '5' } },
+      'a list of hashes' => [{ 'a' => '5' }] }.each do |kind, group_number|
+      it "refuses a group number that is #{kind} and keeps the stored value" do
+        update_category(group_number)
+
+        expect_refusal
+      end
+    end
+
+    { 'true' => true, 'false' => false, 'a list of lists' => [['5']],
+      'an empty list' => [] }.each do |kind, group_number|
+      it "refuses a JSON group number of #{kind} and keeps the stored value" do
+        update_category(group_number, as: :json)
+
+        expect_refusal
+      end
+    end
+
+    it 'refuses a group number that the request sends as a file and keeps the stored value' do
+      update_category(Rack::Test::UploadedFile.new(StringIO.new('1'), 'text/plain', original_filename: 'n.txt'))
+
+      expect_refusal
+    end
+
+    # The post save stores the post and its custom-field values in one transaction. So an invalid
+    # group number also rolls back the new attributes of the post.
+    it 'stores no attribute of a post when the save of the post sends an invalid group number' do
+      group = CamaleonCms::CustomFieldGroup.create!(name: 'Post fields', slug: 'post-fields',
+                                                    object_class: 'PostType_Post', objectid: post_type.id,
+                                                    site: current_site)
+      group.add_manual_field({ 'name' => 'Note', 'slug' => 'note' }, { 'field_key' => 'text_box' })
+      record = create(:post, post_type: post_type, owner: admin, title: 'Kept title')
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{record.id}", params: {
+        post: { title: 'New title', content: '<p>plain</p>', status: 'published' },
+        field_options: { '0' => { 'note' => { 'group_number' => '-1', 'values' => { '0' => 'x' } } } }
+      }
+
+      expect(response).to have_http_status(:found)
+      expect(flash[:error]).to include("The group number of the 'note' field")
+      expect(record.reload.title).to eq('Kept title')
+    end
+
+    # set_field_values creates no row for an entry with no values. It still validates the group
+    # number of that entry.
+    it 'refuses the group number of an entry with no values and keeps the stored value' do
+      patch "/admin/post_type/#{post_type.id}/categories/#{category.id}", params: {
+        category: { name: 'Grouped field' },
+        field_options: { '0' => { 'subtitle' => { 'group_number' => 'abc' } } }
+      }
+
+      expect_refusal
+    end
+
+    it 'stores the value under the largest group number' do
+      update_category('2147483647')
+
+      expect(flash[:error]).to be_nil
+      expect(category.reload.get_field_values('subtitle', 2_147_483_647)).to eq(['x'])
+    end
+
+    it 'stores the value in group 0 when the group number is empty' do
+      update_category('')
+
+      expect(flash[:error]).to be_nil
+      expect(category.reload.get_field_values('subtitle')).to eq(['x'])
+    end
+  end
+
   it 'refuses a draft save whose field_options is a scalar, storing nothing' do
     parent_post = create(:post, post_type: post_type, owner: admin, slug: 'container-parent', status: 'published')
 

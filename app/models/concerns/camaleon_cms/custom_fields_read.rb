@@ -235,6 +235,13 @@ module CamaleonCms
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
+    #
+    # group_number (optional, in each entry): the index of the copy of a repeatable field group that
+    # the values belong to, from 0. An author can add such a group to a post several times. The group
+    # number is an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a number
+    # ('5'). nil and '' mean group 0. Each other group number raises ActiveRecord::RecordInvalid. The
+    # record then keeps its stored values, with the limits that _cama_write_field_values names.
+    #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
     # groups (get_field_groups returns its posts'), a post's post type groups (get_field_groups adds the
@@ -243,7 +250,7 @@ module CamaleonCms
     def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 
-      ActiveRecord::Base.transaction do
+      _cama_write_field_values do
         # A value identical to one already stored is not newly authored, so it must not be re-gated on
         # an unrelated edit (audit M8): the admin form round-trips every value and this method
         # delete/recreates them all, so without this skip a single pre-gate dangerous value would fail
@@ -254,7 +261,16 @@ module CamaleonCms
         custom_field_values.delete_all
         datas.each_value do |fields_data|
           fields_data.each do |field_key, values|
-            next if values[:values].blank?
+            # nil and '' mean group 0. An empty UTF-16 String is invalid, but Ruby says that it
+            # equals '', so the test also reads the encoding.
+            group_number = values[:group_number]
+            group_number = 0 if group_number.nil? || (group_number == '' && group_number.encoding.ascii_compatible?)
+            if values[:values].blank?
+              # The entry has no value to create, so validate its group number here.
+              CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: field_key, group_number: group_number)
+                                                   .refuse_invalid_group_number!
+              next
+            end
 
             # Resolve the field id from the trusted slug, not the client-supplied values[:id]: a
             # forged custom_field_id points the row at a different field definition, and the
@@ -264,8 +280,6 @@ module CamaleonCms
             # pass slugs outside this object's registered groups; a permitted browser payload's slug
             # is in the groups its save resolves against, and its id is held to the slug's fields).
             field_id = _cama_field_id_for(field_key, field_groups) || fallback_field_id_for(field_key) || values[:id]
-            group_number = [values[:group_number].to_i, 0].max
-
             order_value = -1
             (
               if values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)
@@ -312,10 +326,17 @@ module CamaleonCms
     # args:
     #   field_id: (integer optional) identifier of the custom field
     #   order: order or position of the field value
-    #   group_number: number of the group (only for custom field group with is_repeat enabled)
+    #   group_number: number of the group (only for custom field group with is_repeat enabled).
+    #                 nil, an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a
+    #                 number ('5').
     #   clear: (boolean, default true) if true, will remove previous values and set these values,
     #                                  if not will append values
-    # return false if the was not saved because there is not present the field with slug: key
+    # Errors:
+    # - ArgumentError when the args give no field_id and no field group of the record has a field with
+    #   the slug `key`. For a post, the field groups of its post type count too.
+    # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
+    #   not permitted to save. The record keeps its stored values, with the limits that
+    #   _cama_write_field_values names.
     # sample: my_post.set_field_value('subtitle', 'Sub Title')
     # sample: set values for a field (for fields that support multiple values)
     # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
@@ -339,12 +360,16 @@ module CamaleonCms
         custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
         term_order: args[:order], group_number: args[:group_number]
       }
-      # Atomic (audit M7): clear the previous value and write the new one in one transaction, so a
-      # value the scan-and-reject gate refuses (create! -> RecordInvalid) rolls the delete back and
-      # the previously stored value survives instead of being destroyed.
-      ActiveRecord::Base.transaction do
+      # One transaction deletes the old values (the clear option) and creates the new ones. When a
+      # new value is invalid, the delete rolls back, and the old values stay.
+      _cama_write_field_values do
+        # Validate the group number before the delete. With an empty list of values, nothing else
+        # validates it, and the delete reads '1abc' as group 1.
+        CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: key, group_number: args[:group_number])
+                                             .refuse_invalid_group_number!
         if args[:clear]
-          custom_field_values.where({ custom_field_slug: key, group_number: args[:group_number] }).delete_all
+          _cama_delete_field_values(custom_field_values.where(custom_field_slug: key,
+                                                              group_number: args[:group_number]))
         end
         if value.is_a?(Array)
           value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
@@ -355,6 +380,69 @@ module CamaleonCms
     end
 
     private
+
+    # Runs the block of set_field_value or set_field_values in a transaction. Both methods delete
+    # stored values and then create the new ones, so a failed call must roll the delete back.
+    # - requires_new asks Rails for a savepoint. A caller can then rescue the error inside its own
+    #   transaction and commit, and the old values stay.
+    # - After a failed call, the custom_field_values association holds the unsaved values of the
+    #   call. The method resets it, and puts back the unsaved values that the caller built before.
+    # - A failed call is an exception, a throw (so the cleanup is in `ensure`) or
+    #   ActiveRecord::Rollback. The block result is in an array, so `outcome` is nil only for a
+    #   failed call.
+    #
+    # Intended limits:
+    # - While the pool has a transaction isolation level, a failed call inside a transaction of the
+    #   caller does not roll back its delete (see _cama_field_values_savepoint?).
+    # - The transaction is on the connection pool of ActiveRecord::Base. It does not cover a host
+    #   that puts the Camaleon models on another pool.
+    # - A callback of a value can raise ActiveRecord::Rollback before the INSERT. Rails then raises
+    #   no error, and the unsaved value stays in the association.
+    def _cama_write_field_values
+      field_values = custom_field_values.proxy_association
+      built_before = field_values.target.select(&:new_record?)
+      begin
+        savepoint = _cama_field_values_savepoint?
+        _cama_run_statement_in_caller_transaction if savepoint
+        outcome = ActiveRecord::Base.transaction(requires_new: savepoint) { [yield] }
+        outcome&.first
+      ensure
+        unless outcome
+          custom_field_values.reset
+          built_before.each { |row| field_values.add_to_target(row, skip_callbacks: true) }
+        end
+      end
+    end
+
+    # Makes Rails open a real savepoint for _cama_write_field_values: Rails 7.2 and later open none
+    # before the first statement in the transaction of the caller. So this method runs SELECT 1 there.
+    # Without the SELECT 1, on SQLite with Rails 8.1, the caller can get an internal error of Rails
+    # after a failed call, not ActiveRecord::RecordInvalid. The query cache is off, because a cached
+    # SELECT sends no statement.
+    def _cama_run_statement_in_caller_transaction
+      ActiveRecord::Base.connection_pool.with_connection do |connection|
+        ActiveRecord::Base.uncached { connection.select_value('SELECT 1') } if connection.transaction_open?
+      end
+    end
+
+    # Deletes the given stored values with one SQL DELETE. A loaded custom_field_values association
+    # keeps the deleted values, and get_field_values reads it. So the method also removes them from
+    # a loaded association, at the cost of one query for their ids.
+    def _cama_delete_field_values(stored)
+      return stored.delete_all unless custom_field_values.loaded?
+
+      deleted_ids = stored.ids.to_set
+      stored.delete_all
+      custom_field_values.proxy_association.target.reject! { |row| deleted_ids.include?(row.id) }
+    end
+
+    # False while the connection pool has a transaction isolation level (Rails 8.1), because Rails
+    # raises an error for a savepoint there. Inside a transaction of the caller, the call then runs
+    # in that transaction. Only a rollback of the transaction of the caller brings back the values
+    # that a failed call deleted.
+    def _cama_field_values_savepoint?
+      !ActiveRecord::Base.try(:pool_transaction_isolation_level)
+    end
 
     # The fields registered under a slug. Groups share the table and keep their site's id in parent_id, so
     # a parent_id lookup must count only field rows.

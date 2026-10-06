@@ -90,6 +90,39 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
       end
     end
 
+    # The permit helper keeps a group number that is a list or a hash, with its content removed, so
+    # the custom-field value fails its validation. Before, Rails dropped such a group number, and
+    # the value went to group 0 with no error.
+    context 'with a group number that is not a scalar' do
+      def permitted_group_number(group_number)
+        entry = { 'id' => '1', 'group_number' => group_number, 'values' => { '0' => 'own' } }
+        controller.params = ActionController::Parameters.new(field_options: { '0' => { 'own_setting' => entry } })
+        controller.send(:cama_permitted_field_options, 'Plugin')['0']['own_setting']['group_number']
+      end
+
+      it 'keeps a scalar' do
+        expect(permitted_group_number('2')).to eq('2')
+      end
+
+      it 'changes a list to an empty list' do
+        expect(permitted_group_number(%w[5 6])).to eq([])
+      end
+
+      it 'changes a hash to an empty hash' do
+        expect(permitted_group_number({ 'a' => '5' })).to eq({})
+      end
+
+      # Rails reads a hash with a numeric key and a hash value as nested attributes. It keeps the key
+      # and drops the content of the value.
+      it 'changes a hash of hashes with a numeric key to that key with an empty hash' do
+        expect(permitted_group_number({ '0' => { 'a' => '5' } })).to eq({ '0' => {} })
+      end
+
+      it 'changes a list of hashes to a list of empty hashes' do
+        expect(permitted_group_number([{ 'a' => '5' }])).to eq([{}])
+      end
+    end
+
     # The checkboxes field submits `values[]`, a list, where the other fields submit `values[<index>]`.
     context 'with values in both shapes' do
       def permitted_values(values)

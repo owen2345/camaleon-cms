@@ -97,6 +97,7 @@ fr:
       custom_field:
         message:
           custom_group_error: 'Erreur de champ extra'
+          group_number_invalid: "Le numéro de groupe du champ '%{slug}' doit être un nombre entier de 0 à %{max}, avec au plus %{digits} chiffres."
           custom_created: 'Le groupe de champs extras a été créé.'
           custom_updated: 'Le groupe de champs extras a été mis à jour.'
         fields:

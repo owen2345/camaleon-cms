@@ -32,6 +32,13 @@ RSpec.describe 'the colorpicker custom field', :js do
     page.evaluate_script("jQuery('.c-field-text_box .input-value').val()")
   end
 
+  # Opens the color picker through jQuery, and waits for it. A mouse click on its button can miss
+  # while the page loads the text editor, and the picker then stays closed.
+  def open_picker
+    page.execute_script(%(jQuery('.my-colorpicker .input-group-addon').trigger('click');))
+    expect(page).to have_css('.colorpicker.dropdown-menu', visible: :visible)
+  end
+
   it 'renders the picker, its value and the fields after it despite a non-colour value' do
     @post.set_field_value('tint', '2')
     visit_post_edit
@@ -243,7 +250,7 @@ RSpec.describe 'the colorpicker custom field', :js do
     visit_post_edit
     expect(page).to have_css('.my-colorpicker', count: 1)
 
-    page.find('.my-colorpicker .input-group-addon').click
+    open_picker
     page.execute_script('jQuery(document).trigger("mousedown")')
 
     expect(page.find('.my-colorpicker input').value).to eq('2')
@@ -255,7 +262,7 @@ RSpec.describe 'the colorpicker custom field', :js do
     expect(page).to have_css('.my-colorpicker', count: 1)
 
     page.execute_script(%(jQuery('.my-colorpicker').data('colorpicker').setValue('#00ff00');))
-    page.find('.my-colorpicker .input-group-addon').click
+    open_picker
     page.execute_script('jQuery(document).trigger("mousedown")')
 
     expect(page.find('.my-colorpicker input').value).to eq('#00ff00')

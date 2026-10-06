@@ -6,8 +6,8 @@
 # post_content_unfiltered_html for the post type) store exactly what they wrote. Field types that
 # render through escaping ERB as element content carry no gate.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
-  let(:site) { create(:site) }
-  let(:post_type) { create(:post_type, site: site) }
+  let(:post_type) { installed_post_type }
+  let(:site) { post_type.site }
   let(:admin) { create(:user, role: 'admin', site: site) }
   let(:contributor) { create(:user, role: 'contributor', site: site) }
   let(:post) { create(:post, post_type: post_type, owner: contributor) }
@@ -183,6 +183,43 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect { post.set_field_value('body', script) }.to raise_error(ActiveRecord::RecordInvalid)
       expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
+    end
+
+    it 'keeps the stored value when the caller rescues the error inside its transaction' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>keep me</p>')
+
+      ActiveRecord::Base.transaction do
+        post.set_field_value('body', script)
+      rescue ActiveRecord::RecordInvalid
+        nil
+      end
+
+      expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
+    end
+
+    it 'stores no value of a failed call when the caller saves the post after the error' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>keep me</p>')
+
+      expect { post.set_field_value('body', ['<p>first</p>', script]) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(post.save).to be(true)
+      expect(post.reload.get_field_values('body')).to eq(['<p>keep me</p>'])
+    end
+
+    # After the failed call, set_field_value resets the association of the post, which removes each
+    # unsaved row. It then puts back the row that the caller built before the call.
+    it 'keeps the row that the caller built when set_field_value fails for a list' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>keep me</p>')
+      post.custom_field_values.build(custom_field_id: post.get_field_object('body').id, custom_field_slug: 'body',
+                                     value: '<p>built</p>', group_number: 5)
+
+      expect { post.set_field_value('body', ['<p>first</p>', script]) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(post.save).to be(true)
+      expect(post.reload.custom_field_values.pluck(:value)).to contain_exactly('<p>keep me</p>', '<p>built</p>')
     end
 
     it 'refuses a dangerous value written through update_field_value (M5)' do

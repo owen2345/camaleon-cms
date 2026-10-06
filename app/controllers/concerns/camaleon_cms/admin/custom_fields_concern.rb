@@ -28,7 +28,11 @@ module CamaleonCms
         # inputs) or as a list of scalars (`values[]`, the checkboxes field). A `values` filter that does
         # not match the shape leaves the result of the other one in place. Rails converts a plain filter
         # again for each group. `group_filter` has indifferent access, so Rails does not convert it.
-        entry_filter = [:id, :group_number, { values: {} }, { values: [] }]
+        #
+        # `{ group_number: [{}] }` keeps a group number that the request sends as a list or a hash, with
+        # its content removed. The value then fails its validation. With `:group_number` alone, Rails
+        # drops such a group number, and the value goes to group 0 with no error.
+        entry_filter = [:id, :group_number, { values: {} }, { values: [] }, { group_number: [{}] }]
         group_filter = allowed_keys.index_with { entry_filter }.with_indifferent_access
         group_keys = field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }
         permitted = field_options.permit(group_keys.index_with { group_filter }).to_h
