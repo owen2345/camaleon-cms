@@ -4,8 +4,8 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    # Shows the ActiveRecord::RecordInvalid of a submitted admin form as a flash message, not as a 500
-    # page. These records raise ActiveRecord::RecordInvalid in an admin save:
+    # Shows the ActiveRecord::RecordInvalid of a custom-field value or a post type in a submitted admin
+    # form as a flash message, not as a 500 page. The causes of the error:
     # - A custom-field value: unsafe content (docs/security/permissions.md) or an invalid group number.
     # - A post type: a decorator class option that names no post decorator.
     #

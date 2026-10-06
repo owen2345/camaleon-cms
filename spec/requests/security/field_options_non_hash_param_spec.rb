@@ -81,8 +81,8 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
   end
 
   # Before, these group numbers gave a 500 or a value in the wrong group:
-  # - A number above 2147483647 raised ActiveModel::RangeError, and a JSON boolean raised
-  #   NoMethodError.
+  # - A number above 2147483647 raised ActiveModel::RangeError on PostgreSQL and MySQL, and a JSON
+  #   boolean raised NoMethodError.
   # - Rails dropped a list or a hash, and the value went to group 0 with no error.
   # Now the custom-field value is invalid, and the admin gets the error in a flash message.
   describe 'a group number that is not an integer from 0 to 2147483647' do
