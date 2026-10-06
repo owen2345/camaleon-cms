@@ -13,10 +13,11 @@ each supported database. The system SHALL NOT change an invalid group number to 
 - **When the validation runs.** A new value is always validated. A stored value SHALL be validated
   only when a save changes its group number. A copy (`dup`) is a new value, and it SHALL keep the
   group number as the caller gave it. So the copy of an invalid value MUST be invalid.
-- **Admin saves.** An admin save with an invalid group number MUST NOT answer with a 500. It SHALL
-  redirect back with the error, and the record SHALL keep its stored values. An absent or empty
-  group number SHALL mean group 0. `cama_permitted_field_options` SHALL keep a group number that
-  is a list or a hash, with its content removed, so that the save fails.
+- **Admin saves.** An admin save that reaches the controller with an invalid group number MUST NOT
+  answer with a 500. It SHALL redirect back with the error, and the record SHALL keep its stored
+  values. Rails answers a param in an invalid encoding with a 400 before the controller. An absent
+  or empty group number SHALL mean group 0. `cama_permitted_field_options` SHALL keep a group
+  number that is a list or a hash, with its content removed, so that the save fails.
 - **Calls with no values.** `set_field_value` with an empty list of values MUST get the error, and
   it SHALL validate the group number before it deletes a stored value. An entry of
   `set_field_values` with no values MUST get the error too.
