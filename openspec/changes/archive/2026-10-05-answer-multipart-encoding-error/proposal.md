@@ -44,7 +44,7 @@ None.
   position in the stack), `lib/camaleon_cms.rb` (the require).
 - Specs: `spec/requests/multipart_encoding_guard_spec.rb` and
   `spec/lib/camaleon_cms/multipart_encoding_guard_spec.rb`.
-- Each host app gets one more middleware. For a multipart PATCH, PUT or DELETE, the parse of the
-  params runs earlier than before.
+- Each host app gets one more middleware. For each method other than POST, and for a POST in an
+  API-only host, the parse of the params of a multipart request runs earlier than before.
 - Ecosystem: no surveyed consumer changes the middleware stack, is an API-only app, or sets a
   charset for a multipart part. `docs/ai/ecosystem.md` records the survey.
