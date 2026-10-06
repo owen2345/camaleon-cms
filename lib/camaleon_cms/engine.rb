@@ -84,6 +84,11 @@ module CamaleonCms
         app.middleware.use CamaleonCms::MediaSecurityHeaders
       end
 
+      # The guard must run before Rack::MethodOverride, which parses the params of a POST. It goes
+      # after ActionDispatch::Executor, which each Rails stack has. An API-only host has no
+      # Rack::MethodOverride, and an insert before it stops the boot of that host.
+      app.middleware.insert_after ::ActionDispatch::Executor, CamaleonCms::MultipartEncodingGuard
+
       # Static files
       app.middleware.use ::ActionDispatch::Static, "#{root}/public"
 
