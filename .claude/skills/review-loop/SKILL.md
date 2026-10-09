@@ -88,7 +88,7 @@ The checks are the four in camaleon-cms `AGENTS.md` "Verify before pushing". A p
 
 Each commit runs the checks before it lands, the lint first, as `docs/ai/workflows.md` Phase 3 says. A pass that commits nothing runs no check. The PASS line reports the last run of each check in the pass, or n/a when the pass did not run it.
 
-A foreground command ends at its timeout: two minutes by default, ten minutes at most. Give a long command the ten-minute timeout. A command that takes longer, such as a run of the whole suite, runs in the background. The pass reads its log when the harness reports its end. Do not edit the checkout while a run is active in the background.
+A foreground command ends at its timeout: two minutes by default, ten minutes at most. Give a long command the ten-minute timeout, and run it again until it ends on its own. A command that must not be cut, such as a run of the whole suite, runs in the background. Then wait for its end in the foreground, with the same timeout, run again until no run is active: `until ! pgrep -f '[r]spec' > /dev/null; do sleep 20; done`. Do not edit the checkout while a run is active in the background.
 
 The fifth check is **ci**: the GitHub checks of the PR head. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD`. A stop that pushes reads them again for the pushed commit (see **Pass states and stop**). The PASS line reports ci in its checks field like the other checks.
 
