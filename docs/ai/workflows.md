@@ -74,7 +74,7 @@ Bisect names the commit that caused the failure. When it lists several commits i
 
 When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix.
 
-When a file holds both fixes, unstage that file (`git reset -- <file>`) and copy it to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
+When a file holds both fixes, copy it to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), which also unstages it, then make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
 
 Commit the staged changes with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
 
