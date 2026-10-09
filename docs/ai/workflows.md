@@ -47,9 +47,9 @@ Run the checks in their order. Run `bin/rubocop -A` first, on the whole repo: CI
 
 Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:check. When no spec file applies, skip the spec run: `bin/rspec` with no files runs the whole suite. Do not run the checks before you start a change.
 
-When a check fails, wait until no other spec run is active (`docs/ai/testing.md`). Then run the check again in the checkout, the same way: an RSpec run uses the same files and the `--seed`, if any.
+When a check fails, wait until no other spec run is active (`docs/ai/testing.md`). Then run the check again in the checkout, the same way. This is the second run. An RSpec run uses the same files and the `--seed`, if any.
 
-When the check does not fail in the same way, the failure is a flake: the result is not the same each time. Find the cause of the flake and fix it. The fix goes in the commit of the fix that is not committed yet, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
+When the check does not fail in the same way, the result is not the same each time. When another run was active during the first run (`docs/ai/run-markers.md`), that run caused the failure, and there is nothing to fix. Otherwise the failure is a flake. Find the cause of the flake and fix it. The fix goes in the commit of the fix that is not committed yet, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
 
 When the check fails again in the same way, find out what caused the failure. The fix that is not committed yet caused it when the failure is in a line or a spec example of this fix. A failure in a file that this fix adds also comes from this fix. Fix the failure in the commit of the fix. For any other failure, find the cause with one bisect in a scratch clone:
 
