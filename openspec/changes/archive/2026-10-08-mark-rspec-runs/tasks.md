@@ -22,4 +22,4 @@
 
 - [x] 3.1 `bin/rubocop -A` on the touched files, `bin/rspec spec/rspec_run_marker_spec.rb`,
   `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 3.2 Archive this change on the branch
+- [x] 3.2 Archive this change on the branch
