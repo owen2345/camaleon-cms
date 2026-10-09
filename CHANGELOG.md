@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The `review-loop` skill now follows the commit rule of `docs/ai/workflows.md` Phase 3. Related fixes can share a commit, and the checks run before each commit. The loop reads the CI checks of the PR head at setup and after its push. Phase 3 says which fixes are related and how to trace a failed check or a flake. Agents run the whole RSpec suite only when the user asks, or to run a failed CI job again. Development-only. [#1320](https://github.com/owen2345/camaleon-cms/pull/1320).
+
 - **Tooling:** Each run of the Camaleon suite now leaves a run marker under `tmp/rspec-runs` in the repo root. At exit, a run names the run markers of the other runs that were active during it (`docs/ai/run-markers.md`). Development-only. [#1321](https://github.com/owen2345/camaleon-cms/pull/1321).
 
 - **Bug fix:** The group number of a custom-field value is now validated. It must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). Before, an admin save with a larger number on PostgreSQL or MySQL, or a JSON boolean, failed with a 500. Now the admin shows an error, and the stored values stay. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
