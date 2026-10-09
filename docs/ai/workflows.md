@@ -72,7 +72,7 @@ Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-
 
 Bisect names the commit that caused the failure. When it lists several commits instead (`The first 'bad' commit could be any of`), the commits before the cause fail in another way. Find the cause in the diffs of the listed commits, or tell the user.
 
-When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix. When a file holds both fixes, make a patch with `git diff -U0`, keep the hunks of the failure fix, and stage them with `git apply --cached --unidiff-zero <patch>`. Do not use the interactive `git add -p`.
+When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix. When a file holds both fixes, copy it aside and restore it from HEAD (`git checkout -- <file>`). Make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`, and do not stage a hunk of a `-U0` patch: it lands at the wrong line when the other fix inserts lines above it.
 
 Commit them with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
 
