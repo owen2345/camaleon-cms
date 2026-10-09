@@ -47,7 +47,7 @@ Run the checks in their order. Run `bin/rubocop -A` first, on the whole repo: CI
 
 Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:check. When no spec file applies, skip the spec run: `bin/rspec` with no files runs the whole suite. Do not run the checks before you start a change.
 
-When a check fails, wait until no other spec run is active (`docs/ai/testing.md`). A run with another run active during it does not count (`docs/ai/run-markers.md`): run the check again alone, and that run is the first run. Then run the check again in the checkout, the same way. That run is the second run. An RSpec run uses the same files and the `--seed`, if any.
+When a check fails, wait until no other spec run is active (`docs/ai/testing.md`). A run with another run active during it does not count (`docs/ai/run-markers.md`): run the check again alone, and that run is the first run. When that run passes, the check passed: there is nothing to fix. Otherwise run the check again in the checkout, the same way. That run is the second run. An RSpec run uses the same files and the `--seed`, if any.
 
 When the check does not fail in the same way in the second run, the failure is a flake. The result is not the same each time. Find the cause of the flake and fix it. The flake fix goes in the commit of the uncommitted fix, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
 
