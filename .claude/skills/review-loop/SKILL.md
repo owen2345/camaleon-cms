@@ -92,7 +92,9 @@ The checks are the four in camaleon-cms `AGENTS.md` "Verify before pushing". A p
 
 Each commit runs the checks before it lands, the lint first, as `docs/ai/workflows.md` Phase 3 says. A pass that commits nothing runs no check. The PASS line reports the last run of each check in the pass, or n/a when the pass did not run it.
 
-A foreground command that reaches its timeout moves to the background and keeps running until the turn ends. The timeout is two minutes by default and ten minutes at most. Give a long command the ten-minute timeout. Do not start a cut spec run again. Start a run that can take longer, such as the whole suite, with its exit code written at its end: `(<command> > <log> 2>&1; echo $? > <log>.done)`. Wait for that file in the foreground, as often as needed: `until [ -e <log>.done ]; do sleep 20; done`. Do not edit the checkout while a run is active in the background.
+A foreground command that reaches its timeout moves to the background and keeps running until the turn ends. The timeout is two minutes by default and ten minutes at most. Give a long command the ten-minute timeout. Do not start a cut spec run again.
+
+Start a run that can take longer, such as the whole suite, with its exit code written at its end: `(<command> > <log> 2>&1; echo $? > <log>.done)`. Wait for that file in the foreground, as often as needed: `until [ -e <log>.done ]; do sleep 20; done`. Do not edit the checkout while a run is active in the background.
 
 The fifth check is **ci**: the GitHub checks of the PR head. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD`. A stop that pushes reads them again for the pushed commit (see **Pass states and stop**). The PASS line reports ci in its checks field like the other checks.
 
