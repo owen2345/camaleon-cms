@@ -47,7 +47,7 @@ Run the checks in their order. Run `bin/rubocop -A` first, on the whole repo: CI
 
 Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:check. When no spec file applies, skip the spec run: `bin/rspec` with no files runs the whole suite. Do not run the checks before you start a change.
 
-When a check fails, run it again in the checkout, the same way. The run that failed is the first run, and this run is the second run. An RSpec run uses the same files and the `--seed`, if any, and starts only when no other spec run is active (`docs/ai/testing.md`). A spec run with another run active during it in the same checkout does not count (`docs/ai/run-markers.md`). Run it again alone: that run takes its place. When the repeat of the first run passes, the check passed: there is nothing to fix.
+When a check fails, run it again in the checkout, the same way. The run that failed is the first run, and this run is the second run. An RSpec run uses the same files and the `--seed`, if any, and starts only when no other spec run is active (`docs/ai/testing.md`). A spec run with another run active during it in the same checkout does not count (`docs/ai/run-markers.md`). Run it again alone: that run takes its place. When the first run did not count and the run alone after it passes, the check passed: there is nothing to fix.
 
 When the check does not fail in the same way in the second run, the failure is a flake. The result is not the same each time. Find the cause of the flake and fix it. The flake fix goes in the commit of the uncommitted fix, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
 
@@ -74,7 +74,7 @@ Bisect names the commit that caused the failure. When it lists several commits i
 
 When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix.
 
-When a file holds both fixes, unstage everything (`git reset`) and copy the file to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
+When a file holds both fixes, unstage that file (`git reset -- <file>`) and copy it to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
 
 Commit the staged changes with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
 
