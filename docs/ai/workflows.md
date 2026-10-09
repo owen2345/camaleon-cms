@@ -49,7 +49,7 @@ Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:chec
 
 When a check fails, wait until no other spec run is active (`docs/ai/testing.md`). A run with another run active during it does not count (`docs/ai/run-markers.md`): run the check again alone, and that run is the first run. Then run the check again in the checkout, the same way. That run is the second run. An RSpec run uses the same files and the `--seed`, if any.
 
-When the check does not fail in the same way in the second run, the failure is a flake: the result is not the same each time. Find the cause of the flake and fix it. The flake fix goes in the commit of the uncommitted fix, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
+When the check does not fail in the same way in the second run, the failure is a flake. The result is not the same each time. Find the cause of the flake and fix it. The flake fix goes in the commit of the uncommitted fix, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
 
 When the check fails again in the same way, find out what caused the failure. The uncommitted fix caused it when the failure is in a line or a spec example of this fix. A failure in a file that this fix adds also comes from this fix. Fix the failure in the commit of the fix. For any other failure, find the cause with one bisect in a scratch clone:
 
@@ -72,7 +72,9 @@ Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-
 
 Bisect names the commit that caused the failure. When it lists several commits instead (`The first 'bad' commit could be any of`), the commits before the cause fail in another way. Find the cause in the diffs of the listed commits, or tell the user.
 
-When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix. When a file holds both fixes, make a patch with `git diff -U0`, keep the hunks of the failure fix, and stage them with `git apply --cached --unidiff-zero <patch>`. Do not use the interactive `git add -p`. Commit them with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
+When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix. When a file holds both fixes, make a patch with `git diff -U0`, keep the hunks of the failure fix, and stage them with `git apply --cached --unidiff-zero <patch>`. Do not use the interactive `git add -p`.
+
+Commit them with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
 
 **A fix and its notes go in one commit.** The commit of a fix holds the code, the spec and the documents that record the fix. Those documents are the OpenSpec artifacts, the upgrade guide and other docs. Do not add those notes in a later commit, which leaves a commit where the code and the documents disagree. The Phase 4 changelog entry and the OpenSpec archive step stay commits of their own.
 
