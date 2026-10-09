@@ -75,7 +75,7 @@ A pass can rebase any commit of the branch, also a pushed one, with the fixup co
 Check the steps in order. A finding that is also a correctness or security defect skips steps 5 and 6 and goes to step 7, whatever its category. The pass applies only FIXED and leaves no finding without a verdict. Commit the fixes as `docs/ai/workflows.md` Phase 3 says.
 
 1. Check every finding against the code yourself, whether or not the review verified it. Refuted → REFUTED. PLAUSIBLE, only when that check can neither confirm nor refute it → DEFERRED; low severity or a loud failure is no reason to defer a confirmed defect.
-2. Same claim as a DECISION or REFUTED row, on code that the row's HEAD also has → REPEAT if DECISION, CONFLICT if REFUTED. The row's HEAD is the HEAD that it was judged at. A row that names no HEAD, such as a pass 0 seed, has the `setup HEAD` of the run header after it. If that code changed, treat the claim as new. A sentence that a commit of the run added and that restates the decided sentence counts as the same code.
+2. Same claim as a DECISION or REFUTED row, on code that the row's HEAD also has → REPEAT if DECISION, CONFLICT if REFUTED. The row's HEAD is the HEAD that it was judged at. A row that names no HEAD, such as a pass 0 seed, has the `setup HEAD` of the run header after it. If that code changed, treat the claim as new. A sentence that a commit of the run added, reworded, split or moved, and that keeps the decided meaning, counts as the same code.
 
    Also treat it as new when the repository no longer has that HEAD (`git -C <checkout> cat-file -e <sha>` fails). A rewrite leaves the old HEAD off the branch, but the repository keeps it.
 3. Its fix would undo a commit already on this branch (`<base-ref>..HEAD`) or go against a DECISION row → CONFLICT.
@@ -175,8 +175,8 @@ On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, i
 
 ## PASS line
 
-The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and each pass's state there, and a pass without findings leaves no row. A STOP for convergence quotes the previous pass's PASS line from the ledger just above its own, since compaction can drop that turn from the transcript the evaluator reads.
+The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and each pass's state there, and a pass without findings leaves no row. A fix of a ci check, of a flake or of a check failure counts as a correctness fix, as SETTLED says. A STOP for convergence quotes the previous pass's PASS line from the ledger just above its own, since compaction can drop that turn from the transcript the evaluator reads.
 
 ```text
-PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason>
+PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a, no checks, pending or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason>
 ```
