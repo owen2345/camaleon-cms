@@ -6,6 +6,8 @@ Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); 
 
 `AGENTS.md` "Verify before pushing" says which specs to run before a push and when to run the whole suite; `grep -rln <changed symbol> spec/` finds the adjacent ones. Never have two runs going at once: the suite shares one SQLite database, and runs on separate ones still share the dummy app's files, such as the uploads under `spec/dummy/public/media`.
 
+At exit, each run of the Camaleon suite names the run markers of the other runs that were active during it. Read `docs/ai/run-markers.md` only to judge a `RspecRunMarker` line in the output of a run.
+
 ## Database
 
 `rails_helper` keeps the SQLite test schema current from `spec/dummy/db/schema.rb` (`maintain_test_schema!`); `bundle exec rake app:db:test:prepare` rebuilds it by hand.
