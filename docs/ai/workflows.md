@@ -74,9 +74,9 @@ Bisect names the commit that caused the failure. When it lists several commits i
 
 When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix.
 
-When a file holds both fixes, copy it aside and restore it from HEAD (`git checkout -- <file>`). Make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`. Do not stage a hunk of a `-U0` patch either: it lands at the wrong line when the other fix inserts lines above it.
+When a file holds both fixes, unstage everything (`git reset`) and copy the file to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
 
-Commit them with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
+Commit the staged changes with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
 
 **A fix and its notes go in one commit.** The commit of a fix holds the code, the spec and the documents that record the fix. Those documents are the OpenSpec artifacts, the upgrade guide and other docs. Do not add those notes in a later commit, which leaves a commit where the code and the documents disagree. The Phase 4 changelog entry and the OpenSpec archive step stay commits of their own.
 
