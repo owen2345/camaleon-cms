@@ -149,9 +149,9 @@ Push with `git -C <checkout> push origin <head>`. When the run rewrote a pushed 
 
 A push rejected because `origin/<head>` moved during the run stays unpushed too. So does a PR merged or closed during the run: check its `state` again before the push. Leave the PR body unfolded and say so. Do not pull, rebase or force past the rejection: that pushes a tree the checks never ran on, or drops the other commits.
 
-On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, if it has one. Report the DEFERRED, DECISION and CONFLICT rows.
+After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). Report it in the PASS line. The run has ended, so the loop does not trace a failure there. A STOP that pushed does not meet the goal when its ci shows a failed suite check or `no checks` (see the goal text). The next turn sets up a new run: that setup traces the failure, or stops on the head with no checks. A pass that neither sets up the run nor pushes reports ci as n/a. A STOP with no commit to push is the exception: the ci read of setup stands.
 
-After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**) and report it in the PASS line. The run has ended, so the loop does not trace a failure there. A STOP that pushed does not meet the goal when its ci shows a failed suite check or `no checks` (see the goal text). The next turn sets up a new run: that setup traces the failure, or stops on the head with no checks. A pass that neither sets up the run nor pushes reports ci as n/a. A STOP with no commit to push is the exception: the ci read of setup stands.
+On every STOP, after that read, add the new REFUTED and DECISION rows to the PR's memory entry, if it has one. Report the DEFERRED, DECISION and CONFLICT rows.
 
 ## PASS line
 
