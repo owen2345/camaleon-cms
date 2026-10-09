@@ -75,7 +75,7 @@ A pass can rebase any commit of the branch, also a pushed one, with the fixup co
 Check the steps in order. A finding that is also a correctness or security defect skips steps 5 and 6 and goes to step 7, whatever its category. The pass applies only FIXED and leaves no finding without a verdict. Commit the fixes as `docs/ai/workflows.md` Phase 3 says.
 
 1. Check every finding against the code yourself, whether or not the review verified it. Refuted → REFUTED. PLAUSIBLE, only when that check can neither confirm nor refute it → DEFERRED; low severity or a loud failure is no reason to defer a confirmed defect.
-2. Same claim as a DECISION or REFUTED row, on code that the row's HEAD also has → REPEAT if DECISION, CONFLICT if REFUTED. The row's HEAD is the HEAD that it was judged at. A row that names no HEAD, such as a pass 0 seed, has the `setup HEAD` of the run header after it. If that code changed, treat the claim as new.
+2. Same claim as a DECISION or REFUTED row, on code that the row's HEAD also has → REPEAT if DECISION, CONFLICT if REFUTED. The row's HEAD is the HEAD that it was judged at. A row that names no HEAD, such as a pass 0 seed, has the `setup HEAD` of the run header after it. If that code changed, treat the claim as new. A sentence that a commit of the run added and that restates the decided sentence counts as the same code.
 
    Also treat it as new when the repository no longer has that HEAD (`git -C <checkout> cat-file -e <sha>` fails). A rewrite leaves the old HEAD off the branch, but the repository keeps it.
 3. Its fix would undo a commit already on this branch (`<base-ref>..HEAD`) or go against a DECISION row → CONFLICT.
