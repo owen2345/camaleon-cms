@@ -47,7 +47,7 @@ Run the checks in their order. Run `bin/rubocop -A` first, on the whole repo: CI
 
 Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:check. When no spec file applies, skip the spec run: `bin/rspec` with no files runs the whole suite. Do not run the checks before you start a change.
 
-When a check fails, wait until no other spec run is active (`docs/ai/testing.md`). A run with another run active during it does not count (`docs/ai/run-markers.md`): run the check again alone, and that run is the first run. When that run passes, the check passed: there is nothing to fix. Otherwise run the check again in the checkout, the same way. That run is the second run. An RSpec run uses the same files and the `--seed`, if any.
+When a check fails, run it again in the checkout, the same way. The run that failed is the first run, and this run is the second run. An RSpec run uses the same files and the `--seed`, if any, and starts only when no other spec run is active (`docs/ai/testing.md`). A spec run with another run active during it in the same checkout does not count (`docs/ai/run-markers.md`): run it again alone, and that run takes its place. When the repeat of the first run passes, the check passed: there is nothing to fix.
 
 When the check does not fail in the same way in the second run, the failure is a flake. The result is not the same each time. Find the cause of the flake and fix it. The flake fix goes in the commit of the uncommitted fix, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
 
@@ -68,7 +68,7 @@ Each RSpec run in the clone, also each bisect step, uses the files and the `--se
 
 Leave out the files that do not exist at the commit of the run. RSpec fails to load a file that does not exist, and that failure shows nothing. When no file is left, skip the run, as above. The check passes at that commit, because the example that failed is not there.
 
-Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The first run in step 3 can fail in another way at the tip of the clone, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Go on to step 5, as bisect does with exit code 125.
+Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The run at the tip in step 3 can fail in another way, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Go on to step 5, as bisect does with exit code 125.
 
 Bisect names the commit that caused the failure. When it lists several commits instead (`The first 'bad' commit could be any of`), the commits before the cause fail in another way. Find the cause in the diffs of the listed commits, or tell the user.
 
