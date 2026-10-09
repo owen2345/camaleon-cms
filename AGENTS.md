@@ -18,7 +18,7 @@ Camaleon CMS is a Rails engine shipped as the `camaleon_cms` gem. Everything bel
 
 Run the whole suite only when the user asks for it, or to run a failed CI job again. The `review-loop` skill, "Checks", says when a CI job runs again. To debug a spec failure, follow `docs/ai/workflows.md` Phase 3. A change that many files use, such as a base class or a concern that every model includes, needs only its adjacent specs too. CI runs the whole suite on every push.
 
-A push needs no new check run when each of its commits ran the checks before it landed, or was exempt from them (`docs/ai/workflows.md` Phase 3). An autosquash rebase keeps the tree of the last commit. A rebase onto the base changes that tree, so the checks run again before the push.
+A push needs no new check run when each of its commits ran the checks before it landed (`docs/ai/workflows.md` Phase 3), or was exempt from them. An autosquash rebase keeps the tree of the last commit. A rebase onto the base changes that tree, so the checks run again before the push.
 
 ## OpenSpec
 
