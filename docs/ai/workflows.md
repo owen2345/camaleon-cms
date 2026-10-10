@@ -37,9 +37,55 @@ Before pushing, `AGENTS.md` "Verify before pushing" passes, as scoped there.
 
 ## Phase 3: Commit Guidelines
 
-**One fix per commit by default, committed as soon as it is green.** When a review or an audit turns up several defects, they all land in the same PR, each as its own commit with the spec that reproduces it (spec-only or docs-only where that is the whole fix; say in the message when a spec is infeasible and why). Commit each fix as soon as its specs pass and the `AGENTS.md` checks are clean for what it touched. Commit a fix before you start an unrelated fix. Small related fixes can share a commit. Unrelated fixes never share a commit, also on a pushed PR branch.
+**One fix per commit by default, committed as soon as it is green.** When a review or an audit finds several defects, all their fixes go in the same PR. Each fix comes with the spec that reproduces the defect. A fix can be only a spec or only docs, when that is the whole fix. When a spec is infeasible, the commit message says why.
+
+Related fixes can share a commit. Related fixes are the fixes of one finding or one failed check, or of findings on the same sentences, function or spec example. The changes of one autocorrect run are also related. A check fix or an autocorrect change of the uncommitted fix goes in the commit of that fix. Unrelated fixes never share a commit, also on a pushed PR branch.
+
+Commit each fix or group of related fixes as soon as the `AGENTS.md` checks pass for what it touched. Commit the fix before you start an unrelated fix.
+
+Run the checks in their order. Run `bin/rubocop -A` first, on the whole repo: CI lints the whole repo. Do not give it a list of files: RuboCop then also corrects a listed file that `.rubocop.yml` excludes. The changes of the lint go in the commit of the fix.
+
+Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:check. When no spec file applies, skip the spec run: `bin/rspec` with no files runs the whole suite. Do not run the checks before you start a change.
+
+When a check fails, run it again in the checkout, the same way. The run that failed is the first run, and this run is the second run. An RSpec run uses the same files and the `--seed`, if any, and starts only when no other spec run is active (`docs/ai/testing.md`). A failed spec run with another run active during it in the same checkout does not count (`docs/ai/run-markers.md`). Run it again alone: that run replaces it as the first or the second run. When the first run did not count and the run alone after it passes, the check passed: there is nothing to fix.
+
+When the check does not fail in the same way in the second run, the failure is a flake. The result is not the same each time. Find the cause of the flake and fix it. The flake fix goes in the commit of the uncommitted fix, also when the flake was there before the branch. When no fix is uncommitted, the flake fix is a commit of its own. Then run the checks again, the lint first.
+
+When the check fails again in the same way, find out what caused the failure. The uncommitted fix caused it when the failure is in a line or a spec example of this fix. A failure in a file that this fix adds also comes from this fix. Fix the failure in the commit of the fix. For any other failure, find the cause with one bisect in a scratch clone:
+
+1. Clone the checkout into a directory outside it: a clone inside it shows in `git status`. Do not clone GitHub: it does not have the commits that are not pushed. Make a new clone for each failed check. An older clone does not have the later commits, and a bisect leaves it at another commit.
+2. Copy the uncommitted fix into the clone, stage all of it (`git add -A`) and commit it there. `git -C <checkout> diff HEAD --binary | git -C <clone> apply --allow-empty` copies the changes to tracked files. Also copy the new files: `git -C <checkout> ls-files --others --exclude-standard` lists them. When the checkout is clean and has no new file, skip this step. The branch of the clone now ends with the commit of the fix.
+3. Run the failed check in the clone. When it passes, a file that git ignores in the checkout caused the failure, for example a cache under `spec/dummy/tmp`. Find that file and remove it. Then run the check again in the checkout. When it still fails, the clone differs from the checkout in another way: find that difference.
+
+   When the check fails in the clone and step 2 made a commit, run the check at the commit before it. When it passes there, the fix caused the failure. Fix the failure in the commit of the fix, and skip steps 4 and 5. When it fails there in another way, that run shows nothing about the fix, and `<bad>` in step 5 is the branch.
+4. Find the start commit of the branch in the checkout (`git merge-base origin/<base> HEAD`). In the clone, `origin/<base>` is the local base branch of the checkout, which can lag. Check out the start commit in the clone and run the failed check. When it fails in the same way, the failure was there before the branch. Tell the user, and do not fix it on this branch.
+5. Run `git bisect start <bad> <start commit>` in the clone. `<bad>` is the branch, or the commit before the commit of the fix when step 3 showed that it fails in the same way. Do not give HEAD: the clone is at the start commit. Bisect does not run the check at these two marks, so steps 3 and 4 run it there. Then run `git bisect run` with a script that runs the failed check. The script gives one of these exit codes:
+   - 0 when the check passes.
+   - 1 when the check fails in the same way.
+   - 125 when the check fails in another way. Bisect then skips that commit, because another failure does not show the cause.
+   - 128 or more when a signal killed the check: its own exit status, tested before its output. Bisect then stops and keeps its marks, and `git bisect run` started again goes on from them.
+
+Each RSpec run in the clone, also each bisect step, uses the files and the `--seed`, if any, of the run that failed. When the run that failed was the whole suite, each run in the clone is the whole suite too. Do not give it more files. More files change the order of the examples, and an order-dependent failure can then pass.
+
+Leave out the files that do not exist at the commit of the run. RSpec fails to load a file that does not exist, and that failure shows nothing. When no file is left, skip the run, as above. The check passes at that commit, because the example that failed is not there.
+
+Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The run at the tip in step 3 can fail in another way, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Go on to step 5, as bisect does with exit code 125.
+
+Bisect names the commit that caused the failure. When it lists several commits instead (`The first 'bad' commit could be any of`), the commits before the cause fail in another way. Find the cause in the diffs of the listed commits, or tell the user.
+
+When the cause is the commit of the fix, fix the failure in the commit of the fix. When the cause is a commit of the branch, fix the failure and run the checks again, the lint first. Stage only the changes of the failure fix.
+
+When a file holds both fixes, copy it to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), which also unstages it, then make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
+
+Commit the staged changes with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
 
 **A fix and its notes go in one commit.** The commit of a fix holds the code, the spec and the documents that record the fix. Those documents are the OpenSpec artifacts, the upgrade guide and other docs. Do not add those notes in a later commit, which leaves a commit where the code and the documents disagree. The Phase 4 changelog entry and the OpenSpec archive step stay commits of their own.
+
+To add notes to an earlier commit, run `git commit --fixup=<sha>`, then `git rebase --autosquash <sha>~1`. The rebase rewrites only that commit and the later ones.
+
+To push a rewrite of a pushed commit, run `git push --force-with-lease=<branch>:<remote sha> origin <branch>`. `<remote sha>` is the last commit of the branch that you pushed or pulled. With this lease, the push fails when someone else pushed after `<remote sha>`. Always give that SHA. A background fetch, which an IDE can do, moves `origin/<branch>`, and a lease without a SHA trusts it.
+
+Before the rewrite, make sure that your branch holds `<remote sha>` (`git merge-base --is-ancestor <remote sha> HEAD`). Also make sure that the remote branch is at `<remote sha>`: `git ls-remote origin refs/heads/<branch>` prints that SHA. When it prints another SHA, do not rewrite, and tell the user. Push any other change with a plain `git push`.
 
 Whether a push skips CI is decided **per push, not per commit**: GitHub reads the marker off the head commit of the push, and a marked head suppresses every workflow for that push, including the `pull_request` event when the PR is opened at that tip. When invoked, the marker is the literal token on its own line at the end of the message:
 
@@ -49,14 +95,14 @@ Whether a push skips CI is decided **per push, not per commit**: GitHub reads th
 [skip ci]
 ```
 
-It matches anywhere in the message, so a commit that merely explains the directive skips CI too — write "skip-ci directive" in prose unless you are invoking it.
+GitHub reads these markers anywhere in the message: `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]` and `[actions skip]`. It also reads a `skip-checks: true` trailer, with or without the space, as the last line after two empty lines, which only `git commit --cleanup=verbatim` keeps. A commit that merely explains a bracket marker skips CI too: write "skip-ci directive" in prose unless you want to skip CI.
 
 A commit is **docs-only** when it touches only documentation (`.md` files, `README.md`, `docs/`), `CHANGELOG.md`, `openspec/`, comments, or config with no code path.
 
 1. **The entire PR is docs-only** (every commit on the branch): mark **every** commit, including the first, so the PR runs no CI at all — this overrides rule 2. `master` carries no branch protection, so a PR with zero runs still merges; if a required-status-check rule is ever added this carve-out must go (check with `gh api repos/owen2345/camaleon-cms/branches/master --jq '.protected'`).
 2. **The PR contains a code change somewhere.** For each push ask: *has this PR already had a full check run on an earlier push?*
    - **No** (no PR yet, or every push so far was docs-only): omit the marker, even on a docs-only push, and say why in the message. A mixed PR gets one full run over its code, and a marked head produces none.
-   - **Yes**: include it. CI validates the tree at the head commit, and a changelog edit changes no tree an earlier run covered. The Phase 4 changelog commit lands after the PR exists, so it is normally this case — *lands last* is not the condition, *no run yet* is.
+   - **Yes**, and every commit of this push is docs-only: include it. CI validates the tree at the head commit, and a changelog edit changes no tree an earlier run covered. A push with a code commit omits the marker. The Phase 4 changelog commit lands after the PR exists, so it is normally this case — *lands last* is not the condition, *no run yet* is.
 3. **Consequences to plan for.** A marked push moves the PR head without a run and leaves the passing checks on the previous SHA; fine while `master` has no required checks, re-trigger only if that changes. If you pushed a docs-only commit *without* the marker by mistake, cancel the now-stale runs on the *previous* SHA, not the new ones. Push a marked docs-only commit only once GitHub has created the run for the code push before it (`gh run list --branch <branch>`): a marked push landing seconds after a code push supersedes that push's `pull_request` event before its run exists, and the code gets no run at all.
 4. **Never mark a release PR.** The Release workflow refuses a commit with no successful `current_support.yml` and `audit.yml` runs, and a version bump is a code change anyway. See `docs/releasing.md`.
 
