@@ -80,7 +80,7 @@ Check the steps in order. A finding that is also a correctness or security defec
 2. Same claim as a DECISION or REFUTED row, on code that the row's HEAD also has → REPEAT if DECISION, CONFLICT if REFUTED. The row's HEAD is the HEAD that it was judged at. A row that names no HEAD, such as a pass 0 seed, has the `setup HEAD` of the run header after it. If that code changed, treat the claim as new. A sentence that a commit of the run added, reworded, split or moved, and that keeps the decided meaning, counts as the same code.
 
    Also treat it as new when the repository no longer has that HEAD (`git -C <checkout> cat-file -e <sha>` fails). A rewrite leaves the old HEAD off the branch, but the repository keeps it.
-3. A fix that undoes a commit already on this branch (`<base-ref>..HEAD`) gives CONFLICT. A fix that goes against a DECISION row on code that the row's HEAD also has gives CONFLICT too.
+3. A fix that undoes a commit already on this branch (`<base-ref>..HEAD`) gives CONFLICT. A fix that goes against a DECISION row on the same code, as step 2 defines it, gives CONFLICT too.
 4. Needs a design trade-off or the user's call → DECISION.
 5. Reuse, simplification or efficiency (the cleanups), conventions (code that breaks a `CLAUDE.md` or `AGENTS.md` rule) or coverage-only → FIXED. A fix that preserves behavior needs no new spec, because the checks prove it. A fix that changes behavior, as a conventions fix can, gets its own spec. A coverage-only fix is the new spec.
 
