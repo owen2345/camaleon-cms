@@ -23,7 +23,7 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 
 ## Setup (first pass of a run)
 
-- **Target:** resolve the checkout path and its GitHub project: `gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout. In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`. Then read the PR: `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepositoryOwner,headRepository` gives its state, its head and base branches, its head commit and its head repository. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
+- **Target:** resolve the checkout path, as its real path (`pwd -P` in it), and its GitHub project: `gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout. In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`. Then read the PR: `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepositoryOwner,headRepository` gives its state, its head and base branches, its head commit and its head repository. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
 
   The run goes on only when each condition below holds. Otherwise stop and say so in a `PASS 0/8` line. Do not switch, pull, stash or commit.
   - The PR is open.
@@ -105,7 +105,7 @@ A spec run passes with 0 failures in its summary line, no error outside of examp
 
 The end of the log is the result of a bisect. For the watch (`gh pr checks --watch`), the list of the checks that follows it is the result. For any other command, the exit code in the done file is the result. Do not edit the checkout while a run is active in the background.
 
-A run that the loop did not start, such as a run of another session, has no done file. Wait until no run of the same checkout is active, in a command of its own: `until ! pgrep -f '[r]spec' | xargs -I{} lsof -a -d cwd -p {} -Fn 2> /dev/null | grep -qE '^n<checkout>(/|$)'; do sleep 20; done`, with `<checkout>` as its real path (`pwd -P`). For a host app on PostgreSQL, a run of any checkout counts: there, use `until ! pgrep -f '[r]spec' > /dev/null; do sleep 20; done`.
+A run that the loop did not start, such as a run of another session, has no done file. Wait until no run of the same checkout is active, in a command of its own: `until ! pgrep -f '[r]spec' | xargs -I{} lsof -a -d cwd -p {} -Fn 2> /dev/null | awk -v p='n<checkout>' '$0 == p || index($0, p "/") == 1 { f = 1 } END { exit !f }'; do sleep 20; done`. The `awk` matches the checkout and a directory below it as fixed strings. A `+` or a `(` in the path breaks a `grep -E` pattern. For a host app on PostgreSQL, a run of any checkout counts: there, use `until ! pgrep -f '[r]spec' > /dev/null; do sleep 20; done`.
 
 The fifth check is **ci**: the GitHub checks of the PR head. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD`. A stop that pushes reads them again for the pushed commit (see **Pass states and stop**). The PASS line reports ci in its checks field like the other checks.
 
