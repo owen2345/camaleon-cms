@@ -23,7 +23,7 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 
 ## Setup (first pass of a run)
 
-- **Target:** resolve the checkout path, as its real path (`pwd -P` in it), and its GitHub project: `gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout. In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`. Then read the PR: `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepositoryOwner,headRepository` gives its state, its head and base branches, its head commit and its head repository. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
+- **Target:** resolve the checkout path as its real path (`pwd -P` in it). Resolve its GitHub project with `gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout. In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`. Then read the PR: `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepositoryOwner,headRepository` gives its state, its head and base branches, its head commit and its head repository. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
 
   The run goes on only when each condition below holds. Otherwise stop and say so in a `PASS 0/8` line. Do not switch, pull, stash or commit.
   - The PR is open.
