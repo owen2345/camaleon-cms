@@ -8,7 +8,7 @@ description: Run one pass of the review-fix loop on a PR of camaleon-cms or of a
 Repeated `/code-review <effort> --fix` passes on a PR's local branch until they converge. Each pass reviews, applies what the verdicts allow, runs the checks and ends its turn with a PASS line. To run passes until the loop stops, type this with the parameters filled in (a skill can't start a goal):
 
 ```text
-/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, until the latest PASS line's last field starts with STOP. Each turn ends with its PASS line, and a PASS line that ends in continue never meets this goal, whatever its state. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it, from the same run, SETTLED or CLEAN. Both lines must show git status clean, rspec 0 failures and no errors, or n/a, and every check ok or n/a. A STOP for any other reason the skill gives (setup, pass 8 without convergence, a checkout changed between passes, a pass that ends with uncommitted changes, a review that cannot cover its range, a second conflict, a rewrite, a rebase conflict, a rewrite that Phase 3 forbids, an undone commit, a check that it cannot fix, a failure that was there before the branch, a CI failure that the checkout does not show and that a rerun shows again, a head with no checks, a check pending after an hour, a check cancelled twice, a command that gives no result, a decision) counts as it stands. A STOP that pushed counts only if its checks field shows ci as ok or n/a.
+/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level> decision=<stop or important>, one pass per turn, until the latest PASS line's last field starts with STOP. Each turn ends with its PASS line, and a PASS line that ends in continue never meets this goal, whatever its state. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it, from the same run, SETTLED or CLEAN. Both lines must show git status clean, rspec 0 failures and no errors, or n/a, and every check ok or n/a. A STOP for any other reason the skill gives (setup, pass 8 without convergence, a checkout changed between passes, a pass that ends with uncommitted changes, a review that cannot cover its range, a second conflict, a rewrite, a rebase conflict, a rewrite that Phase 3 forbids, an undone commit, a check that it cannot fix, a failure that was there before the branch, a CI failure that the checkout does not show and that a rerun shows again, a head with no checks, a check pending after an hour, a check cancelled twice, a command that gives no result, a decision) counts as it stands. A STOP that pushed counts only if its checks field shows ci as ok or n/a.
 ```
 
 The session loads this skill live from its checkout, so every run works from a copy its checkout's changes don't reach, named in the goal in place of the skill or saved by setup (see **Rules** under Setup): its rules then don't change mid-run.
@@ -20,6 +20,7 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 - **repo:** the checkout's directory name: `camaleon-cms` (default: the session's own checkout) or a sibling checkout, a plugin or theme such as `camaleon-cms-seo` or a host app such as `florsan`, at `../<repo>` from camaleon-cms. The session always runs in the main camaleon-cms checkout, where this harness and the ledgers live: from an app-made worktree of it (`.claude/worktrees/<name>`), `../<repo>` would resolve under `.claude/worktrees/` and the ledger inside the worktree, deleted with it. A core PR runs in that main checkout, which the user switches to its head branch (setup never does): the skill has no worktree option, by decision, since worktrees are very inconvenient in JetBrains IDEs.
 - **pr:** the PR number in that repo's GitHub project. Default: the PR of the checkout's current branch.
 - **effort:** the `/code-review` level: `low`, `medium`, `high` (default), `xhigh` or `max`. Not `ultra`: that cloud review can only be launched by the user.
+- **decision:** which DECISION row stops the run after its pass. `stop`: any DECISION row. `important`: a decision on the design of the PR, or on a rule that the later fixes follow. A decision on one sentence, a term or a bound does not stop with `important`. Absent (default): no DECISION row stops the run, and the rows wait for the STOP.
 
 ## Setup (first pass of a run)
 
@@ -81,7 +82,7 @@ Check the steps in order. A finding that is also a correctness or security defec
 
    Also treat it as new when the repository no longer has that HEAD (`git -C <checkout> cat-file -e <sha>` fails). A rewrite leaves the old HEAD off the branch, but the repository keeps it.
 3. A fix that undoes a commit already on this branch (`<base-ref>..HEAD`) gives CONFLICT. A fix that goes against a DECISION row on the same code, as step 2 defines it, gives CONFLICT too.
-4. Needs a design trade-off or the user's call → DECISION. A DECISION row stops the run after this pass (see **Pass states and stop**).
+4. Needs a design trade-off or the user's call → DECISION. The `decision` parameter says whether the row stops the run after this pass (see **Pass states and stop**).
 5. Reuse, simplification or efficiency (the cleanups), conventions (code that breaks a `CLAUDE.md` or `AGENTS.md` rule) or coverage-only → FIXED. A fix that preserves behavior needs no new spec, because the checks prove it. A fix that changes behavior, as a conventions fix can, gets its own spec. A coverage-only fix is the new spec.
 
    Once step 5 is frozen (see below), the findings of step 5 are DEFERRED instead. A cleanup is also DEFERRED when a cleanup of an earlier pass of this run reshaped that function, spec example or doc section.
@@ -155,7 +156,7 @@ Stop and push in these cases:
 - A second CONFLICT on the same claim. Show both sides.
 - A pass rewrote commits (see **Ledger rows**).
 - A review cannot cover its range.
-- A DECISION row in this pass. The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer lands as a commit before that run.
+- A DECISION row in this pass that the `decision` parameter names (see **Parameters**). The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer lands as a commit before that run.
 
 Stop and do not push in these cases, also when a reason to push applies:
 
