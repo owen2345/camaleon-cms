@@ -103,7 +103,7 @@ Wrap every spec run, every `gh pr checks --watch` and any other command that can
 
 A spec run passes with 0 failures in its summary line, no error outside of examples, and 0 in its done file. It fails with a failure or an error outside of examples in its summary line. A crash fails too: no summary line, no `RSpec is shutting down` line, and a done file from 1 to 128. Any other spec run has no result. A killed run prints a summary line of the examples so far, or none, and never 0 in its done file. An interrupt (SIGINT) prints `RSpec is shutting down` and exits with 1.
 
-A command other than a spec run has no result when its done file is above 128: a signal killed it. A bisect has a result when its log ends with `bisect found first 'bad' commit` or `bisect run cannot continue any more`: Phase 3 reads it. Otherwise it has no result. Its restart is `git bisect run <script>` alone: `git bisect start` drops the marks. For the watch (`gh pr checks --watch`), the list of the checks that follows it is the result. For any other command, the exit code in the done file is the result.
+A command other than a spec run has no result when its done file is above 128: a signal killed it. A bisect has a result when its log ends with `bisect found first 'bad' commit` or `error: bisect run cannot continue any more`: Phase 3 reads it. Otherwise it has no result. Its restart is `git bisect run <script>` alone: `git bisect start` drops the marks. For the watch (`gh pr checks --watch`), the list of the checks that follows it is the result. For any other command, the exit code in the done file is the result.
 
 Do not edit the checkout while a run is active in the background.
 
