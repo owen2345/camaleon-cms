@@ -156,7 +156,7 @@ Stop and push in these cases:
 
 Stop and do not push in these cases, also when a reason to push applies:
 
-- Setup stops, also on a PR head with no checks, with a check pending after an hour or with a suite check cancelled twice (see **Checks**).
+- Setup stops, also on a PR head with no checks (see **Checks**). A check pending after an hour or a suite check cancelled twice stops setup too.
 - The checkout changed between passes.
 - A pass ends with uncommitted changes. The run commits all its own work, so they can be another writer's.
 - A pass's diff undoes an earlier commit on this branch.
