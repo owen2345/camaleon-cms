@@ -23,7 +23,7 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 
 ## Setup (first pass of a run)
 
-- **Target:** resolve the checkout path as its real path (`pwd -P` in it). Resolve its GitHub project with `gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout. In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`. Then read the PR: `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepositoryOwner,headRepository` gives its state, its head and base branches, its head commit and its head repository. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
+- **Target:** resolve the checkout path as its real path (`git -C ../<repo> rev-parse --show-toplevel`) and its GitHub project (`gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout). In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`. Then read the PR: `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepositoryOwner,headRepository` gives its state, its head and base branches, its head commit and its head repository. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
 
   The run goes on only when each condition below holds. Otherwise stop and say so in a `PASS 0/8` line. Do not switch, pull, stash or commit.
   - The PR is open.
@@ -107,7 +107,7 @@ A command other than a spec run has no result when its done file is above 128: a
 
 Do not edit the checkout while a run is active in the background.
 
-A run that the loop did not start, such as a run of another session, has no done file. Wait until no run of the same checkout is active, in a command of its own: `until ! pgrep -f '[r]spec' | xargs -I{} lsof -a -d cwd -p {} -Fn 2> /dev/null | P='n<checkout>' awk '$0 == ENVIRON["P"] || index($0, ENVIRON["P"] "/") == 1 { f = 1 } END { exit !f }'; do sleep 20; done`. The `awk` matches the checkout and a directory below it as fixed strings. For a host app on PostgreSQL, a run of any checkout counts: there, use `until ! pgrep -f '[r]spec' > /dev/null; do sleep 20; done`.
+A run that the loop did not start, such as a run of another session, has no done file. Wait until no run of the same checkout is active, in a command of its own: `until ! pgrep -f '[r]spec' | xargs -I{} lsof -a -d cwd -p {} -Fn 2> /dev/null | P='n<checkout>' awk '$0 == ENVIRON["P"] || index($0, ENVIRON["P"] "/") == 1 { f = 1 } END { exit !f }'; do sleep 20; done`. The `awk` matches the checkout and a directory below it as fixed strings. Without `lsof`, `readlink /proc/{}/cwd 2> /dev/null | sed 's/^/n/'` takes the place of the `lsof` command in the wait. For a host app on PostgreSQL, a run of any checkout counts: there, use `until ! pgrep -f '[r]spec' > /dev/null; do sleep 20; done`.
 
 The fifth check is **ci**: the GitHub checks of the PR head. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD`. A stop that pushes reads them again for the pushed commit (see **Pass states and stop**). The PASS line reports ci in its checks field like the other checks.
 
