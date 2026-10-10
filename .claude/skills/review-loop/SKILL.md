@@ -178,7 +178,7 @@ Push with `git -C <checkout> push origin <head>`. When the run rewrote a pushed 
 
 A push rejected because `origin/<head>` moved during the run stays unpushed too. So does a PR merged or closed during the run: check its `state` again before the push. Leave the PR body unfolded and say so. Do not pull, rebase or force past the rejection. That pushes a tree that the checks never ran on, or drops the other commits.
 
-After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). Report it in the PASS line. The run is over, so the loop does not trace a failure there, and a cancelled suite check counts as failed. A STOP that pushed does not meet the goal when its ci shows a failed suite check, `no checks` or `pending` (see the goal text).
+After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). Report it in the PASS line. The run is over, so the loop does not trace a failure there and reruns no job. A cancelled suite check counts as failed. A STOP that pushed does not meet the goal when its ci shows a failed suite check, `no checks` or `pending` (see the goal text).
 
 The next turn sets up a new run. That setup traces the failure, or stops on the head with no checks or with a check pending. A pass that neither sets up the run nor pushes reports ci as n/a. A STOP with no commit to push is the exception: it reports the ci read of setup.
 
