@@ -42,11 +42,11 @@ When bisect names a commit of the branch, the failure fix goes there as a fixup 
 
 ## Reproduce a failed CI job
 
-Reproduce a failed CI job before you trace it. Its job log names the failed step, the failed examples and the `--seed`, if any: `gh run view <run id> --repo <project> --job <job id> --log-failed`, with both ids from the link of the check. The command of the failed step is in the last `##[group]Run <command>` line before `##[error]Process completed`.
+Reproduce a failed CI job before you trace it. Its job log names the failed step, the failed examples and the `--seed`, if any: `gh run view <run id> --repo <project> --job <job id> --log-failed`, with both ids from the link of the check. The last `##[group]Run <command>` line before `##[error]Process completed` names the failed step: run the command of that step from `.github/workflows/`, not the text of the log.
 
 Run that step in the checkout as `.github/workflows/` does, with the Ruby and the gems of the checkout. For a spec failure, first run only the failed examples. When they pass, run the files of the job with its `--seed`, if any. For the suite workflow of camaleon-cms, those files are the whole suite.
 
-The checkout run is the cheap first try, because most failures do not depend on the cell of the job. The trace of the review loop goes cell-first instead, because its one run must match CI (`.claude/skills/review-loop/trace.md`). The CI run is the first run and the checkout run the second run of "Second run" above. A `<member> / RSpec` check runs the suite of an ecosystem member: reproduce it as `docs/ai/testing.md` "Ecosystem member checks" says.
+The checkout run is the cheap first try, because most failures do not depend on the cell of the job. The trace of the review loop goes cell-first instead, because its one run must match CI (`.claude/skills/review-loop/trace.md`). The CI run is the first run of "Second run" above. The second run is the run in the cell of the job. For a job with the Ruby and the gems of the checkout, that is the checkout run, else the run in the scratch clone (below). A `<member> / RSpec` check runs the suite of an ecosystem member: reproduce it as `docs/ai/testing.md` "Ecosystem member checks" says.
 
 A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. When the checkout does not show its failure, reproduce it in a scratch clone (step 1). Never bundle another gemfile in the checkout. A bundle of another gemfile writes `gemfiles/<rails>.gemfile.lock`, an untracked file that git does not ignore, and the checkout is no longer clean.
 
@@ -54,4 +54,4 @@ For a job with a gemfile, run `BUNDLE_GEMFILE=<clone>/gemfiles/<rails>.gemfile b
 
 When `mise ls --installed ruby` lists a Ruby of the minor version of the job, set `MISE_RUBY_VERSION=<version>` in the environment of each command. `<version>` is that minor version, for example `3.2`, and the shims then run the newest installed Ruby of it. Trace a failure that the clone shows in the clone, with the same variables in each run.
 
-Without an installed Ruby of that version, the shim starts a build of it, which takes minutes. `MISE_AUTO_INSTALL=0` beside `MISE_RUBY_VERSION` stops that build, and the shim then runs the next `ruby` on `PATH` with no warning. That Ruby is not the Ruby of the clone. So leave `MISE_RUBY_VERSION` out when mise lacks the version: the step then runs with the Ruby of the clone. Say so in the report.
+Without an installed Ruby of that version, the shim starts a build of it, which takes minutes. `MISE_AUTO_INSTALL=0` beside `MISE_RUBY_VERSION` stops that build, and the shim then runs the next `ruby` on `PATH` with no warning. The next `ruby` on `PATH` is not the Ruby of the clone. So leave `MISE_RUBY_VERSION` out when mise lacks the version: the step then runs with the Ruby of the clone. Say so in the report.
