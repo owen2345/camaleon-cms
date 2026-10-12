@@ -1,6 +1,6 @@
 # Review loop procedure
 
-The procedure of a run of the review loop. `SKILL.md` beside this file gives the parameters and makes the copies of the rule files, and a run follows the copy of this file.
+The procedure of a run of the review loop. The live `SKILL.md` of the skill gives the parameters and makes the copies of the rule files, and a run follows the copy of this file.
 
 ## Setup (first pass of a run)
 
@@ -21,7 +21,7 @@ The procedure of a run of the review loop. `SKILL.md` beside this file gives the
 - **Ledger:** `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms, whatever the target repo, never committed. A ledger with no `## Run` header does not exist yet, or holds only the `PASS 0/8` line of a setup that stopped before this step. Only then create it, if needed. Seed it as pass 0 from the memory entry of the PR, if any. The seed holds the REFUTED and DECISION rows that every STOP adds there. It also holds any other refuted entry as REFUTED, and any skipped entry as DECISION, or as FIXED when a later commit fixed it.
 
   Each run appends, in one command, `## Run <date>, effort <level>` and the line `setup HEAD <sha>`, the PR head that setup found. It counts its passes from 1. The rows of earlier runs still count for the verdict checks.
-- **Rules:** append the line `Rules: tmp/review-loop/<repo>/<pr>.rules/` to the ledger under the run header. That directory holds the copies of the rule files that `SKILL.md` made, and every pass loads the rules from there.
+- **Rules:** `SKILL.md` made the copies of the rule files in `tmp/review-loop/<repo>/<pr>.rules/`, and every pass loads the rules from there.
 - **CI:** read the ci check of the `setup HEAD`, as **Checks** says. A poll, when **Checks** starts one, runs as a background task, which gives the ledger its `task` line, and the review goes on meanwhile. When the poll ends, read its result as **Checks** says. Append the `ci` line of **Checks** when the read ends, with the `setup HEAD` as its `<sha>`. The read ends after the one rerun of a run that has no failed job, and before the trace of a failed job. Before its PASS line, pass 1 waits for a poll that still runs (the wait of `docs/ai/testing.md` "Long commands").
 
   The first `ci` line under the run header is the ci read of setup. A failed suite job there is the first failed job of the run. Trace it (`trace.md`) in pass 1, before the review when possible, otherwise before the PASS line. The run stops on `no jobs`, `pending` or `cancelled` (**Checks**). The stop comes at the end of pass 1, which commits its fixes first.
@@ -29,7 +29,7 @@ The procedure of a run of the review loop. `SKILL.md` beside this file gives the
 Every pass starts with two steps, after `SKILL.md` loaded `procedure.md` from the copies of the run:
 
 - It notes HEAD.
-- It reads the ledger, but not every row of this run. Its PASS, `setup`, `Rules:`, `ci`, `task`, `fix` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line are the open work of a cut-off pass. The verdicts check the REFUTED and DECISION rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
+- It reads the ledger, but not every row of this run. Its PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `task` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
 From pass 2 on, the pass also checks the checkout. The checkout must still be on the head branch, at the HEAD that the previous PASS line ends on. Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
@@ -43,7 +43,6 @@ A pass 1 can be cut off that way: its run header is the last of the ledger, with
 
 The lines under that header say where setup was cut off:
 
-- No `Rules:` line: the setup was cut off before it. `SKILL.md` made the copies again: append the line.
 - No `ci` line: read the ci check of setup first. When a poll ran, its last `task` line names its log.
 - The last `ci` line names a failed job, with no FIXED row of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
 - The last `ci` line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.

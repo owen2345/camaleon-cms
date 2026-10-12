@@ -24,17 +24,25 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 
 ## Rules
 
-The rule files are `procedure.md` and `trace.md` of this skill, `docs/ai/workflows.md`, `docs/ai/failures.md`, `docs/ai/testing.md` and `AGENTS.md`, all of camaleon-cms. The live ones follow the checkout. A PR that edits them changes the rules with each fix. During a plugin run, another session or the IDE can switch the camaleon-cms checkout.
+The rule files, all of camaleon-cms, are:
+
+- `procedure.md` and `trace.md` of this skill
+- `docs/ai/workflows.md`
+- `docs/ai/failures.md`
+- `docs/ai/testing.md`
+- `docs/ai/prose.md`
+- `AGENTS.md`
+
+The live files are the files of the checkout, and they change with it. A PR that edits them changes the rules with each fix. During a plugin run, another session or the IDE can switch the camaleon-cms checkout.
 
 Each turn reads the ledger, `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms (`procedure.md`, Setup), and then does one of these:
 
-- The last run of the ledger is not over: its last PASS line is not a STOP, or a run header follows that line. Load `procedure.md` from the directory of the `Rules:` line under its run header, and follow that copy.
-- That run header has no `Rules:` line: the setup was cut off before it. Make the copies first, as below, then follow the copy of `procedure.md`.
-- Otherwise a new run starts, also with no ledger or no run header. Save the head version of each rule file under `tmp/review-loop/<repo>/<pr>.rules/<path>` (`git show HEAD:<path>`, run in camaleon-cms). That directory lasts as long as the run, unlike the scratchpad. Then follow the copy of `procedure.md` from its Setup, which appends the run header and the `Rules:` line.
+- The last run of the ledger is not over: its last PASS line is not a STOP, or a run header follows that line. Load the copy of `procedure.md` under `tmp/review-loop/<repo>/<pr>.rules/`, and follow it.
+- Otherwise a new run starts, also with no ledger or no run header. Remove `tmp/review-loop/<repo>/<pr>.rules/`, then save the head version of each rule file under it, at `<path>`. `<path>` is the path of the file from the root of camaleon-cms, for example `.claude/skills/review-loop/procedure.md`. Create the directory of each copy first (`mkdir -p`), then run `git show HEAD:<path> > <copy>` in camaleon-cms. That directory lasts as long as the run, unlike the scratchpad. Then follow the copy of `procedure.md` from its Setup, which appends the run header.
 
 Load the other rule files from the same directory when the procedure first needs them:
 
-- `docs/ai/workflows.md`, `docs/ai/testing.md` and `AGENTS.md` at the first fix of the pass. A background task before the first fix loads `docs/ai/testing.md` then.
+- `docs/ai/workflows.md`, `docs/ai/testing.md`, `docs/ai/prose.md` and `AGENTS.md` at the first fix of the pass, or at a stop that pushes. A background task before the first fix loads `docs/ai/testing.md` then.
 - `docs/ai/failures.md` at a failed check.
 - `trace.md` at a failed suite job.
 
