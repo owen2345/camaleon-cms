@@ -14,7 +14,15 @@ Camaleon CMS is a Rails engine shipped as the `camaleon_cms` gem. Everything bel
 
 ## Verify before pushing
 
-`bin/rubocop -A` (auto-correct only what you touched; before the specs, since autocorrect can change behavior), `bin/rspec <the specs the PR adds or changes, plus the adjacent ones>`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`. All four, unless the branch changes no code: each file it touches is a Markdown file in any folder, a file under `openspec/` or a git setting such as `.gitignore`. Adjacent specs are those of the code the PR touches: the same model, concern, controller or helper, found by grepping `spec/` for the changed symbols. Run the whole suite only when the user asks for it or after a refactoring with a wide blast radius (a base class, a concern every model includes, a shared helper); CI runs it on every push.
+`bin/rubocop -A` (before the specs, since autocorrect can change behavior), `bin/rspec <the specs the PR adds or changes, plus the adjacent ones>`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`. The lint runs on the whole repo, as CI lints it, and never on a list of files. With a list of files, RuboCop also corrects a listed file that `.rubocop.yml` excludes. All four, unless the branch changes no code. A branch changes no code when it touches only Markdown files, in any folder, files under `openspec/` and git settings such as `.gitignore`.
+
+Before a commit, the same rule applies to the code files of that commit (`docs/ai/workflows.md` Phase 3): its no-code files do not count. A commit whose code files are all under `spec/`, outside `spec/dummy`, runs the lint and the specs: brakeman and zeitwerk:check read no spec file. Adjacent specs are those of the code that the PR touches: the same model, concern, controller or helper. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. A grep of `spec/` for the changed symbols finds them. When that set is more than half of the suite, run the whole suite instead: it costs the same.
+
+Run the whole suite only on the user's ask, or to reproduce a failed CI job (`docs/ai/failures.md`). To debug a spec failure, follow that document too. CI runs the whole suite on every push.
+
+A commit that touches `openspec/` also runs `openspec validate --all --strict` and `openspec validate --archived`. `--specs` alone skips a change not yet archived, and `--all` skips an archived one. Only `--archived` checks that an archived change has every task checked (Phase 4). Given both flags, `validate` runs only the archived set.
+
+A push needs no new check run when each of its commits ran the checks first, or was exempt from them (`docs/ai/workflows.md` Phase 3). An autosquash rebase keeps the tree of the last commit. A rebase onto the base changes that tree, so the checks run again before the push.
 
 ## OpenSpec
 
@@ -26,6 +34,7 @@ Plan with OpenSpec (`/opsx:explore`, `/opsx:propose` or `/opsx:new`, then `/opsx
 |---|---|
 | Branching, vulnerability triage, refactoring protocol, commits, PRs, changelog | `docs/ai/workflows.md` |
 | Writing or running tests; reproducing vulnerabilities | `docs/ai/testing.md` |
+| Debugging a failed check: the second run, the bisect, a failed CI job | `docs/ai/failures.md` |
 | Reading or writing app code: paths, namespacing, decorators, hooks, plugins, idioms | `docs/ai/reference.md` |
 | Removing, renaming or hardening a public helper, hook or API | `docs/ai/ecosystem.md` |
 | Env files, keys, credentials | `docs/ai/secrets.md` |
