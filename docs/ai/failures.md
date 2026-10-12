@@ -1,0 +1,55 @@
+# Failed checks
+
+A check of `AGENTS.md` "Verify before pushing" failed. This document finds the cause. A second run tells a flake from a failure, a bisect in a scratch clone names the commit, and the last section reproduces a failed CI job. The failure fix then goes in as `docs/ai/workflows.md` Phase 3 says.
+
+## Second run
+
+When a check fails, decide first whether a second run can give another result. A failed lint, brakeman or zeitwerk:check needs no second run: the result is the same each time. Nor does a failure of any check in a line, a spec example or a new file of the uncommitted fix: the fix caused it. Find the cause of such a failure at once.
+
+Run any other failed spec run again in the checkout, the same way. It uses the same files and the `--seed`, if any, and starts only when no other spec run is active (`docs/ai/testing.md`). The run that failed is the first run, and this run is the second run. A failed spec run with another run active during it in the same checkout does not count (`docs/ai/run-markers.md`). Run it again alone: that run replaces it as the first or the second run. When the first run did not count and the run alone after it passes, the check passed: there is nothing to fix.
+
+When the check does not fail in the same way in the second run, the failure is a flake. The result is not the same each time. Find the cause of the flake and fix it.
+
+## Bisect
+
+When the check fails again in the same way, or needs no second run, find out what caused the failure. Bisect a failure that the uncommitted fix did not cause (above), in a scratch clone:
+
+1. Clone the checkout into a directory outside it: a clone inside it shows in `git status`. Do not clone GitHub: it does not have the commits that are not pushed. Make a new clone for each failed check. An older clone does not have the later commits, and a bisect leaves it at another commit.
+2. Run the failed check in the clone first, without the uncommitted fix. When it passes, the fix caused the failure: find its cause in the fix, and skip the other steps. When it fails in another way, that run shows nothing about the fix, and `<bad>` in step 5 is the branch. When the checkout is clean and has no new file, skip this step and the copy below.
+
+   Then copy the uncommitted fix into the clone, stage all of it (`git add -A`) and commit it there. `git -C <checkout> add -A && git -C <checkout> diff HEAD --binary | git -C <clone> apply --allow-empty` copies the changes, the new files included. The branch of the clone now ends with the commit of the fix.
+3. Run the failed check in the clone. When it passes, a file that git ignores in the checkout caused the failure, for example a cache under `spec/dummy/tmp`. Find that file and remove it. Then run the check again in the checkout. When it still fails, the clone differs from the checkout in another way: find that difference.
+4. Find the start commit of the branch in the checkout (`git merge-base origin/<base> HEAD`). In the clone, `origin/<base>` is the local base branch of the checkout, which can lag. Check out the start commit in the clone and run the failed check. When it fails in the same way, the failure was there before the branch. Tell the user, and do not fix it on this branch.
+
+   For the lint and the whole suite, which CI runs the same way, a CI run at the start commit replaces the local run. `gh run list --repo <project> --commit <start commit> --workflow <suite workflow>` lists its runs of that workflow, and `gh run view <run id> --repo <project> --json jobs --jq '.jobs[] | "\(.databaseId) \(.conclusion) \(.name)"'` their jobs. `<project>` is the GitHub project, `<owner>/<name>`. Compare the job of the same matrix cell and the examples of its `--log-failed` (below). The same failed examples mean that the failure was there before the branch, and a pass or other examples that it was not. With no run at the start commit, run the check in the clone.
+5. Run `git bisect start <bad> <start commit>` in the clone. `<bad>` is the commit before the commit of the fix when step 2 failed in the same way, else the branch. Do not give HEAD: the clone is at the start commit. Bisect does not run the check at these two marks, so steps 3 and 4 run it there.
+
+   Then run `git bisect run` with a script that runs the failed check. The script gives one of these exit codes:
+   - 0 when the check passes.
+   - 1 when the check fails in the same way.
+   - 125 when the check fails in another way. Bisect then skips that commit, because another failure does not show the cause.
+   - Above 128 when a signal killed the check: its own exit status, tested before its output. Bisect then stops and keeps its marks, and `git bisect run` started again goes on from them.
+
+Each RSpec run in the clone, also each bisect step, uses the files and the `--seed`, if any, of the run that failed. When the run that failed was the whole suite, each run in the clone is the whole suite too. Do not give it more files. More files change the order of the examples, and an order-dependent failure can then pass.
+
+Leave out the files that do not exist at the commit of the run. RSpec fails to load a file that does not exist, and that failure shows nothing. When no file is left, skip the run, as `docs/ai/workflows.md` Phase 3 says. The check passes at that commit, because the example that failed is not there.
+
+Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The run at the tip in step 3 can fail in another way, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Go on to step 5, as bisect does with exit code 125.
+
+Bisect names the commit that caused the failure. When it lists several commits instead (`The first 'bad' commit could be any of`), the commits before the cause fail in another way. Find the cause in the diffs of the listed commits, or tell the user.
+
+When bisect names a commit of the branch, the failure fix goes there as a fixup commit (`docs/ai/workflows.md` Phase 3).
+
+## Reproduce a failed CI job
+
+Reproduce a failed CI job before you trace it. Its job log names the failed step, the failed examples and the `--seed`, if any: `gh run view <run id> --repo <project> --job <job id> --log-failed`, with both ids from the link of the check. The command of the failed step is in the last `##[group]Run <command>` line before `##[error]Process completed`.
+
+Run that step in the checkout as `.github/workflows/` does, with the Ruby and the gems of the checkout. For a spec failure, first run only the failed examples. When they pass, run the files of the job with its `--seed`, if any. For the suite workflow of camaleon-cms, those files are the whole suite.
+
+The checkout run is the cheap first try, because most failures do not depend on the cell of the job. The trace of the review loop goes cell-first instead, because its one run must match CI (`.claude/skills/review-loop/trace.md`). The CI run and the checkout run are then the two runs above.
+
+A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. When the checkout does not show its failure, reproduce it in a scratch clone (step 1). Never bundle another gemfile in the checkout. A bundle of another gemfile writes `gemfiles/<rails>.gemfile.lock`, an untracked file that git does not ignore, and the checkout is no longer clean.
+
+For a job with a gemfile, run `BUNDLE_GEMFILE=<clone>/gemfiles/<rails>.gemfile bundle install` in the clone, then the step with the same variable. The path is absolute, as in the workflow file. A Bundler before 4.0 keeps a relative path as given, and a child process that runs in another directory does not find the gemfile.
+
+When `mise ls --installed ruby` lists a Ruby of the minor version of the job, set `MISE_RUBY_VERSION=<version>` in the environment of each command. `<version>` is that minor version, for example `3.2`, and the shims then run the newest installed Ruby of it. Without an installed Ruby of that version, the shim starts a build of it, which takes minutes. Set `MISE_AUTO_INSTALL=0` beside `MISE_RUBY_VERSION`: a missing Ruby then gives a warning and the Ruby of the clone. Run the step with the Ruby of the clone instead, and say so in the report. Trace a failure that the clone shows in the clone, with the same variables in each run.
