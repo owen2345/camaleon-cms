@@ -152,11 +152,11 @@ Stop and push in these cases:
 - A review cannot cover its range.
 - A DECISION row in this pass that the `decision` parameter names (`SKILL.md`, Parameters). The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer goes in as a commit, pushed before that run.
 
-These stops push nothing, also when a reason to push applies, and so does any stop that neither list names. Each is defined where it happens:
+These stops push nothing, also when a reason to push applies. A stop that neither list names pushes nothing too. Each is defined where it happens:
 
 - A setup stop, also on a ci read of setup with `no jobs`, `pending` or `cancelled` (**Setup**).
 - A checkout that changed between passes (**Setup**), or a pass that ends with uncommitted changes, which can be another writer's.
-- A diff that undoes an earlier commit of the branch, or a `fixup!` commit (**Ledger rows**).
+- A diff that undoes an earlier commit of the branch (**Verdicts** step 3), or a `fixup!` commit (**Checks**).
 - A check that fails with no fix, or a failure that was there before the branch (**Checks**).
 - A CI failure that the spec clone does not show and that a rerun shows again (`trace.md`).
 - A hang, or a command with no result twice (**Checks**).
@@ -168,15 +168,15 @@ Commit but do not push during the run. The STOP push carries every commit of the
 
 The checks ran before each commit of the run, so the push needs no other check run (`AGENTS.md` "Verify before pushing").
 
-Before the push, fetch `origin/<head>`. When it is at HEAD, skip the push. The run made no commit, or a pass cut off after its push made them. In the second case, read ci for HEAD, as below.
+Before the push, fetch `origin/<head>`. When it is at HEAD, skip the push. With HEAD at the `setup HEAD`, the run made no commit. Otherwise a pass cut off after its push made the commits: read ci for HEAD, as below.
 
 Push with `git -C <checkout> push origin <head>`.
 
-A push rejected because `origin/<head>` moved during the run stays unpushed too. So does a PR merged or closed during the run: check its `state` again before the push. Leave the PR body unfolded and say so. Do not pull, rebase or force past the rejection. That pushes a tree that the checks never ran on, or drops the other commits.
+A push rejected because `origin/<head>` moved during the run stays unpushed too. A PR merged or closed during the run also stays unpushed: check its `state` again before the push. Leave the PR body unfolded and say so. Do not pull, rebase or force past the rejection. A pull, a rebase or a force pushes a tree that the checks never ran on, or drops the other commits.
 
-After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, and reads ci again (**Checks**). A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing: the trace at the setup of the next run starts the one rerun.
+After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, and reads ci again (**Checks**). A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
 
-A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see the goal text). A DECISION stop is the exception, and counts as it stands. The user answers the rows first, and the setup of the next run traces the failure.
+A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see the goal text). A DECISION stop is the exception, and counts as it stands: the user answers the rows first.
 
 The next turn sets up a new run. After a DECISION stop, the turn after the answers sets it up. The setup of that run traces a failed suite job of the head, or stops as **Setup** says.
 
