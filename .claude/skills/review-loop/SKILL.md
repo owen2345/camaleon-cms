@@ -46,4 +46,4 @@ Load the other rule files from the same directory when the procedure first needs
 - `docs/ai/failures.md` at a failed check.
 - `trace.md` at a failed suite job.
 
-When a rule file and its copy differ, follow the copy, not the live text that the harness loads.
+When a rule file and its copy differ, follow the copy, not the live text that the harness loads. When a copy does not exist, save only that copy then, as above.
