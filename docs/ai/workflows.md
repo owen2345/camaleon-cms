@@ -77,7 +77,15 @@ Whether a push skips CI is decided **per push, not per commit**. GitHub reads th
 [skip ci]
 ```
 
-GitHub reads these bracket markers anywhere in the message: `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]` and `[actions skip]`. It also reads a `skip-checks: true` trailer, with or without the space, as the last line after two empty lines, which only `git commit --cleanup=verbatim` keeps. A commit message that only names a bracket marker skips CI too: write "skip-ci directive" instead, unless you want to skip CI.
+GitHub reads these bracket markers anywhere in the message:
+
+- `[skip ci]`
+- `[ci skip]`
+- `[no ci]`
+- `[skip actions]`
+- `[actions skip]`
+
+It also reads a `skip-checks: true` trailer, with or without the space, as the last line after two empty lines, which only `git commit --cleanup=verbatim` keeps. A commit message that only names a bracket marker skips CI too: write "skip-ci directive" instead, unless you want to skip CI.
 
 A commit is **docs-only** when it touches only documentation (`.md` files, `README.md`, `docs/`), `CHANGELOG.md`, `openspec/`, comments, or config with no code path.
 
