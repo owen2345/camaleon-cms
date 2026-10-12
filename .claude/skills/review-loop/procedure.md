@@ -28,7 +28,7 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
 
 Every pass starts with two steps, after `SKILL.md` loaded `procedure.md` from the copies of the run:
 
-- It notes HEAD.
+- It sets `<before>` of its PASS line to the `<after>` of the previous PASS line, or to the `setup HEAD` in pass 1.
 - It reads the ledger, but not every row of this run. Its PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `task` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
 From pass 2 on, the pass also checks the checkout. The checkout must still be on the head branch, at the HEAD that the previous PASS line ends on. Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
@@ -37,16 +37,16 @@ Commits past the HEAD of the previous PASS line are the run's own when the ledge
 
 A dirty tree is the run's own when the tree of the checkout is the `<sha>` of the last `fix` line after that PASS line. Compute that tree with a temporary index: `(export GIT_INDEX_FILE=<tmp>; git -C <checkout> read-tree HEAD && git -C <checkout> add -A && git -C <checkout> write-tree)`. `<tmp>` is an absolute path outside the checkout, and the index of the checkout stays as it is. The pass was cut off during the checks of that fix: finish it.
 
-Look for the last `task` line of a spec run after the last `fix` line. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"). With none, start the spec run, unless the commit has no spec file (**Checks**). Another such line between them is a first run that failed, or had no result: judge both as `docs/ai/failures.md` and **Checks** say. A `task` line that ends with `no fix`, or whose command runs in the clone of `docs/ai/failures.md` step 1, is neither the first nor the second run.
+Look for the last `task` line of a spec run after the last `fix` line. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"). With none, start the spec run, unless the commit has no spec file (**Checks**). Another such line between them is a first run that failed, or had no result: judge both as `docs/ai/failures.md` and **Checks** say. A `task` line marked `# no fix`, or whose command runs in the clone of `docs/ai/failures.md` step 1, is neither the first nor the second run. The re-run of `trace.md`, not the spec run of the commit, finishes a `fix` line of category `ci`.
 
-Then run the checks after the spec run that the commit needs: brakeman, zeitwerk:check and the openspec commands (`AGENTS.md`). Then commit the fix with the rows that the `fix` lines of that `<sha>` hold. Write the SHA of the commit as their evidence.
+Then run the checks after the spec run that the commit needs: brakeman, zeitwerk:check and the openspec commands (`AGENTS.md`). Then commit the fix with the rows that the `fix` lines of that `<sha>` hold. Write the SHA of the commit in the evidence field of each of those rows.
 
 A pass 1 can be cut off that way: its run header is the last of the ledger, with no PASS line under it. Finish it the same way against the `setup HEAD` under that header, without a new setup.
 
-The lines under that header say where setup was cut off:
+The lines under that header say where setup was cut off. A `ci` line of a pushed commit does not count here:
 
 - No `ci` line: read the ci check of setup first. When a poll ran, its last `task` line names its log.
-- The last `ci` line names a failed job, with no FIXED row of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
+- The last `ci` line names a failed job, with no `fix` line or FIXED row of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
 - The last `ci` line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
 
 Any other state of the checkout stops the run: say so. Do not switch, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base is one example. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
@@ -129,7 +129,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 - A spec run before a commit runs the specs of the fix and the adjacent specs (`docs/ai/workflows.md` Phase 3), never the whole suite. The exceptions are the trace of a CI failure (above) and an adjacent set above half of the suite (`AGENTS.md` "Verify before pushing"). `docs/ai/testing.md` says which files `bin/rspec` gets. When a commit has no such spec file, skip the run and report rspec as n/a.
 - A commit that touches `openspec/` also runs the `openspec validate` commands of `AGENTS.md` "Verify before pushing".
 - When a check fails, find out what caused the failure as `docs/ai/failures.md` says. Then fix it as `docs/ai/workflows.md` Phase 3 says. In the `git merge-base` command of `docs/ai/failures.md` step 4, `<base-ref>` takes the place of `origin/<base>`. For a spec run, the spec clone takes the place of the checkout, except for a host app (below). The failed run, the second run and the run after a fix happen there. The ignored file that its step 3 names is then a file of the spec clone.
-- The clone of `docs/ai/failures.md` step 1 stays a clone of its own, outside the spec clone. The run of step 2 without the fix comes first, in the spec clone synced without the `git diff … | git apply` part of the sync. Its `task` line ends with `no fix`. Make the clone of step 1 only when that run fails.
+- The clone of `docs/ai/failures.md` step 1 stays a clone of its own, outside the spec clone. The run of step 2 without the fix comes first, in the spec clone synced without the `git diff … | git apply` part of the sync. The `task` line of the run without the fix ends with `# no fix`. Make the clone of step 1 only when that run fails.
 - `docs/ai/failures.md` step 4 runs the check at the start commit of the branch. When it fails there in the same way, stop the run. Leave the uncommitted fix in the tree, and name it in the report as the run's own.
 - When a commit of the branch caused the failure, make the fixup commit of `docs/ai/workflows.md` Phase 3, without the rebase. The FIXED row of the fixup commit also names the commit that it fixes. The pass stops the run after its last commit (see **Pass states and stop**).
 - A spec run of the loop, before a commit or in a trace, runs in the spec clone (see **Setup**), never in the checkout. Before the spec run, sync the spec clone, with the ten-minute timeout (an install can take minutes): `[ -d <spec clone> ] || git clone -q <checkout> <spec clone>; git -C <spec clone> fetch -q <checkout> HEAD && git -C <spec clone> reset -q --hard FETCH_HEAD && git -C <spec clone> clean -fdq -e 'gemfiles/*.lock' && git -C <checkout> add -A && git -C <checkout> diff HEAD --binary | git -C <spec clone> apply --3way --allow-empty && (cd <spec clone> && bundle install --quiet)`. The sync brings the spec clone to the tree of the checkout, copies the uncommitted changes with their new files, and installs the gems. The reset discards the changes that the previous spec run copied in. The `clean` keeps the lock of a job gemfile for a trace (`trace.md`). A failed sync has no result (above).
@@ -139,7 +139,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 ## Pass states and stop
 
 - **SETTLED:** the pass ran to the end and applied no correctness or security fix. Every check passed or was n/a, and the checkout's tree is clean. A correctness fix is a FIXED row whose category is correctness, security, flake or a check name. Step 5 and step 6 fixes can go in.
-- **CLEAN:** SETTLED, and applied nothing at all (HEAD unchanged).
+- **CLEAN:** SETTLED, and applied nothing at all (`<after>` equals `<before>`).
 - **UNSETTLED:** anything else.
 
 Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and every change it made was reviewed by a later pass.
