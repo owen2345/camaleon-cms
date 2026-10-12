@@ -18,7 +18,13 @@ Camaleon CMS is a Rails engine shipped as the `camaleon_cms` gem. Everything bel
 
 Before a commit, the same rule applies to the code files of that commit (`docs/ai/workflows.md` Phase 3): its no-code files do not count. A commit whose code files are all under `spec/`, outside `spec/dummy`, runs the lint and the specs: brakeman and zeitwerk:check read no spec file. Adjacent specs are those of the code that the PR touches: the same model, concern, controller or helper. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. A grep of `spec/` for the changed symbols finds them. When that set is more than half of the suite, run the whole suite instead: it costs the same.
 
-Run the whole suite only on the user's ask, to reproduce a failed CI job (`docs/ai/failures.md`), or for an adjacent set above half of the suite (above). To debug a spec failure, follow `docs/ai/failures.md` too. CI runs the whole suite on every push.
+Run the whole suite only in these cases:
+
+- The user asks for it.
+- You reproduce a failed CI job (`docs/ai/failures.md`).
+- The adjacent set is more than half of the suite (above).
+
+To debug a spec failure, follow `docs/ai/failures.md` too. CI runs the whole suite on every push.
 
 A commit that touches `openspec/` also runs `openspec validate --all --strict` and `openspec validate --archived`. `--specs` alone skips a change not yet archived, and `--all` skips an archived one. Only `--archived` checks that an archived change has every task checked (Phase 4). Given both flags, `validate` runs only the archived set.
 
