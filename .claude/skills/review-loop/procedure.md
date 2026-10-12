@@ -44,11 +44,11 @@ Then run the checks after the spec run that the commit needs: brakeman, zeitwerk
 
 A pass 1 can be cut off that way: its run header is the last of the ledger, with no PASS line under it. Finish it the same way against the `setup HEAD` under that header, without a new setup.
 
-The lines under that header say where setup was cut off. A `ci` line of a pushed commit does not count here:
+The `ci` lines of the `setup HEAD` under that header say where setup was cut off:
 
-- No `ci` line: read the ci check of setup first. When a poll ran, its last `task` line names its log.
-- The last `ci` line names a failed job, with no `fix` line or FIXED row of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
-- The last `ci` line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
+- No such line: read the ci check of setup first. When a poll ran, its last `task` line names its log.
+- The last such line names a failed job, with no `fix` line of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
+- The last such line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
 
 Any other state of the checkout stops the run: say so. Do not switch, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base is one example. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
 
