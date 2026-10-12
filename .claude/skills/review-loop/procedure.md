@@ -61,13 +61,13 @@ For another repo, the conventions angle of the review holds the code to the `CLA
 
 pass | claim | file + function, spec example or doc section heading (no line numbers) | category | verdict | evidence (fix SHA, or reason + the HEAD that it was judged at)
 
-Append each row other than FIXED as soon as its finding gets a verdict. Append a FIXED row in the same command as the commit of its fix, which gives the row its SHA.
+Append the rows other than FIXED when their findings get a verdict. Append a FIXED row in the same command as the commit of its fix, which gives the row its SHA.
 
-The message of a commit follows `docs/ai/prose.md`: a subject line and at most three sentences, with no pass number and no ledger label. Before the commit, print each sentence of the message file over the bound, and reword it: `ruby -e 'File.read(ARGV[0]).split(/(?<=[.!?])\s+|\n\n+/).each { |s| n = s.split.size; puts "#{n}: #{s}" if n > 25 }' <file>`. The command counts each word of a code span, so a count of 25 or less meets the bound.
+The message of a commit follows `docs/ai/prose.md`: a subject line and at most three sentences, with no pass number and no ledger label. Before the commit, print each sentence of the message file over the bound, and reword it: `ruby -e 'bad = false; File.read(ARGV[0]).split(/(?<=[.!?])\s+(?=[^a-z])|\n\n+/).each { |s| n = s.split.size; next if n <= 25; bad = true; puts "#{n}: #{s}" }; exit(bad ? 1 : 0)' <file>`. The command counts each word of a code span, so a count of 25 or less meets the bound. It exits with 1 when it prints, so `&&` can chain the commit after it.
 
 The commit of a failure fix (`docs/ai/workflows.md` Phase 3) also gets a FIXED row, with the check as its category. The category is `ci` for the fix of a failed suite job, and `flake` for a flake fix. A repair of a line, a spec example or a new file of the uncommitted fix (`docs/ai/failures.md`) is part of that fix. The repair gets no row of its own. Because each commit command appends its rows, a pass cut off before its PASS line leaves every commit that it made on record.
 
-The loop never rewrites a commit. A rewrite gives commits new SHAs, which the rows and PASS lines no longer match. A failure that an earlier commit of the branch caused gets a `fixup!` commit (`docs/ai/workflows.md` Phase 3). The user folds it with `git rebase --autosquash <sha>~1`, `<sha>` the oldest commit that the fixups fix: the report names both.
+The loop never rewrites a commit. A rewrite gives commits new SHAs, which the rows and PASS lines no longer match. A failure that an earlier commit of the branch caused gets a `fixup!` commit (`docs/ai/workflows.md` Phase 3). The user folds the fixup commits with `git rebase --autosquash <sha>~1`, where `<sha>` is the oldest commit that they fix. The report names the fixup commits and `<sha>`.
 
 ## Verdicts
 
