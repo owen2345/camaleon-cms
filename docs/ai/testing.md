@@ -39,7 +39,7 @@ A spec run has one of three results:
 - It fails with a failure or an error outside of examples in its summary line. A crash fails too: no summary line, no `RSpec is shutting down` line, and an exit code from 1 to 128.
 - Any other spec run has no result. A killed run prints a summary line of the examples so far, or none, and never exits with 0. An interrupt (SIGINT) prints `RSpec is shutting down` and exits with 1.
 
-A spec file that fails to load, also on a syntax error, does not stop the other files. The summary line then ends with `1 error occurred outside of examples`, and `bin/rspec` exits with 1: the run failed, whatever its failure count.
+A syntax error in a spec file does not stop the other files. Any other load failure, for example a spec file that does not exist, stops every example: the summary line starts with `0 examples`. In both cases the summary line ends with `1 error occurred outside of examples`, and `bin/rspec` exits with 1: the run failed, whatever its failure count.
 
 Any other command has one of these results:
 
