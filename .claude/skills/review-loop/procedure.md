@@ -27,10 +27,7 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
 
   The first `ci` line under the run header is the ci read of setup. Trace a failed suite job there (`trace.md`) in pass 1, before the review when possible, otherwise before the PASS line. The read ends before the trace of a failed job. With no failed job, it ends after the one rerun of a run, when that run gets one. The run stops on `no jobs`, `pending` or `cancelled` (**Checks**). The stop comes at the end of pass 1, which commits its fixes first.
 
-Every pass starts with two steps, after `SKILL.md` loaded `procedure.md` from the copies of the run:
-
-- It sets `<before>` of its PASS line to the `<after>` of the previous PASS line, or to the `setup HEAD` in pass 1.
-- It reads the ledger, but not every row of this run. Its PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `task` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
+Every pass starts with one step, after `SKILL.md` loaded `procedure.md` from the copies of the run: it reads the ledger, but not every row of this run. Its PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `task` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
 From pass 2 on, the pass also checks the checkout. The checkout must still be on the head branch, at the HEAD that the previous PASS line ends on. Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
@@ -190,3 +187,5 @@ The goal's evaluator reads only the transcript, so end every turn with the line 
 ```text
 PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a, no jobs, pending, cancelled or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason, pushed or not pushed>
 ```
+
+`<before>` is the `<after>` of the previous PASS line, or the `setup HEAD` in pass 1. `<after>` is the HEAD of the checkout at the end of the pass.
