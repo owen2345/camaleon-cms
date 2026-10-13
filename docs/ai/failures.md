@@ -4,7 +4,7 @@ A check of `AGENTS.md` "Verify before pushing" failed. This document finds the c
 
 ## Second run
 
-When a check fails, decide first whether a second run can give another result. A failed lint, brakeman or zeitwerk:check needs no second run: the result is the same each time. A failure in a line, a spec example or a new file of the uncommitted fix needs no second run either: the fix caused it. Find the cause of such a failure at once.
+When a check fails, decide first whether a second run can give another result. A failed check whose result is the same each time needs no second run, for example the lint, brakeman or zeitwerk:check. A failure in a line, a spec example or a new file of the uncommitted fix needs no second run either: the fix caused it. Find the cause of such a failure at once.
 
 Run any other failed spec run again in the checkout, the same way. It uses the same files and the `--seed`, if any, and starts only when no other spec run is active (`docs/ai/testing.md`). The run that failed is the first run, and this run is the second run. A failed spec run with another run active during it in the same checkout does not count (`docs/ai/run-markers.md`). Run it again alone: that run replaces it as the first or the second run. When the first run did not count and the run alone after it passes, the check passed: there is nothing to fix.
 
