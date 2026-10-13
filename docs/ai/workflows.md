@@ -51,7 +51,13 @@ Run the checks in their order. Run `bin/rubocop -A` first, on the whole repo, as
 
 Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:check. When no spec file applies, skip the spec run: `bin/rspec` with no files runs the whole suite. Do not run the checks before you start a change.
 
-A failure fix is the fix of a failed check. Every failure fix goes in the commit of the uncommitted fix, also a flake fix for a flake that was there before the branch. When no fix is uncommitted, the failure fix is a commit of its own. When bisect names an earlier commit of the branch, the fix goes there, as a fixup commit (below). After a failure fix, run the checks again, the lint first.
+A failure fix is the fix of a failed check. It goes in the first case of this list that holds:
+
+- **Bisect names an earlier commit of the branch:** a fixup commit of that commit (below).
+- **A fix is uncommitted:** the commit of that fix. A flake fix for a flake that was there before the branch goes there too.
+- **No fix is uncommitted:** a commit of its own.
+
+After a failure fix, run the checks again, the lint first.
 
 When a check fails, find its cause as `docs/ai/failures.md` says. That document holds the second run, the bisect in a scratch clone and the reproduction of a failed CI job.
 
