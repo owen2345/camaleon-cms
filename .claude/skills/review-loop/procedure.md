@@ -37,7 +37,7 @@ The PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of e
 
 From pass 2 on, the pass also checks the checkout. The checkout must still be on the head branch, at the `<after>` of the previous PASS line (**PASS line**). Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
-The open work of a cut-off pass has three kinds. The state of the checkout and the lines after the previous PASS line tell them apart. A `task` line after that PASS line names a task of the cut-off pass: judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"), instead of a new run.
+The open work of a cut-off pass has three kinds. The state of the checkout and the lines after the previous PASS line tell them apart. A `task` line after that PASS line names a task of the cut-off pass. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"), instead of a new run.
 
 - **Commits past the `<after>` of that PASS line, with ledger rows that record their SHAs:** the run's own. A pass cut off before its PASS line left them: finish that pass instead of a new one.
 - **A clean tree, with rows after that PASS line:** the pass fixes the open `todo` lines and runs no new review. A `todo` line is open until a FIXED row with its claim follows it. With no row after that PASS line, the pass runs its review again.
