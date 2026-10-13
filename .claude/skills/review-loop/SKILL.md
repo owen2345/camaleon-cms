@@ -37,7 +37,7 @@ The live files are the files of the checkout, and they change with it. A PR that
 
 Each turn reads the ledger, `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms (`procedure.md`, Setup), and then does one of these:
 
-- The last run of the ledger is not over: its last PASS line is not a STOP, or a run header follows that line. Load the copy of `procedure.md` under `tmp/review-loop/<repo>/<pr>.rules/`, and follow it.
+- The last run of the ledger is not over: the last run header has no PASS line with a STOP under it. Load the copy of `procedure.md` under `tmp/review-loop/<repo>/<pr>.rules/`, and follow it.
 - Otherwise a new run starts, also with no ledger or no run header. Remove `tmp/review-loop/<repo>/<pr>.rules/`, then save the head version of each rule file under it, at `<path>`. `<path>` is the path of the file from the root of camaleon-cms, for example `.claude/skills/review-loop/procedure.md`. Create the directory of each copy first (`mkdir -p`), then run `git show HEAD:<path> > <copy>` in camaleon-cms. That directory lasts as long as the run, unlike the scratchpad. Then follow the copy of `procedure.md` from its Setup, which appends the run header.
 
 Load the other rule files from the same directory when the procedure first needs them:
