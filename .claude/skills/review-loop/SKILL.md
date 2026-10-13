@@ -42,7 +42,8 @@ Each turn reads the ledger, `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms (`p
 
 Load the other rule files from the same directory when the procedure first needs them:
 
-- `docs/ai/workflows.md`, `docs/ai/testing.md`, `docs/ai/prose.md` and `AGENTS.md` at the first fix of the pass, or at a stop that pushes. A background task before the first fix loads `docs/ai/testing.md` then.
+- `docs/ai/workflows.md`, `docs/ai/prose.md` and `AGENTS.md` at the first fix of the pass, or at a stop that pushes.
+- `docs/ai/testing.md` before the first background task of the pass, a spec run included.
 - `docs/ai/failures.md` at a failed check.
 - `trace.md` at a failed suite job.
 
