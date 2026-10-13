@@ -22,6 +22,8 @@ When the check fails again in the same way, or needs no second run, find out wha
 4. Find the start commit of the branch in the checkout (`git merge-base origin/<base> HEAD`). In the clone, `origin/<base>` is the local base branch of the checkout, which can lag. Check out the start commit in the clone and run the failed check. When it fails in the same way, the failure was there before the branch. Tell the user, and do not fix it on this branch.
 
    For the lint and the whole suite, which CI runs the same way, a CI run at the start commit replaces the local run. `gh run list --repo <project> --commit <start commit> --workflow <suite workflow>` lists its runs of that workflow, and `gh run view <run id> --repo <project> --json jobs --jq '.jobs[] | "\(.databaseId) \(.conclusion) \(.name)"'` their jobs. `<project>` is the GitHub project, `<owner>/<name>`. Compare the job of the same matrix cell and the items of its `--log-failed` (below). The failure was there before the branch when that job fails in the same way. With no run at the start commit, run the check in the clone.
+
+   A matrix job resolves the gems of its gemfile at each run, so an old green run can hide a gem that changed since. So when bisect names the first commit of the branch, run the check at the start commit in the clone before the fixup.
 5. Run `git bisect start <bad> <start commit>` in the clone. `<bad>` is the commit before the commit of the fix when step 2 failed in the same way, else the branch. Do not give HEAD: the clone is at the start commit. Bisect does not run the check at these two marks, so steps 3 and 4 run it there.
 
    Then run `git bisect run` with a script that runs the failed check. The script gives one of these exit codes:
