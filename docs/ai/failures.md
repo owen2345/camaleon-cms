@@ -42,7 +42,7 @@ Each RSpec run in the clone, also each bisect step, uses the files and the `--se
 
 Leave out the files that do not exist at the commit of the run. RSpec fails to load a file that does not exist, and that failure shows nothing. When no file is left, skip the run, as `docs/ai/workflows.md` Phase 3 says. The check passes at that commit, because the example that failed is not there.
 
-Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The run at the tip in step 3 can fail in another way, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Go on to step 5, as bisect does with exit code 125.
+Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The run of step 3 can fail in another way, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Go on to step 5, as bisect does with exit code 125.
 
 Bisect names the commit that caused the failure. When it lists several commits instead (`The first 'bad' commit could be any of`), the commits before the cause fail in another way. Find the cause in the diffs of the listed commits, or tell the user.
 
@@ -56,7 +56,7 @@ Take the command of that step from `.github/workflows/`, not from the log. Run i
 
 The checkout run comes before a scratch clone run, because most failures do not depend on the cell of the job. The trace of the review loop goes cell-first instead, because its one run must match CI (`.claude/skills/review-loop/trace.md`). The CI run is the first run of "Second run" above. The second run is the checkout run when it shows the failure, or when the job has the Ruby and the gems of the checkout. Otherwise the second run is the run in the scratch clone (below). A `<member> / RSpec` check runs the suite of an ecosystem member: reproduce it as `docs/ai/testing.md` "Ecosystem member checks" says.
 
-A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. When the checkout does not show its failure, reproduce it in a scratch clone (step 1). Never bundle another gemfile in the checkout. A bundle of another gemfile writes `gemfiles/<rails>.gemfile.lock`, an untracked file that git does not ignore, and the checkout is no longer clean.
+A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. That Rails and Ruby are the cell of the job. When the checkout does not show its failure, reproduce it in a scratch clone (step 1). Never bundle another gemfile in the checkout. A bundle of another gemfile writes `gemfiles/<rails>.gemfile.lock`, an untracked file that git does not ignore, and the checkout is no longer clean.
 
 For a job with a gemfile, run `BUNDLE_GEMFILE=<clone>/gemfiles/<rails>.gemfile bundle install` in the clone, then the step with the same variable. The path is absolute, as in the workflow file. A Bundler before 4.0 keeps a relative path as given, and a child process that runs in another directory does not find the gemfile.
 
