@@ -150,7 +150,10 @@ Stop and push in these cases:
 - Pass 8 did not converge. Report it as not converged.
 - A second CONFLICT on the same claim. Show both sides.
 - A review cannot cover its range.
-- A DECISION row in this pass that the `decision` parameter names (`SKILL.md`, Parameters). The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer goes in as a commit, pushed before that run.
+- A DECISION row in this pass that the `decision` parameter names. The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer goes in as a commit, pushed before that run. The values:
+  - `stop`: any DECISION row.
+  - `important`: a decision on the design of the PR, or on a rule that the later fixes follow. A decision on one sentence, a term or a bound does not count.
+  - absent (default): no DECISION row stops the run, and the rows wait for the STOP.
 
 These stops push nothing, also when a reason to push applies. A stop that neither list names pushes nothing too. Each of these stops is defined where it happens:
 

@@ -20,7 +20,7 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 - **repo:** the checkout's directory name: `camaleon-cms` (default: the session's own checkout) or a sibling checkout, a plugin or theme such as `camaleon-cms-seo` or a host app such as `florsan`, at `../<repo>` from camaleon-cms. The session always runs in the main camaleon-cms checkout, where this harness and the ledgers live: from an app-made worktree of it (`.claude/worktrees/<name>`), `../<repo>` would resolve under `.claude/worktrees/` and the ledger inside the worktree, deleted with it. A core PR runs in that main checkout, which the user switches to its head branch (setup never does): the skill has no worktree option, by decision, since worktrees are very inconvenient in JetBrains IDEs.
 - **pr:** the PR number in that repo's GitHub project. Default: the PR of the checkout's current branch.
 - **effort:** the `/code-review` level: `low`, `medium`, `high` (default), `xhigh` or `max`. Not `ultra`: that cloud review can only be launched by the user.
-- **decision:** which DECISION row stops the run after its pass. `stop`: any DECISION row. `important`: a decision on the design of the PR, or on a rule that the later fixes follow. A decision on one sentence, a term or a bound does not stop with `important`. Absent (default): no DECISION row stops the run, and the rows wait for the STOP.
+- **decision:** `stop`, `important` or absent (default). `procedure.md`, Pass states and stop, says which DECISION row stops the run after its pass.
 
 ## Rules
 
