@@ -32,7 +32,7 @@ When the check fails again in the same way, or needs no second run, find out wha
    - 125 when the check fails in another way. Bisect then skips that commit, because another failure does not show the cause.
    - Above 128 when a signal killed the check: its own exit status, tested before its output. Bisect then stops and keeps its marks, and `git bisect run` started again goes on from them.
 
-Each RSpec run in the clone, also each bisect step, uses the files and the `--seed`, if any, of the run that failed. When the run that failed was the whole suite, each run in the clone is the whole suite too. Do not give it more files. More files change the order of the examples, and an order-dependent failure can then pass.
+Each RSpec run in the clone, also each bisect step, uses the files and the `--seed`, if any, of the second run. When the second run was the whole suite, each run in the clone is the whole suite too. Do not give it more files. More files change the order of the examples, and an order-dependent failure can then pass.
 
 Leave out the files that do not exist at the commit of the run. RSpec fails to load a file that does not exist, and that failure shows nothing. When no file is left, skip the run, as `docs/ai/workflows.md` Phase 3 says. The check passes at that commit, because the example that failed is not there.
 
