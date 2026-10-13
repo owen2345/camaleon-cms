@@ -29,9 +29,9 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
 
 Every pass starts with one step, after `SKILL.md` loaded `procedure.md` from the copies of the run: it reads the ledger, but not every row of this run. Its PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `task` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
-From pass 2 on, the pass also checks the checkout. The checkout must still be on the head branch, at the HEAD that the previous PASS line ends on. Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
+From pass 2 on, the pass also checks the checkout. The checkout must still be on the head branch, at the `<after>` of the previous PASS line (**PASS line**). Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
-Commits past the HEAD of the previous PASS line are the run's own when the ledger rows after that line record their SHAs. A pass cut off before its PASS line left them: finish that pass instead of a new one. A `task` line after that PASS line names a task of the cut-off pass. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"), instead of a new run. When only rows follow that PASS line and the tree is clean, the pass runs its review again. A finding that already has a row keeps that verdict.
+Commits past the `<after>` of the previous PASS line are the run's own when the ledger rows after that line record their SHAs. A pass cut off before its PASS line left them: finish that pass instead of a new one. A `task` line after that PASS line names a task of the cut-off pass. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"), instead of a new run. With the tree clean again, the pass runs its review again, because a FIXED verdict leaves no row before its commit. A finding that already has a row keeps that verdict.
 
 A dirty tree is the run's own when the tree of the checkout is the `<sha>` of the last `fix` line after that PASS line. Compute that tree with a temporary index: `(export GIT_INDEX_FILE=<tmp>; git -C <checkout> read-tree HEAD && git -C <checkout> add -A && git -C <checkout> write-tree)`. `<tmp>` is an absolute path outside the checkout, and the index of the checkout stays as it is. The pass was cut off during the checks of that fix: finish it.
 
@@ -39,7 +39,7 @@ Look for the last `task` line of a spec run after the last `fix` line. Judge it 
 
 Then run the checks after the spec run that the commit needs: brakeman, zeitwerk:check and the openspec commands (`AGENTS.md`). The open lines are the `fix` lines of the last `<sha>` that have no FIXED row after that PASS line. First, alone, make the fixup commit for each open line that has a fifth field (**Checks**). Then commit the fix of the other open lines, after `git add -A`, with their rows. Write the SHA of the commit in the evidence field of each of those rows.
 
-A pass 1 can be cut off that way: its run header is the last of the ledger, with no PASS line under it. Finish it the same way against the `setup HEAD` under that header, without a new setup.
+A pass 1 can be cut off that way: its run header is the last of the ledger, with no PASS line under it. Finish it the same way against the `setup HEAD` under that header, without a new setup. In pass 1, the last `setup`, `ci` or `rerun` line takes the place of the PASS line.
 
 The `ci` lines of the `setup HEAD` under that header say where setup was cut off:
 
