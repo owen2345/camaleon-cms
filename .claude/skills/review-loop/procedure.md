@@ -140,7 +140,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 - **CLEAN:** SETTLED, and applied nothing at all (`<after>` equals `<before>`).
 - **UNSETTLED:** anything else.
 
-Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and every change it made was reviewed by a later pass.
+Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and a later pass reviewed every change that the run made.
 
 Stop and push in these cases:
 
