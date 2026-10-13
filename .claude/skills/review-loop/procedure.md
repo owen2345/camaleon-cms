@@ -137,6 +137,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 - A spec run before a commit runs the specs of the fix and the adjacent specs (`docs/ai/workflows.md` Phase 3), never the whole suite. The exceptions are the trace of a CI failure (above) and an adjacent set of more than half of the suite (`AGENTS.md` "Verify before pushing"). `docs/ai/testing.md` says which files `bin/rspec` gets. When a commit has no such spec file, skip the run and report rspec as n/a.
 - A commit that touches `openspec/` also runs the `openspec validate` commands of `AGENTS.md` "Verify before pushing".
 - When a check fails, find out what caused the failure as `docs/ai/failures.md` says. Then fix it as `docs/ai/workflows.md` Phase 3 says. In the `git merge-base` command of `docs/ai/failures.md` step 4, `<base-ref>` takes the place of `origin/<base>`. For a spec run, the spec clone takes the place of the checkout, except for a host app (below). The failed run, the second run and the run after a fix happen there. The ignored file that its step 3 names is then a file of the spec clone.
+- A failure whose cause the trace does not find stops the run: report the check with its log.
 - The clone of `docs/ai/failures.md` step 1 stays a clone of its own, outside the spec clone. The run of step 2 without the fix comes first, in the spec clone synced with `no copy`. The `task` line of the run without the fix ends with `# no fix`. Make the clone of step 1 only when step 3 runs.
 - `docs/ai/failures.md` step 4 runs the check at the start commit of the branch. When it fails there in the same way, stop the run. Leave the uncommitted fix in the tree, and name it in the report as the run's own.
 - When a commit of the branch caused the failure, make the fixup commit of `docs/ai/workflows.md` Phase 3, without the rebase. The FIXED row of the fixup commit also names the commit that it fixes. Its `fix` line ends with a fifth field, the SHA of that commit. The pass stops the run after its last commit (see **Pass states and stop**).
@@ -172,8 +173,8 @@ These stops push nothing, also when a reason to push applies. A stop that neithe
 
 - A setup stop, also on a ci read of setup with `no jobs`, `pending` or `cancelled` (**Setup**).
 - A checkout that changed between passes (**Setup**), or a pass that ends with uncommitted changes, which can be another writer's.
-- A diff that undoes an earlier commit of the branch (**Verdicts** step 3), or a `fixup!` commit (**Checks**).
-- A check that fails with no fix, or a failure that was there before the branch (**Checks**).
+- A second CONFLICT on a fix that undoes an earlier commit of the branch (**Verdicts** step 3), or a `fixup!` commit (**Checks**).
+- A failure whose cause the trace does not find, or that was there before the branch (**Checks**).
 - A CI failure that the spec clone does not show and that a rerun shows again (`trace.md`).
 - A hang, or a command with no result twice (**Checks**).
 - The wait of a host app that ends after its hour (**Checks**).
