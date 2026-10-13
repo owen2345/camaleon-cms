@@ -36,7 +36,7 @@ The steps:
    - 0 when the check passes.
    - 1 when the check fails in the same way.
    - 125 when the check fails in another way. Bisect then skips that commit, because another failure does not show the cause.
-   - Above 128 when a signal killed the check: its own exit status, tested before its output. Bisect then stops and keeps its marks, and `git bisect run` started again goes on from them.
+   - 128 or above when a signal killed the check, or `git` itself failed: its own exit status, tested before its output. Bisect then stops and keeps its marks, and `git bisect run` started again goes on from them.
 
 Each RSpec run in the clone, also each bisect step, uses the files and the `--seed`, if any, of the second run. When the second run was the whole suite, each run in the clone is the whole suite too. Do not give it more files. More files change the order of the examples, and an order-dependent failure can then pass.
 
