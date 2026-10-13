@@ -116,7 +116,6 @@ Between the lint and the other checks of a fix, append one line `fix <tree> | <c
 
 Judge the command by its result, as `docs/ai/testing.md` "Long commands" says. With no result, start the command again once. A second spec run that ends with the same summary line and exit code is a failure: `docs/ai/failures.md` traces it. A hang, or any other second start with no result, stops the run: report the command with its log. A sync or a `gh` command that fails has no result too, and the report gives its output in place of a log.
 
-
 The fifth check is **ci**: the GitHub workflow runs of a commit, the rows of `gh run list --commit <sha>`. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD`. A stop that pushes reads them again for the pushed commit (see **Pass states and stop**).
 
 Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or the failed job>` in the ledger. Its `<sha>` is the HEAD that the read stands for: the `setup HEAD` at setup, and the pushed commit after a push. The ci field of a PASS line is the value of the last `ci` line of the run for the `<after>` of the line. With no such line, it is n/a.
@@ -154,6 +153,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 - The spec clone keeps its caches: `git clean` without `-x` leaves the ignored files. No other spec run shares the files of the spec clone or its SQLite file, so a failed spec run there counts. A subagent that runs specs makes a clone of its own the same way, at another path. In a host app, a subagent runs its specs in the checkout too, under the wait below.
 - A host app on PostgreSQL (camaleon_website, florsan) runs its specs in the checkout, with no spec clone. A clone lacks the ignored files that its boot reads, such as `.env` and `config/master.key`, and its test database is shared with every checkout anyway. There, a spec run starts only when no other spec run is active. The wait for other runs of `docs/ai/testing.md` "Which specs to run" checks that, an hour at most. A spec run still active after the hour stops the run, and the report names its pids.
 - A failed spec run of a host app does not count when `pgrep -f '[r]spec'` names another run at its end. Run a failed spec run that does not count again alone, as `docs/ai/failures.md` says. The clone of `docs/ai/failures.md` step 1 does not run the specs of a host app, which run in the checkout only (above). When a host-app spec run fails again in the same way, stop the run and report the failed examples.
+
 ## Pass states and stop
 
 - **SETTLED:** the pass ran to the end and applied no correctness or security fix. Every check passed or was n/a, and the checkout's tree is clean. A correctness fix is a FIXED row whose category is correctness, security, flake or a check name. Step 5 and step 6 fixes can go in.
