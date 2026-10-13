@@ -35,7 +35,7 @@ The rule files, all of camaleon-cms, are:
 
 The live files are the files of the checkout, and they change with it. A PR that edits them changes the rules with each fix. During a plugin run, another session or the IDE can switch the camaleon-cms checkout.
 
-Each turn reads the ledger, `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms (`procedure.md`, Setup), and then does one of these:
+Each turn reads the run headers and the PASS lines of the ledger, `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms (`procedure.md`, Setup): `grep -nE '^(## Run|PASS )' <ledger>`. Then it does one of these:
 
 - The last run of the ledger is not over: the last run header has no PASS line with a STOP under it. Load the copy of `procedure.md` under `tmp/review-loop/<repo>/<pr>.rules/`, and follow it.
 - Otherwise a new run starts, also with no ledger or no run header. Remove `tmp/review-loop/<repo>/<pr>.rules/`, make it again (`mkdir -p`), and save the head version of the rule files in it with one command in camaleon-cms: `git archive HEAD AGENTS.md docs/ai/workflows.md docs/ai/failures.md docs/ai/testing.md docs/ai/prose.md .claude/skills/review-loop/procedure.md .claude/skills/review-loop/trace.md | tar -x -C tmp/review-loop/<repo>/<pr>.rules`. Each copy is then at its path from the root of camaleon-cms, for example `.claude/skills/review-loop/procedure.md`. A failed `git archive` leaves no file, and `tar` then exits with 1. That directory lasts as long as the run, unlike the scratchpad. Then follow the copy of `procedure.md` from its Setup, which appends the run header.

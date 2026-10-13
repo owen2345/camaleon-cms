@@ -27,7 +27,9 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
 
   The first `ci` line under the run header is the ci read of setup. Trace a failed suite job there (`trace.md`) in pass 1, before the review when possible, otherwise before the PASS line. The read ends before the trace of a failed job. With no failed job, it ends after the one rerun of a run, when that run gets one. The run stops on `no jobs`, `pending` or `cancelled` (**Checks**). The stop comes at the end of pass 1, which commits its fixes first.
 
-Every pass starts with one step, after `SKILL.md` loaded `procedure.md`: it reads the ledger, but not every row of this run. Its PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `task`, `todo` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
+Every pass starts with one step, after `SKILL.md` loaded `procedure.md`: it reads the lines of the ledger that the rules below use, with two commands. `grep -nE '^(## Run|setup |ci |rerun |PASS )|\| (REFUTED|DECISION|CONFLICT) \|' <ledger>` prints the state lines and the rows that the verdicts check. `awk '/^## Run /{r=NR} /^PASS /{p=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) if (i>p || l[i] ~ /\| FIXED \|/) print l[i]}' <ledger>` prints the FIXED rows of this run and every line after its last PASS line. Do not read the other lines: the FIXED rows and the `task` and `fix` lines of earlier runs are most of the ledger.
+
+The PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `task`, `todo` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
 From pass 2 on, the pass also checks the checkout. The checkout must still be on the head branch, at the `<after>` of the previous PASS line (**PASS line**). Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
@@ -183,7 +185,7 @@ A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see
 
 The next turn sets up a new run. After a DECISION stop, the turn after the answers sets it up. The setup of that run traces a failed suite job of the head, or stops as **Setup** says.
 
-On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, if it has one. A STOP that pushed does this after its ci read. Report the DEFERRED, DECISION, REPEAT and CONFLICT rows.
+On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, if it has one. A STOP that pushed does this after its ci read. Report the DEFERRED, DECISION, REPEAT and CONFLICT rows of the run: `awk '/^## Run /{r=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) print l[i]}' <ledger> | grep -E '\| (DEFERRED|DECISION|REPEAT|CONFLICT) \|'`.
 
 ## PASS line
 
