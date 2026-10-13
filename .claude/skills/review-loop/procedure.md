@@ -108,7 +108,7 @@ Judge the command by its result, as `docs/ai/testing.md` "Long commands" says. W
 
 The fifth check is **ci**: the GitHub workflow runs of a commit, the rows of `gh run list --commit <sha>`. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD`. A stop that pushes reads them again for the pushed commit (see **Pass states and stop**).
 
-Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or the failed job>` in the ledger. Its `<sha>` is the HEAD that the read stands for: the `setup HEAD` at setup, and the pushed commit after a push. The ci field of a PASS line is the value of the last `ci` line of the run for the HEAD of the line. With no such line, it is n/a.
+Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or the failed job>` in the ledger. Its `<sha>` is the HEAD that the read stands for: the `setup HEAD` at setup, and the pushed commit after a push. The ci field of a PASS line is the value of the last `ci` line of the run for the `<after>` of the line. With no such line, it is n/a.
 
 - The suite runs are the runs of the suite workflows of the table, which run the lint, the scans and the suite of the repo. Their jobs are the suite jobs. Every other run is advisory. Examples are `Test upcoming versions` (Rails edge and Ruby head) and `Test ecosystem members`. A failed or cancelled advisory run gets a DECISION row, and a pending one gets no row. No advisory run fails ci, but a failed suite job does.
 - In the commands below, `S` holds the suite workflows of the table, joined with `|`. The commands show the camaleon-cms value.
