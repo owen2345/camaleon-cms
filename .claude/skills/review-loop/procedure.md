@@ -53,7 +53,9 @@ Any other state of the checkout stops the run: say so. Do not switch, reset, sta
 
 Run `/code-review <effort> --fix` on the local branch of the checkout against the base, unpushed commits included. Give it no target for camaleon-cms, and the checkout path for another repo. Its scope is `git -C <checkout> diff <base-ref>...HEAD`, whatever range `/code-review` picks on its own. On its own, it can pick `@{upstream}...HEAD`, which holds only the commits not yet pushed. Never target the PR number: that can review the pushed head, which lacks the commits of this run. When the review cannot cover that whole range, stop and say so.
 
-For another repo, the conventions angle of the review holds the code to the `CLAUDE.md` of camaleon-cms (`AGENTS.md`). Plugin, theme and host app checkouts carry no agent docs of their own. A CLAUDE.md governs only the files at or below its directory, so the angle finds none otherwise. The "Gem, not an app" and "Support range" rules of `AGENTS.md` are the gem's, and they do not bind a host app. Its root `bin/rails` runs the app, which has no dummy, and the app runs the one Rails and Ruby version that it pins. Apply findings only as the verdicts allow.
+The conventions angle of the review reads the live `AGENTS.md` of camaleon-cms, not the copy of the run. For another repo, the conventions angle of the review holds the code to the `CLAUDE.md` of camaleon-cms (`AGENTS.md`). Plugin, theme and host app checkouts carry no agent docs of their own. A CLAUDE.md governs only the files at or below its directory, so the angle finds none otherwise.
+
+The "Gem, not an app" and "Support range" rules of `AGENTS.md` are the gem's, and they do not bind a host app. Its root `bin/rails` runs the app, which has no dummy, and the app runs the one Rails and Ruby version that it pins. Apply findings only as the verdicts allow.
 
 ## Ledger rows
 
