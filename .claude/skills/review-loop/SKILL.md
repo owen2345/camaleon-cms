@@ -42,8 +42,9 @@ Each turn reads the last run header or PASS line of the ledger, `tmp/review-loop
 
 Load the other rule files from the same directory when the procedure first needs them:
 
+- `docs/ai/workflows.md` at the ci read of setup, which tests the `setup HEAD` for a skip marker.
 - `docs/ai/workflows.md`, `docs/ai/prose.md` and `AGENTS.md` at the first fix of the pass, or at a stop that pushes.
-- `docs/ai/testing.md` before the first background task of the pass, a spec run included.
+- `docs/ai/testing.md` before the first background task of the pass, a spec run included, or before it judges a `task` line.
 - `docs/ai/failures.md` at a failed check.
 - `trace.md` at a failed suite job.
 
