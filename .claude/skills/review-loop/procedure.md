@@ -9,7 +9,7 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
 
   The run goes on only when each condition below holds. Otherwise stop and say so in a `PASS 0/8` line. Do not switch, pull, stash or commit.
   - The PR is open.
-  - The head of the PR is in the repository of `origin`: the `headRepositoryOwner` login and the `headRepository` name, as `<owner>/<name>`, equal `gh repo view <origin's URL> --json nameWithOwner --jq .nameWithOwner`. A PR from another fork fails this, because the STOP push goes to `origin`.
+  - The head of the PR is in the repository of `origin`. The `headRepositoryOwner` login and the `headRepository` name, as `<owner>/<name>`, equal that repository: `<project>`, or in a fork checkout `gh repo view <origin's URL> --json nameWithOwner --jq .nameWithOwner`. A PR from another fork fails this, because the STOP push goes to `origin`.
   - `origin/<head>` is at the head commit of the PR.
   - The checkout is on the head branch, at `origin/<head>`: a commit that is not pushed is then a commit of the run.
   - The checkout is clean: `git -C <checkout> status --porcelain` prints nothing.
