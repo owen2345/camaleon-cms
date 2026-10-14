@@ -76,7 +76,7 @@ The conventions angle of the review reads the live `AGENTS.md` of camaleon-cms, 
 
 ## Ledger rows
 
-pass | claim | file + function, spec example or doc section heading (no line numbers) | category | verdict | evidence (fix SHA, or reason + the HEAD that it was judged at)
+pass | claim | file + function, spec example or doc section heading (no line numbers) | category | verdict | evidence (fix SHA, or reason + `judged at <sha>`)
 
 Append the rows other than FIXED when their findings get a verdict. Append them in one command, with one line `todo <claim> | <location> | <category>` per finding with the verdict FIXED, and the line `review`. The `review` line records that the review ran, also when it found nothing. Append a FIXED row in the same command as the commit of its fix, which gives the row its SHA. A SHA in a row has 12 characters (`git rev-parse --short=12 <sha>`). The `setup`, `ci` and `fix` lines keep the full value, which `gh` and the tree test need.
 
@@ -93,7 +93,7 @@ The loop never rewrites a commit. A rewrite gives commits new SHAs, which the ro
 Check the steps in order. A finding that is also a correctness or security defect skips steps 5 and 6 and goes to step 7, whatever its category. The pass applies only FIXED and leaves no finding without a verdict. Commit the fixes as `docs/ai/workflows.md` Phase 3 says.
 
 1. Check every finding against the code yourself, whether or not the review verified it. Refuted → REFUTED. PLAUSIBLE, only when that check can neither confirm nor refute it → DEFERRED. Low severity or a loud failure is no reason to defer a confirmed defect.
-2. Same claim as a DECISION or REFUTED row, on code that the row's HEAD also has → REPEAT if DECISION, CONFLICT if REFUTED. A REPEAT row names the new evidence of the finding, if any, for the user. The row's HEAD is the HEAD at which the pass judged it. A row that names no HEAD, such as a pass 0 seed, has the `setup HEAD` of the run header after it. If that code changed, treat the claim as new. A sentence that a commit of the run added, reworded, split or moved, and that keeps the decided meaning, counts as the same code.
+2. Same claim as a DECISION or REFUTED row, on code that the row's HEAD also has → REPEAT if DECISION, CONFLICT if REFUTED. A REPEAT row names the new evidence of the finding, if any, for the user. The row's HEAD is the `<sha>` after `judged at` in its evidence, the HEAD at which the pass judged it. A row that names no HEAD, such as a pass 0 seed, has the `setup HEAD` of the run header after it. If that code changed, treat the claim as new. A sentence that a commit of the run added, reworded, split or moved, and that keeps the decided meaning, counts as the same code.
 
    Also treat it as new when the repository no longer has that HEAD: `git -C <checkout> rev-parse -q --verify '<sha>^{commit}'` exits with 1. A rewrite leaves the old HEAD off the branch, but the repository keeps it.
 3. A fix that undoes a commit already on this branch (`<base-ref>..HEAD`) gives CONFLICT. A fix that goes against a DECISION row on the same code, as step 2 defines it, gives CONFLICT too.
