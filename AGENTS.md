@@ -20,7 +20,7 @@ Before a commit, the same rule applies to the code files of that commit (`docs/a
 
 Adjacent specs are those of the code that the PR touches: the same model, concern, controller or helper. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. For a base class or a concern, they also include the specs of every class that inherits or includes it.
 
-A grep of `spec/` for the changed symbols and for those class names finds them. A request or feature spec names a route path, not a controller class. For a controller or a view, grep for its route paths too. When that set is more than half of the suite, run the whole suite instead: it costs the same.
+A grep of `spec/` for the changed symbols and for those class names finds them. A request or feature spec often reaches a controller only by a route path or a route helper. For a controller or a view, also grep for its route helpers and the fixed segments of its route paths. `(cd spec/dummy && bin/rails routes -c <controller>)` lists both. A spec writes a `:param` segment by interpolation, so the fixed segments are the ones to grep for. When the set found is more than half of the suite, run the whole suite instead: it costs the same.
 
 Run the whole suite only in these cases:
 
