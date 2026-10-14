@@ -98,7 +98,7 @@ Check the steps in order. A finding that is also a correctness or security defec
    Also treat it as new when the repository no longer has that HEAD: `git -C <checkout> rev-parse -q --verify '<sha>^{commit}'` exits with 1. A rewrite leaves the old HEAD off the branch, but the repository keeps it.
 3. A fix that undoes a commit already on this branch (`<base-ref>..HEAD`) gives CONFLICT. A fix that goes against a DECISION row on the same code, as step 2 defines it, gives CONFLICT too.
 4. Needs a design trade-off or the user's call → DECISION. The `decision` parameter says whether the row stops the run after this pass (see **Pass states and stop**).
-5. Reuse, simplification or efficiency (the cleanups), conventions (code that breaks a `CLAUDE.md` or `AGENTS.md` rule) or coverage-only → FIXED. A fix that preserves behavior needs no new spec, because the checks prove it. A fix that changes behavior, as a conventions fix can, gets its own spec. A coverage-only fix is the new spec.
+5. Reuse, simplification or efficiency (the cleanups), conventions (code that breaks a `CLAUDE.md` or `AGENTS.md` rule) or coverage-only → FIXED. A fix needs a spec as `AGENTS.md` "Specs" says, and a conventions fix can change behavior. A coverage-only fix is the new spec.
 
    Once step 5 is frozen (see below), the findings of step 5 are DEFERRED instead. A cleanup is also DEFERRED when a cleanup of an earlier pass of this run reshaped that function, spec example or doc section.
 6. Altitude or wording → FIXED in pass 1, DEFERRED after. Wording is text that still gives the right outcome when a reader follows it literally. Text that gives a wrong outcome is a defect.
