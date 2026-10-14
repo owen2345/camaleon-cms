@@ -194,11 +194,14 @@ Commit but do not push during the run. The STOP push carries every commit of the
 
 The checks ran before each commit of the run, so the push needs no other check run (`AGENTS.md` "Verify before pushing").
 
-Before the push, fetch `origin/<head>`. When it is at HEAD, skip the push. With HEAD at the `setup HEAD`, the run made no commit. Otherwise a pass cut off after its push made the commits: read ci for HEAD, as below.
+Before the push, fetch `origin/<head>`. When it is at HEAD, skip the push, and compare HEAD with the `setup HEAD`:
+
+- HEAD is the `setup HEAD`: the run made no commit.
+- HEAD is past the `setup HEAD`: a pass cut off after its push made the commits. Read ci for HEAD, as below.
 
 Push with `git -C <checkout> push origin <head>`.
 
-A push rejected because `origin/<head>` moved during the run stays unpushed too. A PR merged or closed during the run also stays unpushed: check its `state` again before the push. Leave the PR body unfolded and say so. Do not pull, rebase or force past the rejection. A pull, a rebase or a force pushes a tree that the checks never ran on, or drops the other commits.
+A push rejected because `origin/<head>` moved during the run stays unpushed too. A PR merged or closed during the run also stays unpushed: check its `state` again before the push. Leave the PR body unfolded and say so. Do not pull, rebase or force past the rejection. After a pull or a rebase, the push carries a tree that the checks never ran on. A forced push drops the other commits.
 
 After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, and reads ci again (**Checks**). A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
 
