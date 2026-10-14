@@ -45,6 +45,7 @@ Any other command has one of these results:
 
 - A bisect has a result when its log holds `bisect found first 'bad' commit` or `error: bisect run cannot continue any more`: `docs/ai/failures.md` reads it. Otherwise it has no result. Its restart is `git bisect run <script>` alone: `git bisect start` drops the marks.
 - A command whose exit code is 128 or above has no result: a signal killed it, or `git` itself failed.
+- A log that ends with `[exited with code 1]` and holds no report of the command has no result: a signal killed the shell of the task (above).
 - For any other command, the exit code is the result.
 
 ## Database
