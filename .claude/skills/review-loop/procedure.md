@@ -102,7 +102,7 @@ Check the steps in order. A finding that is also a correctness or security defec
 
    Once step 5 is frozen (see below), the findings of step 5 are DEFERRED instead. A cleanup is also DEFERRED when a cleanup of an earlier pass of this run reshaped that function, spec example or doc section.
 6. Altitude or wording → FIXED in pass 1, DEFERRED after. Wording is text that still gives the right outcome when a reader follows it literally. Text that gives a wrong outcome is a defect.
-7. A correctness or security defect → FIXED, with the spec that reproduces it. The row has the category correctness or security, whatever category the review gave the finding. `AGENTS.md` "Specs" and `docs/ai/workflows.md` Phase 3 give the exceptions.
+7. A correctness or security defect → FIXED, with the spec that reproduces it. `AGENTS.md` "Specs" and `docs/ai/workflows.md` Phase 3 give the exceptions. The row, and the `todo` line before it, have the category correctness or security, whatever category the review gave the finding.
 
 ## Checks
 
