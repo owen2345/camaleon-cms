@@ -54,7 +54,7 @@ When bisect names a commit of the branch, the failure fix goes there as a fixup 
 
 Reproduce a failed CI job before you trace it. Its job log names the failed step, the failed examples and the `--seed`, if any: `gh run view <run id> --repo <project> --job <job id> --log-failed`, with both ids from the link of the check. The last `##[group]Run <command>` line before the first `##[error]` line names the failed step. A step that only prepares the runner does not run on this machine, for example an action (`uses:`) or an install with `sudo`. Run the job again on GitHub: `gh run rerun <run id> --repo <project> --failed`.
 
-After a rerun, the log of a job id alone is the latest attempt's. Give the log command `--attempt <n>`, the number of the failed attempt.
+After a rerun, a log read with a job id alone can print the latest attempt's log. Take the job id of the failed attempt from `gh run view <run id> --repo <project> --attempt <n> --json jobs`, and give the log command the same `--attempt <n>`.
 
 Take the command of that step from `.github/workflows/`, not from the log. Run it in the checkout as the workflow does, with the Ruby and the gems of the checkout. Before `bin/bundler-audit`, run `bin/bundler-audit update` once: CI reads a fresh advisory database, and the local copy can lack a new advisory. For a spec failure, first run only the failed examples. When they pass, run the files of the job with its `--seed`, if any. For a job that runs `bin/rspec` with no file, those files are the whole suite.
 
