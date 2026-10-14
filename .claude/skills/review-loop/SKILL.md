@@ -11,7 +11,7 @@ Repeated `/code-review <effort> --fix` passes on a PR's local branch until they 
 /goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level> decision=<stop or important>, one pass per turn. Continue until the latest PASS line's last field starts with STOP. Each turn ends with its PASS line, and a PASS line that ends in continue never meets this goal, whatever its state. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it, from the same run, SETTLED or CLEAN. Both lines must show git status clean, rspec 0 failures and no errors, or n/a, and every check ok or n/a. A STOP for any other reason that the skill gives counts as it stands, with one exception. A STOP that pushed counts only if its checks field shows ci as ok or n/a, unless it stopped on a DECISION row.
 ```
 
-The Skill tool loads this file live from the checkout, and the harness loads `AGENTS.md` live. So every run works from copies of its rule files, which this file makes at the start of the run. The rules of a run do not change while it runs. `procedure.md` beside this file holds the procedure of a run, and its copy is the one to follow.
+The Skill tool loads this file live from the checkout, and the harness loads `AGENTS.md` when the session starts. So every run works from copies of its rule files, which this file makes at the start of the run. The rules of a run do not change while it runs. `procedure.md` beside this file holds the procedure of a run, and its copy is the one to follow.
 
 ## Parameters
 
