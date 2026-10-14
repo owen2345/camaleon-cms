@@ -59,7 +59,7 @@ The `ci` lines of the `setup HEAD` under that header say where setup was cut off
 
 - No such line: read the ci check of setup first. When a poll ran, its last `task` line names its log.
 - The last such line names a failed job, with no `fix` line of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
-- A `rerun` line with no `ci` line after it: read the ci check again.
+The reason of a convergence stop starts with `converged`, and the reason of a DECISION stop names the row: the goal reads both. The `fixed` field When `gh run view <run id> --repo <project> --json attempt --jq .attempt` prints 1, the rerun never started: run the rerun command of **Checks** first, which is no second rerun.
 - The last such line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
 
 Any other state of the checkout stops the run: say so. Do not switch, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base is one example. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
