@@ -62,6 +62,8 @@ The CI run is the first run of "Second run" above. The second run is the checkou
 
 A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. That Rails and Ruby are the cell of the job. When the checkout does not show its failure, reproduce it in a scratch clone (step 1). Never bundle another gemfile in the checkout. A bundle of another gemfile writes `gemfiles/<rails>.gemfile.lock`, an untracked file that git does not ignore, and the checkout is no longer clean.
 
+CI tests the PR merged into the base commit of its run. The job log names that commit: `HEAD is now at <merge> Merge <head commit> into <base of the job>`. When neither the checkout nor the clone shows the failure, merge that commit in the clone (`git merge <base of the job>`) and run the step again.
+
 For a job with a gemfile, run `BUNDLE_GEMFILE=<clone>/gemfiles/<rails>.gemfile bundle install` in the clone, then the step with the same variable. The path is absolute, as in the workflow file. A Bundler before 4.0 keeps a relative path as given, and a child process that runs in another directory does not find the gemfile.
 
 When `mise ls --installed ruby` lists a Ruby of the minor version of the job, set `MISE_RUBY_VERSION=<version>` in the environment of each command. `<version>` is that minor version, for example `3.2`, and the shims then run the newest installed Ruby of it. Trace a failure that the clone shows in the clone, with the same variables in each run.
