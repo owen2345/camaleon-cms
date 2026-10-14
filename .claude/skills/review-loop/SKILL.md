@@ -40,12 +40,4 @@ Each turn reads the last run header or PASS line of the ledger, `tmp/review-loop
 - The line is a run header, or a PASS line whose last field is `continue`: the last run is not over. Load the copy of `procedure.md` under `tmp/review-loop/<repo>/<pr>.rules/`, and follow it.
 - Otherwise a new run starts: the line is a PASS line with a STOP, or there is no line. Remove `tmp/review-loop/<repo>/<pr>.rules/`, which lasts as long as the run (the scratchpad does not), and make it again (`mkdir -p`). Then save the head version of the rule files in it with one command in camaleon-cms: `set -o pipefail; git archive HEAD AGENTS.md docs/ai/workflows.md docs/ai/failures.md docs/ai/testing.md docs/ai/prose.md .claude/skills/review-loop/procedure.md .claude/skills/review-loop/trace.md | tar -x -C tmp/review-loop/<repo>/<pr>.rules`. Each copy is then at its path from the root of camaleon-cms, for example `.claude/skills/review-loop/procedure.md`. A failed `git archive` leaves no file, and with `pipefail` the command exits with its code. When the exit code is not 0, stop and say so in a `PASS 0/8` line. Otherwise follow the copy of `procedure.md` from its Setup, which appends the run header.
 
-Load the other rule files from the same directory when the procedure first needs them:
-
-- `docs/ai/workflows.md` at the ci read of setup, which tests the `setup HEAD` for a skip marker.
-- `docs/ai/workflows.md`, `docs/ai/prose.md` and `AGENTS.md` at the first fix of the pass, or at a stop that pushes.
-- `docs/ai/testing.md` before the first background task of the pass, a spec run included, or before it judges a `task` line.
-- `docs/ai/failures.md` at a failed check.
-- `trace.md` at a failed suite job.
-
-When a rule file and its copy differ, follow the copy, not the live text that the harness loads. When a copy does not exist, save only that copy then, as above.
+Load the other rule files from the same directory when the procedure first names them. When a rule file and its copy differ, follow the copy, not the live text that the harness loads. When a copy does not exist, save only that copy then, as above.
