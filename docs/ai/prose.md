@@ -39,7 +39,7 @@ Apply the standard to the prose that you add or change. These limits apply:
 - Use a maximum of 25 words in a sentence. Use a maximum of 20 words in an instruction.
 - Write about one topic in each sentence.
 - Use a maximum of six sentences in a paragraph.
-- Use a bullet list for an enumeration or for a set of conditions.
+- Use a bullet list for an enumeration of more than five items, or for a set of conditions.
 
 ## Verbs
 
