@@ -36,7 +36,7 @@ Do not edit a checkout while a run is active in it in the background.
 A spec run has one of three results:
 
 - It passes with 0 failures in its summary line, no error outside of examples, and exit code 0. The exit code is the code of `bin/rspec` itself: a run piped through another command, such as `tail`, reports the code of that command.
-- It fails with a failure or an error outside of examples in its summary line. A crash fails too: no summary line, no `RSpec is shutting down` line, and an exit code from 1 to 128.
+- It fails with a failure or an error outside of examples in its summary line. A crash fails too: no summary line, no `RSpec is shutting down` line, and an exit code from 1 to 127.
 - Any other spec run has no result. A killed run prints a summary line of the examples so far, or none, and never exits with 0. An interrupt (SIGINT) prints `RSpec is shutting down` and exits with 1.
 
 A syntax error in a spec file does not stop the other files. Any other load failure, for example a spec file that does not exist, stops every example: the summary line starts with `0 examples`. In both cases the summary line ends with `1 error occurred outside of examples`, and `bin/rspec` exits with 1: the run failed, whatever its failure count.
@@ -44,7 +44,7 @@ A syntax error in a spec file does not stop the other files. Any other load fail
 Any other command has one of these results:
 
 - A bisect has a result when its log holds `bisect found first 'bad' commit` or `error: bisect run cannot continue any more`: `docs/ai/failures.md` reads it. Otherwise it has no result. Its restart is `git bisect run <script>` alone: `git bisect start` drops the marks.
-- A command whose exit code is above 128 has no result: a signal killed it.
+- A command whose exit code is 128 or above has no result: a signal killed it, or `git` itself failed.
 - For any other command, the exit code is the result.
 
 ## Database
