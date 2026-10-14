@@ -26,7 +26,7 @@ Wait for the end, as often as needed: `w=bound; for i in $(seq 114); do tail -n 
 
 - `end`: the log has the end line.
 - `missing`: the log does not exist, for example after the scratchpad of a session is gone. The command has no result.
-- `stale`: the log did not change for 30 minutes. End the command with `TaskStop`. When `TaskStop` finds no task, the command died with its session: it has no result. Otherwise the command hangs.
+- `stale`: the log did not change for 30 minutes. End the command with `TaskStop`. When `TaskStop` finds no task, the command died with its session: it has no result. When it answers that the task is not running, the command ended: judge its log as for `end`. Otherwise the command hangs.
 - `bound`: 570 seconds passed, and the command still runs. Wait again.
 
 `grep -a` reads a log that holds a NUL byte or invalid UTF-8. Without it, the `grep` of the Bash tool skips such a file as binary.
