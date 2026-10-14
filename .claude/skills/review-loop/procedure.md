@@ -197,7 +197,7 @@ These stops push nothing, also when a reason to push applies. A stop that neithe
 
 `AGENTS.md` wants the checks before a push, and the user judges an undo, another writer's change or a fold. A stop without a push leaves the commits of the run for the user to push before the next run (see **Setup**).
 
-Commit but do not push during the run. The STOP push carries every commit of the run. Decide the skip marker for the whole push: GitHub reads it off the last commit alone (`docs/ai/workflows.md` Phase 3). A marked docs-only last commit also skips CI for the code commits of the run. At a stop that pushes, push the head branch once and fold the PR description (`docs/ai/workflows.md` Phase 4). Fold the run into the live description (`gh pr view <pr> --repo <project> --json body --jq '.body | sub("\n+$"; "")'`), save it as `tmp/review-loop/<repo>/<pr>.fold.md` and run `gh pr edit <pr> --repo <project> --body-file tmp/review-loop/<repo>/<pr>.fold.md`.
+Commit but do not push during the run. The STOP push carries every commit of the run. Decide the skip marker for the whole push: GitHub reads it off the last commit alone (`docs/ai/workflows.md` Phase 3). A marked docs-only last commit also skips CI for the code commits of the run. At a stop that pushes, push the head branch once and fold the PR description (`docs/ai/workflows.md` Phase 4). Save the live description (`gh pr view <pr> --repo <project> --json body --jq '.body | sub("\n+$"; "")' > tmp/review-loop/<repo>/<pr>.fold.md`), fold the run into that file and run `gh pr edit <pr> --repo <project> --body-file tmp/review-loop/<repo>/<pr>.fold.md`.
 
 The checks ran before each commit of the run, so the push needs no other check run (`AGENTS.md` "Verify before pushing").
 
