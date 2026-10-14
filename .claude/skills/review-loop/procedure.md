@@ -111,8 +111,8 @@ The checks are the four in camaleon-cms `AGENTS.md` "Verify before pushing", in 
 | | camaleon-cms | plugin or theme | host app (PostgreSQL) |
 |---|---|---|---|
 | suite workflows | `Audit`, `Test supported versions` | `CI` | `test-on-push` |
-| brakeman | `bin/brakeman --no-pager` | n/a | `bin/brakeman --no-pager` |
-| zeitwerk:check | `(cd spec/dummy && bin/rails zeitwerk:check)` | the same | `bin/rails zeitwerk:check` |
+| brakeman | as `AGENTS.md` | n/a | `bin/brakeman --no-pager` |
+| zeitwerk:check | as `AGENTS.md` | the same | `bin/rails zeitwerk:check` |
 | spec database | the SQLite file of the spec clone | the same | its own test database, shared with every checkout of the app |
 | spec runs | the spec clone | the same | the checkout, under the other-run wait |
 
