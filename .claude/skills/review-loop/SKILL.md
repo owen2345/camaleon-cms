@@ -24,20 +24,11 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 
 ## Rules
 
-The rule files, all of camaleon-cms, are:
-
-- `procedure.md` and `trace.md` of this skill
-- `docs/ai/workflows.md`
-- `docs/ai/failures.md`
-- `docs/ai/testing.md`
-- `docs/ai/prose.md`
-- `AGENTS.md`
-
-The live files are the files of the checkout, and they change with it. A PR that edits them changes the rules with each fix. During a plugin run, another session or the IDE can switch the camaleon-cms checkout.
+The rule files are `AGENTS.md`, the files under `docs/ai` and the other files of this skill, all in camaleon-cms. The live files are the files of the checkout, and they change with it. A PR that edits them changes the rules with each fix. During a plugin run, another session or the IDE can switch the camaleon-cms checkout.
 
 Each turn reads the last run header or PASS line of the ledger, `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms (`procedure.md`, Setup): `grep -aE '^(## Run|PASS )' <ledger> | tail -n 1`. Then it does one of these:
 
 - The line is a run header, or a PASS line whose last field is `continue`: the last run is not over. Load the copy of `procedure.md` under `tmp/review-loop/<repo>/<pr>.rules/`, and follow it.
 - Otherwise a new run starts: the line is a PASS line with a STOP, or there is no line. Remove `tmp/review-loop/<repo>/<pr>.rules/`, which lasts as long as the run (the scratchpad does not), and make it again (`mkdir -p`). Then run this in camaleon-cms, which saves the head version of `AGENTS.md`, `docs/ai` and this skill at their paths: `set -o pipefail; git archive HEAD AGENTS.md docs/ai .claude/skills/review-loop | tar -x -C tmp/review-loop/<repo>/<pr>.rules`. A failed `git archive` leaves no file, and with `pipefail` the command exits with its code. When the exit code is not 0, stop and say so in a `PASS 0/8` line. Otherwise follow the copy of `procedure.md` from its Setup, which appends the run header.
 
-Load the other rule files from the same directory when the procedure first names them. When a rule file and its copy differ, follow the copy, not the live text that the harness loads. When a copy does not exist, save only that copy then, as above.
+Load the other rule files from the copy, at their paths under `tmp/review-loop/<repo>/<pr>.rules/`, when the procedure first names them. When a rule file and its copy differ, follow the copy, not the live text that the harness loads. When a copy does not exist, stop and say so in the PASS line: the copies of the run are incomplete.
