@@ -70,7 +70,7 @@ The brief of the review tells each finder to append each candidate that it keeps
 
 The conventions angle of the review reads the live `AGENTS.md` of camaleon-cms, not the copy of the run. For another repo, the conventions angle of the review holds the code to the `CLAUDE.md` of camaleon-cms (`AGENTS.md`). Plugin, theme and host app checkouts carry no agent docs of their own. A CLAUDE.md governs only the files at or below its directory, so the angle finds none otherwise.
 
-The "Gem, not an app" and "Support range" rules of `AGENTS.md` are the gem's, and they do not bind a host app. Its root `bin/rails` runs the app, which has no dummy, and the app runs the one Rails and Ruby version that it pins. Apply findings only as the verdicts allow.
+`AGENTS.md` "Support range" says which ground rules do not bind a host app. Apply findings only as the verdicts allow.
 
 ## Ledger rows
 
