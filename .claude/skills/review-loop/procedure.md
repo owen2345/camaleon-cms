@@ -59,7 +59,7 @@ The `ci` lines of the `setup HEAD` under that header say where setup was cut off
 
 - No such line: read the ci check of setup first. When a poll ran, its last `task` line names its log.
 - The last such line names a failed job, with no `fix` line of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
-The reason of a convergence stop starts with `converged`, and the reason of a DECISION stop names the row: the goal reads both. The `fixed` field When `gh run view <run id> --repo <project> --json attempt --jq .attempt` prints 1, the rerun never started: run the rerun command of **Checks** first, which is no second rerun.
+- A `rerun` line with no `ci` line after it: read the ci check again. When `gh run view <run id> --repo <project> --json attempt --jq .attempt` prints 1, the rerun never started: run the rerun command of **Checks** first, which is no second rerun.
 - The last such line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
 
 Any other state of the checkout stops the run: say so. Do not switch, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base is one example. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
@@ -219,7 +219,7 @@ On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, i
 
 ## PASS line
 
-The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. A pass without findings leaves its `review` line and no row. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` is at HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
+The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a convergence stop starts with `converged`, and the reason of a DECISION stop names the row: the goal reads both. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` is at HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
 
 ```text
 PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a, no jobs, pending, cancelled or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason, pushed or not pushed>
