@@ -102,7 +102,7 @@ Check the steps in order. A finding that is also a correctness or security defec
 
 ## Checks
 
-The checks are the four in camaleon-cms `AGENTS.md` "Verify before pushing", in the form of the table for each kind of checkout. A check that `AGENTS.md` "Verify before pushing" exempts the branch or the commit from is also n/a.
+The checks are the four in camaleon-cms `AGENTS.md` "Verify before pushing", in the form of the table for each kind of checkout. When `AGENTS.md` "Verify before pushing" exempts the branch or the commit from a check, that check is n/a too.
 
 | | camaleon-cms | plugin or theme | host app (PostgreSQL) |
 |---|---|---|---|
