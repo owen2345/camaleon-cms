@@ -204,7 +204,7 @@ The checks ran before each commit of the run, so the push needs no other check r
 Before the push, fetch `origin/<head>`. When it is at HEAD, skip the push, and compare HEAD with the `setup HEAD`:
 
 - HEAD is the `setup HEAD`: the run made no commit.
-- HEAD is past the `setup HEAD`: a pass cut off after its push made the commits. Read ci for HEAD, as below.
+- HEAD is past the `setup HEAD`: a pass cut off after its push made the commits. Fold the PR description and read ci for HEAD, as below.
 
 Push with `git -C <checkout> push origin <head>`.
 
