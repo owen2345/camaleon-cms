@@ -16,7 +16,9 @@ Camaleon CMS is a Rails engine shipped as the `camaleon_cms` gem. Everything bel
 
 `bin/rubocop -A` (before the specs, since autocorrect can change behavior), `bin/rspec <the specs the PR adds or changes, plus the adjacent ones>`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`. The lint runs on the whole repo, as CI lints it, and never on a list of files. With a list of files, RuboCop also corrects a listed file that `.rubocop.yml` excludes. All four, unless the branch changes no code. A branch changes no code when it touches only Markdown files, in any folder, files under `openspec/` and git settings such as `.gitignore`.
 
-Before a commit, the same rule applies to the code files of that commit (`docs/ai/workflows.md` Phase 3): its no-code files do not count. A commit whose code files are all under `spec/`, outside `spec/dummy`, runs the lint and the specs: brakeman and zeitwerk:check read no spec file. Adjacent specs are those of the code that the PR touches: the same model, concern, controller or helper. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. A grep of `spec/` for the changed symbols finds them. When that set is more than half of the suite, run the whole suite instead: it costs the same.
+Before a commit, the same rule applies to the code files of that commit (`docs/ai/workflows.md` Phase 3): its no-code files do not count. A commit whose code files are all under `spec/`, outside `spec/dummy`, runs the lint and the specs: brakeman and zeitwerk:check read no spec file.
+
+Adjacent specs are those of the code that the PR touches: the same model, concern, controller or helper. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. For a base class or a concern, they also include the specs of every class that inherits or includes it. A grep of `spec/` for the changed symbols and for those class names finds them. When that set is more than half of the suite, run the whole suite instead: it costs the same.
 
 Run the whole suite only in these cases:
 
