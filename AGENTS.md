@@ -18,7 +18,9 @@ Camaleon CMS is a Rails engine shipped as the `camaleon_cms` gem. Everything bel
 
 Before a commit, the same rule applies to the code files of that commit (`docs/ai/workflows.md` Phase 3): its no-code files do not count. A commit whose code files are all under `spec/`, outside `spec/dummy`, runs the lint and the specs: brakeman and zeitwerk:check read no spec file.
 
-Adjacent specs are those of the code that the PR touches: the same model, concern, controller or helper. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. For a base class or a concern, they also include the specs of every class that inherits or includes it. A grep of `spec/` for the changed symbols and for those class names finds them. When that set is more than half of the suite, run the whole suite instead: it costs the same.
+Adjacent specs are those of the code that the PR touches: the same model, concern, controller or helper. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. For a base class or a concern, they also include the specs of every class that inherits or includes it.
+
+A grep of `spec/` for the changed symbols and for those class names finds them. A request or feature spec names a route path, not a controller class. For a controller or a view, grep for its route paths too. When that set is more than half of the suite, run the whole suite instead: it costs the same.
 
 Run the whole suite only in these cases:
 
