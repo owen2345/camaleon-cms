@@ -210,7 +210,7 @@ Push with `git -C <checkout> push origin <head>`.
 
 A push rejected because `origin/<head>` moved during the run stays unpushed too. A PR merged or closed during the run also stays unpushed: check its `state` again before the push. Leave the PR description unfolded and say so. Do not pull, rebase or force past the rejection. After a pull or a rebase, the push carries a tree that the checks never ran on. A forced push drops the other commits.
 
-After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, and reads ci again (**Checks**). A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
+After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, as **Checks** says. A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
 
 A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see the goal text). A DECISION stop counts as it stands, whatever its ci: the user answers the rows first.
 
