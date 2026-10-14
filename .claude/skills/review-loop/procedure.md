@@ -13,7 +13,7 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
   - `origin/<head>` is at the head commit of the PR.
   - The checkout is on the head branch, at `origin/<head>`: a commit that is not pushed is then a commit of the run.
   - The checkout is clean: `git -C <checkout> status --porcelain` prints nothing.
-  - The tests of the checkout are RSpec specs, the only suite the checks run: `git -C <checkout> ls-files 'test/*_test.rb'` prints nothing. A plugin still on minitest stops here.
+  - The tests of the checkout are RSpec specs, the only suite that the checks run: `git -C <checkout> ls-files 'test/*_test.rb'` prints nothing. A plugin still on minitest stops here.
   - The checkout has `bin/rubocop` and `bin/rspec`, which the checks run.
 
   Every range below starts at `<base-ref>`: `origin/<base>`, never the local base branch, which can lag behind. In a fork checkout, `origin` is a fork and another remote, `<remote>`, is the project (`git -C <checkout> remote -v`, often `upstream`). The `<base>` of the fork can lag the same way. So `<base-ref>` is `<remote>/<base>`, fetched from it (`git -C <checkout> fetch <remote> <base>`). The head, the conditions above and the STOP push stay on `origin`.
