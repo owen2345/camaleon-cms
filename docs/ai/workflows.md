@@ -75,7 +75,7 @@ To push a rewrite of a pushed commit, run `git push --force-with-lease=<branch>:
 
 Before the rewrite, make sure that your branch holds `<remote sha>` (`git merge-base --is-ancestor <remote sha> HEAD`). Also make sure that the remote branch is at `<remote sha>`: `git ls-remote origin refs/heads/<branch>` prints that SHA. When it prints another SHA, do not rewrite, and tell the user. Push any other change with a plain `git push`.
 
-Whether a push skips CI is decided **per push, not per commit**. GitHub reads the skip marker off the head commit of the push. A marked head suppresses every workflow for that push, including the `pull_request` event when the PR is opened at that tip. A skip marker is a literal token on its own line at the end of the message:
+Whether a push skips CI is decided **per push, not per commit**. GitHub reads the skip marker off the head commit of the push. A marked head suppresses every workflow for that push, including the `pull_request` event when the PR is opened at that tip. To skip CI, write a marker as a literal token on its own line at the end of the message:
 
 ```
 <commit subject>
