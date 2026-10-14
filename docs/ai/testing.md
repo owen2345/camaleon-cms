@@ -4,9 +4,48 @@ Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); 
 
 ## Which specs to run
 
-`AGENTS.md` "Verify before pushing" says which specs to run before a push and when to run the whole suite; `grep -rln <changed symbol> spec/` finds the adjacent ones. Never have two runs going at once: the suite shares one SQLite database, and runs on separate ones still share the dummy app's files, such as the uploads under `spec/dummy/public/media`.
+`AGENTS.md` "Verify before pushing" says which specs to run before a push, how to find the adjacent ones, and when to run the whole suite. Never run two spec runs at once in one checkout. The suite shares one SQLite database, and runs on separate ones still share the dummy app's files, such as the uploads under `spec/dummy/public/media`.
+
+Give `bin/rspec` only `*_spec.rb` files that exist. A deleted spec, a factory or a fixture fails to load, and a support file loads again and adds no example.
 
 At exit, each run of the Camaleon suite names the run markers of the other runs that were active during it. Read `docs/ai/run-markers.md` only to judge a `RspecRunMarker` line in the output of a run.
+
+`pgrep -f '[r]spec'`, in a command of its own, lists the active runs. The brackets keep the shell that runs the command off the list. Its command line holds the pattern, and the pgrep of Linux does not leave it out by itself. `ps -o args= -p <pid>` shows what a run is. `lsof -a -d cwd -p <pid>`, or `readlink /proc/<pid>/cwd` on Linux, shows the checkout that it runs in.
+
+`<checkout>` is the real path of a checkout (`git rev-parse --show-toplevel`). To wait until no run of it is active, an hour at most: `for i in $(seq 180); do pgrep -f '[r]spec' | xargs -I{} lsof -a -d cwd -p {} -Fn 2> /dev/null | P='n<checkout>' awk '$0 == ENVIRON["P"] || index($0, ENVIRON["P"] "/") == 1 { f = 1 } END { exit !f }' || break; echo "$i"; sleep 20; done`. The `awk` matches the checkout and a directory below it as fixed strings. Without `lsof`, `readlink /proc/{}/cwd 2> /dev/null | sed 's/^/n/'` takes the place of the `lsof` command.
+
+For a host app on PostgreSQL, a run of any checkout counts: `for i in $(seq 180); do pgrep -f '[r]spec' > /dev/null || break; echo "$i"; sleep 20; done`. The `echo` keeps the log of a wait fresh: a log that does not change for 30 minutes means a hang (Long commands). After the hour, `pgrep -f '[r]spec'` names the runs that are still active.
+
+## Long commands
+
+A foreground command of the Bash tool that reaches its timeout moves to the background and runs on until the turn ends. It is a background task from then on: the message of the tool names its id and its log. Wait for it as below before any command that needs its result. The timeout is two minutes by default and ten minutes at most. Give the ten-minute timeout to a foreground command that can take longer than two minutes, and to every wait below.
+
+Run every spec run, every CI poll and any other command that can outlast the timeout as a background task. A background task is the Bash tool with `run_in_background`. The tool answers with the task id and the path of the log of the task, `<log>`, which holds stdout and stderr of the command. When the command ends, the harness appends `[exited with code <n>]` to the log and sends a notification with the exit code. The notification arrives with the result of the next tool call. `TaskStop <task id>` kills the command and its child processes, and appends `[killed]` to the log.
+
+Wait for the end, as often as needed: `w=bound; for i in $(seq 114); do tail -n 1 <log> | grep -aqE '^\[(exited with code [0-9]+|killed)\]$' && { w=end; break; }; [ -e <log> ] || { w=missing; break; }; [ -z "$(find <log> -mmin -30)" ] && { w=stale; break; }; sleep 5; done; echo $w; grep -aE '^[0-9]+ examples?, ' <log>; tail -n 3 <log>`. The wait prints one word, then the summary line of a spec run and the end of the log. It returns before the ten-minute timeout, so the harness moves no copy of it to the background. The word is one of these:
+
+- `end`: the log has the end line.
+- `missing`: the log does not exist, for example after the scratchpad of a session is gone. The command has no result.
+- `stale`: the log did not change for 30 minutes. End the command with `TaskStop`. When `TaskStop` finds no task, the command died with its session: it has no result. Otherwise the command hangs.
+- `bound`: 570 seconds passed, and the command still runs. Wait again.
+
+`grep -a` reads a log that holds a NUL byte or invalid UTF-8. Without it, the `grep` of the Bash tool skips such a file as binary.
+
+Do not edit a checkout while a run is active in it in the background.
+
+A spec run has one of three results:
+
+- It passes with 0 failures in its summary line, no error outside of examples, and exit code 0. The exit code is the code of `bin/rspec` itself: a run piped through another command, such as `tail`, reports the code of that command.
+- It fails with a failure or an error outside of examples in its summary line. A crash fails too: no summary line, no `RSpec is shutting down` line, and an exit code from 1 to 127.
+- Any other spec run has no result. A killed run prints a summary line of the examples so far, or none, and never exits with 0. An interrupt (SIGINT) prints `RSpec is shutting down` and exits with 1.
+
+A syntax error in a spec file does not stop the other files. Any other load failure, for example a spec file that does not exist, stops every example: the summary line starts with `0 examples`. In both cases the summary line ends with `1 error occurred outside of examples`, and `bin/rspec` exits with 1: the run failed, whatever its failure count.
+
+Any other command has one of these results:
+
+- A bisect has a result when its log holds `bisect found first 'bad' commit` or `error: bisect run cannot continue any more`: `docs/ai/failures.md` reads it. Otherwise it has no result. Its restart is `git bisect run <script>` alone: `git bisect start` drops the marks.
+- A command whose exit code is 128 or above has no result: a signal killed it, or `git` itself failed.
+- For any other command, the exit code is the result.
 
 ## Database
 

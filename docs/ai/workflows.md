@@ -37,11 +37,45 @@ Before pushing, `AGENTS.md` "Verify before pushing" passes, as scoped there.
 
 ## Phase 3: Commit Guidelines
 
-**One fix per commit by default, committed as soon as it is green.** When a review or an audit turns up several defects, they all land in the same PR, each as its own commit with the spec that reproduces it (spec-only or docs-only where that is the whole fix; say in the message when a spec is infeasible and why). Commit each fix as soon as its specs pass and the `AGENTS.md` checks are clean for what it touched. Commit a fix before you start an unrelated fix. Small related fixes can share a commit. Unrelated fixes never share a commit, also on a pushed PR branch.
+**One fix per commit by default, committed as soon as it is green.** When a review or an audit finds several defects, all their fixes go in the same PR. Each fix comes with the spec that reproduces the defect. A fix can be only a spec or only docs, when that is the whole fix. When a spec is infeasible, the commit message says why.
+
+Related fixes can share a commit. Unrelated fixes never share a commit, also on a pushed PR branch. Related fixes are:
+
+- The fixes of one finding, or of one failed check.
+- The fixes of findings on the same sentences, function or spec example.
+- The changes of one autocorrect run.
+
+Commit each fix or group of related fixes as soon as the `AGENTS.md` checks pass for what it touched. Commit the fix before you start an unrelated fix.
+
+Run the checks in their order. Run `bin/rubocop -A` first, on the whole repo, as `AGENTS.md` "Verify before pushing" says. The changes of the lint go in the commit of the fix.
+
+Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:check. When no spec file applies, skip the spec run: `bin/rspec` with no files runs the whole suite. Do not run the checks before you start a change.
+
+A failure fix is the fix of a failed check. It goes in the first case of this list that holds:
+
+- **Bisect names an earlier commit of the branch:** a fixup commit of that commit (below).
+- **A fix is uncommitted:** the commit of that fix. A flake fix for a flake that was there before the branch goes there too.
+- **Otherwise:** a commit of its own.
+
+After a failure fix, run the checks again, the lint first.
+
+When a check fails, find its cause as `docs/ai/failures.md` says. That document holds the second run, the bisect in a scratch clone and the reproduction of a failed CI job.
+
+When bisect (`docs/ai/failures.md`) names a commit of the branch as the cause, first unstage everything (`git reset -q`). An earlier `git add` can hold the uncommitted fix, for example before its spec run. Then stage only the changes of the failure fix.
+
+When a file holds both fixes, copy it to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), then make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
+
+Commit the staged changes with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
 
 **A fix and its notes go in one commit.** The commit of a fix holds the code, the spec and the documents that record the fix. Those documents are the OpenSpec artifacts, the upgrade guide and other docs. Do not add those notes in a later commit, which leaves a commit where the code and the documents disagree. The Phase 4 changelog entry and the OpenSpec archive step stay commits of their own.
 
-Whether a push skips CI is decided **per push, not per commit**: GitHub reads the marker off the head commit of the push, and a marked head suppresses every workflow for that push, including the `pull_request` event when the PR is opened at that tip. When invoked, the marker is the literal token on its own line at the end of the message:
+To add notes to an earlier commit, run `git commit --fixup=<sha>`, then `git rebase --autosquash <sha>~1`. The rebase rewrites only that commit and the later ones.
+
+To push a rewrite of a pushed commit, run `git push --force-with-lease=<branch>:<remote sha> origin <branch>`. `<remote sha>` is the last commit of the branch that you pushed or pulled. With this lease, the push fails when someone else pushed after `<remote sha>`. Always give that SHA. A background fetch, which an IDE can do, moves `origin/<branch>`, and a lease without a SHA trusts it.
+
+Before the rewrite, make sure that your branch holds `<remote sha>` (`git merge-base --is-ancestor <remote sha> HEAD`). Also make sure that the remote branch is at `<remote sha>`: `git ls-remote origin refs/heads/<branch>` prints that SHA. When it prints another SHA, do not rewrite, and tell the user. Push any other change with a plain `git push`.
+
+Whether a push skips CI is decided **per push, not per commit**. GitHub reads the skip marker off the head commit of the push. A marked head suppresses every workflow for that push, including the `pull_request` event when the PR is opened at that tip. To skip CI, write a marker as a literal token on its own line at the end of the message:
 
 ```
 <commit subject>
@@ -49,14 +83,22 @@ Whether a push skips CI is decided **per push, not per commit**: GitHub reads th
 [skip ci]
 ```
 
-It matches anywhere in the message, so a commit that merely explains the directive skips CI too — write "skip-ci directive" in prose unless you are invoking it.
+GitHub reads these bracket markers anywhere in the message:
+
+- `[skip ci]`
+- `[ci skip]`
+- `[no ci]`
+- `[skip actions]`
+- `[actions skip]`
+
+GitHub also reads a `skip-checks: true` trailer, with or without the space, as the last line after two empty lines, which only `git commit --cleanup=verbatim` keeps. A commit message that only names a bracket marker skips CI too. Write "skip-ci directive" instead, unless you want to skip CI.
 
 A commit is **docs-only** when it touches only documentation (`.md` files, `README.md`, `docs/`), `CHANGELOG.md`, `openspec/`, comments, or config with no code path.
 
-1. **The entire PR is docs-only** (every commit on the branch): mark **every** commit, including the first, so the PR runs no CI at all — this overrides rule 2. `master` carries no branch protection, so a PR with zero runs still merges; if a required-status-check rule is ever added this carve-out must go (check with `gh api repos/owen2345/camaleon-cms/branches/master --jq '.protected'`).
+1. **The entire PR is docs-only** (every commit on the branch): mark **every** commit, including the first, so the PR runs no CI at all — this overrides rule 2. Earlier unmarked commits of the branch do not change this: the next commit is marked, and the pushed messages stay as they are. `master` carries no branch protection, so a PR with zero runs still merges; if a required-status-check rule is ever added this carve-out must go (check with `gh api repos/owen2345/camaleon-cms/branches/master --jq '.protected'`).
 2. **The PR contains a code change somewhere.** For each push ask: *has this PR already had a full check run on an earlier push?*
    - **No** (no PR yet, or every push so far was docs-only): omit the marker, even on a docs-only push, and say why in the message. A mixed PR gets one full run over its code, and a marked head produces none.
-   - **Yes**: include it. CI validates the tree at the head commit, and a changelog edit changes no tree an earlier run covered. The Phase 4 changelog commit lands after the PR exists, so it is normally this case — *lands last* is not the condition, *no run yet* is.
+   - **Yes**, and every commit of this push is docs-only: include it. CI validates the tree at the head commit, and a changelog edit changes no tree an earlier run covered. A push with a code commit omits the marker. The Phase 4 changelog commit comes after the PR exists, so it is normally this case. The condition is *no run yet*, not *last commit*.
 3. **Consequences to plan for.** A marked push moves the PR head without a run and leaves the passing checks on the previous SHA; fine while `master` has no required checks, re-trigger only if that changes. If you pushed a docs-only commit *without* the marker by mistake, cancel the now-stale runs on the *previous* SHA, not the new ones. Push a marked docs-only commit only once GitHub has created the run for the code push before it (`gh run list --branch <branch>`): a marked push landing seconds after a code push supersedes that push's `pull_request` event before its run exists, and the code gets no run at all.
 4. **Never mark a release PR.** The Release workflow refuses a commit with no successful `current_support.yml` and `audit.yml` runs, and a version bump is a code change anyway. See `docs/releasing.md`.
 
