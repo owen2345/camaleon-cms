@@ -178,7 +178,7 @@ Stop and push in these cases:
 - Pass 8 did not converge. Report it as not converged.
 - A second CONFLICT on the same claim. Show both sides.
 - A review cannot cover its range.
-- A DECISION row in this pass that the `decision` parameter names. The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer goes in as a commit, pushed before that run. The values:
+- A DECISION row in this pass that the `decision` parameter names. When another stop holds too, the pass reports this one. The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer goes in as a commit, pushed before that run. The values:
   - `stop`: any DECISION row.
   - `important`: a decision on the design of the PR, or on a rule that the later fixes follow. A decision on one sentence, a term or a bound does not count.
   - absent (default): no DECISION row stops the run, and the rows wait for the STOP.
@@ -219,7 +219,7 @@ On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, i
 
 ## PASS line
 
-The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a convergence stop starts with `converged`, and the reason of a DECISION stop names the row: the goal reads both. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` is at HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
+The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a convergence stop starts with `converged` and names no DECISION row, and the reason of a DECISION stop starts with `DECISION row`. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` is at HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
 
 ```text
 PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a, no jobs, pending, cancelled or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason, pushed or not pushed>
