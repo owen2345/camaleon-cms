@@ -33,7 +33,9 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
 
 ## Pass start
 
-Every pass starts with one step, after `SKILL.md` loaded `procedure.md`: it reads the lines of the ledger that the rules below use, with two commands. `grep -anE '^(rerun |setup )|\| (REFUTED|DECISION|CONFLICT) \|' <ledger>` prints the `rerun` and `setup` lines of every run and the rows that the verdicts check. `awk '/^## Run /{r=NR} /^PASS /{p=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) if (i>p || l[i] ~ /^(## Run|setup |ci |rerun |PASS )/) print l[i]; else if (l[i] ~ /\| FIXED \|/) {s=l[i]; sub(/ \| FIXED \| .*$/, "", s); n=split(s, a, " \\| "); print a[1] " | " a[n-1] " | " a[n]}}' <ledger>` prints the state lines of this run and every line after its last PASS line. Of each FIXED row of this run, it prints the pass, the location and the category. Read a whole FIXED row of this run only when a finding names its location: `awk -v loc='<location>' '/^## Run /{r=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) if (index(l[i], loc) && l[i] ~ /\| FIXED \|/) print l[i]}' <ledger>`. Do not read the other lines.
+Every pass starts with one step, after `SKILL.md` loaded `procedure.md`: it reads the lines of the ledger that the rules below use, with two commands. `grep -anE '^(rerun |setup )|\| (REFUTED|DECISION|CONFLICT) \|' <ledger>` prints the `rerun` and `setup` lines of every run and the rows that the verdicts check. `LC_ALL=C awk '/^## Run /{r=NR} /^PASS /{p=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) if (i>p || l[i] ~ /^(## Run|setup |ci |rerun |PASS )/) print l[i]; else if (l[i] ~ /\| FIXED \|/) {s=l[i]; sub(/ \| FIXED \| .*$/, "", s); n=split(s, a, " \\| "); print a[1] " | " a[n-1] " | " a[n]}}' <ledger>` prints the state lines of this run and every line after its last PASS line. Of each FIXED row of this run, it prints the pass, the location and the category.
+
+Read a whole FIXED row of this run only when a finding names its location: `L='<location>' LC_ALL=C awk '/^## Run /{r=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) if (index(l[i], ENVIRON["L"]) && l[i] ~ /\| FIXED \|/) print l[i]}' <ledger>`. Write `'\''` for an apostrophe of the location. `LC_ALL=C` lets `awk` read a ledger with invalid UTF-8, as `-a` does for `grep`. Do not read the other lines.
 
 The PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `review`, `task`, `todo` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
@@ -204,7 +206,7 @@ A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see
 
 The next turn sets up a new run. After a DECISION stop, the turn after the answers sets it up. The setup of that run traces a failed suite job of the head, or stops as **Setup** says.
 
-On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, if it has one. A STOP that pushed does this after its ci read. Report the DEFERRED, DECISION, REPEAT and CONFLICT rows of the run: `awk '/^## Run /{r=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) print l[i]}' <ledger> | grep -E '\| (DEFERRED|DECISION|REPEAT|CONFLICT) \|'`.
+On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, if it has one. A STOP that pushed does this after its ci read. Report the DEFERRED, DECISION, REPEAT and CONFLICT rows of the run: `LC_ALL=C awk '/^## Run /{r=NR} {l[NR]=$0} END{for(i=r;i<=NR;i++) print l[i]}' <ledger> | grep -E '\| (DEFERRED|DECISION|REPEAT|CONFLICT) \|'`.
 
 ## PASS line
 
