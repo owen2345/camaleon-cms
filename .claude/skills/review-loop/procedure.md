@@ -179,7 +179,8 @@ These stops push nothing, also when a reason to push applies. A stop that neithe
 
 - A setup stop, also on a ci read of setup with `no jobs`, `pending` or `cancelled` (**Setup**).
 - A checkout that changed between passes (**Pass start**), or a pass that ends with uncommitted changes, which can be another writer's.
-- A second CONFLICT on a fix that undoes an earlier commit of the branch (**Verdicts** step 3), or a `fixup!` commit (**Checks**).
+- A second CONFLICT on a fix that undoes an earlier commit of the branch (**Verdicts** step 3).
+- A `fixup!` commit (**Checks**).
 - A failure whose cause the trace does not find, or that was there before the branch (**Checks**).
 - A CI failure that the spec clone does not show and that a rerun shows again (`trace.md`).
 - A hang, or a command with no result twice (**Checks**).
