@@ -196,7 +196,7 @@ These stops push nothing, also when a reason to push applies. A stop that neithe
 
 `AGENTS.md` wants the checks before a push, and the user judges an undo, another writer's change or a fold. A stop without a push leaves the commits of the run for the user to push before the next run (see **Setup**).
 
-Commit but do not push during the run. The STOP push carries every commit of the run. Decide the skip marker for the whole push: GitHub reads it off the last commit alone (`docs/ai/workflows.md` Phase 3). A marked docs-only last commit also skips CI for the code commits of the run. At a stop that pushes, push the head branch once and fold the PR body (`gh pr edit <pr> --repo <project>`, per `docs/ai/workflows.md`).
+Commit but do not push during the run. The STOP push carries every commit of the run. Decide the skip marker for the whole push: GitHub reads it off the last commit alone (`docs/ai/workflows.md` Phase 3). A marked docs-only last commit also skips CI for the code commits of the run. At a stop that pushes, push the head branch once and fold the PR description (`gh pr edit <pr> --repo <project>`, per `docs/ai/workflows.md`).
 
 The checks ran before each commit of the run, so the push needs no other check run (`AGENTS.md` "Verify before pushing").
 
@@ -207,7 +207,7 @@ Before the push, fetch `origin/<head>`. When it is at HEAD, skip the push, and c
 
 Push with `git -C <checkout> push origin <head>`.
 
-A push rejected because `origin/<head>` moved during the run stays unpushed too. A PR merged or closed during the run also stays unpushed: check its `state` again before the push. Leave the PR body unfolded and say so. Do not pull, rebase or force past the rejection. After a pull or a rebase, the push carries a tree that the checks never ran on. A forced push drops the other commits.
+A push rejected because `origin/<head>` moved during the run stays unpushed too. A PR merged or closed during the run also stays unpushed: check its `state` again before the push. Leave the PR description unfolded and say so. Do not pull, rebase or force past the rejection. After a pull or a rebase, the push carries a tree that the checks never ran on. A forced push drops the other commits.
 
 After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, and reads ci again (**Checks**). A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
 
