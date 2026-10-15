@@ -169,7 +169,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 
 ## Pass states and stop
 
-- **SETTLED:** the pass ran to the end and applied no correctness or security fix. Every check passed or was n/a, and the checkout's tree is clean. A correctness fix is a FIXED row whose category is correctness, security, flake or a check name. Step 5 and step 6 fixes can go in.
+- **SETTLED:** the pass ran to the end and applied no correctness or security fix. Every check passed or was n/a, and the checkout's tree is clean. The ci read of a push comes after the state (below), and the goal text judges that ci. A correctness fix is a FIXED row whose category is correctness, security, flake or a check name. Step 5 and step 6 fixes can go in.
 - **CLEAN:** SETTLED, and applied nothing at all (`<after>` equals `<before>`).
 - **UNSETTLED:** anything else.
 
