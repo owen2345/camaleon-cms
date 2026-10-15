@@ -88,7 +88,7 @@ Both commands run `ruby -E UTF-8` and `scrub` their input. Without a locale, Rub
 
 The commit of a failure fix (`docs/ai/workflows.md` Phase 3) also gets a FIXED row, with the check as its category. The category is `ci` for the fix of a failed suite job, and `flake` for a flake fix. A repair of a failure that the uncommitted fix caused (`docs/ai/failures.md`) is part of that fix. The repair gets no row of its own. Because each commit command appends its rows, a pass cut off before its PASS line leaves every commit that it made on record.
 
-The loop never rewrites a commit. A rewrite gives commits new SHAs, which the rows and PASS lines no longer match. A failure that an earlier commit of the branch caused gets a `fixup!` commit (`docs/ai/workflows.md` Phase 3). The user folds the fixup commits with `git rebase --autosquash <sha>~1`, where `<sha>` is the oldest commit that they fix. The report names the fixup commits and `<sha>`.
+The loop never rewrites a commit. A rewrite gives commits new SHAs, which the rows and PASS lines no longer match. A failure that an earlier commit of the branch caused gets a `fixup!` commit (`docs/ai/workflows.md` Phase 3). The user folds the fixup commits with `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <sha>~1` (`docs/ai/workflows.md` Phase 3), where `<sha>` is the oldest commit that they fix. The report names the fixup commits and `<sha>`.
 
 ## Verdicts
 

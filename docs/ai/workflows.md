@@ -65,11 +65,11 @@ When bisect (`docs/ai/failures.md`) names a commit of the branch as the cause, f
 
 When a file holds both fixes, copy it to a place outside the checkout. Restore it from HEAD (`git checkout HEAD -- <file>`), then make the failure fix in it again and stage it. After the fixup commit, copy the file back: `git diff` then shows only the uncommitted fix. Do not use the interactive `git add -p`.
 
-Commit the staged changes with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `git rebase --autosquash <sha>~1`: a rebase does not start while the tree has changes.
+Commit the staged changes with `git commit --fixup=<sha>` of the commit that bisect names, then commit the uncommitted fix. Fold the fixup commit last with `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <sha>~1`: a rebase does not start while the tree has changes. A plain `--autosquash` folds nothing before git 2.44, and the rebase still reports success.
 
 **A fix and its notes go in one commit.** The commit of a fix holds the code, the spec and the documents that record the fix. Those documents are the OpenSpec artifacts, the upgrade guide and other docs. Do not add those notes in a later commit, which leaves a commit where the code and the documents disagree. The Phase 4 changelog entry and the OpenSpec archive step stay commits of their own.
 
-To add notes to an earlier commit, run `git commit --fixup=<sha>`, then `git rebase --autosquash <sha>~1`. The rebase rewrites only that commit and the later ones.
+To add notes to an earlier commit, run `git commit --fixup=<sha>`, then `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <sha>~1`. The rebase rewrites only that commit and the later ones.
 
 To push a rewrite of a pushed commit, run `git push --force-with-lease=<branch>:<remote sha> origin <branch>`. `<remote sha>` is the last commit of the branch that you pushed or pulled. With this lease, the push fails when someone else pushed after `<remote sha>`. Always give that SHA. A background fetch, which an IDE can do, moves `origin/<branch>`, and a lease without a SHA trusts it.
 
