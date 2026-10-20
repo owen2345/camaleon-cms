@@ -67,7 +67,7 @@ Stop the run and report the open lines when the two trees do not tell the hunks 
 
 Otherwise make the fixup commit first, alone, from a temporary index: the files of the checkout stay as they are. Before it, `git -C <checkout> add -A && git -C <checkout> write-tree` must print the last `<tree>` (**Checks**). When it prints another tree, stop the run and report both trees: another writer changed the checkout.
 
-The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the checkout, with the earlier tree as `<before>` and the tree of the last batch as `<after>`. Append a FIXED row for each open line that ends with that SHA, in the same command, joined to the chain with `&&` (**Ledger rows**). If a command of the chain fails, stop the run and report the output. The files and the index of the checkout are then as they were.
+The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the checkout. Its `<before>` is the earlier tree, and its `<after>` the tree of the last batch. Append a FIXED row for each open line that ends with that SHA, in the same command, joined to the chain with `&&` (**Ledger rows**). If a command of the chain fails, stop the run and report the output. The files and the index of the checkout are then as they were.
 
 Then commit the open lines that end in no SHA, if any, after `git add -A`, with their rows. Write the SHA of the commit in the evidence field of each of those rows.
 
