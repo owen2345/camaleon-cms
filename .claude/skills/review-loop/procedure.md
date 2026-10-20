@@ -199,7 +199,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 
 Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and a later pass reviewed every change that the run made.
 
-At the end of a pass, before its state, the checkout must be on the head branch. Every commit of `<before>..HEAD` must be the commit of a FIXED row of the pass (**Pass start**). `git -C <checkout> rev-list <before>..HEAD` prints the commits, and the rows hold their first 12 characters. Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
+At the end of a pass, before its state, the checkout must be on the head branch, at `<before>` or past it. `git -C <checkout> merge-base --is-ancestor <before> HEAD` then exits with 0. Every commit of `<before>..HEAD` must be the commit of a FIXED row of the pass (**Pass start**). `git -C <checkout> rev-list <before>..HEAD` prints the commits, and the rows hold their first 12 characters. Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
 
 Stop and push in these cases:
 
