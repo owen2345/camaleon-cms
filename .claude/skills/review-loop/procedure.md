@@ -147,10 +147,10 @@ Every spec run, every ci poll and any other command that can outlast the timeout
 The checkout test holds when the checkout is as the pass left it:
 
 - `git -C <checkout> branch --show-current` prints the head branch.
-- `git -C <checkout> rev-parse HEAD` starts with the fix SHA of the last FIXED row of the pass, or with `<before>` when the pass has none. The fix SHA is the first word of the evidence field (**Ledger rows**).
-- The tree is clean (`git -C <checkout> status --porcelain` prints nothing), or the run's own: the temporary-index command of **Pass start** prints the `<tree>` of the last `fix` line.
+- `git -C <checkout> rev-parse HEAD` starts with the fix SHA of the last FIXED row of the pass, or with `<before>` (**PASS line**) when the pass has none. The fix SHA is the first word of the evidence field (**Ledger rows**).
+- The tree is the run's own when a `fix` line of the pass is open. Then the temporary-index command of **Pass start** prints the `<tree>` of the last `fix` line. Otherwise the tree is clean: `git -C <checkout> status --porcelain` prints nothing.
 
-The test runs before the first edit of the pass, before the first edit after each commit, and before the fixup chain. At the end of the pass it runs with a clean tree, unless a stop left the uncommitted fix in it. When it fails, another writer changed the checkout: stop the run and report the output.
+The test runs before the first edit of the pass and before the first edit after each commit. It runs before the fixup chain and at the end of the pass too. When it fails, another writer changed the checkout: stop the run and report the output.
 
 Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. The Markdown gate runs before each append of `fix` lines (**Ledger rows**). A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
