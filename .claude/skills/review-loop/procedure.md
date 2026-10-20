@@ -67,7 +67,7 @@ Stop the run and report the open lines when the two trees do not tell the hunks 
 
 Otherwise make the fixup commit first, alone, from a temporary index: the files of the checkout stay as they are. Before the chain, the checkout test of **Checks** must hold.
 
-The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the checkout. In the command, `<before>` is the earlier tree, `<after>` the tree of the last batch, and `<sha>` the SHA of the open lines. Join to the chain, with `&&`, a FIXED row for each open line that ends with that SHA (**Ledger rows**). When the apply exits with 1, the two fixes are related (Phase 3). Then skip the fixup commit: every open line goes in the commit below. When the apply exits with another code or another command fails, stop the run and report the output.
+The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the checkout. In the command, `<before>` is the earlier tree, `<after>` the tree of the last batch, and `<sha>` the SHA of the open lines. Join to the chain, with `&&`, a FIXED row for each open line that ends with that SHA (**Ledger rows**). When the apply exits with 1, the two fixes are related (Phase 3). Then skip the fixup commit: every open line goes in the commit below. When the apply exits with a code above 1, or another command fails, stop the run and report the output.
 
 Then commit the lines that are still open, if any, after `git add -A`, with their rows. Write the fix SHA, the SHA of the commit, in the evidence field of each of those rows. The row of a failure fix also names the commit that it fixes (**Checks**).
 
