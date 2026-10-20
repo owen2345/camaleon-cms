@@ -230,7 +230,7 @@ A push rejected because `origin/<head>` moved during the run stays unpushed too.
 
 After a push that moved `origin/<head>`, read the ci check of the pushed commit (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, as **Checks** says. A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
 
-A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see the goal text). A DECISION stop counts as it stands, whatever its ci: the user answers the rows first.
+A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see the goal text). A DECISION stop meets the goal whatever its ci: the user answers the rows first.
 
 The next turn sets up a new run. After a DECISION stop, the turn after the answers sets it up. The setup of that run traces a failed suite job of the head, or stops as **Setup** says.
 
