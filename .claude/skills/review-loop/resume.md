@@ -35,4 +35,4 @@ The `ci` lines of the `setup HEAD` under that header say where setup was cut off
 - A `rerun` line with no `ci` line after it: read the ci check again. `ci.md` says when that line counts as a rerun.
 - The last such line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
 
-Any other state of the checkout stops the run: say so. Do not switch, pull, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base changes the commits of the branch. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
+Any other state of the checkout stops the run: say so, as after a failed checkout test (`procedure.md`, Checks).

@@ -92,6 +92,8 @@ The checkout test holds when the checkout is as the pass left it:
 
 The test runs before the first edit of the pass and before the first edit after each commit. It runs before each commit, the fixup chain included. It runs at the end of the pass too, unless a stop left the uncommitted fix in the tree (`spec-runs.md`). When it fails, another writer changed the checkout: stop the run and report the output.
 
+After that stop, do not switch, pull, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base changes the commits of the branch. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
+
 After each lint run, before the other checks, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of every uncommitted fix. The Markdown gate runs before each append of `fix` lines (**Ledger rows**). A fix that runs no lint gets the lines at once, and again after a repair. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (`resume.md`). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
 The `fix` lines appended together, with one `<tree>`, are a batch. A `fix` line is open until a row with its claim and location follows it. That row is its FIXED row, or the row of the verdict that replaced FIXED after the edit, with the files restored. A batch is open while one of its lines is open, and the open lines are the open lines of the last batch.
