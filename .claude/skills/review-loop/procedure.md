@@ -142,7 +142,7 @@ The loop runs the checks before each commit, the lint first, as `docs/ai/workflo
 
 Every spec run, every ci poll and any other command that can outlast the timeout is a background task (`docs/ai/testing.md` "Long commands"). When the tool answers, append `task <id> <log> <command>` to the ledger.
 
-The first edit of the pass, and the first edit after each commit of the pass, start on the head branch with a clean tree. Before each such edit, `git -C <checkout> branch --show-current` must print the branch, and `git -C <checkout> status --porcelain` nothing. Otherwise another writer changed the checkout: stop the run and report the output.
+The first edit after each commit, and the first of the pass, start on the head branch with a clean tree or the run's own. Before each such edit, `git -C <checkout> branch --show-current` must print the branch. `git -C <checkout> status --porcelain` must print nothing, or the two commands below must print the `<tree>` of the last `fix` line. Otherwise another writer changed the checkout: stop the run and report the output.
 
 Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
