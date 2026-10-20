@@ -62,7 +62,7 @@ The checkout run comes before a scratch clone run, because most failures do not 
 
 The CI run is the first run of "Second run" above. The second run is the checkout run when it shows the failure, or when the job has the Ruby and the gems of the checkout. Otherwise the second run is the run in the scratch clone (below). An item that fails in the CI run only is not a flake to trace. Run the job again on GitHub once (above), and tell the user when it fails again. A `<member> / RSpec` check runs the suite of an ecosystem member: reproduce it as `docs/ai/testing.md` "Ecosystem member checks" says.
 
-A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. That Rails and Ruby are the cell of the job. When the checkout does not show its failure, reproduce it in a scratch clone (step 1). Never bundle another gemfile in the checkout. A bundle of another gemfile writes `gemfiles/<rails>.gemfile.lock`, an untracked file that git does not ignore, and the checkout is no longer clean.
+A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. That Rails and Ruby are the cell of the job. When the checkout does not show its failure, reproduce it in a scratch clone (step 1).
 
 CI tests the PR merged into the base commit of its run. The job log names that commit: `HEAD is now at <merge> Merge <head commit> into <base of the job>`. When neither the checkout nor the clone shows the failure, merge that commit in the clone (`git merge <base of the job>`). Then run the step again.
 
