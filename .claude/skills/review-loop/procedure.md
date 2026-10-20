@@ -142,6 +142,8 @@ The loop runs the checks before each commit, the lint first, as `docs/ai/workflo
 
 Every spec run, every ci poll and any other command that can outlast the timeout is a background task (`docs/ai/testing.md` "Long commands"). When the tool answers, append `task <id> <log> <command>` to the ledger.
 
+The first edit of the pass, and the first edit after each commit of the pass, start on the head branch with a clean tree. Before each such edit, `git -C <checkout> branch --show-current` must print the branch, and `git -C <checkout> status --porcelain` nothing. Otherwise another writer changed the checkout: stop the run and report the output.
+
 Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
 After a repair or a failure fix, the checks run again from the lint (`docs/ai/workflows.md` Phase 3). Append the `fix` lines of every uncommitted fix again between that lint and the other checks. Append them also before a failure fix: the trees before and after it hold its hunks (**Pass start**). Append the lines of a batch in one command.
@@ -197,6 +199,8 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 
 Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and a later pass reviewed every change that the run made.
 
+At the end of a pass, before its state, the checkout must be on the head branch. Every commit of `<before>..HEAD` must be the commit of a FIXED row of the pass (**Pass start**). `git -C <checkout> rev-list <before>..HEAD` prints the commits, and the rows hold their first 12 characters. Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
+
 Stop and push in these cases:
 
 - The latest pass is CLEAN and the run's pass before it SETTLED or CLEAN (converged).
@@ -211,7 +215,7 @@ Stop and push in these cases:
 These stops push nothing, also when a reason to push applies. A stop that neither list names pushes nothing too. Each of these stops is defined where it happens:
 
 - A setup stop, also on a ci read of setup with `no jobs`, `pending` or `cancelled` (**Setup**).
-- A checkout that changed between passes (**Pass start**), or a pass that ends with uncommitted changes, which can be another writer's.
+- A checkout that changed between passes (**Pass start**) or during one (**Checks**), or a pass that ends with uncommitted changes, which can be another writer's.
 - A second CONFLICT on a fix that undoes an earlier commit of the branch (**Verdicts** step 3).
 - A `fixup!` commit (**Checks**).
 - A failure whose cause the trace does not find, or that was there before the branch (**Checks**).
