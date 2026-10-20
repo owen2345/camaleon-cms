@@ -7,7 +7,7 @@ The procedure of a run of the review loop. The live `SKILL.md` of the skill give
 - **Target:** resolve the checkout path as its real path (`git -C ../<repo> rev-parse --show-toplevel`) and its GitHub project (`gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout). In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`.
 - **PR:** `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepositoryOwner,headRepository` gives its state, its head and base branches, its head commit and its head repository. `gh pr view <pr> --repo <project> --json body --jq .body > tmp/review-loop/<repo>/<pr>.description.md` saves its description, the record of its design, which **Verdicts** step 3 reads. Stop in a `PASS 0/8` line unless `<head>` and `<base>` match `^[A-Za-z0-9_][A-Za-z0-9._/-]*$`: the commands below use both names without quotes. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
 
-  The run goes on only when each condition below holds. Otherwise stop and say so in a `PASS 0/8` line. Do not switch, pull, stash or commit.
+  The run goes on only when each condition below holds. Otherwise stop and say so in a `PASS 0/8` line. Do not switch, pull, reset, stash or commit.
   - The PR is open.
   - The head of the PR is in the repository of `origin`. The `headRepositoryOwner` login and the `headRepository` name, as `<owner>/<name>`, equal that repository: `<project>`, or in a fork checkout `gh repo view <origin's URL> --json nameWithOwner --jq .nameWithOwner`. A PR from another fork fails this, because the STOP push goes to `origin`.
   - `origin/<head>` is at the head commit of the PR.
@@ -76,7 +76,7 @@ The `ci` lines of the `setup HEAD` under that header say where setup was cut off
 - A `rerun` line with no `ci` line after it: read the ci check again. **Checks** says when that line counts as a rerun.
 - The last such line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
 
-Any other state of the checkout stops the run: say so. Do not switch, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base is one example. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
+Any other state of the checkout stops the run: say so. Do not switch, pull, reset, stash or commit. When the commits of the branch changed, also tell the user to start a new run. A rebase onto the base is one example. The user must push the branch before that run, because setup stops on a checkout that is not at `origin/<head>`. A rewrite of pushed commits needs the lease of `docs/ai/workflows.md` Phase 3.
 
 ## Pass
 
