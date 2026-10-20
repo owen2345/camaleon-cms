@@ -21,7 +21,7 @@ The first pass of a run follows this file before `procedure.md`, after `SKILL.md
 - **Commands** run against the checkout: `git -C <checkout> …`, `(cd <checkout> && bin/…)`, `gh … --repo <project>`.
 - **Ledger:** `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms, whatever the target repo, never committed. A ledger with no `## Run` header does not exist yet, or holds only the `PASS 0/8` line of a setup that stopped before this step. Only then create it, if needed. Seed it as pass 0 from the memory entry of the PR, if any. The seed holds the REFUTED and DECISION rows that every STOP adds there. It also holds any other refuted entry as REFUTED, and any skipped entry as DECISION, or as FIXED when a later commit fixed it.
 
-  Each run appends, in one command, `## Run <date>, effort <level>` and the line `setup HEAD <sha>`, the PR head that setup found. It counts its passes from 1. The rows of earlier runs still count for the verdict checks.
+  Each run appends, in one command, `## Run <date>, effort <level>`, the line `setup target <checkout> | <project> | <head> | <base-ref>` and the line `setup HEAD <sha>`, the PR head that setup found. It counts its passes from 1. The rows of earlier runs still count for the verdict checks.
 
 - **CI:** read the ci check of the `setup HEAD`, as `ci.md` says. A poll, when `ci.md` starts one, runs as a background task, which gives the ledger its `task` line, and the review runs meanwhile. When the poll ends, read its result as `ci.md` says. Append the `ci` line of `ci.md` when the read ends, with the `setup HEAD` as its `<sha>`. Before its PASS line, pass 1 waits for a poll that still runs (the wait of `docs/ai/testing.md` "Long commands").
 
