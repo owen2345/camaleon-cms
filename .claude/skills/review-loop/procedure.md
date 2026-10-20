@@ -140,7 +140,7 @@ Between the lint and the other checks of a fix, append one line `fix <tree> | <c
 
 After a repair or a failure fix, append the `fix` lines of every uncommitted fix again before the checks. Append them also before a failure fix: the trees before and after it hold its hunks (**Pass start**).
 
-Before the commit, the same two commands must print the `<tree>` of its `fix` line. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. For a fixup commit, run the two commands before the staging of `docs/ai/workflows.md` Phase 3.
+Before the commit, the same two commands must print the `<tree>` of its `fix` line. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. For a fixup commit, run the two commands before the `git reset -q` of `docs/ai/workflows.md` Phase 3.
 
 Judge the command by its result, as `docs/ai/testing.md` "Long commands" says. With no result, start the command again once. A second spec run that ends with the same summary line and exit code is a failure: `docs/ai/failures.md` traces it. A hang, or any other second start with no result, stops the run: report the command with its log. A sync or a `gh` command that fails has no result too, and the report gives its output in place of a log. A `gh run rerun` that GitHub refuses, with `cannot be rerun` or an HTTP 4xx error in its output, has a result: the refusal (below).
 
