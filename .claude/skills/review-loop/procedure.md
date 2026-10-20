@@ -2,10 +2,6 @@
 
 The procedure of a run of the review loop. The live `SKILL.md` of the skill gives the parameters and makes the copies of the rule files. A run follows the copy of this file. The files `setup.md`, `resume.md`, `ci.md`, `spec-runs.md` and `trace.md` beside it hold the parts that a pass follows only at the step that names them.
 
-## Setup (first pass of a run)
-
-The first pass of a run follows `setup.md` before this file. Setup resolves the target, reads the PR, makes the ledger ready, appends the run header and reads the ci check of the PR head. Pass 1 then continues at **Pass start**.
-
 ## Pass start
 
 Every pass starts with one step, after `SKILL.md` loaded `procedure.md`: it reads the lines of the ledger that the rules below use, with two commands. `<this run>` stands for `tail -n +"$(grep -an '^## Run ' <ledger> | tail -n 1 | cut -d: -f1)" <ledger>`, which prints the lines of this run, from its header on. `LC_ALL=C awk '/^setup / {print; next} /\| (REFUTED|DECISION|CONFLICT) \|/ {m=$0; sub(/ \| [^|]* \| (REFUTED|DECISION|CONFLICT) \| .*$/, "", m); match($0, /\| (REFUTED|DECISION|CONFLICT) \|/); v=substr($0, RSTART+2, RLENGTH-4); e=substr($0, RSTART+RLENGTH); h=""; while (match(e, /judged at [0-9a-f]+/)) { h=substr(e, RSTART+10, RLENGTH-10); e=substr(e, RSTART+RLENGTH) } print m " | " v " | " h}' <ledger>` prints the `setup` lines of every run, and the verdict rows in a compact form. Of each REFUTED, DECISION or CONFLICT row, it prints the pass, the claim, the location, the verdict and the HEAD. `<this run> | LC_ALL=C awk '/^PASS /{p=NR} {l[NR]=$0} END{for(i=1;i<=NR;i++) if (i>p || l[i] ~ /^(## Run|setup |ci |PASS )/) print l[i]; else if (l[i] ~ /\| FIXED \|/) {s=l[i]; sub(/ \| FIXED \| .*$/, "", s); n=split(s, a, " \\| "); print a[1] " | " a[n-1] " | " a[n]}}'` prints the state lines of this run and every line after its last PASS line. Of each FIXED row of this run, it prints the pass, the location and the category.
