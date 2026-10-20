@@ -43,7 +43,7 @@ Read a whole FIXED row of this run only when a finding names its location: `<thi
 
 The PASS, `setup`, `ci` and `rerun` lines give the pass count and the state of each pass. The rows after its last PASS line, the `review`, `task`, `todo` and `fix` lines among them, are the open work of a cut-off pass. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
-From pass 2 on, and in a resumed pass 1, the pass also checks the checkout. The checkout must still be on the head branch, at the `<before>` of the pass (**PASS line**) or past it (below). Its tree must be clean, or the run's own (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
+From pass 2 on, and in a resumed pass 1, the pass also runs the checkout test of **Checks**. Each commit past the `<before>` of the pass (**PASS line**) needs a FIXED row (below). Other sessions and the IDE share the checkout. Without this check, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
 The open work of a cut-off pass has three kinds. The state of the checkout and the lines after the previous PASS line tell them apart. A `task` line after that PASS line names a task of the cut-off pass. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"), instead of a new run. A `task` line of a ci poll is over when a `ci` line follows it.
 
