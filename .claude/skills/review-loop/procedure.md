@@ -154,9 +154,9 @@ The checkout test holds when the checkout is as the pass left it:
 
 The test runs before the first edit of the pass and before the first edit after each commit. It runs before each commit, the fixup chain included. It runs at the end of the pass too, unless a stop left the uncommitted fix in the tree (below). When it fails, another writer changed the checkout: stop the run and report the output.
 
-Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. The Markdown gate runs before each append of `fix` lines (**Ledger rows**). A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
+After each lint run, before the other checks, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of every uncommitted fix. The Markdown gate runs before each append of `fix` lines (**Ledger rows**). A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
-After a repair or a failure fix, the checks run again from the lint (`docs/ai/workflows.md` Phase 3). Append the `fix` lines of every uncommitted fix again between that lint and the other checks. Append them also before a failure fix: the trees before and after it hold its hunks (**Pass start**). Append the lines of a batch in one command.
+Append the `fix` lines also before a failure fix: the trees before and after it hold its hunks (**Pass start**). Append the lines of a batch in one command.
 
 Before the commit, the checkout test (above) must hold, or the run stops.
 
