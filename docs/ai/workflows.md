@@ -16,7 +16,7 @@ Before writing any code:
 
 Verify that a reported vulnerability is present and exploitable in this codebase before acting on it.
 
-1. **Proof of presence.** Do not assume the report is correct. Dependency report: `bundle exec bundle-audit check` — does the gem and version match `Gemfile.lock`? Code or static report: `bin/brakeman -z --only-files <file_path>` — does Brakeman flag the line? Otherwise grep the codebase for the pattern.
+1. **Proof of presence.** Do not assume the report is correct. Dependency report: `bin/bundler-audit update && bin/bundler-audit check` — does the gem and version match `Gemfile.lock`? Code or static report: `bin/brakeman -z --only-files <file_path>` — does Brakeman flag the line? Otherwise grep the codebase for the pattern.
 2. **Verdict**, stated to the user as one of: ✅ **Legit** (present in our context, with the evidence), ❌ **False positive** (a library we do not use, a pattern only in test-only code, …), ⚠️ **Unverifiable** (the tools cannot confirm the risk; recommend a manual audit).
 3. **Only on ✅ Legit**, write the failing reproduction first (rule in `AGENTS.md`; shape in `docs/ai/testing.md`, "Security Vulnerability Reproduction"), then the fix.
 
