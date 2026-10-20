@@ -64,7 +64,7 @@ The CI run is the first run of "Second run" above. The second run is the checkou
 
 A job of the matrix runs another Rails (a `BUNDLE_GEMFILE` under `gemfiles/`) or another Ruby. That Rails and Ruby are the cell of the job. When the checkout does not show its failure, reproduce it in a scratch clone (step 1).
 
-CI tests the PR merged into the base commit of its run. The job log names that commit: `HEAD is now at <merge> Merge <head commit> into <base of the job>`. When neither the checkout nor the clone shows the failure, merge that commit in the clone (`git merge <base of the job>`). Then run the step again.
+CI tests the PR merged into the base commit of its run. The job log names that commit: `HEAD is now at <merge> Merge <head commit> into <base of the job>`. `gh run view --repo <project> --job <job id> --log | grep -a -m1 -oE 'Merge [0-9a-f]+ into [0-9a-f]+' | awk '{print $4}'` prints it: `--log-failed` leaves the checkout step out. When neither the checkout nor the clone shows the failure, merge that commit in the clone (`git merge <base of the job>`). Then run the step again.
 
 For a job with a gemfile, run `BUNDLE_GEMFILE=<clone>/gemfiles/<rails>.gemfile bundle install` in the clone, then the step with the same variable. The path is absolute, as in the workflow file. A Bundler before 4.0 keeps a relative path as given, and a child process that runs in another directory does not find the gemfile.
 
