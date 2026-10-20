@@ -220,6 +220,7 @@ Stop and push in these cases:
   - `stop`: any DECISION row.
   - `important`: a decision on the design of the PR, or on a rule that the later fixes follow. A decision on one sentence, a term or a bound does not count.
   - absent (default): no DECISION row stops the run, and the rows wait for the STOP.
+- A CONFLICT row in this pass whose finding is a correctness or security defect, when `decision` is `stop` or `important`. Such a row says that a REFUTED row or a decision was wrong, and every later pass builds on the text that it keeps. The stop pushes, and the user answers the row before the next run, as a DECISION row.
 
 These stops push nothing, also when a reason to push applies. A stop that neither list names pushes nothing too. Each of these stops is defined where it happens:
 
@@ -245,17 +246,17 @@ A stop that pushes has these steps, in this order:
 3. Push with `git -C <checkout> push origin <head>`, and once more when it fails without a rejection. When git rejects the push, or the second push fails, the stop stays unpushed and unfolded. Say so, and skip the other steps. Do not pull, rebase or force past a rejection. After a pull or a rebase, the push carries a tree that the checks never ran on. A forced push drops the other commits.
 4. Start the ci read of HEAD (see **Checks**). A poll, when **Checks** starts one, runs as a background task, and the fold runs meanwhile.
 5. Fold the PR description (`docs/ai/workflows.md` Phase 4). Save the live description with `gh pr view <pr> --repo <project> --json body --template '{{.body}}' > tmp/review-loop/<repo>/<pr>.live.md`, and copy it to `tmp/review-loop/<repo>/<pr>.fold.md`. Fold the run into `tmp/review-loop/<repo>/<pr>.fold.md`. Run the Markdown gate (**Ledger rows**) with the input `diff -U0 --strip-trailing-cr tmp/review-loop/<repo>/<pr>.live.md tmp/review-loop/<repo>/<pr>.fold.md`: the body of GitHub has CRLF line ends. Then run `gh pr edit <pr> --repo <project> --body-file tmp/review-loop/<repo>/<pr>.fold.md`.
-6. End the ci read: wait for the poll, if any (`docs/ai/testing.md` "Long commands"), and read its result as **Checks** says. The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, as **Checks** says. A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
+6. End the ci read: wait for the poll, if any (`docs/ai/testing.md` "Long commands"), and read its result as **Checks** says. The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, as **Checks** says. A job that fails again is the failed job that ci reports. After a DECISION or CONFLICT stop, it reads ci and reruns nothing.
 
-A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see the goal text). A DECISION stop meets the goal whatever its ci: the user answers the rows first.
+A STOP that pushed does not meet the goal when its ci is neither ok nor n/a (see the goal text). A DECISION or CONFLICT stop meets the goal whatever its ci: the user answers the rows first.
 
-The next turn sets up a new run. After a DECISION stop, the turn after the answers sets it up. The setup of that run traces a failed suite job of the head, or stops as **Setup** says.
+The next turn sets up a new run. After a DECISION or CONFLICT stop, the turn after the answers sets it up. The setup of that run traces a failed suite job of the head, or stops as **Setup** says.
 
-On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, if it has one. A STOP that pushed does this after its ci read. Report the DEFERRED, DECISION, REPEAT and CONFLICT rows of the run: `<this run> | grep -aE '\| (DEFERRED|DECISION|REPEAT|CONFLICT) \|'` (**Pass start**).
+On every STOP, add the new REFUTED, DECISION and CONFLICT rows to the PR's memory entry, if it has one. A STOP that pushed does this after its ci read. Report the DEFERRED, DECISION, REPEAT and CONFLICT rows of the run: `<this run> | grep -aE '\| (DEFERRED|DECISION|REPEAT|CONFLICT) \|'` (**Pass start**).
 
 ## PASS line
 
-The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a convergence stop starts with `converged` and names no DECISION row, and the reason of a DECISION stop starts with `DECISION row`. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` holds HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
+The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a convergence stop starts with `converged` and names no DECISION row, the reason of a DECISION stop starts with `DECISION row`, and the reason of a CONFLICT stop with `CONFLICT row`. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` holds HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
 
 ```text
 PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a, no jobs, pending, cancelled or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason, pushed or not pushed>
