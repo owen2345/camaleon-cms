@@ -65,7 +65,7 @@ Stop the run and report the open lines when the two trees do not tell the hunks 
 - The earlier tree is that of an open batch, and a line of that batch ends with a SHA. A repair, a re-append or a second failure fix followed the first.
 - The earlier tree is not HEAD, and no open batch comes before the last one.
 
-Otherwise make the fixup commit first, alone, from a temporary index: the files of the checkout stay as they are. Before it, `git -C <checkout> add -A && git -C <checkout> write-tree` must print the last `<tree>` (**Checks**). When it prints another tree, stop the run and report both trees: another writer changed the checkout.
+Otherwise make the fixup commit first, alone, from a temporary index: the files of the checkout stay as they are. Before it, the checkout must be on the head branch, and `git -C <checkout> add -A && git -C <checkout> write-tree` must print the last `<tree>` (**Checks**). Otherwise stop the run and report the state: another writer changed the checkout.
 
 The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the checkout. In the command, `<before>` is the earlier tree, `<after>` the tree of the last batch, and `<sha>` the SHA of the open lines. Join to the chain, with `&&`, a FIXED row for each open line that ends with that SHA (**Ledger rows**). When the apply fails, the two fixes are related (Phase 3). Then skip the fixup commit: every open line goes in the commit below. When another command of the chain fails, stop the run and report the output: the checkout is as it was.
 
@@ -148,7 +148,7 @@ Between the lint and the other checks of a fix, append one line `fix <tree> | <c
 
 After a repair or a failure fix, the checks run again from the lint (`docs/ai/workflows.md` Phase 3). Append the `fix` lines of every uncommitted fix again between that lint and the other checks. Append them also before a failure fix: the trees before and after it hold its hunks (**Pass start**). Append the lines of a batch in one command.
 
-Before the commit, the same two commands must print the `<tree>` of the last `fix` line of its row. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. For a fixup commit, the two commands come before the chain, and another tree stops the run (**Pass start**).
+Before the commit, `git -C <checkout> branch --show-current` must print the head branch: another branch stops the run. The same two commands must print the `<tree>` of the last `fix` line of its row. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. For a fixup commit, both tests come before the chain, and another tree stops the run (**Pass start**).
 
 Judge the command by its result, as `docs/ai/testing.md` "Long commands" says. With no result, start the command again once. A second spec run that ends with the same summary line and exit code is a failure: `docs/ai/failures.md` traces it. A hang, or any other second start with no result, stops the run: report the command with its log. A sync or a `gh` command that fails has no result too, and the report gives its output in place of a log. A `gh run rerun` that GitHub refuses, with `cannot be rerun` or an HTTP 4xx error in its output, has a result: the refusal (below).
 
