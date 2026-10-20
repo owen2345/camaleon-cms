@@ -98,7 +98,7 @@ The conventions angle of the review reads the live `AGENTS.md` of camaleon-cms f
 
 pass | claim | file + function, spec example or doc section heading (no line numbers and no `|`) | category | verdict | evidence (fix SHA, then `fixes <sha>` for a failure fix, or reason + `judged at <sha>`)
 
-Append the rows other than FIXED when their findings get a verdict. Append them in one command, with one line `todo <claim> | <location> | <category>` per finding with the verdict FIXED, and the line `review`. The `review` line records that the review ran, also when it found nothing. Append a FIXED row joined with `&&` to the commit of its fix, which gives the row its SHA. A SHA in a row has 12 characters (`git rev-parse --short=12 <sha>`). The `setup`, `ci` and `fix` lines keep the full value, which `gh` and the tree test need.
+Append the rows other than FIXED when their findings get a verdict. Append them in one command, with one line `todo <claim> | <location> | <category>` per finding with the verdict FIXED, and the line `review`. The `review` line records that the review ran, also when it found nothing. Append a FIXED row joined with `&&` to the commit of its fix, which gives the row its SHA. A SHA in a row has 12 characters (`git rev-parse --short=12 <sha>`). The `setup`, `ci` and `fix` lines keep the full value, which `gh` and the checkout test need.
 
 The message of a commit follows `docs/ai/prose.md`: a subject line and at most three sentences, with no pass number and no ledger label. Write it to a file outside the checkout, which `git commit -F` reads.
 
