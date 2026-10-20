@@ -55,7 +55,7 @@ Then run the specs of the fix and the adjacent specs, brakeman and zeitwerk:chec
 A failure fix is the fix of a failed check. It goes in the first case of this list that holds:
 
 - **Bisect names an earlier commit of the branch:** a fixup commit of that commit (below).
-- **A fix is uncommitted:** the commit of that fix. A flake fix for a flake that was there before the branch goes there too.
+- **Another fix is uncommitted:** the commit of that fix. A flake fix for a flake that was there before the branch goes there too.
 - **Otherwise:** a commit of its own.
 
 After a failure fix, run the checks again, the lint first.
