@@ -94,7 +94,7 @@ The conventions angle of the review reads the live `AGENTS.md` of camaleon-cms f
 
 ## Ledger rows
 
-pass | claim | file + function, spec example or doc section heading (no line numbers and no `|`) | category | verdict | evidence (fix SHA, or reason + `judged at <sha>`)
+pass | claim | file + function, spec example or doc section heading (no line numbers and no `|`) | category | verdict | evidence (fix SHA, then `fixes <sha>` for a failure fix, or reason + `judged at <sha>`)
 
 Append the rows other than FIXED when their findings get a verdict. Append them in one command, with one line `todo <claim> | <location> | <category>` per finding with the verdict FIXED, and the line `review`. The `review` line records that the review ran, also when it found nothing. Append a FIXED row joined with `&&` to the commit of its fix, which gives the row its SHA. A SHA in a row has 12 characters (`git rev-parse --short=12 <sha>`). The `setup`, `ci` and `fix` lines keep the full value, which `gh` and the tree test need.
 
@@ -144,7 +144,13 @@ The loop runs the checks before each commit, the lint first, as `docs/ai/workflo
 
 Every spec run, every ci poll and any other command that can outlast the timeout is a background task (`docs/ai/testing.md` "Long commands"). When the tool answers, append `task <id> <log> <command>` to the ledger.
 
-The checkout test holds when the checkout is as the pass left it: `git -C <checkout> branch --show-current` prints the head branch. `git -C <checkout> rev-parse HEAD` starts with the SHA of the last FIXED row of the pass, or with `<before>` when the pass has none. The tree is clean (`git -C <checkout> status --porcelain` prints nothing), or the run's own: the temporary-index command of **Pass start** prints the `<tree>` of the last `fix` line. The test runs before the first edit of the pass, before the first edit after each commit, and before the fixup chain. At the end of the pass it runs with a clean tree. When it fails, another writer changed the checkout: stop the run and report the output.
+The checkout test holds when the checkout is as the pass left it:
+
+- `git -C <checkout> branch --show-current` prints the head branch.
+- `git -C <checkout> rev-parse HEAD` starts with the first SHA of the last FIXED row of the pass, or with `<before>` when the pass has none.
+- The tree is clean (`git -C <checkout> status --porcelain` prints nothing), or the run's own: the temporary-index command of **Pass start** prints the `<tree>` of the last `fix` line.
+
+The test runs before the first edit of the pass, before the first edit after each commit, and before the fixup chain. At the end of the pass it runs with a clean tree, unless a stop left the uncommitted fix in it. When it fails, another writer changed the checkout: stop the run and report the output.
 
 Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. The Markdown gate runs before each append of `fix` lines (**Ledger rows**). A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
@@ -182,7 +188,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 - A failure whose cause the trace does not find stops the run: report the check with its log.
 - The clone of `docs/ai/failures.md` step 1 stays a clone of its own, outside the spec clone. The run of step 2 without the fix comes first, in the spec clone synced with `no copy`. The `task` line of the run without the fix ends with `# no fix`. Make the clone of step 1 only when step 3 runs.
 - `docs/ai/failures.md` step 4 runs the check at the start commit of the branch. When it fails there in the same way, stop the run. Leave the uncommitted fix in the tree, and name it in the report as the run's own.
-- When a commit of the branch caused the failure, make its fixup commit as `docs/ai/workflows.md` Phase 3 says. Skip the rebase of Phase 3 (**Ledger rows**). The FIXED row of a failure fix also names the commit that it fixes. Its `fix` line ends with one more field, the SHA of that commit. A fixup commit stops the run after the last commit of the pass (see **Pass states and stop**).
+- When a commit of the branch caused the failure, make its fixup commit as `docs/ai/workflows.md` Phase 3 says. Skip the rebase of Phase 3 (**Ledger rows**). The FIXED row of a failure fix names the commit that it fixes after the SHA of its own commit: `<sha> fixes <sha>`. Its `fix` line ends with one more field, the SHA of that commit. A fixup commit stops the run after the last commit of the pass (see **Pass states and stop**).
 - The two trees of the recipe are the `<tree>` of the batch before the failure fix and the `<tree>` of the first batch after it. After a repair of the failure fix, the second is the first batch after the repair. When the uncommitted fix changed between the two, the failure fix joins the commit of the uncommitted fix, as after a failed apply (**Pass start**).
 - A spec run of the loop, before a commit or in a trace, runs in the spec clone (see **Setup**), never in the checkout. A host app is the exception (below). Before the spec run, sync the spec clone, with the ten-minute timeout (an install can take minutes). The sync has these parts, joined with `&&` in this order, and a run names `<commit>` and the parts that it skips. Every other part runs, unless its bullet names a case where it does not. A failed sync has no result (above).
   - The clone, when the spec clone does not exist: `[ -d <spec clone> ] || git clone -q <checkout> <spec clone>`.
@@ -202,7 +208,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 
 Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and a later pass reviewed every change that the run made.
 
-At the end of a pass, before its state, the checkout test must hold with a clean tree (**Checks**). Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
+At the end of a pass, before its state, the checkout test must hold (**Checks**). Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
 
 Stop and push in these cases:
 
