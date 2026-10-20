@@ -88,6 +88,8 @@ Run `/code-review <effort> --fix` on the local branch of the checkout against th
 
 The brief of the review tells each finder to append each candidate that it keeps to `tmp/review-loop/<repo>/<pr>.candidates/<pass>-<angle>.md` in camaleon-cms. The file ends with a line `done`. A resumed pass reads those files (**Pass start**), and a new run removes the directory (`SKILL.md`). The brief names the verdicts file of **Pass start**, and holds no copy of the rows. A finder greps it for its claim before it keeps a candidate. The brief gives the finders the diff without the added files, `git -C <checkout> diff --diff-filter=a <base-ref>...HEAD`, and the paths of those files, to read in the checkout.
 
+The brief tells the finders not to review the message of a commit: the loop never rewrites a commit (**Ledger rows**).
+
 The conventions angle of the review reads the live `AGENTS.md` of camaleon-cms from the camaleon-cms checkout, not the copy of the run. The brief tells it so, because the harness loaded its own `AGENTS.md` when the session started. For another repo, the conventions angle of the review holds the code to the `CLAUDE.md` of camaleon-cms (`AGENTS.md`). Plugin, theme and host app checkouts carry no agent docs of their own. A CLAUDE.md governs only the files at or below its directory, so the angle finds none otherwise.
 
 `AGENTS.md` "Support range" says which ground rules do not bind a host app. Apply findings only as the verdicts allow.
