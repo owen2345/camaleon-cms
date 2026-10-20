@@ -10,7 +10,9 @@ The output of the first command goes to `tmp/review-loop/<repo>/<pr>.verdicts` (
 
 Read a whole FIXED row of this run only when a finding names its location: `<this run> | grep -aF -- '<location>' | grep -a '| FIXED |'`. Read a whole verdict row the same way when a finding matches its claim or its location: `grep -aF -- '<text>' <ledger> | grep -aE '\| (REFUTED|DECISION|CONFLICT) \|'`. Write `'\''` for an apostrophe of the text. `-a` lets `grep` read a ledger with invalid UTF-8, and `-F` reads a backslash of the text as a character. `LC_ALL=C` does the same for `awk`. Do not read the other lines.
 
-The PASS, `setup` and `ci` lines give the pass count and the state of each pass. The rows after its last PASS line, the `review`, `task`, `todo` and `fix` lines among them, are the open work of a cut-off pass. So are a candidate file of this pass (**Pass**) and, in pass 1, a `setup HEAD` line with no line after it. A pass with open work finishes as `resume.md` says, instead of a new pass. In pass 1, the `setup HEAD` line takes the place of the PASS line.
+The PASS, `setup` and `ci` lines give the pass count and the state of each pass. The rows after this run's last PASS line, the `review`, `task`, `todo` and `fix` lines among them, are the open work of a cut-off pass. A candidate file of this pass (**Pass**) is open work too. A pass with open work finishes as `resume.md` says, instead of a new pass.
+
+In pass 1, the `setup HEAD` line takes the place of the PASS line. In the turn of its setup, pass 1 is a new pass, with or without lines after its `setup HEAD` line. In a later turn, pass 1 is a cut-off pass, with or without lines after its `setup HEAD` line.
 
 The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
