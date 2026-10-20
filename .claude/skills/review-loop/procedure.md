@@ -128,7 +128,7 @@ Stop and push in these cases:
   - absent (default): no DECISION row stops the run, and the rows wait for the STOP.
 - A CONFLICT row in this pass whose finding is a correctness or security defect, when `decision` is `stop` or `important`. Such a row says that a REFUTED row or a decision was wrong, and every later pass builds on the text that it keeps. The stop pushes, and the user answers the row before the next run, as a DECISION row.
 
-When more than one stop holds, the pass reports the first of these: the DECISION stop, the CONFLICT stop, any other stop.
+A CONFLICT stop is a stop on a CONFLICT row. When more than one stop holds, the pass reports the first of these: the DECISION stop, a CONFLICT stop, any other stop.
 
 The stops of the list below push nothing, also when a reason to push applies. A stop that neither list names pushes nothing too. Each of these stops is defined where it happens:
 
