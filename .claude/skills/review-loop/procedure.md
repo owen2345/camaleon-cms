@@ -210,8 +210,6 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 
 Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and a later pass reviewed every change that the run made.
 
-At the end of a pass, before its state, the checkout test must hold (**Checks**). Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
-
 Stop and push in these cases:
 
 - The latest pass is CLEAN and the run's pass before it SETTLED or CLEAN (converged).
