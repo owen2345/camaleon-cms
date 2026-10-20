@@ -152,13 +152,13 @@ The checkout test holds when the checkout is as the pass left it:
 - `git -C <checkout> rev-parse HEAD` starts with the fix SHA of the last FIXED row of the pass, or with `<before>` (**PASS line**) when the pass has none. The fix SHA is the first word of the evidence field (**Ledger rows**).
 - The tree is the run's own when a `fix` line of the pass is open. Then the temporary-index command of **Pass start** prints the `<tree>` of the last `fix` line. Otherwise the tree is clean: `git -C <checkout> status --porcelain` prints nothing.
 
-The test runs before the first edit of the pass and before the first edit after each commit. It runs before the fixup chain and at the end of the pass too, unless a stop left the uncommitted fix in the tree (below). When it fails, another writer changed the checkout: stop the run and report the output.
+The test runs before the first edit of the pass and before the first edit after each commit. It runs before each commit, the fixup chain included. It runs at the end of the pass too, unless a stop left the uncommitted fix in the tree (below). When it fails, another writer changed the checkout: stop the run and report the output.
 
 Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. The Markdown gate runs before each append of `fix` lines (**Ledger rows**). A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
 After a repair or a failure fix, the checks run again from the lint (`docs/ai/workflows.md` Phase 3). Append the `fix` lines of every uncommitted fix again between that lint and the other checks. Append them also before a failure fix: the trees before and after it hold its hunks (**Pass start**). Append the lines of a batch in one command.
 
-Before the commit, the branch and HEAD must pass the checkout test (above), or the run stops. `git -C <checkout> add -A && git -C <checkout> write-tree` must print the `<tree>` of the last `fix` line of its row. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. Before a fixup commit, the whole checkout test runs instead, before the chain (**Pass start**).
+Before the commit, the checkout test (above) must hold, or the run stops.
 
 Judge the command by its result, as `docs/ai/testing.md` "Long commands" says. With no result, start the command again once. A second spec run that ends with the same summary line and exit code is a failure: `docs/ai/failures.md` traces it. A hang, or any other second start with no result, stops the run: report the command with its log. A sync or a `gh` command that fails has no result too, and the report gives its output in place of a log. A `gh run rerun` that GitHub refuses, with `cannot be rerun` or an HTTP 4xx error in its output, has a result: the refusal (below).
 
