@@ -65,7 +65,7 @@ Stop the run and report the open lines when the two trees do not tell the hunks 
 - The earlier tree is that of an open batch, and a line of that batch ends with a SHA. A repair, a re-append or a second failure fix followed the first.
 - The earlier tree is not HEAD, and no open batch comes before the last one.
 
-Otherwise make the fixup commit first, alone, from a temporary index: the files of the checkout stay as they are. Before it, the checkout must be on the head branch, and `git -C <checkout> add -A && git -C <checkout> write-tree` must print the last `<tree>` (**Checks**). Otherwise stop the run and report the state: another writer changed the checkout.
+Otherwise make the fixup commit first, alone, from a temporary index: the files of the checkout stay as they are. Before the chain, the checkout test of **Checks** must hold.
 
 The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the checkout. In the command, `<before>` is the earlier tree, `<after>` the tree of the last batch, and `<sha>` the SHA of the open lines. Join to the chain, with `&&`, a FIXED row for each open line that ends with that SHA (**Ledger rows**). When the apply fails, the two fixes are related (Phase 3). Then skip the fixup commit: every open line goes in the commit below. When another command of the chain fails, stop the run and report the output: the checkout is as it was.
 
@@ -142,13 +142,13 @@ The loop runs the checks before each commit, the lint first, as `docs/ai/workflo
 
 Every spec run, every ci poll and any other command that can outlast the timeout is a background task (`docs/ai/testing.md` "Long commands"). When the tool answers, append `task <id> <log> <command>` to the ledger.
 
-The first edit after each commit, and the first of the pass, start on the head branch with a clean tree or the run's own. Before each such edit, `git -C <checkout> branch --show-current` must print the branch. `git -C <checkout> status --porcelain` must print nothing, or the two commands below must print the `<tree>` of the last `fix` line. Otherwise another writer changed the checkout: stop the run and report the output.
+The checkout test holds when the checkout is as the pass left it: `git -C <checkout> branch --show-current` prints the head branch. `git -C <checkout> rev-parse HEAD` starts with the SHA of the last FIXED row of the pass, or with `<before>` when the pass has none. The tree is clean (`git -C <checkout> status --porcelain` prints nothing), or the run's own: the temporary-index command of **Pass start** prints the `<tree>` of the last `fix` line. The test runs before the first edit of the pass, before the first edit after each commit, and before the fixup chain. At the end of the pass it runs with a clean tree. When it fails, another writer changed the checkout: stop the run and report the output.
 
 Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
 After a repair or a failure fix, the checks run again from the lint (`docs/ai/workflows.md` Phase 3). Append the `fix` lines of every uncommitted fix again between that lint and the other checks. Append them also before a failure fix: the trees before and after it hold its hunks (**Pass start**). Append the lines of a batch in one command.
 
-Before the commit, `git -C <checkout> branch --show-current` must print the head branch: another branch stops the run. The same two commands must print the `<tree>` of the last `fix` line of its row. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. For a fixup commit, both tests come before the chain, and another tree stops the run (**Pass start**).
+Before the commit, the branch and HEAD must pass the checkout test (above), or the run stops. `git -C <checkout> add -A && git -C <checkout> write-tree` must print the `<tree>` of the last `fix` line of its row. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. Before a fixup commit, the whole checkout test runs instead, before the chain (**Pass start**).
 
 Judge the command by its result, as `docs/ai/testing.md` "Long commands" says. With no result, start the command again once. A second spec run that ends with the same summary line and exit code is a failure: `docs/ai/failures.md` traces it. A hang, or any other second start with no result, stops the run: report the command with its log. A sync or a `gh` command that fails has no result too, and the report gives its output in place of a log. A `gh run rerun` that GitHub refuses, with `cannot be rerun` or an HTTP 4xx error in its output, has a result: the refusal (below).
 
@@ -200,7 +200,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 
 Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and a later pass reviewed every change that the run made.
 
-At the end of a pass, before its state, the checkout must be on the head branch, at `<before>` or past it. `git -C <checkout> merge-base --is-ancestor <before> HEAD` then exits with 0. Every commit of `<before>..HEAD` must be the commit of a FIXED row of the pass (**Pass start**). `git -C <checkout> rev-list <before>..HEAD` prints the commits, and the rows hold their first 12 characters. Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
+At the end of a pass, before its state, the checkout test must hold with a clean tree (**Checks**). Otherwise another writer changed the checkout during the pass: stop the run, which pushes nothing (below).
 
 Stop and push in these cases:
 
