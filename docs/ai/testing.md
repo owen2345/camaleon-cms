@@ -6,7 +6,7 @@ Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); 
 
 `AGENTS.md` "Verify before pushing" says which specs to run before a push, how to find the adjacent ones, and when to run the whole suite. Never run two spec runs at once in one checkout. The suite shares one SQLite database, and runs on separate ones still share the dummy app's files, such as the uploads under `spec/dummy/public/media`.
 
-Give `bin/rspec` only `*_spec.rb` files that exist. A deleted spec, a factory or a fixture fails to load, and a support file loads again and adds no example.
+Give `bin/rspec` only `*_spec.rb` files that exist. `bin/rspec` with no file runs the whole suite. A deleted spec, a factory or a fixture fails to load, and a support file loads again and adds no example.
 
 At exit, each run of the Camaleon suite names the run markers of the other runs that were active during it. Read `docs/ai/run-markers.md` only to judge a `RspecRunMarker` line in the output of a run.
 
