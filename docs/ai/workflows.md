@@ -44,6 +44,7 @@ Related fixes can share a commit. Unrelated fixes never share a commit, also on 
 - The fixes of one finding, or of one failed check.
 - The fixes of findings on the same sentences, function or spec example.
 - The changes of one autocorrect run.
+- A failure fix and the uncommitted fix that it joins (below).
 
 Commit each fix or group of related fixes as soon as the `AGENTS.md` checks pass for what it touched. Commit the fix before you start an unrelated fix.
 
