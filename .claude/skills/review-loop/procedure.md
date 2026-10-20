@@ -69,7 +69,7 @@ Otherwise make the fixup commit first, alone, from a temporary index: the files 
 
 The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the checkout. In the command, `<before>` is the earlier tree, `<after>` the tree of the last batch, and `<sha>` the SHA of the open lines. Join to the chain, with `&&`, a FIXED row for each open line that ends with that SHA (**Ledger rows**). When the apply fails, the two fixes are related (Phase 3). Then skip the fixup commit: every open line goes in the commit below. When another command of the chain fails, stop the run and report the output: the checkout is as it was.
 
-Then commit the lines that are still open, if any, after `git add -A`, with their rows. Write the SHA of the commit in the evidence field of each of those rows. The row of a failure fix also names the commit that it fixes (**Checks**).
+Then commit the lines that are still open, if any, after `git add -A`, with their rows. Write the fix SHA, the SHA of the commit, in the evidence field of each of those rows. The row of a failure fix also names the commit that it fixes (**Checks**).
 
 A pass 1 can be cut off that way: its run header is the last of the ledger, with no PASS line under it. Finish it the same way against the `setup HEAD` under that header, without a new setup. In pass 1, the `setup HEAD` line takes the place of the PASS line.
 
@@ -147,7 +147,7 @@ Every spec run, every ci poll and any other command that can outlast the timeout
 The checkout test holds when the checkout is as the pass left it:
 
 - `git -C <checkout> branch --show-current` prints the head branch.
-- `git -C <checkout> rev-parse HEAD` starts with the first SHA of the last FIXED row of the pass, or with `<before>` when the pass has none.
+- `git -C <checkout> rev-parse HEAD` starts with the fix SHA of the last FIXED row of the pass, or with `<before>` when the pass has none. The fix SHA is the first word of the evidence field (**Ledger rows**).
 - The tree is clean (`git -C <checkout> status --porcelain` prints nothing), or the run's own: the temporary-index command of **Pass start** prints the `<tree>` of the last `fix` line.
 
 The test runs before the first edit of the pass, before the first edit after each commit, and before the fixup chain. At the end of the pass it runs with a clean tree, unless a stop left the uncommitted fix in it. When it fails, another writer changed the checkout: stop the run and report the output.
@@ -188,7 +188,7 @@ Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or 
 - A failure whose cause the trace does not find stops the run: report the check with its log.
 - The clone of `docs/ai/failures.md` step 1 stays a clone of its own, outside the spec clone. The run of step 2 without the fix comes first, in the spec clone synced with `no copy`. The `task` line of the run without the fix ends with `# no fix`. Make the clone of step 1 only when step 3 runs.
 - `docs/ai/failures.md` step 4 runs the check at the start commit of the branch. When it fails there in the same way, stop the run. Leave the uncommitted fix in the tree, and name it in the report as the run's own.
-- When a commit of the branch caused the failure, make its fixup commit as `docs/ai/workflows.md` Phase 3 says. Skip the rebase of Phase 3 (**Ledger rows**). The FIXED row of a failure fix names the commit that it fixes after the SHA of its own commit: `<sha> fixes <sha>`. Its `fix` line ends with one more field, the SHA of that commit. A fixup commit stops the run after the last commit of the pass (see **Pass states and stop**).
+- When a commit of the branch caused the failure, make its fixup commit as `docs/ai/workflows.md` Phase 3 says. Skip the rebase of Phase 3 (**Ledger rows**). The FIXED row of a failure fix names the commit that it fixes after its fix SHA: `<sha> fixes <sha>`. Its `fix` line ends with one more field, the SHA of that commit. A fixup commit stops the run after the last commit of the pass (see **Pass states and stop**).
 - The two trees of the recipe are the `<tree>` of the batch before the failure fix and the `<tree>` of the first batch after it. After a repair of the failure fix, the second is the first batch after the repair. When the uncommitted fix changed between the two, the failure fix joins the commit of the uncommitted fix, as after a failed apply (**Pass start**).
 - A spec run of the loop, before a commit or in a trace, runs in the spec clone (see **Setup**), never in the checkout. A host app is the exception (below). Before the spec run, sync the spec clone, with the ten-minute timeout (an install can take minutes). The sync has these parts, joined with `&&` in this order, and a run names `<commit>` and the parts that it skips. Every other part runs, unless its bullet names a case where it does not. A failed sync has no result (above).
   - The clone, when the spec clone does not exist: `[ -d <spec clone> ] || git clone -q <checkout> <spec clone>`.
