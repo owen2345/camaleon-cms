@@ -66,7 +66,7 @@ When bisect (`docs/ai/failures.md`) names a commit of the branch as the cause, r
 
 Commit the failure fix from a temporary index, so that no file of the checkout changes: `(export GIT_INDEX_FILE=<tmp>; git read-tree HEAD && git diff --binary <before> <after> | git apply --cached --3way && git commit --fixup=<sha>)`. `<sha>` is the commit that bisect names, and `<tmp>` an absolute path outside the checkout. When the apply exits with 1, the two fixes touch the same or adjacent lines, or a file that the uncommitted fix adds. They are related fixes, so the failure fix joins the commit of the uncommitted fix.
 
-Then commit the uncommitted fix, after `git add -A`. Fold the fixup commit last with `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <sha>~1`: a rebase does not start while the tree has changes. A plain `--autosquash` folds nothing before git 2.44, and the rebase still reports success.
+Then commit the uncommitted fix, after `git add -A`. Fold the fixup commit last, if any, with `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <sha>~1`: a rebase does not start while the tree has changes. A plain `--autosquash` folds nothing before git 2.44, and the rebase still reports success.
 
 **A fix and its notes go in one commit.** The commit of a fix holds the code, the spec and the documents that record the fix. Those documents are the OpenSpec artifacts, the upgrade guide and other docs. Do not add those notes in a later commit, which leaves a commit where the code and the documents disagree. The Phase 4 changelog entry and the OpenSpec archive step stay commits of their own.
 
