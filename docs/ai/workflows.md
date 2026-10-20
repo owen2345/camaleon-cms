@@ -108,7 +108,7 @@ A commit is **docs-only** when it touches only documentation (`.md` files, `READ
 
 1. **PR description.** Required: a **What and Why** summary and one sentence of **User-Visible Impact** (or "None"). Not allowed: a Files Changed section, test or example counts, verification logs or commands, commit SHAs or history references, and any evolution narrative — describe the PR's net what/why/how as it now stands, and when commits are added later fold their substance into the description instead of appending follow-up or review-history sections.
 
-2. **Metadata maintenance.** A change to setup, test, or CI commands updates `AGENTS.md`, `docs/ai/testing.md` (if applicable) and `README.md` in the same PR.
+2. **Metadata maintenance.** A change to setup, test or CI commands updates every document that states the command, in the same PR.
 
 3. **Changelog.** After creating the PR, commit an entry under `## Unreleased` that links it:
 
