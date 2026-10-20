@@ -53,7 +53,7 @@ The open work of a cut-off pass has three kinds. The state of the checkout and t
 
 For the dirty-tree kind, look for the last `task` line of a spec run after the last `fix` line. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"). With none, start the spec run, unless the commit has no spec file (**Checks**). Another such line between them is a first run that failed or had no result: judge both (`docs/ai/failures.md`, **Checks**). A `task` line marked `# no fix`, or whose command runs in the clone of `docs/ai/failures.md` step 1, is neither the first nor the second run. A `fix` line of category `ci` resumes at the run after the fix (`trace.md`), which says whether the commit also runs its specs.
 
-The `fix` lines appended together, with one `<tree>`, are a batch. A batch is open while a line of it has no FIXED row after it with its claim and location. The open lines are the lines of the last batch that have no FIXED row.
+The `fix` lines appended together, with one `<tree>`, are a batch. A `fix` line is open until a FIXED row with its claim and location follows it. A batch is open while one of its lines is open, and the open lines are the open lines of the last batch.
 
 Then run the lint of `AGENTS.md`, unless **Checks** makes it n/a. The batch that **Checks** appends before a failure fix can come while the lint fails. Then run the checks after the spec run that the commit needs: brakeman, zeitwerk:check and the openspec commands (`AGENTS.md`).
 
