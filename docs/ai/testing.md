@@ -12,9 +12,9 @@ At exit, each run of the Camaleon suite names the run markers of the other runs 
 
 `pgrep -f '[r]spec'`, in a command of its own, lists the active runs. The brackets keep the shell that runs the command off the list. Its command line holds the pattern, and the pgrep of Linux does not leave it out by itself. `ps -o args= -p <pid>` shows what a run is. `lsof -a -d cwd -p <pid>`, or `readlink /proc/<pid>/cwd` on Linux, shows the checkout that it runs in.
 
-`<checkout>` is the real path of a checkout (`git rev-parse --show-toplevel`). To wait until no run of it is active, an hour at most: `for i in $(seq 180); do pgrep -f '[r]spec' | xargs -I{} lsof -a -d cwd -p {} -Fn 2> /dev/null | P='n<checkout>' awk '$0 == ENVIRON["P"] || index($0, ENVIRON["P"] "/") == 1 { f = 1 } END { exit !f }' || break; echo "$i"; sleep 20; done`. The `awk` matches the checkout and a directory below it as fixed strings. Without `lsof`, `readlink /proc/{}/cwd 2> /dev/null | sed 's/^/n/'` takes the place of the `lsof` command.
+`<checkout>` is the real path of a checkout (`git rev-parse --show-toplevel`). To wait until no run of it is active, an hour at most: `for i in $(seq 180); do pgrep -f '[r]spec' | xargs -I{} lsof -a -d cwd -p {} -Fn 2> /dev/null | P='n<checkout>' awk '$0 == ENVIRON["P"] || index($0, ENVIRON["P"] "/") == 1 { f = 1 } END { exit !f }' || exit 0; echo "$i"; sleep 20; done; exit 4`. The `awk` matches the checkout and a directory below it as fixed strings. Without `lsof`, `readlink /proc/{}/cwd 2> /dev/null | sed 's/^/n/'` takes the place of the `lsof` command. Exit code 4: a run is still active after the hour.
 
-For a host app on PostgreSQL, a run of any checkout counts: `for i in $(seq 180); do pgrep -f '[r]spec' > /dev/null || break; echo "$i"; sleep 20; done`. The `echo` keeps the log of a wait fresh: a log that does not change for 30 minutes means a hang (Long commands). After the hour, `pgrep -f '[r]spec'` names the runs that are still active.
+For a host app on PostgreSQL, a run of any checkout counts: `for i in $(seq 180); do pgrep -f '[r]spec' > /dev/null || exit 0; echo "$i"; sleep 20; done; exit 4`. The `echo` keeps the log of a wait fresh: a log that does not change for 30 minutes means a hang (Long commands). Exit code 4: a run is still active after the hour, and `pgrep -f '[r]spec'` names it.
 
 ## Long commands
 
