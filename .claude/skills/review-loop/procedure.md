@@ -12,7 +12,7 @@ Read a whole FIXED row of this run only when a finding names its location: `<thi
 
 The PASS, `setup` and `ci` lines give the pass count and the state of each pass. The rows after its last PASS line, the `review`, `task`, `todo` and `fix` lines among them, are the open work of a cut-off pass. A pass with open work finishes as `resume.md` says, instead of a new pass. In pass 1, the `setup HEAD` line takes the place of the PASS line. The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
-The `setup target` line of this run gives `<checkout>`, `<project>`, `<head>` and `<base-ref>`, which the commands of this file use.
+The `setup target` line of this run gives `<checkout>`, `<project>`, `<head>` and `<base-ref>`, which the commands of this file use. Commands run against the checkout: `git -C <checkout> …`, `(cd <checkout> && bin/…)`, `gh … --repo <project>`.
 
 From pass 2 on, and in a resumed pass 1, the pass also runs the checkout test of **Checks**. Each commit past the `<before>` of the pass (**PASS line**) needs a FIXED row (`resume.md`). Other sessions and the IDE share the checkout. Without the checkout test, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
