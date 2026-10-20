@@ -1,6 +1,6 @@
 # Spec runs and failed checks
 
-The spec runs of the loop, the failed checks and the fixup commit of a failure fix follow this file (`procedure.md`, Checks).
+The spec runs of the loop, the openspec commands, the failed checks and the fixup commit of a failure fix follow this file (`procedure.md`, Checks).
 
 - A spec run before a commit runs the specs of the fix and the adjacent specs (`docs/ai/workflows.md` Phase 3), never the whole suite. The exceptions are the trace of a CI failure (`trace.md`) and an adjacent set of more than half of the suite (`AGENTS.md` "Verify before pushing"). `docs/ai/testing.md` says which files `bin/rspec` gets. When a commit has no such spec file, skip the run and report rspec as n/a.
 - A commit that touches `openspec/` also runs the `openspec validate` commands of `AGENTS.md` "Verify before pushing".
