@@ -61,7 +61,7 @@ After a failure fix, run the checks again, the lint first.
 
 When a check fails, find its cause as `docs/ai/failures.md` says. That document holds the second run, the bisect in a scratch clone and the reproduction of a failed CI job.
 
-When bisect (`docs/ai/failures.md`) names a commit of the branch as the cause, record the tree of the checkout first. `git add -A && git write-tree` prints it: `<before>`. Make the failure fix, run the checks again, and record the tree again as `<after>` when they pass. The difference between the two trees must be the failure fix alone. Do not change the uncommitted fix between the two records. After a repair of the failure fix, record `<after>` again.
+When bisect (`docs/ai/failures.md`) names a commit of the branch as the cause, record the tree of the checkout first. `git add -A && git write-tree` prints it: `<before>`. Make the failure fix, run the lint, and record the tree the same way as `<after>` before the other checks. The difference between the two trees must be the failure fix alone. Do not change the uncommitted fix between the two records. After a repair of the failure fix, record `<after>` again.
 
 Commit the failure fix from a temporary index, so that no file of the checkout changes: `(export GIT_INDEX_FILE=<tmp>; git read-tree HEAD && git diff --binary <before> <after> | git apply --cached --3way && git commit --fixup=<sha>)`. `<sha>` is the commit that bisect names, and `<tmp>` an absolute path outside the checkout. When the apply fails, the two fixes touch the same or adjacent lines, or a file that the uncommitted fix adds: they are related fixes. The failure fix then joins the commit of the uncommitted fix.
 
