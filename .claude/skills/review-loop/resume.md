@@ -34,5 +34,3 @@ The `ci` lines of the `setup HEAD` under that header say where setup was cut off
 - The last such line names a failed job, with no `fix` line of category `ci` after it: the trace is still open. Read the ci check again, then finish the trace.
 - A `rerun` line with no `ci` line after it: read the ci check again. `ci.md` says when that line counts as a rerun.
 - The last such line says `no jobs`, `pending` or `cancelled`: the pass stops at its end. Finish it, then write its PASS line with the stop.
-
-Any other state of the checkout stops the run: say so, as after a failed checkout test (`procedure.md`, Checks).
