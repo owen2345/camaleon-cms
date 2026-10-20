@@ -120,13 +120,15 @@ Stop and push in these cases:
 - Pass 8 did not converge. Report it as not converged.
 - A second CONFLICT on the same claim. Show both sides.
 - A review cannot cover its range.
-- A DECISION row in this pass that the `decision` parameter names. When another stop holds too, the pass reports this one. The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer goes in as a commit, pushed before that run. The values:
+- A DECISION row in this pass that the `decision` parameter names. The pass applies its other verdicts and commits first. The user answers the rows before the next run, and each answer goes in as a commit, pushed before that run. The values:
   - `stop`: any DECISION row.
   - `important`: a decision on the design of the PR, or on a rule that the later fixes follow. A decision on one sentence, a term or a bound does not count.
   - absent (default): no DECISION row stops the run, and the rows wait for the STOP.
 - A CONFLICT row in this pass whose finding is a correctness or security defect, when `decision` is `stop` or `important`. Such a row says that a REFUTED row or a decision was wrong, and every later pass builds on the text that it keeps. The stop pushes, and the user answers the row before the next run, as a DECISION row.
 
-These stops push nothing, also when a reason to push applies. A stop that neither list names pushes nothing too. Each of these stops is defined where it happens:
+When a DECISION stop holds with another stop, the pass reports the DECISION stop. When a CONFLICT stop holds with another stop that is no DECISION stop, the pass reports the CONFLICT stop.
+
+The stops of the list below push nothing, also when a reason to push applies. A stop that neither list names pushes nothing too. Each of these stops is defined where it happens:
 
 - A setup stop, also on a ci read of setup with `no jobs`, `pending` or `cancelled` (`setup.md`).
 - A checkout that changed between passes (**Pass start**) or during one (**Checks**), or a pass that ends with uncommitted changes, which can be another writer's.
@@ -160,7 +162,7 @@ On every STOP, add the new REFUTED, DECISION and CONFLICT rows to the PR's memor
 
 ## PASS line
 
-The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a stop starts with `converged`, `DECISION row` or `CONFLICT row`, by its kind, and a convergence reason names no DECISION row. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` holds HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
+The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a stop starts with `converged`, `DECISION row` or `CONFLICT row`, by its kind, and a convergence reason names no DECISION or CONFLICT row. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` holds HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
 
 ```text
 PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a, no jobs, pending, cancelled or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason, pushed or not pushed>
