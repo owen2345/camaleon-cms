@@ -51,9 +51,21 @@ The open work of a cut-off pass has three kinds. The state of the checkout and t
 
 For the dirty-tree kind, look for the last `task` line of a spec run after the last `fix` line. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"). With none, start the spec run, unless the commit has no spec file (**Checks**). Another such line between them is a first run that failed or had no result: judge both (`docs/ai/failures.md`, **Checks**). A `task` line marked `# no fix`, or whose command runs in the clone of `docs/ai/failures.md` step 1, is neither the first nor the second run. A `fix` line of category `ci` resumes at the run after the fix (`trace.md`), which says whether the commit also runs its specs.
 
-Then run the checks after the spec run that the commit needs: brakeman, zeitwerk:check and the openspec commands (`AGENTS.md`). The open lines are the `fix` lines of the last `<tree>` that have no FIXED row after that PASS line. An open line whose last field is a SHA names a failure fix, which gets a fixup commit (**Checks**). Its hunks are the difference between the last `<tree>` and the `<tree>` before it in the `fix` lines: `git -C <checkout> diff <earlier tree> <last tree> > <patch>`. The finding fix made that earlier tree alone, and with no `<tree>` before it, that tree is HEAD. `<patch>` is an absolute path outside the checkout.
+Then run the checks after the spec run that the commit needs: brakeman, zeitwerk:check and the openspec commands (`AGENTS.md`). The open lines are the `fix` lines of the last `<tree>` that have no FIXED row after that PASS line. An open line whose last field is a SHA names a failure fix, which gets a fixup commit (**Checks**). Its hunks are the difference between the last `<tree>` and the `<tree>` of the open `fix` lines just before it. **Checks** appends that earlier tree before a failure fix, so it holds the finding fix alone. When the open lines hold the failure fix only, the earlier tree is that of HEAD (`git -C <checkout> rev-parse 'HEAD^{tree}'`).
 
-Make the fixup commit first, alone: `git -C <checkout> read-tree -u --reset HEAD && git -C <checkout> apply --3way <patch> && git -C <checkout> commit --fixup=<sha>`. The `read-tree` sets the tree to HEAD, and `--3way` stages the patch. When the apply reports a conflict, run `git -C <checkout> read-tree -u --reset <last tree>`, which restores the tree of the run, then stop the run and report the conflict. After the fixup commit, restore the last tree the same way. Then commit the fix of the other open lines, after `git add -A`, with their rows. Write the SHA of the commit in the evidence field of each of those rows.
+In these cases the two trees do not tell the hunks apart: stop the run and report the open lines.
+
+- A line of the earlier tree ends with a SHA: a repair or a second failure fix followed the first.
+- Two open lines end with different SHAs.
+- The open lines hold the finding fix too, and no open `fix` lines come before the last `<tree>`.
+
+Otherwise `git -C <checkout> diff --binary <earlier tree> <last tree> > <patch>` writes the patch. `<patch>` is an absolute path outside the checkout.
+
+Make the fixup commit first, alone: `git -C <checkout> read-tree -u --reset <last tree> && git -C <checkout> read-tree -u --reset HEAD && git -C <checkout> apply --3way <patch> && git -C <checkout> commit --fixup=<sha> && git -C <checkout> read-tree -u --reset <last tree>`. Append its FIXED row in the same command, after the chain (**Ledger rows**). The first `read-tree` tracks the new files of the fixes, which the `git reset -q` of `docs/ai/workflows.md` Phase 3 can leave untracked. The second sets the tree to HEAD, `--3way` stages the patch, and the last restores the tree of the run.
+
+When a command of the chain fails, run the last `read-tree` alone, then stop the run and report the output. A conflict of the apply is one such failure.
+
+Then commit the fix of the other open lines, after `git add -A`, with their rows. Write the SHA of the commit in the evidence field of each of those rows.
 
 A pass 1 can be cut off that way: its run header is the last of the ledger, with no PASS line under it. Finish it the same way against the `setup HEAD` under that header, without a new setup. In pass 1, the `setup HEAD` line takes the place of the PASS line.
 
@@ -124,7 +136,9 @@ The loop runs the checks before each commit, the lint first, as `docs/ai/workflo
 
 Every spec run, every ci poll and any other command that can outlast the timeout is a background task (`docs/ai/testing.md` "Long commands"). When the tool answers, append `task <id> <log> <command>` to the ledger.
 
-Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs. After a repair or a failure fix, append the `fix` lines of every uncommitted fix again before the checks.
+Between the lint and the other checks of a fix, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of its commit. A fix that runs no lint gets the lines at once. The claim, the location and the category of the row follow `<tree>`, for the resume of a cut-off pass (**Pass start**). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
+
+After a repair or a failure fix, append the `fix` lines of every uncommitted fix again before the checks. Append them also before a failure fix: the trees before and after it hold its hunks (**Pass start**).
 
 Before the commit, the same two commands must print the `<tree>` of its `fix` line. Otherwise the tree changed during the checks: append the `fix` lines again, and run the checks again. For a fixup commit, run the two commands before the staging of `docs/ai/workflows.md` Phase 3.
 
