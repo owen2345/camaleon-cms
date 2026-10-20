@@ -38,13 +38,13 @@ The steps:
    - 0 when the check passes.
    - 1 when the check fails in the same way.
    - 125 when the check fails in another way. Bisect then skips that commit, because another failure does not show the cause.
-   - 128 or above when a signal killed the check, or `git` itself failed: its own exit status, tested before its output. Bisect then stops and keeps its marks, and `git bisect run` started again goes on from them.
+   - 128 or above when a signal killed the check, or `git` itself failed: its own exit status, tested before its output. Bisect then stops and keeps its marks, and `git bisect run` started again continues from them.
 
 Each RSpec run in the clone, also each bisect step, uses the files and the `--seed`, if any, of the second run. When the second run was the whole suite, each run in the clone is the whole suite too. Do not give it more files. More files change the order of the examples, and an order-dependent failure can then pass.
 
 Leave out the files that do not exist at the commit of the run. RSpec fails to load a file that does not exist, and that failure shows nothing. When no file is left, skip the run, as `docs/ai/workflows.md` Phase 3 says. The check passes at that commit, because the example that failed is not there.
 
-Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The run of step 3 can fail in another way, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Go on to step 5, as bisect does with exit code 125.
+Each lint run in the clone, also each bisect step, runs `bin/rubocop` without `-A`. An autocorrect changes the files of the clone, and the next `git checkout` in the clone stops. The run of step 3 can fail in another way, for example with no `.bundle/config`, which git ignores. That run shows nothing: repair the clone and run the check again. A run in step 4 that fails in another way shows that the start commit does not have this failure. Continue with step 5, as bisect does with exit code 125.
 
 Bisect names the commit that caused the failure. When it lists several commits instead (`The first 'bad' commit could be any of`), the commits before the cause fail in another way. Find the cause in the diffs of the listed commits, or tell the user.
 

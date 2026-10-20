@@ -18,7 +18,7 @@ For a host app on PostgreSQL, a run of any checkout counts: `for i in $(seq 180)
 
 ## Long commands
 
-A foreground command of the Bash tool that reaches its timeout moves to the background and runs on until the turn ends. It is a background task from then on: the message of the tool names its id and its log. Wait for it as below before any command that needs its result. The timeout is two minutes by default and ten minutes at most. Give the ten-minute timeout to a foreground command that can take longer than two minutes, and to every wait below.
+A foreground command of the Bash tool that reaches its timeout moves to the background and runs until the turn ends. It is a background task from then on: the message of the tool names its id and its log. Wait for it as below before any command that needs its result. The timeout is two minutes by default and ten minutes at most. Give the ten-minute timeout to a foreground command that can take longer than two minutes, and to every wait below.
 
 Run every spec run, every CI poll and any other command that can outlast the timeout as a background task. A background task is the Bash tool with `run_in_background`. The tool answers with the task id and the path of the log of the task, `<log>`, which holds stdout and stderr of the command. When the command ends, the harness appends `[exited with code <n>]` to the log and sends a notification with the exit code. The notification arrives with the result of the next tool call. `TaskStop <task id>` writes `[killed]` to the log, then kills the command and its child processes, which can print more after that line.
 
