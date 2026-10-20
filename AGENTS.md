@@ -32,7 +32,7 @@ Run the whole suite only in these cases:
 
 To debug a spec failure, follow `docs/ai/failures.md` too. CI runs the whole suite on every push.
 
-A commit that touches `openspec/` also runs `openspec validate --all --strict` and `openspec validate --archived`. `--specs` alone skips a change not yet archived, and `--all` skips an archived one. Only `--archived` checks that an archived change has every task checked (Phase 4). Given both flags, `validate` runs only the archived set.
+A commit that touches `openspec/` also runs `openspec validate --all --strict` and `openspec validate --archived`. `--specs` alone skips a change not yet archived, and `--all` skips an archived one. Only `--archived` checks that an archived change has every task checked (`docs/ai/workflows.md` Phase 4). Given both flags, `validate` runs only the archived set.
 
 A push needs no new check run when each of its commits ran the checks first, or was exempt from them (`docs/ai/workflows.md` Phase 3). An autosquash rebase keeps the tree of the last commit. A rebase onto the base changes that tree, so the checks run again before the push.
 
