@@ -220,8 +220,10 @@ Commit but do not push during the run. The STOP push carries every commit of the
 A stop that pushes has these steps, in this order:
 
 1. Fetch `origin/<head>`, and read the `state` of the PR again. A merged or closed PR stays unpushed and unfolded: say so, and skip the other steps.
-2. When `origin/<head>` is at HEAD, skip the push. If HEAD is the `setup HEAD`, the run made no commit: skip the other steps. If HEAD is past it, a pass cut off after its push made the commits: go on with step 4.
-3. Push with `git -C <checkout> push origin <head>`. A push rejected because `origin/<head>` moved stays unpushed and unfolded: say so, and skip the other steps. Do not pull, rebase or force past the rejection. After a pull or a rebase, the push carries a tree that the checks never ran on. A forced push drops the other commits.
+2. When `origin/<head>` holds HEAD (`git -C <checkout> merge-base --is-ancestor HEAD origin/<head>` exits with 0), skip the push and compare HEAD with the `setup HEAD`:
+   - HEAD is the `setup HEAD`: the run made no commit. Skip the other steps.
+   - HEAD is past the `setup HEAD`: a pass cut off after its push made the commits. Go on with step 4.
+3. Push with `git -C <checkout> push origin <head>`. When git rejects the push, or the push fails twice, the stop stays unpushed and unfolded: say so, and skip the other steps. Do not pull, rebase or force past a rejection. After a pull or a rebase, the push carries a tree that the checks never ran on. A forced push drops the other commits.
 4. Fold the PR description (`docs/ai/workflows.md` Phase 4). Save the live description with `gh pr view <pr> --repo <project> --json body --template '{{.body}}' > tmp/review-loop/<repo>/<pr>.fold.md`. Fold the run into that file, and run `gh pr edit <pr> --repo <project> --body-file tmp/review-loop/<repo>/<pr>.fold.md`.
 5. Read the ci check of HEAD (see **Checks**). The run is over, so the loop does not trace a failure there. It reruns once each run in which a suite job did not pass, as **Checks** says. A job that fails again is the failed job that ci reports. After a DECISION stop, it reads ci and reruns nothing.
 
@@ -233,7 +235,7 @@ On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry, i
 
 ## PASS line
 
-The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a convergence stop starts with `converged` and names no DECISION row, and the reason of a DECISION stop starts with `DECISION row`. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` is at HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
+The goal's evaluator reads only the transcript, so end every turn with the line below. Append it to the ledger too: the next pass reads the pass count and the state of each pass there. The reason of a convergence stop starts with `converged` and names no DECISION row, and the reason of a DECISION stop starts with `DECISION row`. The `fixed` field counts the FIXED rows of the pass by category (**Pass states and stop**). The goal reads the STOP field: `pushed` when the run made a commit and `origin/<head>` holds HEAD after the stop, and `not pushed` otherwise. A STOP for convergence quotes the PASS line of the previous pass from the ledger, because compaction can drop that turn from the transcript.
 
 ```text
 PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a, no jobs, pending, cancelled or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason, pushed or not pushed>
