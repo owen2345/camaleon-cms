@@ -20,13 +20,13 @@ For a host app on PostgreSQL, a run of any checkout counts: `for i in $(seq 180)
 
 A foreground command of the Bash tool that reaches its timeout moves to the background and runs on until the turn ends. It is a background task from then on: the message of the tool names its id and its log. Wait for it as below before any command that needs its result. The timeout is two minutes by default and ten minutes at most. Give the ten-minute timeout to a foreground command that can take longer than two minutes, and to every wait below.
 
-Run every spec run, every CI poll and any other command that can outlast the timeout as a background task. A background task is the Bash tool with `run_in_background`. The tool answers with the task id and the path of the log of the task, `<log>`, which holds stdout and stderr of the command. When the command ends, the harness appends `[exited with code <n>]` to the log and sends a notification with the exit code. The notification arrives with the result of the next tool call. `TaskStop <task id>` kills the command and its child processes, and appends `[killed]` to the log.
+Run every spec run, every CI poll and any other command that can outlast the timeout as a background task. A background task is the Bash tool with `run_in_background`. The tool answers with the task id and the path of the log of the task, `<log>`, which holds stdout and stderr of the command. When the command ends, the harness appends `[exited with code <n>]` to the log and sends a notification with the exit code. The notification arrives with the result of the next tool call. `TaskStop <task id>` writes `[killed]` to the log, then kills the command and its child processes, which can print more after that line.
 
-Wait for the end, as often as needed: `w=bound; for i in $(seq 114); do tail -n 1 <log> | grep -aqE '^\[(exited with code [0-9]+|killed)\]$' && { w=end; break; }; [ -e <log> ] || { w=missing; break; }; [ -z "$(find <log> -mmin -30)" ] && { w=stale; break; }; sleep 5; done; echo $w; grep -aE '^[0-9]+ examples?, ' <log>; tail -n 3 <log>`. The wait prints one word, then the summary line of a spec run and the end of the log. It returns before the ten-minute timeout, so the harness moves no copy of it to the background. The word is one of these:
+Wait for the end, as often as needed: `w=bound; for i in $(seq 114); do grep -aqE '^\[(exited with code [0-9]+|killed)\]$' <log> && { w=end; break; }; [ -e <log> ] || { w=missing; break; }; [ -z "$(find <log> -mmin -30)" ] && { w=stale; break; }; sleep 5; done; echo $w; grep -aE '^[0-9]+ examples?, ' <log>; tail -n 3 <log>`. The wait prints one word, then the summary line of a spec run and the end of the log. It returns before the ten-minute timeout, so the harness moves no copy of it to the background. The word is one of these:
 
 - `end`: the log has the end line.
 - `missing`: the log does not exist, for example after the scratchpad of a session is gone. The command has no result.
-- `stale`: the log did not change for 30 minutes. End the command with `TaskStop`. When `TaskStop` finds no task, the command died with its session: it has no result. When it answers that the task is not running, the command ended: judge its log as for `end`. Otherwise the command hangs.
+- `stale`: the log did not change for 30 minutes. End the command with `TaskStop`. When `TaskStop` finds no task, the command died with its session: it has no result. When it answers `is not running`, the command ended: judge its log as for `end`. Otherwise the command hangs.
 - `bound`: 570 seconds passed, and the command still runs. Wait again.
 
 `grep -a` reads a log that holds a NUL byte or invalid UTF-8. Without it, the `grep` of the Bash tool skips such a file as binary.
@@ -35,7 +35,7 @@ Do not edit a checkout while a run is active in it in the background.
 
 A spec run has one of three results. Test them in this order:
 
-- It has no result when a signal stopped it: an exit code of 128 or above, or `RSpec is shutting down` (an interrupt) with exit code 1. A killed run prints a summary line of the examples so far, or none. A signal that kills the shell of the task can leave `[exited with code 1]` and no error message.
+- It has no result when a signal stopped it. The signs are an exit code of 128 or above, a line `[killed]`, or `RSpec is shutting down` (an interrupt) with exit code 1. A killed run prints a summary line of the examples so far, or none. A signal that kills the shell of the task can leave `[exited with code 1]` and no error message.
 - It passes with 0 failures in its summary line, no error outside of examples, and exit code 0. The exit code is the code of `bin/rspec` itself: a run piped through another command, such as `tail`, reports the code of that command.
 - It fails with a failure or an error outside of examples in its summary line. A crash fails too: an error message, no summary line, and an exit code from 1 to 127.
 
@@ -46,6 +46,7 @@ Any other command has one of these results:
 - A bisect has a result when its log holds `bisect found first 'bad' commit` or `error: bisect run cannot continue any more`: `docs/ai/failures.md` reads it. Otherwise it has no result. Its restart is `git bisect run <script>` alone: `git bisect start` drops the marks.
 - A command whose exit code is 128 or above has no result: a signal killed it, or `git` itself failed.
 - A log that ends with `[exited with code 1]` and holds no report of the command has no result: a signal killed the shell of the task (above).
+- A log with a line `[killed]` has no result: `TaskStop` ended the command.
 - For any other command, the exit code is the result.
 
 ## Database
