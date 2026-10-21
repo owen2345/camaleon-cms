@@ -1,6 +1,6 @@
 # The ci check
 
-The fifth check is **ci**: the GitHub workflow runs of a commit, the rows of `gh run list --commit <sha>`. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD` (`setup.md`). A stop that pushes reads them again for the pushed commit (`procedure.md`, Pass states and stop).
+The fifth check is **ci**: the GitHub workflow runs of a commit, the rows of `gh run list --commit <sha>`. In camaleon-cms, they test the PR merged into the base, on every Ruby and Rails of the matrix. Setup reads them for the `setup HEAD` (`setup.md`). A stop that pushes reads them again for the pushed commit (`stop.md`).
 
 Each read ends with the line `ci <sha> <ok, n/a, no jobs, pending, cancelled or the failed job>` in the ledger. Its `<sha>` is the HEAD that the read stands for: the `setup HEAD` at setup, and the pushed commit after a push. The ci field of a PASS line is the value of the last `ci` line of the run for the `<after>` of the line. With no such line, it is n/a.
 
