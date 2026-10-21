@@ -30,3 +30,7 @@ REGRESSION-AUDIT*
 # Local scratch space, such as the review-loop skill's per-PR ledgers under tmp/review-loop/.
 # Working state that is never repo content.
 /tmp/
+
+# Locks of the matrix gemfiles under gemfiles/. CI resolves them anew at each run, and a local
+# bundle of one of them must not dirty the checkout.
+/gemfiles/*.gemfile.lock

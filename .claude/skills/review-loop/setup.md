@@ -1,0 +1,31 @@
+# Setup of a run
+
+The first pass of a run follows this file before `procedure.md`, after `SKILL.md` made the copies of the rule files. Setup resolves the target, reads the PR, makes the ledger ready, appends the run header and reads the ci check of the PR head.
+
+- **Target:** resolve the checkout path as its real path (`git -C ../<repo> rev-parse --show-toplevel`) and its GitHub project (`gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout). In a fork checkout, as below, give that command the URL of `<remote>`. `gh` answers with `origin`, the fork, unless that remote is named `upstream` or `github`.
+- **PR:** `gh pr view <pr> --repo <project> --json state,headRefName,baseRefName,headRefOid,headRepository` gives its state, its head and base branches, its head commit and its head repository. `gh pr view <pr> --repo <project> --json body --template '{{.body}}' > tmp/review-loop/<repo>/<pr>.description.md` saves its description, the record of its design, which Verdicts step 3 of `procedure.md` reads. Stop in a `PASS 0/8` line unless `<head>` and `<base>` match `^[A-Za-z0-9_][A-Za-z0-9._/-]*$`: the commands below use both names without quotes. Then fetch both branches: `git -C <checkout> fetch origin <head> <base>`. In a fork checkout, only `<head>` comes from `origin`.
+
+  The run continues only when each condition below holds. Otherwise stop and say so in a `PASS 0/8` line. Do not switch, pull, reset, stash or commit.
+  - The PR is open.
+  - The head of the PR is in the repository of `origin`. Its `headRepository.nameWithOwner` equals that repository: `<project>`, or in a fork checkout `gh repo view <origin's URL> --json nameWithOwner --jq .nameWithOwner`. A PR from another fork fails this, because the STOP push goes to `origin`.
+  - `origin/<head>` is at the head commit of the PR.
+  - The checkout is on the head branch, at `origin/<head>`: a commit that is not pushed is then a commit of the run.
+  - The checkout is clean: `git -C <checkout> status --porcelain` prints nothing.
+  - The tests of the checkout are RSpec specs, the only suite that the checks run: `git -C <checkout> ls-files 'test/*_test.rb'` prints nothing. A plugin still on minitest stops here.
+  - The checkout has `bin/rubocop` and `bin/rspec`, which the checks run.
+
+  Every range below starts at `<base-ref>`: `origin/<base>`, never the local base branch, which can lag behind. In a fork checkout, `origin` is a fork and another remote, `<remote>`, is the project (`git -C <checkout> remote -v`, often `upstream`). The `<base>` of the fork can lag the same way. So `<base-ref>` is `<remote>/<base>`, fetched from it (`git -C <checkout> fetch <remote> <base>`). The head, the conditions above and the STOP push stay on `origin`.
+
+  When the branch touches `openspec/` (`git -C <checkout> diff --name-only <base-ref>...HEAD -- openspec/` prints a path), run the `openspec validate` commands of `AGENTS.md` "Verify before pushing". Run them in the checkout once. A failure stops the run in a `PASS 0/8` line, as the conditions above do. Those paths name the OpenSpec changes of the branch: the directories `openspec/changes/<name>/` and `openspec/changes/archive/<date>-<name>/`. A path under `openspec/specs/` names no change. The `design.md` of each such change that HEAD has records the design too: Verdicts step 3 of `procedure.md` reads them beside the saved description.
+- **Spec clone:** setup makes none. The first sync of `spec-runs.md`, before a spec run or a trace, makes the spec clone when it does not exist.
+- **Ledger:** `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms, whatever the target repo, never committed. A ledger with no `## Run` header does not exist yet, or holds only the `PASS 0/8` line of a setup that stopped before this step. Only then create it, if needed. Seed it as pass 0 from the memory entry of the PR, if any. The seed holds the rows that every STOP adds there (`procedure.md`, Pass states and stop). It also holds any other refuted entry as REFUTED, and any skipped entry as DECISION, or as FIXED when a later commit fixed it.
+
+  Each run appends, in one command, `## Run <date>, effort <level>`, the line `setup target <checkout> | <project> | <head> | <base-ref>` and the line `setup HEAD <sha>`, the PR head that setup found. It counts its passes from 1. The rows of earlier runs still count for the verdict checks.
+
+- **CI:** read the ci check of the `setup HEAD`, as `ci.md` says. A poll, when `ci.md` starts one, runs as a background task, which gives the ledger its `task` line, and the review runs meanwhile. When the poll ends, read its result as `ci.md` says. Append the `ci` line of `ci.md` when the read ends, with the `setup HEAD` as its `<sha>`. Before its PASS line, pass 1 waits for a poll that still runs (the wait of `docs/ai/testing.md` "Long commands").
+
+  A marked `setup HEAD` has no suite run of its own. The `<sha>` of the ci commands is then the head of the newest suite run of the branch: `S='Audit|Test supported versions' gh run list --repo <project> --branch <head> --limit 100 --json headSha,workflowName --jq '[.[] | select(.workflowName | test("^(" + env.S + ")$"))] | .[0].headSha // empty'`. The `ci` line still names the `setup HEAD`. The command prints nothing when the branch has no suite run (ci n/a), and a failed `gh` is no result. After a rebase, that run can be on a commit that the branch no longer has. When `git -C <checkout> rev-parse -q --verify '<sha>^{commit}' > /dev/null && git -C <checkout> merge-base --is-ancestor <sha> HEAD` exits with 1, ci is n/a too: `merge-base` alone exits with 128 for a commit that the repository lacks (no result, `docs/ai/testing.md`).
+
+  The first `ci` line under the run header is the ci read of setup. Trace a failed suite job there (`trace.md`) in pass 1, before the review when possible, otherwise before the PASS line. Trace it before the rerun of its run, which the trace can start. A rerun tests the old commit, so a job whose failure the trace fixed fails again there, and that failure does not count.
+
+  The read ends before the trace of a failed job. With no failed job, it ends after the one rerun of a run, when that run gets one. The run stops on `no jobs`, `pending` or `cancelled` (`ci.md`). The stop comes at the end of pass 1, which commits its fixes first.

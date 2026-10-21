@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The `review-loop` skill now follows the commit rule of `docs/ai/workflows.md` Phase 3. Related fixes can share a commit, the checks run before each commit, and the loop reads the CI checks of the PR head. `docs/ai/failures.md` now finds the cause of a failed check. The skill is now a bootstrap `SKILL.md`, which copies the rule files at the start of a run. The run follows the copy of `procedure.md`. Development-only. [#1320](https://github.com/owen2345/camaleon-cms/pull/1320).
+
 - **Tooling:** Each run of the Camaleon suite now leaves a run marker under `tmp/rspec-runs` in the repo root. At exit, a run names the run markers of the other runs that were active during it (`docs/ai/run-markers.md`). Development-only. [#1321](https://github.com/owen2345/camaleon-cms/pull/1321).
 
 - **Bug fix:** The group number of a custom-field value is now validated. It must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). Before, an admin save with a larger number on PostgreSQL or MySQL, or a JSON boolean, failed with a 500. Now the admin shows an error, and the stored values stay. [#1318](https://github.com/owen2345/camaleon-cms/pull/1318).
