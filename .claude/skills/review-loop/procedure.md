@@ -1,6 +1,6 @@
 # Review loop procedure
 
-The procedure of a run of the review loop. The live `SKILL.md` of the skill gives the parameters and makes the copies of the rule files. A run follows the copy of this file. The files `setup.md`, `resume.md`, `ci.md`, `spec-runs.md`, `trace.md` and `stop.md` beside it hold the parts that a pass follows only at the step that names them.
+The procedure of a run of the review loop. The live `SKILL.md` of the skill gives the parameters and makes the copies of the rule files. A run follows the copy of this file. The other rule files beside it hold the parts that a pass follows only at the step that sends the run to them.
 
 ## Pass start
 
