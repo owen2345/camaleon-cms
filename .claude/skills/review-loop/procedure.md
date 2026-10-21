@@ -16,7 +16,7 @@ The PASS, `setup` and `ci` lines give the pass count and the state of each pass.
 
 In pass 1, the `setup HEAD` line takes the place of the PASS line. In the turn of its setup, pass 1 is a new pass, with or without lines after its `setup HEAD` line. In a later turn, pass 1 is a cut-off pass, with or without lines after its `setup HEAD` line.
 
-The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
+**Verdicts** steps 2 and 3 check each finding against the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Its step 5 checks the location of the FIXED rows of this run.
 
 The `setup target` line of this run gives `<checkout>`, `<project>`, `<head>` and `<base-ref>`, which the commands of this file use. A command on the branch runs against the checkout: `git -C <checkout> …`, `(cd <checkout> && bin/…)`, `gh … --repo <project>`. The ledger commands run in camaleon-cms, and a spec run in the spec clone (`spec-runs.md`).
 
