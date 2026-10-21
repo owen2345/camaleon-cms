@@ -1,6 +1,6 @@
 # Resume of a cut-off pass
 
-A pass with open work (`procedure.md`, Pass start) follows this file: it finishes the cut-off pass instead of a new one. A batch and an open `fix` line are defined in `procedure.md`, Checks.
+A cut-off pass (`procedure.md`, Pass start) follows this file: it finishes instead of a new pass. A batch and an open `fix` line are defined in `procedure.md`, Checks.
 
 The open work of a cut-off pass has three kinds. The state of the checkout and the lines after the previous PASS line tell them apart. A `task` line after that PASS line names a task of the cut-off pass. Judge it by its log, or wait for it (`docs/ai/testing.md` "Long commands"), instead of a new run. A `task` line of a ci poll is over when a `ci` line follows it.
 
