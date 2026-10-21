@@ -96,7 +96,7 @@ After a failed checkout test, do not switch, pull, reset, stash or commit. When 
 
 After each lint run, before the other checks, append one line `fix <tree> | <claim> | <location> | <category>` per FIXED row of every uncommitted fix. The Markdown gate runs before each append of `fix` lines (**Ledger rows**). A fix that runs no lint gets the lines at once, and again after a repair. A cut-off pass reads the `fix` lines (`resume.md`). `<tree>` comes from `git -C <checkout> add -A && git -C <checkout> write-tree`: the tree of the checkout with the uncommitted fix. The `add` stages the fix, which its commit needs.
 
-The `fix` lines appended together, with one `<tree>`, are a batch. A `fix` line is open until a row with its claim and location follows it. That row is its FIXED row, or the row of the verdict that replaced FIXED after the edit, with the files restored. A batch is open while one of its lines is open, and the open lines are the open lines of the last batch. After the pass restores the files of a dropped fix, the open lines of the other fixes get a new batch.
+The `fix` lines appended together, with one `<tree>`, are a batch. A `fix` line is open until a row with its claim and location follows it. That row is its FIXED row, or the row of the verdict that replaced FIXED after the edit, with the fix undone. A batch is open while one of its lines is open, and the open lines are the open lines of the last batch. After the pass undoes a dropped fix, the open lines of the other fixes get a new batch.
 
 Append the `fix` lines also before a failure fix: the trees before and after it hold its hunks (`resume.md`). Append the lines of a batch in one command.
 
