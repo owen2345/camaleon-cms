@@ -26,7 +26,7 @@ The chain is the fixup command of `docs/ai/workflows.md` Phase 3, run in the che
 
 Then commit the lines that are still open, if any, after `git add -A`, with their rows. Write the fix SHA, the SHA of the commit, in the evidence field of each of those rows. The row of a failure fix also names the commit that it fixes (`spec-runs.md`).
 
-A pass 1 can be cut off that way: its run header is the last of the ledger, with no PASS line under it. Finish it the same way against the `setup HEAD` under that header, without a new setup. In pass 1, the `setup HEAD` line takes the place of the PASS line.
+A cut-off pass 1 (`procedure.md`, Pass start) finishes the same way against the `setup HEAD` under the last run header, without a new setup. In pass 1, the `setup HEAD` line takes the place of the PASS line.
 
 The `ci` lines of the `setup HEAD` under that header say where setup was cut off:
 
