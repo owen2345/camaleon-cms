@@ -18,7 +18,7 @@ In pass 1, the `setup HEAD` line takes the place of the PASS line. In the turn o
 
 The verdicts check the REFUTED, DECISION and CONFLICT rows of the whole ledger, the seed of pass 0 included. Step 5 checks the location of the FIXED rows of this run.
 
-The `setup target` line of this run gives `<checkout>`, `<project>`, `<head>` and `<base-ref>`, which the commands of this file use. Commands run against the checkout: `git -C <checkout> …`, `(cd <checkout> && bin/…)`, `gh … --repo <project>`.
+The `setup target` line of this run gives `<checkout>`, `<project>`, `<head>` and `<base-ref>`, which the commands of this file use. A command on the branch runs against the checkout: `git -C <checkout> …`, `(cd <checkout> && bin/…)`, `gh … --repo <project>`. The ledger commands run in camaleon-cms, and a spec run in the spec clone (`spec-runs.md`).
 
 From pass 2 on, and in a cut-off pass 1, the pass also runs the checkout test of **Checks**. Each commit past the `<before>` of the pass (**PASS line**) needs a FIXED row (`resume.md`). Other sessions and the IDE share the checkout. Without the checkout test, the pass reviews and commits a switch, an edit or a commit made between passes as the work of the run. The push can also carry such a change, under checks that ran on another tree.
 
