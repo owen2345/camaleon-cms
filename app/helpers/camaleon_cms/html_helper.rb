@@ -139,8 +139,8 @@ module CamaleonCms
       libs[:form_ajax] = { js: ['camaleon_cms/admin/form/jquery.form'] }
       libs[:cropper] = {} # loaded by default
       libs[:post] =
-        { js: %w[camaleon_cms/admin/jquery.tagsinput.min camaleon_cms/admin/post],
-          css: ['camaleon_cms/admin/jquery.tagsinput'] }
+        { js: %w[camaleon_cms/admin/post],
+          css: [] }
       libs[:multiselect] = { js: ['camaleon_cms/admin/bootstrap-select.js'] }
       libs[:validate] = { js: ['camaleon_cms/admin/jquery.validate'] }
       libs[:nav_menu] =
