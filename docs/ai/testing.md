@@ -4,9 +4,56 @@ Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); 
 
 ## Which specs to run
 
-`AGENTS.md` "Verify before pushing" says which specs to run before a push and when to run the whole suite; `grep -rln <changed symbol> spec/` finds the adjacent ones. Never have two runs going at once: the suite shares one SQLite database, and runs on separate ones still share the dummy app's files, such as the uploads under `spec/dummy/public/media`.
+`AGENTS.md` "Verify before pushing" says which specs to run before a push and when to run the whole suite. Never run two spec runs at once in one checkout. The suite shares one SQLite database, and runs on separate ones still share the dummy app's files, such as the uploads under `spec/dummy/public/media`.
 
-At exit, each run of the Camaleon suite names the run markers of the other runs that were active during it. Read `docs/ai/run-markers.md` only to judge a `RspecRunMarker` line in the output of a run.
+Adjacent specs are those of the code that the change touches. For a changed factory or support file, they are the specs that use the factories or helpers that it changes. For a base class or a concern, they also include the specs of every class that inherits or includes it. For a controller or a view, they also include the specs that send a request that it handles or that renders it.
+
+The grep of `spec/` (`grep -rlF --exclude-dir=dummy -e '<a>' -e '<b>' spec/`) takes the changed symbols, the touched classes and modules, and the classes that inherit or include them. Its `*_spec.rb` hits are the specs. A hit in `spec/support` or `spec/shared_specs` that holds a request points at the specs that use its shared context or helper. For a controller or a view, also grep for its route helpers and its resource segment with its slash (`/comments`). `(cd spec/dummy && bin/rails routes -c 'comments|posts')`, with bare names without `Controller`, or `bin/rails routes -c 'comments|posts'` at the root of a host app, lists both for the controllers of a PR. A shared segment such as `admin` names no resource.
+
+For a route with no such segment, such as the frontend `/:slug`, `Rails.application.routes.recognize_path(<path>, method: <verb>)` names the controller of a request that a spec sends. A bundled plugin of `app/apps/plugins` has routes only when a site of the dummy database has it installed. Grep for its slug instead.
+
+Give `bin/rspec` only `*_spec.rb` files that exist. `bin/rspec` with no file runs the whole suite. Given to `bin/rspec`, a deleted spec, a factory or a fixture fails to load, and a support file loads again and adds no example.
+
+Each run of the Camaleon suite holds a lock on its run marker while it is active (`docs/ai/run-markers.md`). At exit, it names the run markers of the other runs that were active during it, and `docs/ai/run-markers.md` says what to do with that line.
+
+`pgrep -f '[r]spec'`, in a command of its own, lists the active runs. The brackets keep the shell that runs the command off the list. The command line of that shell holds the pattern, and the pgrep of Linux does not leave the shell out by itself. `ps -o args= -p <pid>` shows what a run is. `lsof -a -d cwd -p <pid>`, or `readlink /proc/<pid>/cwd` on Linux, shows the checkout that it runs in.
+
+To wait until no run of a checkout is active, an hour at most: `for i in $(seq 180); do ruby -e 'd = File.join(ARGV[0], "tmp/rspec-runs"); n = begin; Dir.children(d); rescue SystemCallError; []; end; exit n.none? { |f| File.open(File.join(d, f)) { |h| !h.flock(File::LOCK_SH | File::LOCK_NB) } rescue false }' <checkout> && exit 0; echo "$i"; sleep 20; done; exit 4`. The `ruby` exits with 0 when no run holds the lock of a run marker under `<checkout>`, as `RspecRunMarker.active?` tests it. Exit code 4: a run is still active after the hour. A run in its Rails boot has no run marker yet. A run that starts in that window names it at exit, and a failed run with that line does not count (`docs/ai/failures.md`).
+
+For a host app on PostgreSQL, a run of any checkout counts: `for i in $(seq 180); do pgrep -f '[r]spec' > /dev/null || exit 0; echo "$i"; sleep 20; done; exit 4`. The `echo` keeps the log of a wait fresh: a log that does not change for 30 minutes means a hang (Long commands). Exit code 4: a run is still active after the hour, and `pgrep -f '[r]spec'` names it.
+
+## Long commands
+
+A foreground command of the Bash tool that reaches its timeout moves to the background and runs until the turn ends. It is a background task from then on: the message of the tool names its id and its log. Wait for it as below before any command that needs its result. The timeout is two minutes by default and ten minutes at most. Give the ten-minute timeout to a foreground command that can take longer than two minutes, and to every wait below.
+
+Run every spec run, every CI poll and any other command that can outlast the timeout as a background task. A background task is the Bash tool with `run_in_background`. The tool returns the task id and the path of the log of the task, `<log>`, which holds stdout and stderr of the command. When the command ends, the harness appends `[exited with code <n>]` to the log and sends a notification with the exit code. The notification arrives with the result of the next tool call. `TaskStop <task id>` writes `[killed]` to the log and ends the command, which can print more after that line or leave a descendant alive.
+
+Wait for the end, as often as needed: `w=bound; for i in $(seq 114); do grep -aqE '^\[(exited with code [0-9]+|killed)\]$' <log> && { w=end; break; }; [ -e <log> ] || { w=missing; break; }; [ -z "$(find <log> -mmin -30)" ] && { w=stale; break; }; sleep 5; done; echo $w; grep -aE '^[0-9]+ examples?, ' <log>; tail -n 3 <log>`. The wait prints one word, then the summary line of a spec run and the end of the log. It returns before the ten-minute timeout, so the harness does not move it to the background. The word is one of these:
+
+- `end`: the log has the end line.
+- `missing`: the log does not exist, for example after the scratchpad of a session is gone. The command has no result.
+- `stale`: the log did not change for 30 minutes. End the command with `TaskStop`. A descendant can survive it with parent 1: `lsof -t <log>` names the processes that still hold the log, and `kill` ends them. When `TaskStop` finds no task, the command died with its session: it has no result. When it reports `is not running`, the command ended: judge its log as for `end`. Otherwise the command hangs.
+- `bound`: 570 seconds passed, and the command still runs. Wait again.
+
+`grep -a` reads a log that holds a NUL byte or invalid UTF-8. Without it, the `grep` of the Bash tool skips such a file as binary.
+
+Do not edit a checkout while a run is active in it in the background.
+
+A spec run has one of three results. Test them in this order:
+
+- It has no result when a signal stopped it. The signs are an exit code of 128 or above, a line `[killed]`, or `RSpec is shutting down` (an interrupt) with exit code 1. A killed run prints a summary line of the examples so far, or none. A signal that kills the shell of the task can leave `[exited with code 1]` and no error message. The run can still be active then: `lsof -t <log>` names its processes, and `kill` ends them before any other run.
+- It passes with 0 failures in its summary line, no error outside of examples, and exit code 0. The exit code is the code of `bin/rspec` itself: a run piped through another command, such as `tail`, reports the code of that command.
+- It fails with a failure or an error outside of examples in its summary line. A crash fails too: an error message, no summary line, and an exit code from 1 to 127.
+
+A syntax error in a spec file does not stop the other files. Any other load failure, for example a spec file that does not exist, stops every example: the summary line starts with `0 examples`. In both cases the summary line ends with `1 error occurred outside of examples`, and `bin/rspec` exits with 1: the run failed, whatever its failure count.
+
+Any other command has one of these results. Test them in this order:
+
+- A command whose exit code is 128 or above has no result: a signal killed it, or `git` itself failed.
+- A log that ends with `[exited with code 1]` and holds no report of the command has no result: a signal killed the shell of the task (above).
+- A log with a line `[killed]` has no result: `TaskStop` ended the command.
+- A bisect has a result when its log holds `bisect found first 'bad' commit` or `error: bisect run cannot continue any more`: `docs/ai/failures.md` reads it. Otherwise it has no result. Its restart is `git bisect run <script>` alone: `git bisect start` drops the marks.
+- For any other command, the exit code is the result.
 
 ## Database
 
