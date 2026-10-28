@@ -36,10 +36,16 @@ Apply the standard to the prose that you add or change. These limits apply:
 
 ## Sentences and paragraphs
 
-- Use a maximum of 25 words in a sentence. Use a maximum of 20 words in an instruction.
+- Use a maximum of 25 words in a sentence. Use a maximum of 20 words in an instruction. A code span counts as one word.
 - Write about one topic in each sentence.
 - Use a maximum of six sentences in a paragraph.
-- Use a bullet list for an enumeration or for a set of conditions.
+- Use a bullet list for an enumeration of more than five items, or for a set of conditions.
+
+## The Markdown gate
+
+The gate reads a unified diff and prints each added sentence over 25 words and each paragraph over six sentences. It does not test a table row or a heading. It exits with 1 when it printed a line. Run it on the staged Markdown files before a commit: `git add -A && git diff --cached -U0 -- '*.md' | <gate>`. The gate is ``ruby -E UTF-8 -e 'bad = false; b = []; f = false; chk = lambda { next if b.empty?; t = b.join(" "); b = []; ss = t.split(/(?<=[.!?])[*_")\]]*\s+(?=[^a-z\s])/); ss.each { |s| n = s.split.size; next if n <= 25; bad = true; puts "#{n} words: #{s[0, 70]}" }; next if ss.size <= 6; bad = true; puts "#{ss.size} sentences: #{t[0, 70]}" }; ARGF.each_line { |l| l = l.scrub; if l !~ /\A\+(?!\+\+)/ then chk.call; f = false; next; end; s = l[1..].chomp.sub(/\A\s*>\s?/, ""); if s =~ /\A\s*(```|~~~)/ then chk.call; f = !f; next; end; next if f; if s.strip.empty? || s =~ /\A\s*(\||#+\s|---)/ then chk.call; next; end; chk.call if s =~ /\A\s*(?:[-*+]|\d+\.)\s/; b << s.sub(/\A\s*(?:[-*+]|\d+\.)\s+/, "").gsub(/(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)/, "X") }; chk.call; exit(bad ? 1 : 0)'``.
+
+Judge its output. A template line, a fragment of a changelog entry and a line of a fenced block without its fence are no sentences. A code span counts as one word. The gate joins a sentence that starts with a lower-case word to the sentence before it. An abbreviation stays in its sentence only when a lower-case word follows it. Write a name such as `trace.md` in a code span.
 
 ## Verbs
 
