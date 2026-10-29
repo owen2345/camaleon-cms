@@ -31,7 +31,7 @@ jobs:
           chromedriver-version: '125.0.6422.141'
 
       - name: Setup Ruby and install gems
-        uses: ruby/setup-ruby@e81a8fa391b11a595c1b7ed84177cc0fe02faf83
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f
         with:
           bundler-cache: true
           rubygems: 4.0.19
