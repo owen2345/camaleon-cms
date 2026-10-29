@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The development Ruby moves to 3.4.12, and Bundler and RubyGems to 4.0.23, in `.tool-versions`, `Gemfile.lock` and the CI workflows. The gemspec does not change. Development-only. [#1326](https://github.com/owen2345/camaleon-cms/pull/1326).
+
 - **Tooling:** The development lockfile moves to Rails 8.1.4, crass 1.0.8 (fixes [GHSA-pq4g-8rxf-4g29](https://github.com/advisories/GHSA-pq4g-8rxf-4g29)) and the current development gems. The gemspec does not change, so a host app updates crass in its own bundle. Development-only. [#1325](https://github.com/owen2345/camaleon-cms/pull/1325).
 
 - **Tooling:** The `review-loop` skill now follows the commit rule of `docs/ai/workflows.md` Phase 3. Related fixes can share a commit, the checks run before each commit, and the loop reads the CI checks of the PR head. `docs/ai/failures.md` now finds the cause of a failed check. The skill is now a bootstrap `SKILL.md`, which copies the rule files at the start of a run. The run follows the copy of `procedure.md`. Development-only. [#1320](https://github.com/owen2345/camaleon-cms/pull/1320).
