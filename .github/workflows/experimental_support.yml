@@ -34,7 +34,7 @@ jobs:
         uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f
         with:
           bundler-cache: true
-          rubygems: 4.0.19
+          rubygems: 4.0.23
           ruby-version: ${{ matrix.ruby }}
 
       - name: Migrate DB

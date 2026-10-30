@@ -27,7 +27,7 @@ jobs:
         with:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
-          rubygems: 4.0.19
+          rubygems: 4.0.23
 
       - name: Migrate DB
         run: bin/rake app:db:migrate
