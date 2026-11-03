@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# The fake gh of the review-loop script specs (answer.sh). The answer "fail" exits with 1 and prints nothing.
+# Any other answer is the JSON that gh prints, which the fake filters with jq when the call has a --jq
+# argument, as gh does.
+. "$(dirname "$0")/answer.sh"
+[ "$answer" = fail ] && exit 1
+filter=
+while [ $# -gt 0 ]; do
+  if [ "$1" = --jq ]; then filter=$2; shift; fi
+  shift
+done
+if [ -n "$filter" ]; then printf '%s\n' "$answer" | jq -r "$filter"; else printf '%s\n' "$answer"; fi
