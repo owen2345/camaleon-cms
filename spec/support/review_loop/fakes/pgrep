@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# The fake pgrep of the review-loop script specs (answer.sh). The answer "found" exits with 0, as pgrep does
+# when a process matches. Any other answer exits with 1.
+. "$(dirname "$0")/answer.sh"
+[ "$answer" = found ]

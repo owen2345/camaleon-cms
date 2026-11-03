@@ -9,7 +9,13 @@ plugins:
   - rubocop-rspec
   - rubocop-rspec_rails
 
+inherit_mode:
+  merge:
+    - Include
+
 AllCops:
+  Include:
+    - .claude/skills/**/*.rb # The Ruby scripts of the skills, in a dot directory
   Exclude:
     - bin/**/* # Exclude executable scripts
     - db/**/*
@@ -33,6 +39,13 @@ Metrics/AbcSize:
 
 RSpec/BeEql:
   Enabled: false
+
+RSpec/DescribeClass:
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - spec/skills/**/* # Specs of scripts, which have no class
 
 Metrics/BlockLength:
   Exclude:
