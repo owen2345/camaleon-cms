@@ -6,6 +6,8 @@
 
 - **Security fix:** The development lockfile moves rack to 3.2.8 and addressable to 2.9.2, which the Audit job of CI refused for published advisories. The gemspec does not change, so a host app updates the two gems in its own bundle. Development-only. [#1328](https://github.com/owen2345/camaleon-cms/pull/1328).
 
+- **Tooling:** The embedded shell, awk, Ruby and jq commands of the `review-loop` skill are now scripts under `.claude/skills/review-loop/scripts`, each with a spec. The rule files name a script where a command stood, and keep their one-line `git` and `gh` commands. Development-only. [#1327](https://github.com/owen2345/camaleon-cms/pull/1327).
+
 - **Tooling:** The development Ruby moves to 3.4.12, and Bundler and RubyGems to 4.0.23, in `.tool-versions`, `Gemfile.lock` and the CI workflows. The gemspec does not change. Development-only. [#1326](https://github.com/owen2345/camaleon-cms/pull/1326).
 
 - **Tooling:** The development lockfile moves to Rails 8.1.4, crass 1.0.8 (fixes [GHSA-pq4g-8rxf-4g29](https://github.com/advisories/GHSA-pq4g-8rxf-4g29)) and the current development gems. The gemspec does not change, so a host app updates crass in its own bundle. Development-only. [#1325](https://github.com/owen2345/camaleon-cms/pull/1325).
