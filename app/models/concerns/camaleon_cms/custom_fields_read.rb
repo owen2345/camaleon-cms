@@ -257,9 +257,10 @@ module CamaleonCms
 
       # The reads below use Symbol keys, so they read a plain Hash through a copy with indifferent
       # access. That copy keeps one value of a String key and its Symbol twin, so the method refuses
-      # such a payload before the delete. Request parameters read by either key and hold no twins.
+      # such a payload before the delete. Request parameters and a Hash with indifferent access, the
+      # payload of the admin saves, read by either key and hold no twins.
       if datas.is_a?(Hash)
-        _cama_refuse_twin_keys!(datas)
+        _cama_refuse_twin_keys!(datas) unless datas.is_a?(ActiveSupport::HashWithIndifferentAccess)
         datas = datas.with_indifferent_access
       end
       _cama_write_field_values do
