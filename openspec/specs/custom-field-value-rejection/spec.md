@@ -361,9 +361,11 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 holds for the `id`, `group_number` and `values` of each entry. A plain
 Hash with String keys, for example a `JSON.parse` result, MUST store the values of each entry and
 validate its group number. The same payload with Symbol keys or with indifferent access gives the
-same result. The method SHALL NOT change the keys of the Hash of the caller. Request parameters
-SHALL store their values as before. A plain Hash with a String key and its Symbol twin at one level
-MUST raise `ArgumentError` before the delete. The record then keeps its stored values.
+same result.
+
+The method SHALL NOT change the keys of the Hash of the caller. Request parameters SHALL store their
+values as before. A plain Hash with a String key and its Symbol twin at one level MUST raise
+`ArgumentError` before the delete. The record then keeps its stored values.
 
 #### Scenario: A JSON.parse result stores its values
 
