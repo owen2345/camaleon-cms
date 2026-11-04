@@ -36,6 +36,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). The two methods raise `ActiveRecord::RecordInvalid` for any other number ([details](#custom-field-group-numbers-are-validated)) |
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
+| Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 
 ---
 
@@ -633,6 +634,29 @@ Symbol twin raise `ArgumentError` before the delete.
 **Who must act:** plugin or theme code that builds such a payload or such args. Give each key one type. Code
 that converted its payload with `with_indifferent_access` before the call can keep the conversion.
 It can drop the conversion only when the payload holds no String key and its Symbol twin.
+
+### An XHR admin save that is refused gets a 422
+
+The admin panel refuses a save in these cases: a custom-field value with unsafe content or with an
+invalid group number, a `cama_post_decorator_class` option that names no post decorator, and a meta
+or options container that is not a set of fields. Before, each refused save answered with a redirect
+back and the message in a flash. A script that posted the save by XHR followed the redirect and got
+the admin page. The nav menu item settings modal then closed as if the save had passed, and no page
+showed the flash.
+
+Now the answer depends on the request:
+
+| Request | Answer |
+| --- | --- |
+| A submitted form | A redirect back, with the message in a flash. As before |
+| An XHR with the `cama_ajax_request` param (`camaleon_admin_ajax`) | The same redirect and flash. The plugin shows the redirected page |
+| Any other XHR | The message as text (`text/plain`) with a 422, and no flash |
+
+The nav menu item settings modal shows the refusal and stays open. The draft save of the post editor
+reads a 422 as a failed draft save, as it read the redirected page, so its message does not change.
+
+**Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
+and reads the answer. Read a 422 as the refusal, with the message in the body.
 
 ---
 

@@ -21,8 +21,7 @@ module CamaleonCms
       gated = record.is_a?(CamaleonCms::CustomFieldsRelationship) || record.is_a?(CamaleonCms::PostType)
       raise exception if !gated || request.get? || request.head?
 
-      flash[:error] = record.errors.full_messages.to_sentence
-      redirect_back fallback_location: cama_admin_dashboard_path
+      refuse_admin_save(record.errors.full_messages.to_sentence)
     end
     # A meta or options container that is not a set of fields (an array of pairs, a scalar) is refused
     # by the writers themselves (Metas::InvalidContainer), so every admin save that passes request
@@ -31,8 +30,7 @@ module CamaleonCms
     rescue_from CamaleonCms::Metas::InvalidContainer do |exception|
       raise exception if request.get? || request.head?
 
-      flash[:error] = cama_t('camaleon_cms.admin.message.malformed_fields')
-      redirect_back fallback_location: cama_admin_dashboard_path
+      refuse_admin_save(cama_t('camaleon_cms.admin.message.malformed_fields'))
     end
     # layout 'camaleon_cms/admin'
     # Admin responses are user-specific and must never be served from a browser or shared cache;
@@ -123,6 +121,20 @@ module CamaleonCms
     end
 
     private
+
+    # Answers a refused admin save with its message. A submitted form gets the message as a flash and
+    # a redirect back. So does an XHR that loads admin pages in place (camaleon_admin_ajax sends
+    # cama_ajax_request): it shows the redirected page, with the flash. Any other XHR gets the message
+    # as text with a 422, and no flash: such a script reads the answer itself, and a redirect would
+    # only give it the admin page, with the flash consumed. The nav menu item settings modal is one.
+    def refuse_admin_save(message)
+      if request.xhr? && params[:cama_ajax_request].blank?
+        render plain: message, status: :unprocessable_entity
+      else
+        flash[:error] = message
+        redirect_back fallback_location: cama_admin_dashboard_path
+      end
+    end
 
     # Send `Cache-Control: no-store` on every admin response so no admin page is ever cached by the
     # browser or an intermediary. Admin pages are per-user and dynamic; caching them risks a stale

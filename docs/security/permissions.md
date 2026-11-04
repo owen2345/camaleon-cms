@@ -560,7 +560,7 @@ Not a role permission either, but a validity rule that applies to every writer, 
 written by plugin and theme save hooks as well as by core. Every option writer (`set_option`, `set_options`, `delete_option`, `data_options`
 and a direct `set_meta`, whatever form the options arrive in) ends in `set_meta`, whose check in `CamaleonCms::PostType` holds the option to an
 allowlist: a write that sets or changes it must name a subclass of `CamaleonCms::PostDecorator`, or it is refused with an error naming the
-option, and the value when it is a class name (the admin panel shows the refusal of a submitted save as a flash error, and raises one that
+option, and the value when it is a class name (the admin panel shows the refusal of a submitted save as a flash error, answers an XHR save with the message as text and a 422, and raises one that
 comes while serving a page, where a redirect would only reach another page that refuses; a value passed in `data_options`, or in the
 `_default` meta of `data_metas`, fails the save as a validation, before anything is written). A blank value clears it, and a write that leaves a stored value unchanged is not refused for it.
 A post resolves its decorator through `PostType#post_decorator_class`: the named class when it passes the same check, otherwise the default,
