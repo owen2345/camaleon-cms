@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** A captcha request no longer fails when the random challenge starts with `NAN` or `INF`, which ImageMagick read as a number. The captcha generator now quotes the text in the draw primitive. [#1332](https://github.com/owen2345/camaleon-cms/pull/1332).
+
 - **Tooling:** The one rerun of a workflow run in the `review-loop` skill is now the `ci-rerun.sh` script under `.claude/skills/review-loop/scripts`, with a spec. Development-only. [#1331](https://github.com/owen2345/camaleon-cms/pull/1331).
 
 - **Security fix:** The development lockfile moves nokogiri to 1.19.7, loofah to 2.25.3 and rails-html-sanitizer to 1.7.2, which the Audit job of CI refused for advisories. The gemspec does not change, so a host app updates the three gems in its own bundle. Development-only. [#1330](https://github.com/owen2345/camaleon-cms/pull/1330).
