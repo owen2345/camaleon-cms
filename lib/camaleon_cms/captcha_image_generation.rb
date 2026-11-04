@@ -27,7 +27,10 @@ module CamaleonCms
       img.combine_options do |c|
         c.gravity('Center')
         c.fill('#FFFFFF')
-        c.draw("text 0,5 #{text}")
+        # The text is quoted: ImageMagick reads an unquoted NAN or INF as a number, and the rest of
+        # the challenge then breaks the draw primitive. The text holds only letters and digits
+        # (cama_rand_str), so it can hold no quote character.
+        c.draw("text 0,5 '#{text}'")
         c.font(resolve_captcha_file('bumpyroad.ttf'))
         c.pointsize('30')
       end
