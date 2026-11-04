@@ -362,7 +362,8 @@ holds for the group key, the slug, and the `id`, `group_number` and `values` of 
 Hash with String keys, for example a `JSON.parse` result, MUST store the values of each entry and
 validate its group number. The same payload with Symbol keys or with indifferent access gives the
 same result. The method SHALL NOT change the keys of the Hash of the caller. Request parameters
-SHALL store their values as before.
+SHALL store their values as before. A plain Hash with a String key and its Symbol twin at one level
+MUST raise `ArgumentError` before the delete. The record then keeps its stored values.
 
 #### Scenario: A JSON.parse result stores its values
 
@@ -376,6 +377,11 @@ SHALL store their values as before.
   number
 - **THEN** the call raises `ActiveRecord::RecordInvalid` with the group number error, and the record
   keeps its stored values
+
+#### Scenario: A String key and its Symbol twin are refused
+
+- **WHEN** `set_field_values` gets a plain Hash that holds `:note` and `'note'` at one level
+- **THEN** the call raises `ArgumentError`, and the record keeps its stored values
 
 #### Scenario: The Hash of the caller keeps its keys
 

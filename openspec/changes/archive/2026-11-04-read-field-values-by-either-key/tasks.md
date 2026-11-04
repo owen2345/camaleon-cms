@@ -10,6 +10,8 @@
 ## 2. The fix
 
 - [x] 2.1 Read a plain Hash with indifferent access in `set_field_values` (D1); the 1.1 spec passes
+- [x] 2.2 Refuse a String key and its Symbol twin before the delete (D3). Two examples of the 1.1
+  spec are red against 2.1
 
 ## 3. Documentation
 

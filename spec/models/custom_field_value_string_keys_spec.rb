@@ -54,6 +54,22 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         .to eq([['first', 0], ['second', 1]])
     end
 
+    it 'refuses a slug as a String and as a Symbol, and the stored value stays' do
+      payload = { '0' => { note: { values: ['first'] }, 'note' => { values: ['second'] } } }
+
+      expect { post.set_field_values(payload) }
+        .to raise_error(ArgumentError, /key :note as a String and as a Symbol/)
+      expect(post.reload.get_field_values('note')).to eq(['kept'])
+    end
+
+    it 'refuses a twin key in a value of an entry' do
+      payload = { '0' => { 'note' => { 'values' => [{ size: 1, 'size' => 2 }] } } }
+
+      expect { post.set_field_values(payload) }
+        .to raise_error(ArgumentError, /key :size as a String and as a Symbol/)
+      expect(post.reload.get_field_values('note')).to eq(['kept'])
+    end
+
     it 'keeps the keys of the Hash of the caller' do
       payload = { '0' => { 'note' => { 'values' => { '0' => 'new' } } } }
 

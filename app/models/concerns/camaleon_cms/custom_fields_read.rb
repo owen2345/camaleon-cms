@@ -244,6 +244,9 @@ module CamaleonCms
     # ('5'). nil and '' mean group 0. Each other group number raises ActiveRecord::RecordInvalid. The
     # record then keeps its stored values, with the limits that _cama_write_field_values names.
     #
+    # A plain Hash that holds a String key and its Symbol twin at one level (:note and 'note') raises
+    # ArgumentError before the delete, and the record keeps its stored values.
+    #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
     # groups (get_field_groups returns its posts'), a post's post type groups (get_field_groups adds the
@@ -252,9 +255,13 @@ module CamaleonCms
     def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 
-      # The reads below use Symbol keys. A plain Hash with String keys gave them no values, so the call
-      # deleted every stored value and stored nothing. Request parameters read by either key.
-      datas = datas.with_indifferent_access if datas.is_a?(Hash)
+      # The reads below use Symbol keys, so they read a plain Hash through a copy with indifferent
+      # access. That copy keeps one value of a String key and its Symbol twin, so the method refuses
+      # such a payload before the delete. Request parameters read by either key and hold no twins.
+      if datas.is_a?(Hash)
+        _cama_refuse_twin_keys!(datas)
+        datas = datas.with_indifferent_access
+      end
       _cama_write_field_values do
         # A value identical to one already stored is not newly authored, so it must not be re-gated on
         # an unrelated edit (audit M8): the admin form round-trips every value and this method
@@ -453,6 +460,20 @@ module CamaleonCms
     # a parent_id lookup must count only field rows.
     def _cama_field_rows(slug)
       CamaleonCms::CustomField.where(slug: slug, object_class: '_fields')
+    end
+
+    # Raises ArgumentError when a Hash at any level of data holds a String key and its Symbol twin.
+    # A copy with indifferent access keeps only one of their two values.
+    def _cama_refuse_twin_keys!(data)
+      case data
+      when Hash
+        twin = data.each_key.find { |key| key.is_a?(Symbol) && data.key?(key.to_s) }
+        raise ArgumentError, "The custom field values hold the key #{twin.inspect} as a String and as a Symbol" if twin
+
+        data.each_value { |value| _cama_refuse_twin_keys!(value) }
+      when Array
+        data.each { |value| _cama_refuse_twin_keys!(value) }
+      end
     end
 
     def _cama_field_id_for(key, field_groups)

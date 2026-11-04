@@ -310,7 +310,8 @@ Changes that look free from inside this repository and are not:
   surveyed caller passes request parameters or the result of `cama_permitted_field_options`, which
   has indifferent access. `camaleon-cms-shoppy` and the `new` theme of `camaleon_website` pass the
   parameters. `camaleon-post-clone`, the generator template and each admin controller of Camaleon
-  pass the result. No consumer passes a plain Hash with String keys.
+  pass the result. No consumer passes a plain Hash with String keys. Neither payload can hold a String
+  key and its Symbol twin, which the method now refuses.
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
   back as written, while TinyMCE hands content back in its own serialization (`rgb(255, 204, 0)` read back

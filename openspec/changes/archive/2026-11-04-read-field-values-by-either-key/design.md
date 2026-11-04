@@ -36,6 +36,14 @@ content of a value: the copy changes no value.
 returns a shallow copy, and a plain Hash converts each nested Hash one time. The admin saves pass a
 Hash with indifferent access, so they pay one shallow copy.
 
+**D3. A String key and its Symbol twin at one level raise `ArgumentError` before the delete.** The
+copy of D1 keeps only one of their two values, and the order of the keys decides which. Before this
+change, the method stored both twins of a slug when their entries had Symbol keys. The check reads
+each level of the payload, the values of an entry too, so the copy changes no value. The maintainer chose the refusal.
+
+- *Alternative: keep the last twin and record it as an intended limit.* Rejected: the call then
+  deletes a value with no error.
+
 ## Risks / Trade-offs
 
 - [A caller passes a Hash subclass with its own key rules] → the copy is a plain indifferent Hash.
