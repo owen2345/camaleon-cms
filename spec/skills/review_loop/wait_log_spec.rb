@@ -90,7 +90,9 @@ RSpec.describe 'scripts/wait-log.sh' do
   end
 
   it 'gives up at the bound, not after a count of reads, when the sleep is long' do
-    # A sleep of 0.6 seconds and a bound of two seconds: the wait ends between one and 2.6 seconds.
+    # A sleep of 0.6 seconds and a bound of two seconds: the wait ends between one and 2.6 seconds. The first
+    # run, on the missing log, keeps the first-run assessment of macOS out of the timed run.
+    wait
     File.write(log, "running\n")
     started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     expect(wait(env: { 'REVIEW_LOOP_SLEEP' => '0.6', 'REVIEW_LOOP_BOUND' => '2' }).lines.first).to eq('bound')
@@ -102,7 +104,7 @@ RSpec.describe 'scripts/wait-log.sh' do
     # the reads, and the fourth read finds the end line.
     body = "#!/bin/sh\n#{ReviewLoopScripts::STAMP}\n[ \"$(wc -l < \"$STAMPS\")\" -ge 3 ] && " \
            "echo '[exited with code 0]' >> \"$LOG\"\nexec /usr/bin/find \"$@\"\n"
-    env = shim_env('find', body).merge('LOG' => log, 'REVIEW_LOOP_SLEEP' => ReviewLoopScripts::SLEEP)
+    env = shim_env('find', body).merge(stamps_env, 'LOG' => log, 'REVIEW_LOOP_SLEEP' => ReviewLoopScripts::SLEEP)
     File.write(log, "running\n")
     expect(wait(env: env).lines.first).to eq('end')
     expect_sleeps_between(3)

@@ -20,8 +20,7 @@ RSpec.describe 'scripts/ci-status.sh' do
   end
 
   def status(*answers, env: {})
-    answers = answers.map { |a| a.is_a?(String) ? a : a.to_json }
-    run_script('ci-status.sh', 'o/p', sha, suite, env: fake_env(dir, answers).merge(env))
+    run_script('ci-status.sh', 'o/p', sha, suite, answers: answers, env: env)
   end
 
   it 'prints the newest run of each suite workflow when every suite run is completed, whatever the other runs do' do
@@ -52,9 +51,8 @@ RSpec.describe 'scripts/ci-status.sh' do
   end
 
   it 'sleeps REVIEW_LOOP_SLEEP seconds between two polls' do
-    # A gh that records the time of each call, then answers as the fake does.
-    body = "#!/bin/sh\n#{ReviewLoopScripts::STAMP}\nexec \"$FAKES/gh\" \"$@\"\n"
-    env = shim_env('gh', body).merge('REVIEW_LOOP_SLEEP' => ReviewLoopScripts::SLEEP)
+    # The fake gh records the time of each call.
+    env = stamps_env.merge('REVIEW_LOOP_SLEEP' => ReviewLoopScripts::SLEEP)
     pending_runs = [run('Audit', 'in_progress'), run('Test supported versions', 'completed', conclusion: 'success')]
     expect(status(pending_runs, pending_runs, completed, env: env).status).to eq(0)
     expect_sleeps_between(3)
