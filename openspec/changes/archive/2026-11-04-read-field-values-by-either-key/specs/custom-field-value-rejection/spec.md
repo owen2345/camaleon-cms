@@ -3,7 +3,7 @@
 ### Requirement: set_field_values reads its payload by String or Symbol keys
 
 `set_field_values` SHALL read a plain Hash payload by a String key or its Symbol twin alike. This
-holds for the group key, the slug, and the `id`, `group_number` and `values` of each entry. A plain
+holds for the `id`, `group_number` and `values` of each entry. A plain
 Hash with String keys, for example a `JSON.parse` result, MUST store the values of each entry and
 validate its group number. The same payload with Symbol keys or with indifferent access gives the
 same result. The method SHALL NOT change the keys of the Hash of the caller. Request parameters
