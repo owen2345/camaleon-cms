@@ -620,8 +620,7 @@ so its clone of such a post raises `ActiveRecord::RecordInvalid`.
 `set_field_values` now reads a plain Hash payload by a String key or its Symbol twin alike. An
 example is a `JSON.parse` result, or the sample in the comment of the method. Before, such a call
 read no entry: it deleted every stored value of the record, stored nothing, and raised no error.
-The admin saves of Camaleon pass request parameters, which read by either key, so they do not
-change.
+The admin saves of Camaleon pass a Hash with indifferent access, so they do not change.
 
 A plain Hash with a String key and its Symbol twin at one level, such as `:note` and `'note'`, now
 raises `ArgumentError`. The call raises before the delete, so the record keeps its stored values.
