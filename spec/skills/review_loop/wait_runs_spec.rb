@@ -24,7 +24,7 @@ RSpec.describe 'scripts/wait-runs.sh' do
   end
 
   def wait(*args, answers: [])
-    run_script('wait-runs.sh', *args, env: fake_env(dir, answers))
+    run_script('wait-runs.sh', *args, answers: answers)
   end
 
   context 'with a checkout' do
@@ -72,10 +72,9 @@ RSpec.describe 'scripts/wait-runs.sh' do
     end
 
     it 'sleeps REVIEW_LOOP_SLEEP seconds between two tests' do
-      # A pgrep that records the time of each call and names a run at its first two calls only.
-      body = "#!/bin/sh\n#{ReviewLoopScripts::STAMP}\n[ \"$(wc -l < \"$STAMPS\")\" -lt 3 ]\n"
-      env = shim_env('pgrep', body).merge('REVIEW_LOOP_SLEEP' => ReviewLoopScripts::SLEEP)
-      result = run_script('wait-runs.sh', env: env)
+      # The fake pgrep records the time of each call, and names a run at its first two calls only.
+      env = stamps_env.merge('REVIEW_LOOP_SLEEP' => ReviewLoopScripts::SLEEP)
+      result = run_script('wait-runs.sh', answers: %w[found found none], env: env)
       expect(result.out).to eq("1\n2\n")
       expect_sleeps_between(3)
     end
@@ -86,7 +85,7 @@ RSpec.describe 'scripts/wait-runs.sh' do
       spawn_script('wait-runs.sh', env: env) do |_stdin, out, thread|
         expect(out.gets).to eq("1\n")
         expect(IO.select([out], nil, nil, 1)).to be_nil
-        Process.kill('TERM', thread.pid)
+        kill_script(thread)
       end
     end
 

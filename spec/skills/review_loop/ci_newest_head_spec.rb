@@ -9,12 +9,12 @@ RSpec.describe 'scripts/ci-newest-head.sh' do
   before { skip_without_jq }
 
   def runs(*pairs)
-    pairs.map { |sha, name| { headSha: sha, workflowName: name } }.to_json
+    pairs.map { |sha, name| { headSha: sha, workflowName: name } }
   end
 
   it 'prints the head of the newest suite run' do
     answer = runs(%w[aaa Other], %w[bbb Audit], ['ccc', 'Test supported versions'])
-    result = run_script('ci-newest-head.sh', 'o/p', 'fix/x', suite, env: fake_env(dir, [answer]))
+    result = run_script('ci-newest-head.sh', 'o/p', 'fix/x', suite, answers: [answer])
     expect(result.out).to eq("bbb\n")
     expect(result.status).to eq(0)
     expect(fake_calls(dir).first)
@@ -22,19 +22,19 @@ RSpec.describe 'scripts/ci-newest-head.sh' do
   end
 
   it 'prints nothing when the branch has no suite run' do
-    result = run_script('ci-newest-head.sh', 'o/p', 'fix/x', suite, env: fake_env(dir, [runs(%w[aaa Other])]))
+    result = run_script('ci-newest-head.sh', 'o/p', 'fix/x', suite, answers: [runs(%w[aaa Other])])
     expect(result.out).to eq('')
     expect(result.status).to eq(0)
   end
 
   it 'matches a suite workflow name that holds a regex character' do
     answer = runs(%w[aaa Other], ['bbb', 'Test (x)'])
-    result = run_script('ci-newest-head.sh', 'o/p', 'fix/x', 'Test (x)|Audit', env: fake_env(dir, [answer]))
+    result = run_script('ci-newest-head.sh', 'o/p', 'fix/x', 'Test (x)|Audit', answers: [answer])
     expect(result.out).to eq("bbb\n")
   end
 
   it 'exits with the code of gh' do
-    expect(run_script('ci-newest-head.sh', 'o/p', 'fix/x', suite, env: fake_env(dir, ['fail'])).status).to eq(1)
+    expect(run_script('ci-newest-head.sh', 'o/p', 'fix/x', suite, answers: ['fail']).status).to eq(1)
   end
 
   it 'exits with 2 without three arguments' do

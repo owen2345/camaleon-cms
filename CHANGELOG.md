@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The one rerun of a workflow run in the `review-loop` skill is now the `ci-rerun.sh` script under `.claude/skills/review-loop/scripts`, with a spec. Development-only. [#1331](https://github.com/owen2345/camaleon-cms/pull/1331).
+
 - **Security fix:** The development lockfile moves nokogiri to 1.19.7, loofah to 2.25.3 and rails-html-sanitizer to 1.7.2, which the Audit job of CI refused for advisories. The gemspec does not change, so a host app updates the three gems in its own bundle. Development-only. [#1330](https://github.com/owen2345/camaleon-cms/pull/1330).
 
 - **Security fix:** The development lockfile moves rack to 3.2.8 and addressable to 2.9.2, which the Audit job of CI refused for published advisories. The gemspec does not change, so a host app updates the two gems in its own bundle. Development-only. [#1328](https://github.com/owen2345/camaleon-cms/pull/1328).

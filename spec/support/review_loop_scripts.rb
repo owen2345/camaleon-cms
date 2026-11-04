@@ -77,22 +77,32 @@ module ReviewLoopScripts
   end
 
   # Runs the script with the arguments. stdin is the standard input of the script, and env adds to its
-  # environment. Returns its output, its error output and its exit code.
-  def run_script(name, *args, stdin: '', env: {})
-    out, err, status = Open3.capture3(*script_command(name, *args, env: env), stdin_data: stdin)
+  # environment. answers puts the fakes on PATH with these answers (fake_env), and an answer that is no String
+  # becomes its JSON. Returns its output, its error output and its exit code.
+  def run_script(name, *args, stdin: '', env: {}, answers: nil)
+    command = script_command(name, *args, env: env, answers: answers)
+    out, err, status = Open3.capture3(*command, stdin_data: stdin)
     Result.new(out, err, status.exitstatus)
   end
 
   # Starts the script as run_script does. It yields the input, the output with the error output, and the
   # thread, so an example can read the output while the script runs. Returns the value of the block.
-  def spawn_script(name, *args, env: {}, &block)
-    Open3.popen2e(*script_command(name, *args, env: env), &block)
+  def spawn_script(name, *args, env: {}, answers: nil, &block)
+    Open3.popen2e(*script_command(name, *args, env: env, answers: answers), &block)
+  end
+
+  # Ends a script that spawn_script started, and the children of its shell: a TERM to the shell alone leaves a
+  # sleep alive until its time is up.
+  def kill_script(thread)
+    children = `pgrep -P #{thread.pid}`.split.map(&:to_i)
+    Process.kill('TERM', thread.pid, *children)
   end
 
   # The environment and the command line of the script with the arguments. The pair of paths keeps a path with
   # a space whole when the script gets no argument.
-  def script_command(name, *args, env: {})
+  def script_command(name, *args, env: {}, answers: nil)
     script = SCRIPTS.join(name).to_s
+    env = fake_env(dir, answers.map { |a| a.is_a?(String) ? a : a.to_json }).merge(env) if answers
     [CHILD_ENV.merge(env), [script, script], *args]
   end
 
@@ -142,16 +152,31 @@ module ReviewLoopScripts
 
   # The environment that puts a scratch executable, bin/<name> under dir with the body, first on PATH. A body
   # that records a call writes it as answer.sh does: printf '%s\0' "$*" >> "$FAKE_CALLS". A body that records
-  # the time of a call uses the STAMP line, for stamp_gaps. FAKES names the folder of the fakes, for a body that
-  # runs one of them.
+  # the time of a call uses the STAMP line and merges stamps_env, for stamp_gaps. FAKES names the folder of the
+  # fakes, for a body that runs one of them. The helper runs the new file once before it returns (warm_up). It
+  # sets no STAMPS: with STAMPS set, each fake call beside the shim also writes a time.
   def shim_env(name, body)
     write_executable(File.join('bin', name), body)
-    { 'PATH' => path_with(File.join(dir, 'bin')), 'FAKE_CALLS' => File.join(dir, 'calls'),
-      'STAMPS' => File.join(dir, 'stamps'), 'FAKES' => FAKES.to_s }
+    warm_up(File.join(dir, 'bin', name))
+    { 'PATH' => path_with(File.join(dir, 'bin')), 'FAKE_CALLS' => File.join(dir, 'calls'), 'FAKES' => FAKES.to_s }
   end
 
-  # A shell line that appends the time of the call, in seconds, to the file that STAMPS names.
+  # Runs a new shim once, with --version as its argument and no record variable set, so that it writes no record.
+  # The argument keeps a GNU find shim from a walk of the working folder. At its first run, macOS assesses a new
+  # executable file, which takes seconds, so an example must not time or count that run.
+  def warm_up(path)
+    system(path, '--version', in: File::NULL, out: File::NULL, err: File::NULL)
+  end
+
+  # A shell line that appends the time of the call, in seconds, to the file that STAMPS names, as a fake does
+  # with STAMPS set (answer.sh).
   STAMP = %q(perl -MTime::HiRes=time -e 'print time, "\n"' >> "$STAMPS")
+
+  # The STAMPS variable of a sleep example: the fakes then append the time of each call to the file that
+  # stamp_gaps reads.
+  def stamps_env
+    { 'STAMPS' => File.join(dir, 'stamps') }
+  end
 
   # The REVIEW_LOOP_SLEEP of an example that checks the sleep of a script, in seconds.
   SLEEP = '0.3'

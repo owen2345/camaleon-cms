@@ -18,7 +18,7 @@ Every pass runs the checkout test (**Checks**) first.
 
 ## Pass
 
-Run `/code-review <effort> --fix --max-findings all` on the checkout: no target for camaleon-cms, the checkout path for another repo. Its scope is `git -C <checkout> diff <scope start>...HEAD`, whatever range `/code-review` picks on its own. `<scope start>` is `<base-ref>` in passes 1 and 2, and the `<before>` of the previous PASS line from pass 3 on. A pass with an empty scope is CLEAN with no review.
+Run `/code-review <effort> --fix --max-findings all` on the checkout: no target for camaleon-cms, the checkout path for another repo. Give it no other argument: it reads any other text as the target, and a flag value with a period after it as no value. The turn gives the brief (below) to the review itself, not in the arguments. The scope of the review is `git -C <checkout> diff <scope start>...HEAD`, whatever range `/code-review` picks on its own. `<scope start>` is `<base-ref>` in passes 1 and 2, and the `<before>` of the previous PASS line from pass 3 on. A pass with an empty scope is CLEAN with no review.
 
 `@{upstream}...HEAD` lacks the pushed commits, and the PR number lacks the commits of this run. Without `all`, a stored cap bounds every pass. When the review cannot cover that range, stop and say so. Apply findings only as the verdicts allow.
 
@@ -89,7 +89,7 @@ After each lint run, before the other checks, append one line `fix <tree> | <cla
 
 A `fix` line is open until a row with its claim and location follows it. That row is its FIXED row, or the row of the verdict that replaced FIXED after the edit, with the fix undone. A batch is open while one of its lines is open, and the open lines are the open lines of the last batch. The pass undoes a dropped fix first, stages the undo with `git -C <checkout> add -A`, and appends the row of the fix. The checks of the other fixes then run again. Before the commit, the checkout test (above) must hold, or the run stops.
 
-Judge a command by its result (`docs/ai/testing.md` "Long commands"), and with no result start it again once. A hang, or any other second start with no result, stops the run: report the command with its log. A sync or a `gh` command that fails has no result too, and the report gives its output. A `gh run rerun` that GitHub refuses, with `cannot be rerun` or an HTTP 4xx error, has a result: the refusal (`ci.md`). A gone log has a result too (`trace.md`).
+Judge a command by its result (`docs/ai/testing.md` "Long commands"), and with no result start it again once. A hang, or any other second start with no result, stops the run: report the command with its log. A sync or a `gh` command that fails has no result too, and the report gives its output. A `ci-rerun.sh` that exits with 1 has a result: GitHub refused the rerun (`ci.md`). A gone log has a result too (`trace.md`).
 
 The fifth check, **ci**, follows `ci.md`: setup reads it for the `setup HEAD`, and a stop that pushes for the pushed commit (`stop.md`). The spec runs, the failed checks and the fixup commit follow `spec-runs.md`.
 
