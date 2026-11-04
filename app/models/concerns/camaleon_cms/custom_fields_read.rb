@@ -235,6 +235,8 @@ module CamaleonCms
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
+    # The payload is a Hash with String or Symbol keys, for example a JSON.parse result, or request
+    # parameters.
     #
     # group_number (optional, in each entry): the index of the copy of a repeatable field group that
     # the values belong to, from 0. An author can add such a group to a post several times. The group
@@ -250,6 +252,9 @@ module CamaleonCms
     def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 
+      # The reads below use Symbol keys. A plain Hash with String keys gave them no values, so the call
+      # deleted every stored value and stored nothing. Request parameters read by either key.
+      datas = datas.with_indifferent_access if datas.is_a?(Hash)
       _cama_write_field_values do
         # A value identical to one already stored is not newly authored, so it must not be re-gated on
         # an unrelated edit (audit M8): the admin form round-trips every value and this method

@@ -35,6 +35,7 @@ what theme/plugin developers should know.
 | Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
 | Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). The two methods raise `ActiveRecord::RecordInvalid` for any other number ([details](#custom-field-group-numbers-are-validated)) |
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
+| Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values` | The call now stores the values. Before, it deleted every stored value of the record and stored nothing ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 
 ---
 
@@ -613,6 +614,17 @@ so its clone of such a post raises `ActiveRecord::RecordInvalid`.
   before.
 - `custom_field_values` must be a `has_many` association. On a model that defines it as a plain
   relation, the two methods now raise `NoMethodError`.
+
+### `set_field_values` reads a plain Hash with String keys
+
+`set_field_values` now reads a plain Hash payload by a String key or its Symbol twin alike. An
+example is a `JSON.parse` result, or the sample in the comment of the method. Before, such a call
+read no entry: it deleted every stored value of the record, stored nothing, and raised no error.
+The admin saves of Camaleon pass request parameters, which read by either key, so they do not
+change.
+
+**Who must act:** nobody. Plugin or theme code that converted its payload with
+`with_indifferent_access` before the call can keep the conversion or drop it.
 
 ---
 
