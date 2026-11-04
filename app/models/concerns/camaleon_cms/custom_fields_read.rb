@@ -235,8 +235,8 @@ module CamaleonCms
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
-    # The payload is a Hash with String or Symbol keys, for example a JSON.parse result, or request
-    # parameters.
+    # The payload is request parameters, or a Hash with String or Symbol keys, for example a
+    # JSON.parse result.
     #
     # group_number (optional, in each entry): the index of the copy of a repeatable field group that
     # the values belong to, from 0. An author can add such a group to a post several times. The group
