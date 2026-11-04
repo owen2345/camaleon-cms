@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# ImageMagick reads an unquoted NAN or INF at the start of a draw primitive as a number, so a
-# challenge such as NANGR broke the text primitive and the captcha request raised. The text is
-# now quoted. Needs ImageMagick (CI installs it).
+# ImageMagick reads an unquoted NAN or INF at the start of the text of a draw primitive as a
+# number, so a challenge such as NANGR broke the text primitive and the captcha request raised.
+# The text is now quoted. Needs ImageMagick (CI installs it).
 RSpec.describe CamaleonCms::CaptchaImageGeneration, '#cama_captcha_build' do
   let(:generator) do
     Class.new do
@@ -17,7 +17,8 @@ RSpec.describe CamaleonCms::CaptchaImageGeneration, '#cama_captcha_build' do
   end
 
   before do
-    skip 'ImageMagick is not installed' unless MiniMagick::Utilities.which('mogrify')
+    # MiniMagick runs `magick mogrify` when the ImageMagick 7 `magick` binary exists.
+    skip 'ImageMagick is not installed' unless %w[magick mogrify].any? { |bin| MiniMagick::Utilities.which(bin) }
   end
 
   %w[NANGR INF2B].each do |text|
