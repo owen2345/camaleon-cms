@@ -335,7 +335,7 @@ module CamaleonCms
     # key: (string required) slug of the custom field
     # value: (array | string) array: array of values for multiple values support,
     #                         string: uniq value for the custom field
-    # args:
+    # args (a Hash with String or Symbol keys):
     #   field_id: (integer optional) identifier of the custom field
     #   order: order or position of the field value
     #   group_number: number of the group (only for custom field group with is_repeat enabled).
@@ -346,6 +346,7 @@ module CamaleonCms
     # Errors:
     # - ArgumentError when the args give no field_id and no field group of the record has a field with
     #   the slug `key`. For a post, the field groups of its post type count too.
+    # - ArgumentError when args hold a String key and its Symbol twin (:clear and 'clear').
     # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
     #   not permitted to save. The record keeps its stored values, with the limits that
     #   _cama_write_field_values names.
@@ -356,7 +357,10 @@ module CamaleonCms
     # sample: add field values for fields in group 1
     # my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1, group_number: 1})
     def set_field_value(key, value, args = {})
-      args = { order: 0, group_number: 0, field_id: nil, clear: true }.merge!(args)
+      # The reads below use Symbol keys and args can have String keys, so they read a copy with
+      # indifferent access. That copy keeps one value of a String key and its Symbol twin.
+      _cama_refuse_twin_keys!(args)
+      args = { order: 0, group_number: 0, field_id: nil, clear: true }.with_indifferent_access.merge!(args)
       if args[:field_id].blank?
         args[:field_id] = begin
           get_field_object(key).id
@@ -468,7 +472,7 @@ module CamaleonCms
       case data
       when Hash
         twin = data.each_key.find { |key| key.is_a?(Symbol) && data.key?(key.to_s) }
-        raise ArgumentError, "The custom field values hold the key #{twin.inspect} as a String and as a Symbol" if twin
+        raise ArgumentError, "The Hash holds the key #{twin.inspect} as a String and as a Symbol" if twin
 
         data.each_value { |value| _cama_refuse_twin_keys!(value) }
       when Array

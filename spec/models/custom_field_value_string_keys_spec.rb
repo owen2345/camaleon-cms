@@ -80,6 +80,28 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # set_field_value reads its args by Symbol keys too, through a copy with indifferent access.
+  describe 'set_field_value with args with String keys' do
+    it 'stores the value in the group number of the args, and group 0 keeps its value' do
+      post.set_field_value('note', 'new', { 'group_number' => 1 })
+
+      expect(post.reload.get_field_values('note', 1)).to eq(['new'])
+      expect(post.get_field_values('note')).to eq(['kept'])
+    end
+
+    it 'reads the clear option of the args' do
+      post.set_field_value('note', 'new', { 'clear' => false, 'order' => 1 })
+
+      expect(post.reload.get_field_values('note')).to eq(%w[kept new])
+    end
+
+    it 'refuses a String key and its Symbol twin, and the stored value stays' do
+      expect { post.set_field_value('note', 'new', { clear: true, 'clear' => false }) }
+        .to raise_error(ArgumentError, /key :clear as a String and as a Symbol/)
+      expect(post.reload.get_field_values('note')).to eq(['kept'])
+    end
+  end
+
   # The payload of an admin save has indifferent access, and a theme can pass the request parameters.
   describe 'set_field_values with request parameters' do
     it 'stores the values of unpermitted request parameters' do

@@ -16,6 +16,8 @@ parameters of an admin save, is not in this case.
   name the same entry. The Hash of the caller keeps its keys.
 - The group number of an entry with String keys is validated, as for an entry with Symbol keys.
 - No change for request parameters, or for a Hash with indifferent access.
+- `set_field_value` reads its args by String or Symbol keys too.
+- Both methods refuse a String key and its Symbol twin at one level, before the delete.
 
 ## Capabilities
 

@@ -44,6 +44,10 @@ each level of the payload, the values of an entry too, so the copy changes no va
 - *Alternative: keep the last twin and record it as an intended limit.* Rejected: the call then
   deletes a value with no error.
 
+**D4. `set_field_value` reads its args with indifferent access.** Its args had the same defect: a
+String key such as `'group_number'` was ignored, so the call cleared and wrote group 0. The
+maintainer chose to fix it in this change. The method refuses twin keys of its args, as D3 says.
+
 ## Risks / Trade-offs
 
 - [A caller passes a Hash subclass with its own key rules] → the copy is a plain indifferent Hash.
