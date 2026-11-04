@@ -235,12 +235,17 @@ module CamaleonCms
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
     # values is a hash keyed by index or a list of scalars. The checkboxes field sends the list.
+    # The payload is request parameters, or a Hash with String or Symbol keys, for example a
+    # JSON.parse result.
     #
     # group_number (optional, in each entry): the index of the copy of a repeatable field group that
     # the values belong to, from 0. An author can add such a group to a post several times. The group
     # number is an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a number
     # ('5'). nil and '' mean group 0. Each other group number raises ActiveRecord::RecordInvalid. The
     # record then keeps its stored values, with the limits that _cama_write_field_values names.
+    #
+    # A plain Hash that holds a String key and its Symbol twin at one level (:note and 'note') raises
+    # ArgumentError before the delete, and the record keeps its stored values.
     #
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
     # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
@@ -250,6 +255,14 @@ module CamaleonCms
     def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 
+      # The reads below use Symbol keys, so they read a plain Hash through a copy with indifferent
+      # access. That copy keeps one value of a String key and its Symbol twin, so the method refuses
+      # such a payload before the delete. Request parameters and a Hash with indifferent access, the
+      # payload of the admin saves, read by either key and hold no twins.
+      if datas.is_a?(Hash)
+        _cama_refuse_twin_keys!(datas) unless datas.is_a?(ActiveSupport::HashWithIndifferentAccess)
+        datas = datas.with_indifferent_access
+      end
       _cama_write_field_values do
         # A value identical to one already stored is not newly authored, so it must not be re-gated on
         # an unrelated edit (audit M8): the admin form round-trips every value and this method
@@ -323,7 +336,7 @@ module CamaleonCms
     # key: (string required) slug of the custom field
     # value: (array | string) array: array of values for multiple values support,
     #                         string: uniq value for the custom field
-    # args:
+    # args (a Hash with String or Symbol keys):
     #   field_id: (integer optional) identifier of the custom field
     #   order: order or position of the field value
     #   group_number: number of the group (only for custom field group with is_repeat enabled).
@@ -334,6 +347,7 @@ module CamaleonCms
     # Errors:
     # - ArgumentError when the args give no field_id and no field group of the record has a field with
     #   the slug `key`. For a post, the field groups of its post type count too.
+    # - ArgumentError when args hold a String key and its Symbol twin (:clear and 'clear').
     # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
     #   not permitted to save. The record keeps its stored values, with the limits that
     #   _cama_write_field_values names.
@@ -342,9 +356,12 @@ module CamaleonCms
     # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
     # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1})
     # sample: add field values for fields in group 1
-    # my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1, group_number: 1})
+    # my_post.set_field_value('subtitle', 'Sub Title', { group_number: 1, clear: false })
     def set_field_value(key, value, args = {})
-      args = { order: 0, group_number: 0, field_id: nil, clear: true }.merge!(args)
+      # The reads below use Symbol keys and args can have String keys, so they read a copy with
+      # indifferent access. That copy keeps one value of a String key and its Symbol twin.
+      _cama_refuse_twin_keys!(args)
+      args = { order: 0, group_number: 0, field_id: nil, clear: true }.with_indifferent_access.merge!(args)
       if args[:field_id].blank?
         args[:field_id] = begin
           get_field_object(key).id
@@ -448,6 +465,20 @@ module CamaleonCms
     # a parent_id lookup must count only field rows.
     def _cama_field_rows(slug)
       CamaleonCms::CustomField.where(slug: slug, object_class: '_fields')
+    end
+
+    # Raises ArgumentError when a Hash at any level of data holds a String key and its Symbol twin.
+    # A copy with indifferent access keeps only one of their two values.
+    def _cama_refuse_twin_keys!(data)
+      case data
+      when Hash
+        twin = data.each_key.find { |key| key.is_a?(Symbol) && data.key?(key.to_s) }
+        raise ArgumentError, "The Hash holds the key #{twin.inspect} as a String and as a Symbol" if twin
+
+        data.each_value { |value| _cama_refuse_twin_keys!(value) }
+      when Array
+        data.each { |value| _cama_refuse_twin_keys!(value) }
+      end
     end
 
     def _cama_field_id_for(key, field_groups)
