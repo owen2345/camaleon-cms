@@ -19,4 +19,4 @@
 
 - [x] 4.1 `bin/rubocop -A`, `bin/rspec` on the new spec and the adjacent ones,
   `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 4.2 Push to PR #1335, fold the change into its description, archive this change on the branch
+- [x] 4.2 Push to PR #1335, fold the change into its description, archive this change on the branch

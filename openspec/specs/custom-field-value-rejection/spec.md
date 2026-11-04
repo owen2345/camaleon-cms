@@ -444,8 +444,8 @@ GET or HEAD request is no submitted save and SHALL be raised, not answered.
 #### Scenario: The draft save of the post editor
 
 - **WHEN** a draft save by XHR carries a refused value
-- **THEN** the response is a 422 with the refusal as text, and the post editor reports a failed
-  draft save
+- **THEN** the response is a 422 with the refusal as text, and the post editor shows the refusal and
+  keeps the post on the form, as for a refused meta or option
 
 #### Scenario: A container that is not a set of fields, by XHR
 
