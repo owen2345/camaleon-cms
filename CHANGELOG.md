@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** `set_field_values` now reads a plain Hash with String keys, for example a `JSON.parse` result. Before, such a call deleted every stored value of the record and stored nothing. The admin saves pass request parameters, so they do not change. [#1333](https://github.com/owen2345/camaleon-cms/pull/1333).
+- **Bug fix:** `set_field_values` now reads a plain Hash with String keys, for example a `JSON.parse` result, and `set_field_value` reads its args by String keys. Before, such calls deleted stored values. A String key and its Symbol twin at one level now raise `ArgumentError`. [#1333](https://github.com/owen2345/camaleon-cms/pull/1333).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#set_field_values-reads-a-plain-hash-with-string-keys).
 
 - **Security fix:** The development lockfile moves Rails to 8.1.4.1, which the Audit job of CI refused at 8.1.4 for advisories. The gemspec does not change, so a host app updates Rails in its own bundle. Development-only. [#1334](https://github.com/owen2345/camaleon-cms/pull/1334).
