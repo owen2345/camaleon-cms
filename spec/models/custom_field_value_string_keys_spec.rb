@@ -95,6 +95,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note')).to eq(%w[kept new])
     end
 
+    it 'reads the field id and the order of the args' do
+      post.set_field_value('subtitle', 'new', { 'field_id' => field_id, 'order' => 3 })
+
+      expect(post.reload.custom_field_values.where(custom_field_slug: 'subtitle').pluck(:custom_field_id, :term_order))
+        .to eq([[field_id, 3]])
+    end
+
     it 'refuses a String key and its Symbol twin, and the stored value stays' do
       expect { post.set_field_value('note', 'new', { clear: true, 'clear' => false }) }
         .to raise_error(ArgumentError, /key :clear as a String and as a Symbol/)
