@@ -356,7 +356,7 @@ module CamaleonCms
     # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
     # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1})
     # sample: add field values for fields in group 1
-    # my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1, group_number: 1})
+    # my_post.set_field_value('subtitle', 'Sub Title', { group_number: 1, clear: false })
     def set_field_value(key, value, args = {})
       # The reads below use Symbol keys and args can have String keys, so they read a copy with
       # indifferent access. That copy keeps one value of a String key and its Symbol twin.
