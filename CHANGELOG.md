@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A refused admin save (an unsafe or invalid custom-field value, a meta container that is not a set of fields, a decorator class option that names no decorator) now answers an XHR without `cama_ajax_request` with the message as text and a 422, not with a redirect and a flash. The nav menu item settings modal shows the refusal and stays open. [#1335](https://github.com/owen2345/camaleon-cms/pull/1335).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#an-xhr-admin-save-that-is-refused-gets-a-422).
+
 - **Bug fix:** `set_field_values` now reads a plain Hash with String keys, for example a `JSON.parse` result, and `set_field_value` reads its args by String keys. Before, such calls deleted stored values. A String key and its Symbol twin at one level now raise `ArgumentError`. [#1333](https://github.com/owen2345/camaleon-cms/pull/1333).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#set_field_values-reads-a-plain-hash-with-string-keys).
 

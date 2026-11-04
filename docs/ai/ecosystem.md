@@ -325,7 +325,7 @@ Changes that look free from inside this repository and are not:
   goes directly after `ActionDispatch::Executor` in the stack of each host. It answers a multipart
   request with a 400 when the param parser of Rack raises an encoding error. No surveyed consumer
   changes the middleware stack, is an API-only app, or sets a charset for a multipart part.
-- **Answering a refused admin save with a 422 to an XHR** changes no surveyed consumer. An XHR without
+- **Answering a refused admin save with a 422 to an XHR** (#1335) changes no surveyed consumer. An XHR without
   the `cama_ajax_request` param gets the message as text and a 422 where it got a redirect and a flash.
   The XHR callers of an admin save that can be refused are both in Camaleon: the nav menu item
   settings modal and the draft save of the post editor. `camaleon_admin_ajax` sends `cama_ajax_request`
