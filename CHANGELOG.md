@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** The development lockfile moves Rails to 8.1.4.1, which the Audit job of CI refused at 8.1.4 for advisories. The gemspec does not change, so a host app updates Rails in its own bundle. Development-only. [#1334](https://github.com/owen2345/camaleon-cms/pull/1334).
+
 - **Bug fix:** A captcha request no longer fails when the random challenge starts with `NAN` or `INF`, which ImageMagick read as a number. The captcha generator now quotes the text in the draw primitive. [#1332](https://github.com/owen2345/camaleon-cms/pull/1332).
 
 - **Tooling:** The one rerun of a workflow run in the `review-loop` skill is now the `ci-rerun.sh` script under `.claude/skills/review-loop/scripts`, with a spec. Development-only. [#1331](https://github.com/owen2345/camaleon-cms/pull/1331).
