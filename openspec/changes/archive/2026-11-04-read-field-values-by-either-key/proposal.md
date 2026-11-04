@@ -28,12 +28,12 @@ None.
 ### Modified Capabilities
 
 - `custom-field-value-rejection`: `set_field_values` reads its payload by String or Symbol keys, and
-  validates the group number of each entry.
+  validates the group number of each entry. `set_field_value` reads its args by String or Symbol keys.
 
 ## Impact
 
-- `app/models/concerns/camaleon_cms/custom_fields_read.rb` (`set_field_values`).
+- `app/models/concerns/camaleon_cms/custom_fields_read.rb` (`set_field_values` and `set_field_value`).
 - Specs: a model spec with the plain Hash, the `JSON.parse` result, the group number of such an
-  entry, and request parameters.
+  entry, request parameters, and the args of `set_field_value` with String keys.
 - `docs/upgrading-to-2.9.5.md` tells plugin developers that such a call now stores its values.
 - Ecosystem: no surveyed consumer passes a plain Hash with String keys (`docs/ai/ecosystem.md`).
