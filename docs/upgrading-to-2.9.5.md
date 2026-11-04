@@ -631,8 +631,8 @@ with no field raised `ArgumentError`. Args with a String key and its
 Symbol twin raise `ArgumentError` before the delete.
 
 **Who must act:** plugin or theme code that builds such a payload or such args. Give each key one type. Code
-that converted its payload with `with_indifferent_access` before the call can keep the conversion
-or drop it.
+that converted its payload with `with_indifferent_access` before the call can keep the conversion.
+It can drop the conversion only when the payload holds no String key and its Symbol twin.
 
 ---
 
