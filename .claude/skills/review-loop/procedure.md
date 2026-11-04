@@ -18,7 +18,7 @@ Every pass runs the checkout test (**Checks**) first.
 
 ## Pass
 
-Run `/code-review <effort> --fix --max-findings all` on the checkout: no target for camaleon-cms, the checkout path for another repo. Its scope is `git -C <checkout> diff <scope start>...HEAD`, whatever range `/code-review` picks on its own. `<scope start>` is `<base-ref>` in passes 1 and 2, and the `<before>` of the previous PASS line from pass 3 on. A pass with an empty scope is CLEAN with no review.
+Run `/code-review <effort> --fix --max-findings all` on the checkout: no target for camaleon-cms, the checkout path for another repo. Give it no other argument: it reads any other text as the target, and a flag value with a period after it as no value. The turn gives the brief (below) to the review itself, not in the arguments. The scope of the review is `git -C <checkout> diff <scope start>...HEAD`, whatever range `/code-review` picks on its own. `<scope start>` is `<base-ref>` in passes 1 and 2, and the `<before>` of the previous PASS line from pass 3 on. A pass with an empty scope is CLEAN with no review.
 
 `@{upstream}...HEAD` lacks the pushed commits, and the PR number lacks the commits of this run. Without `all`, a stored cap bounds every pass. When the review cannot cover that range, stop and say so. Apply findings only as the verdicts allow.
 
