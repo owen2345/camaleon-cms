@@ -167,6 +167,20 @@ function cama_init_post(obj) {
             }
             if (on_failure) on_failure();
         }
+        // The server refused the draft. Shown as text: a refusal quotes user input. The callback does not
+        // run: it would leave the page or open a stale preview. A held submit is dropped, since the post
+        // save would refuse the same content; the alert took the overlay down. A cancelSubmit the validator
+        // set for that submit (a Cancel or formnovalidate button) is reset here, as the validator's own
+        // handler would have done. The timer sends nothing until the form changes; re-sent, it would be
+        // refused again.
+        function refused(refusal) {
+            show_error(escape_html(refusal));
+            var validator = held_form && $(held_form).data('validator');
+            if (validator) validator.cancelSubmit = false;
+            drop_hold();
+            refused_hash = hash;
+            if (on_failure) on_failure();
+        }
         return {
             type: 'POST',
             url: _drafts_path,
@@ -177,18 +191,7 @@ function cama_init_post(obj) {
                     // A refusal with no message (`{error: []}`, or blank ones only) is a failed request instead.
                     var refusal = refusal_messages(res && res.error).join(", ");
                     if (refusal) {
-                        // Shown as text: a refusal quotes user input.
-                        // The callback does not run: it would leave the page or open a stale preview. A held
-                        // submit is dropped, since the post save would refuse the same content; the alert took
-                        // the overlay down. A cancelSubmit the validator set for that submit (a Cancel or
-                        // formnovalidate button) is reset here, as the validator's own handler would have done.
-                        show_error(escape_html(refusal));
-                        var validator = held_form && $(held_form).data('validator');
-                        if (validator) validator.cancelSubmit = false;
-                        drop_hold();
-                        // The timer sends nothing until the form changes; re-sent, it would be refused again.
-                        refused_hash = hash;
-                        if (on_failure) on_failure();
+                        refused(refusal);
                     } else if (!res || !res.draft || res.draft.id == null) {
                         // A decorated drafts action may answer with no draft to name (`{}`, `null`, `{draft: {}}`).
                         request_failed();
@@ -206,10 +209,20 @@ function cama_init_post(obj) {
                 }
             },
             // Status 'submit': aborted by send_held_submit, which sends the held submit next. The post save
-            // reports for itself, so no alert; the failure handler closes what the caller opened.
+            // reports for itself, so no alert; the failure handler closes what the caller opened. A plain-text
+            // 422 with a message is a refusal of the draft's content (a custom-field value; AdminController
+            // answers it as text), as a 200 with `error` is. Any other 422 is a failed request: one with no
+            // message, or an error page (cama_text_refusal).
             error: function (xhr, status) {
                 var for_submit = status === 'submit';
-                try { if (for_submit) { if (on_failure) on_failure(); } else { request_failed(); } }
+                try {
+                    if (for_submit) { if (on_failure) on_failure(); }
+                    else {
+                        var refusal = cama_text_refusal(xhr);
+                        if (refusal) refused(refusal);
+                        else request_failed();
+                    }
+                }
                 finally { save_finished(for_submit); }
             },
             dataType: 'json',

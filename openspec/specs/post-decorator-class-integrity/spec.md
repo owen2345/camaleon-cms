@@ -78,10 +78,11 @@ options are passed in. A write that leaves a stored value unchanged SHALL NOT be
 
 ### Requirement: A refusal from a save hook surfaces in the admin panel
 
-When a hook run after an admin post type save writes a value the check refuses, the admin panel
-SHALL answer with a redirect carrying the refusal as a flash error rather than a server error. The
-post type's own attributes, saved before the hook ran, remain saved. The flash SHALL quote the value
-only when it is a class name, cut short, and SHALL NOT echo any other value. A refusal that comes
+A hook run after an admin post type save can write a value that the check refuses. The admin panel
+SHALL NOT answer that refusal with a server error. It SHALL answer as a refused admin save answers
+(`custom-field-value-rejection`, the requirement "A refused admin save answers by the kind of the
+request"). The post type's own attributes, saved before the hook ran, remain saved. The message
+SHALL quote the value only when it is a class name, cut short, and SHALL NOT echo any other value. A refusal that comes
 while the admin panel serves a GET or HEAD request is no submitted save and SHALL be raised, not
 redirected.
 

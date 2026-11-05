@@ -4,8 +4,8 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    # Shows the ActiveRecord::RecordInvalid of a custom-field value or a post type in a submitted admin
-    # form as a flash message, not as a 500 page. The causes of the error:
+    # Answers the ActiveRecord::RecordInvalid of a custom-field value or a post type in an admin save
+    # as refuse_admin_save says, not as a 500 page. The causes of the error:
     # - A custom-field value: unsafe content (docs/security/permissions.md), an invalid group number, or
     #   a slug that names no custom field.
     # - A post type: a decorator class option that names no post decorator.
@@ -21,18 +21,16 @@ module CamaleonCms
       gated = record.is_a?(CamaleonCms::CustomFieldsRelationship) || record.is_a?(CamaleonCms::PostType)
       raise exception if !gated || request.get? || request.head?
 
-      flash[:error] = record.errors.full_messages.to_sentence
-      redirect_back fallback_location: cama_admin_dashboard_path
+      refuse_admin_save(record.errors.full_messages.to_sentence)
     end
-    # A meta or options container that is not a set of fields (an array of pairs, a scalar) is refused
-    # by the writers themselves (Metas::InvalidContainer), so every admin save that passes request
-    # params to set_metas/set_options answers the same way: named in a flash on a submitted save,
-    # raised while serving a page, as for RecordInvalid above.
+    # The writers refuse a meta or options container that is not a set of fields, for example an array
+    # of pairs (Metas::InvalidContainer). So every admin save that passes request params to
+    # set_metas/set_options answers as refuse_admin_save says. The error is raised again for a GET or
+    # HEAD request, as for RecordInvalid above.
     rescue_from CamaleonCms::Metas::InvalidContainer do |exception|
       raise exception if request.get? || request.head?
 
-      flash[:error] = cama_t('camaleon_cms.admin.message.malformed_fields')
-      redirect_back fallback_location: cama_admin_dashboard_path
+      refuse_admin_save(cama_t('camaleon_cms.admin.message.malformed_fields'))
     end
     # layout 'camaleon_cms/admin'
     # Admin responses are user-specific and must never be served from a browser or shared cache;
@@ -123,6 +121,21 @@ module CamaleonCms
     end
 
     private
+
+    # Answers a refused admin save with its message. A submitted form gets the message as a flash and
+    # a redirect back. So does an XHR that loads admin pages in place (camaleon_admin_ajax sends
+    # cama_ajax_request): it shows the redirected page, with the flash. Any other XHR gets the message
+    # as text with a 422, and no flash. Such a script, for example the nav menu item settings modal,
+    # reads the answer itself. A redirect gives it only the admin page, and that page uses up the flash.
+    def refuse_admin_save(message)
+      if request.xhr? && params[:cama_ajax_request].blank?
+        # A number: Rack 3.1 deprecates :unprocessable_entity, and earlier Rack has no :unprocessable_content.
+        render plain: message, status: 422 # rubocop:disable Rails/HttpStatus
+      else
+        flash[:error] = message
+        redirect_back fallback_location: cama_admin_dashboard_path
+      end
+    end
 
     # Send `Cache-Control: no-store` on every admin response so no admin page is ever cached by the
     # browser or an intermediary. Admin pages are per-user and dynamic; caching them risks a stale

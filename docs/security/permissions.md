@@ -557,12 +557,17 @@ strict same-host posture.
 
 Not a role permission either, but a validity rule that applies to every writer, administrators included. A post type's
 `cama_post_decorator_class` option names the class `Post#decorator_class` loads to decorate every post of the type, and post type options are
-written by plugin and theme save hooks as well as by core. Every option writer (`set_option`, `set_options`, `delete_option`, `data_options`
-and a direct `set_meta`, whatever form the options arrive in) ends in `set_meta`, whose check in `CamaleonCms::PostType` holds the option to an
-allowlist: a write that sets or changes it must name a subclass of `CamaleonCms::PostDecorator`, or it is refused with an error naming the
-option, and the value when it is a class name (the admin panel shows the refusal of a submitted save as a flash error, and raises one that
-comes while serving a page, where a redirect would only reach another page that refuses; a value passed in `data_options`, or in the
-`_default` meta of `data_metas`, fails the save as a validation, before anything is written). A blank value clears it, and a write that leaves a stored value unchanged is not refused for it.
+written by plugin and theme save hooks as well as by core. Every option writer (`set_option`, `set_options`, `delete_option`,
+`data_options` and a direct `set_meta`, whatever form the options arrive in) ends in `set_meta`. Its check in `CamaleonCms::PostType`
+holds the option to an allowlist. A write that changes the option to a value that is not blank must name a subclass of
+`CamaleonCms::PostDecorator`.
+
+A blank value clears the option, and a write that leaves a stored value unchanged is not refused for it. Any other write that names no such
+subclass is refused. The error names the option, and the value when it is a class name. The admin panel answers that refusal as
+`openspec/specs/custom-field-value-rejection/spec.md` specifies for a refused admin save. It raises a refusal that comes while serving a
+page, where a redirect would only reach another page that refuses. A value passed in `data_options`, or in the `_default` meta of
+`data_metas`, fails the save as a validation, before anything is written.
+
 A post resolves its decorator through `PostType#post_decorator_class`: the named class when it passes the same check, otherwise the default,
 with a warning naming the ignored value once per request. Rows written around `set_meta`, such as an importer creating `CamaleonCms::Meta`
 rows directly, are not checked at save; the read and the audit below still cover them. Nothing stored is rewritten. The convention is

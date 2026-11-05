@@ -86,8 +86,8 @@ explicit opt-out for trusted server-side pipelines.
 
 An admin post save SHALL be atomic across the parent post and its metas, field values and options:
 they are written in one transaction, so a value the gate refuses rolls the parent save back with it —
-no half-applied post, and no orphan post on create. The response SHALL surface a flash error naming
-the field, and the refusal SHALL NOT produce an unhandled 500.
+no half-applied post, and no orphan post on create. The response SHALL surface the refusal naming
+the field, as a refused admin save answers (the requirement "A refused admin save answers by the kind of the request"), and the refusal SHALL NOT produce an unhandled 500.
 
 #### Scenario: Posts controller surfaces the refusal atomically
 
@@ -199,8 +199,7 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   only when a save changes its group number. A copy (`dup`) is a new value, and it SHALL keep the
   group number as the caller gave it. So the copy of an invalid value MUST be invalid.
 - **Admin saves.** An admin save that reaches the controller with an invalid group number MUST NOT
-  answer with a 500. It SHALL redirect back with the error, and the record SHALL keep its stored
-  values. Rails answers a param in an invalid encoding with a 400 before the controller. An absent
+  answer with a 500. It SHALL answer with the error as a refused admin save answers (the requirement "A refused admin save answers by the kind of the request"), and the record SHALL keep its stored values. Rails answers a param in an invalid encoding with a 400 before the controller. An absent
   or empty group number SHALL mean group 0. `cama_permitted_field_options` SHALL keep a group
   number that is a list or a hash, with its content removed, so that the save fails.
 - **Calls with no values.** `set_field_value` with an empty list of values MUST get the error, and
@@ -415,3 +414,51 @@ values as before. A plain Hash with a String key and its Symbol twin at one leve
 
 - **WHEN** `set_field_value` gets `{ clear: true, 'clear' => false }`
 - **THEN** the call raises `ArgumentError`, and the record keeps its stored values
+
+### Requirement: A refused admin save answers by the kind of the request
+
+The admin panel refuses a save in these cases:
+
+- a custom-field value with unsafe or too large content, an invalid group number, or a slug that
+  names no custom field
+- a post type option that names no post decorator
+- a meta or options container that is not a set of fields
+
+Each refusal SHALL answer in the same way, by the kind of the request:
+
+- A submitted form SHALL get a redirect back, with the message as a flash error.
+- An XHR that carries the `cama_ajax_request` param (an admin page that `camaleon_admin_ajax` loads
+  in place) SHALL get the same redirect and flash.
+- Any other XHR SHALL get the message as plain text with a 422, and no flash.
+
+A refused save SHALL store nothing of the refused value. A refusal while the admin panel serves a
+GET or HEAD request is no submitted save and SHALL be raised, not answered.
+
+#### Scenario: The nav menu item settings modal shows the refusal
+
+- **WHEN** a user who is not an administrator saves the settings of a nav menu item by XHR, with an
+  editor value that holds a script
+- **THEN** the response is a 422 with the refusal as text, no flash is set, the value is not stored,
+  and the modal stays open and shows the refusal
+
+#### Scenario: A submitted form keeps the flash
+
+- **WHEN** the same save is a submitted form, or an XHR with `cama_ajax_request`
+- **THEN** the response redirects back with the refusal in the flash
+
+#### Scenario: The draft save of the post editor
+
+- **WHEN** a draft save by XHR carries a refused value
+- **THEN** the response is a 422 with the refusal as text, and the post editor shows the refusal and
+  keeps the post on the form, as for a refused meta or option
+
+#### Scenario: An error page with a 422 is no refusal
+
+- **WHEN** a draft save or a nav menu item settings save gets an error page with a 422, for example
+  of a CSRF failure
+- **THEN** the post editor or the modal shows its generic failure message, not the body of the page
+
+#### Scenario: A container that is not a set of fields, by XHR
+
+- **WHEN** a category save by XHR carries `meta[]=x`
+- **THEN** the response is a 422 with the message as text, and no option is stored

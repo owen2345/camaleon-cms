@@ -266,8 +266,9 @@ module CamaleonCms
       # field value the scan-and-reject gate refused (CustomFieldsRelationship RecordInvalid) left a
       # half-applied post -- an orphan on create, skipped options, only a redirect explaining why.
       # Wrapping the whole sequence in one transaction rolls the parent save back with the refused
-      # value, and the RecordInvalid propagates to AdminController's rescue_from (flash + redirect
-      # back) with nothing persisted. Returns true on success, false on a parent validation failure.
+      # value. The RecordInvalid then reaches the rescue_from of AdminController, which answers as
+      # refuse_admin_save says, with nothing persisted. Returns true on success, false on a parent
+      # validation failure.
       def save_post_with_fields(post, update_attrs = nil)
         ActiveRecord::Base.transaction do
           saved = update_attrs ? post.update(update_attrs) : post.save

@@ -161,13 +161,23 @@ $(function() {
             return false
 
           showLoading()
-          $.post(form.attr('action'), form.serialize(), function(res) {
-            if (res)
-              alert(res)
+          $.post(form.attr('action'), form.serialize())
+            .done((res) => {
+              if (res)
+                alert(res)
 
-            modal.modal('hide')
-            hideLoading()
-          })
+              modal.modal('hide')
+            })
+            // A refused value answers with the refusal as plain text and a 422. The modal stays open and
+            // shows it, as text: a refusal can quote user input. Any other failure, an error page among
+            // them, shows a generic message.
+            .fail((xhr) => {
+              const message = cama_text_refusal(xhr) || I18n('msg.save_failed', 'The settings could not be saved')
+
+              form.find('.cama_save_refusal').remove()
+              form.prepend($('<div class="alert alert-danger cama_save_refusal"></div>').text(message))
+            })
+            .always(hideLoading)
           return false
         })
       }
