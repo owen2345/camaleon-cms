@@ -4,8 +4,8 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    # Shows the ActiveRecord::RecordInvalid of a custom-field value or a post type in a submitted admin
-    # form as a flash message, not as a 500 page. The causes of the error:
+    # Answers the ActiveRecord::RecordInvalid of a custom-field value or a post type in an admin save
+    # as refuse_admin_save says, not as a 500 page. The causes of the error:
     # - A custom-field value: unsafe content (docs/security/permissions.md), an invalid group number, or
     #   a slug that names no custom field.
     # - A post type: a decorator class option that names no post decorator.
@@ -25,8 +25,9 @@ module CamaleonCms
     end
     # A meta or options container that is not a set of fields (an array of pairs, a scalar) is refused
     # by the writers themselves (Metas::InvalidContainer), so every admin save that passes request
-    # params to set_metas/set_options answers the same way: named in a flash on a submitted save,
-    # raised while serving a page, as for RecordInvalid above.
+    # params to set_metas/set_options answers the same way: named as refuse_admin_save answers (a
+    # flash for a submitted form, text with a 422 for an XHR), raised while serving a page, as for
+    # RecordInvalid above.
     rescue_from CamaleonCms::Metas::InvalidContainer do |exception|
       raise exception if request.get? || request.head?
 
