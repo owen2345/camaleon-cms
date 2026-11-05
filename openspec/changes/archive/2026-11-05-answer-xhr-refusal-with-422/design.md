@@ -34,10 +34,12 @@ non-2xx answer as a failed save, whatever the body. Rejected: a JSON body such a
 `{ error: [...] }`. The draft script reads that shape only on a 200, and the modal would need a
 reader for it.
 
-**D4. The status is the number `422`.** Rack 3.1 and later print a deprecation warning for
-`:unprocessable_entity` on Rails 7.1, which gives the symbol to Rack as it is. Rails 7.2.3 and 8.1
-give Rack the new symbol in its place. `:unprocessable_content` exists only from Rack 3.1, so a host app on an
-earlier Rack would get an `ArgumentError`. The number holds across the support range. The cop
+**D4. The status is the number `422`.** Rails 6.1 to 7.2.2 give a status symbol to Rack as it is.
+There, Rack 3.1 and later print a deprecation warning for `:unprocessable_entity`. A Rack before 3.1
+raises an `ArgumentError` for `:unprocessable_content`, which exists only from Rack 3.1. Rails 7.2.3
+and 8.1 change each symbol to the one that the Rack of the host knows.
+
+The number holds across the support range. The cop
 `Rails/HttpStatus` would change it to the new symbol, so a `rubocop:disable` comment stops it at
 that line.
 
