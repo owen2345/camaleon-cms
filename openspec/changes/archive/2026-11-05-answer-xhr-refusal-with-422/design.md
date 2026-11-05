@@ -35,7 +35,8 @@ non-2xx answer as a failed save, whatever the body. Rejected: a JSON body such a
 reader for it.
 
 **D4. The status is the number `422`.** Rack 3.1 and later print a deprecation warning for
-`:unprocessable_entity`. `:unprocessable_content` exists only from Rack 3.1, so a host app on an
+`:unprocessable_entity` on Rails 7.1, which gives the symbol to Rack as it is. Rails 7.2.3 and 8.1
+give Rack the new symbol in its place. `:unprocessable_content` exists only from Rack 3.1, so a host app on an
 earlier Rack would get an `ArgumentError`. The number holds across the support range. The cop
 `Rails/HttpStatus` would change it to the new symbol, so a `rubocop:disable` comment stops it at
 that line.
