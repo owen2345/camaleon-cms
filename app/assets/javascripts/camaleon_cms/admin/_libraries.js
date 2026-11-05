@@ -2,6 +2,15 @@ function log(d) {
     if (console.log)console.log(d);
 }
 
+// The message of a refused admin save, or '' when the failed XHR is no refusal. AdminController answers
+// a refusal with the message as plain text and a 422. A 422 of another type is an error page: a CSRF
+// failure answers with JSON or HTML.
+function cama_text_refusal(xhr) {
+    if (!xhr || xhr.status !== 422) return '';
+    if (!/^text\/plain\b/i.test(xhr.getResponseHeader('Content-Type') || '')) return '';
+    return String(xhr.responseText == null ? '' : xhr.responseText).trim();
+}
+
 // prepend flash message into current element
 // message: text message
 // kind: string kind of message, default danger (success, danger, info, warning)

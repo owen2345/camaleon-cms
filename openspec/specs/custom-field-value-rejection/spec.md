@@ -447,6 +447,12 @@ GET or HEAD request is no submitted save and SHALL be raised, not answered.
 - **THEN** the response is a 422 with the refusal as text, and the post editor shows the refusal and
   keeps the post on the form, as for a refused meta or option
 
+#### Scenario: An error page with a 422 is no refusal
+
+- **WHEN** a draft save or a nav menu item settings save gets an error page with a 422, for example
+  of a CSRF failure
+- **THEN** the post editor or the modal shows its generic failure message, not the body of the page
+
 #### Scenario: A container that is not a set of fields, by XHR
 
 - **WHEN** a category save by XHR carries `meta[]=x`

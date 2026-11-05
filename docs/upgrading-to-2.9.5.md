@@ -439,8 +439,8 @@ callback.
 
 A third argument, `on_failure`, runs when the save does not succeed:
 
-- the server refuses it, with a 200 that carries `error` messages or with a 422 that carries the message
-  as text (the messages are shown as text);
+- the server refuses it, with `error` messages in a 200 or the message in a `text/plain` 422 (shown
+  as text);
 - the request fails or has not returned after `App_post.save_timeout_ms` (30 seconds);
 - the answer names no draft (`{}`, `null`, `{draft: {}}`) or refuses without a message, blank ones not
   counting (both count as a failed request);
@@ -658,7 +658,8 @@ shows the refusal in its alert and keeps the post on the form, as it does for a 
 option. Before, it showed "The draft could not be saved".
 
 **Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
-and reads the answer. Read a 422 as the refusal, with the message in the body.
+and reads the answer. Read a `text/plain` 422 as the refusal, with the message in the body. A 422
+of another type is an error page, for example of a CSRF failure.
 
 ---
 

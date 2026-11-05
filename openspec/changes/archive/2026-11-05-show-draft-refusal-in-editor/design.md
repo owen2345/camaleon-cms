@@ -10,12 +10,13 @@ refused custom-field value with the message as text and a 422, which went to the
 
 ## Decisions
 
-**D1. The script reads a 422 with a message as a refusal.** The `error` handler of `draft_request`
-takes `xhr.responseText` of a 422 as the refusal and runs the same `refused` function as the 200
-path. The shared answer of `AdminController` does not change. Rejected: a rescue in
+**D1. The script reads a plain-text 422 with a message as a refusal.** The `error` handler of
+`draft_request` takes `xhr.responseText` of a `text/plain` 422 as the refusal and runs the same
+`refused` function as the 200 path. A 422 of another type is an error page, for example the JSON or
+HTML of a CSRF failure, and is a failed request. The shared answer of `AdminController` does not change. Rejected: a rescue in
 `DraftsController` that answers `{ error: [...] }` with a 200. It would give the draft save an answer
 of its own, apart from the requirement that every other XHR gets a 422, and a plugin that answers a
-422 with a message of its own would still show the generic alert.
+plain-text 422 with a message of its own would still show the generic alert.
 
 **D2. A 422 with no message is a failed request.** The script has nothing to show, so the generic
 alert stays, and the timer retries.

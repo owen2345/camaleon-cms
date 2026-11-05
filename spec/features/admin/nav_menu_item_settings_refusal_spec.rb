@@ -46,6 +46,23 @@ RSpec.describe 'the nav menu item settings modal', :js do
     expect(item.reload.get_field_value('menu_attr')).to be_blank
   end
 
+  # A 422 that is not a refusal: production answers a CSRF failure with public/422.html. The modal
+  # shows a generic message, not the source of that page.
+  it 'shows a generic message for a 422 that is not a refusal' do
+    open_item_settings
+    allow_any_instance_of(CamaleonCms::NavMenuItem)
+      .to receive(:set_field_values).and_raise(ActionController::InvalidAuthenticityToken)
+
+    with_production_error_pages do
+      save_attribute('plain note')
+
+      within '#ow_inline_modal' do
+        expect(page).to have_css('.cama_save_refusal', text: 'The settings could not be saved')
+      end
+    end
+    expect(page).to have_no_css('.cama_save_refusal', text: 'rejected')
+  end
+
   it 'stores a value and closes the modal' do
     open_item_settings
     save_attribute('plain note')

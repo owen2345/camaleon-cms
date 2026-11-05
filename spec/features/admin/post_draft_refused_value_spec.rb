@@ -37,4 +37,21 @@ RSpec.describe 'Post editor draft save with a refused custom-field value', :js d
     expect(buffer).to be_present
     expect(buffer.get_field_value('draft_attr')).to be_blank
   end
+
+  # A 422 that is not a refusal: production answers a CSRF failure of the JSON request with a JSON
+  # body. The editor shows the failed save, not that body.
+  it 'shows a failed save for a 422 that is not a refusal' do
+    visit new_post_path
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    fill_in 'post_title', with: 'Forged draft'
+    allow_any_instance_of(CamaleonCms::Admin::Posts::DraftsController)
+      .to receive(:post_params_refusals).and_raise(ActionController::InvalidAuthenticityToken)
+
+    with_production_error_pages do
+      page.execute_script('App_post.save_draft_ajax(null, false)')
+
+      expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    end
+    expect(page).to have_no_css('#cama_alert_modal', text: 'Unprocessable')
+  end
 end
