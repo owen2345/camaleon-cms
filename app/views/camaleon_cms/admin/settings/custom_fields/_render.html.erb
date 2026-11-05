@@ -57,11 +57,7 @@
                 </div>
                 <%
                   field_options_json = if params[:field_options].present?
-                                         params[:field_options].to_unsafe_h.each_with_object([]) do |(_k, v), r|
-                                           r << v.each_with_object({}) do |(kk, vv), val|
-                                             val[kk.to_s] = (vv['values'].values rescue vv['values'])
-                                           end
-                                         end.to_json
+                                         cama_submitted_field_values(params[:field_options]).to_json
                                        else
                                          record.get_fields_grouped(fields.pluck(:slug).uniq).to_json
                                        end

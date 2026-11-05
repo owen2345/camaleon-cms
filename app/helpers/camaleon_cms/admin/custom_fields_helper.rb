@@ -357,6 +357,26 @@ module CamaleonCms
         hooks_run('custom_field_custom_models', f_args)
         f_args[:models]
       end
+
+      # The values that a request submits for the field groups of a record, in the shape that
+      # build_custom_field_group reads: one Hash per group, from the slug of a field to its values. The
+      # custom-fields partial shows them again when an admin save renders its form again. A param that
+      # is not a set of groups, a group that is not a set of fields and a field entry that is not a set
+      # of attributes are left out. So a malformed param gives an empty list, not a 500.
+      def cama_submitted_field_values(submitted)
+        return [] unless submitted.is_a?(ActionController::Parameters)
+
+        submitted.to_unsafe_h.values.filter_map do |group|
+          next unless group.is_a?(Hash)
+
+          group.each_with_object({}) do |(slug, entry), values|
+            next unless entry.is_a?(Hash)
+
+            submitted_values = entry['values']
+            values[slug.to_s] = submitted_values.is_a?(Hash) ? submitted_values.values : submitted_values
+          end
+        end
+      end
     end
   end
 end
