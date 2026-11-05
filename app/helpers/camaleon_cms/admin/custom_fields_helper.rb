@@ -121,7 +121,8 @@ module CamaleonCms
       # build_custom_field_group reads: one Hash per group, from the slug of a field to its values. The
       # custom-fields partial shows them again when an admin save renders its form again. A param that
       # is not a set of groups, a group that is not a set of fields and a field entry that is not a set
-      # of attributes are left out. So a malformed param gives an empty list, not a 500.
+      # of attributes are left out. So a malformed param raises no 500, and the form shows only the
+      # values of what is well formed.
       def cama_submitted_field_values(submitted)
         return [] unless submitted.is_a?(ActionController::Parameters)
 
@@ -132,7 +133,7 @@ module CamaleonCms
             next unless entry.is_a?(Hash)
 
             submitted_values = entry['values']
-            values[slug.to_s] = submitted_values.is_a?(Hash) ? submitted_values.values : submitted_values
+            values[slug] = submitted_values.is_a?(Hash) ? submitted_values.values : submitted_values
           end
         end
       end

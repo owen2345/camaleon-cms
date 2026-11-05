@@ -38,7 +38,7 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
       helper.cama_submitted_field_values(ActionController::Parameters.new(field_options: payload)[:field_options])
     end
 
-    it 'reads the values of each field of each group, in the order of their index' do
+    it 'reads the values of each field of each group, in the order of submission' do
       payload = { '0' => { 'note' => { 'id' => '1', 'values' => { '1' => 'b', '0' => 'a' } } },
                   '1' => { 'note' => { 'id' => '1', 'values' => %w[c] } } }
 
