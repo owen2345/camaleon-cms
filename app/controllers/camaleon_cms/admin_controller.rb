@@ -129,7 +129,8 @@ module CamaleonCms
     # only give it the admin page, with the flash consumed. The nav menu item settings modal is one.
     def refuse_admin_save(message)
       if request.xhr? && params[:cama_ajax_request].blank?
-        render plain: message, status: :unprocessable_entity
+        # A number: Rack 3.1 deprecates :unprocessable_entity, and earlier Rack has no :unprocessable_content.
+        render plain: message, status: 422 # rubocop:disable Rails/HttpStatus
       else
         flash[:error] = message
         redirect_back fallback_location: cama_admin_dashboard_path
