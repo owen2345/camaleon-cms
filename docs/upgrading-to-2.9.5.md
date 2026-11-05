@@ -638,9 +638,14 @@ It can drop the conversion only when the payload holds no String key and its Sym
 
 ### An XHR admin save that is refused gets a 422
 
-The admin panel refuses a save in these cases: a custom-field value with unsafe content or with an
-invalid group number, a `cama_post_decorator_class` option that names no post decorator, and a meta
-or options container that is not a set of fields. Before, each refused save answered with a redirect
+The admin panel refuses a save in these cases:
+
+- a custom-field value with unsafe or too large content, with an invalid group number, or with a
+  slug that names no custom field;
+- a `cama_post_decorator_class` option that names no post decorator;
+- a meta or options container that is not a set of fields.
+
+Before, each refused save answered with a redirect
 back and the message in a flash. A script that posted the save by XHR followed the redirect and got
 the admin page. The nav menu item settings modal then closed as if the save had passed, and no page
 showed the flash.

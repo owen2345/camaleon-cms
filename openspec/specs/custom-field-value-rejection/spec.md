@@ -417,9 +417,14 @@ values as before. A plain Hash with a String key and its Symbol twin at one leve
 
 ### Requirement: A refused admin save answers by the kind of the request
 
-The admin panel refuses a save for a custom-field value (unsafe content, an invalid group number),
-for a post type option that names no post decorator, and for a meta or options container that is
-not a set of fields. Each refusal SHALL answer in the same way, by the kind of the request:
+The admin panel refuses a save in these cases:
+
+- a custom-field value with unsafe or too large content, an invalid group number, or a slug that
+  names no custom field;
+- a post type option that names no post decorator;
+- a meta or options container that is not a set of fields.
+
+Each refusal SHALL answer in the same way, by the kind of the request:
 
 - A submitted form SHALL get a redirect back, with the message as a flash error.
 - An XHR that carries the `cama_ajax_request` param (an admin page that `camaleon_admin_ajax` loads
