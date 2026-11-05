@@ -215,11 +215,13 @@ function cama_init_post(obj) {
             // message, or an error page (cama_text_refusal).
             error: function (xhr, status) {
                 var for_submit = status === 'submit';
-                var refusal = !for_submit && cama_text_refusal(xhr);
                 try {
                     if (for_submit) { if (on_failure) on_failure(); }
-                    else if (refusal) refused(refusal);
-                    else request_failed();
+                    else {
+                        var refusal = cama_text_refusal(xhr);
+                        if (refusal) refused(refusal);
+                        else request_failed();
+                    }
                 }
                 finally { save_finished(for_submit); }
             },
