@@ -562,7 +562,7 @@ written by plugin and theme save hooks as well as by core. Every option writer (
 holds the option to an allowlist. A write that sets or changes the option must name a subclass of `CamaleonCms::PostDecorator`.
 
 A write that names any other value is refused with an error that names the option, and the value when it is a class name. The admin panel answers
-that refusal as a refused admin save answers (`custom-field-value-rejection`). It raises a refusal that comes while serving a page,
+that refusal as `openspec/specs/custom-field-value-rejection/spec.md` specifies for a refused admin save. It raises a refusal that comes while serving a page,
 where a redirect would only reach another page that refuses. A value passed in `data_options`, or in the `_default` meta of
 `data_metas`, fails the save as a validation, before anything is written. A blank value clears it, and a write that leaves a stored value unchanged is not refused for it.
 

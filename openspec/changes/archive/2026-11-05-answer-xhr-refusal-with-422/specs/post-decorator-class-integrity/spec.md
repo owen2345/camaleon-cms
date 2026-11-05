@@ -2,8 +2,8 @@
 
 ### Requirement: A refusal from a save hook surfaces in the admin panel
 
-When a save hook of a post type writes a value that the check refuses, the admin panel SHALL NOT
-answer with a server error. It SHALL answer as a refused admin save answers
+A hook run after an admin post type save can write a value that the check refuses. The admin panel
+SHALL NOT answer that refusal with a server error. It SHALL answer as a refused admin save answers
 (`custom-field-value-rejection`, the requirement "A refused admin save answers by the kind of the
 request"). The post type's own attributes, saved before the hook ran, remain saved. The message
 SHALL quote the value only when it is a class name, cut short, and SHALL NOT echo any other value. A refusal that comes
