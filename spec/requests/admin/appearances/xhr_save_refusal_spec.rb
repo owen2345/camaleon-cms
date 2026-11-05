@@ -81,8 +81,8 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
     end
   end
 
-  # The other refusal that the admin shows as a flash: a meta or options container that is not a set
-  # of fields.
+  # The admin also refuses a meta or options container that is not a set of fields. It answers that
+  # refusal in the same way.
   describe 'a category save with a meta container that is not a set of fields' do
     let(:admin) { create(:user_admin, site: current_site) }
     let(:post_type) { current_site.post_types.find_by(slug: 'post') }

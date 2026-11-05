@@ -125,8 +125,8 @@ module CamaleonCms
     # Answers a refused admin save with its message. A submitted form gets the message as a flash and
     # a redirect back. So does an XHR that loads admin pages in place (camaleon_admin_ajax sends
     # cama_ajax_request): it shows the redirected page, with the flash. Any other XHR gets the message
-    # as text with a 422, and no flash: such a script reads the answer itself, and a redirect would
-    # only give it the admin page, with the flash consumed. The nav menu item settings modal is one.
+    # as text with a 422, and no flash. Such a script, for example the nav menu item settings modal,
+    # reads the answer itself. A redirect gives it only the admin page, and that page uses up the flash.
     def refuse_admin_save(message)
       if request.xhr? && params[:cama_ajax_request].blank?
         # A number: Rack 3.1 deprecates :unprocessable_entity, and earlier Rack has no :unprocessable_content.
