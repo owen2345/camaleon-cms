@@ -137,7 +137,8 @@ module CamaleonCms
       private
 
       # One field type of the table: its key, its label for the custom-fields editor, a deep copy of its
-      # options and, when it has them, its extra fields. Private, so that no plugin or theme binds to it.
+      # options and, when it has them, its extra fields. It is private because it is no public API.
+      # Private does not stop every call: the `h` proxy of a Draper decorator calls a helper with `send`.
       def cf_element(key, label, options, extra_fields = nil)
         { key: key, label: label, options: options.deep_dup, extra_fields: extra_fields.deep_dup }.compact
       end
