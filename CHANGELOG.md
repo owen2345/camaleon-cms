@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** An admin save that renders its form again, after a refusal or a failed validation, no longer answers with a 500 when `field_options` is not a set of groups of fields and the record has a custom field group. The form renders with no submitted custom-field value. [#1336](https://github.com/owen2345/camaleon-cms/pull/1336).
+
 - **Bug fix:** A refused admin save now answers an XHR without `cama_ajax_request` with the message as text and a 422, not with a redirect and a flash. The nav menu item settings modal shows the refusal and stays open, and the post editor shows a refused value of a draft save. [#1335](https://github.com/owen2345/camaleon-cms/pull/1335).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#an-xhr-admin-save-that-is-refused-gets-a-422).
 
