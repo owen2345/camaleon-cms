@@ -77,6 +77,7 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
 
       expect(response).to redirect_to('/admin/appearances/nav_menus')
       expect(flash[:error]).to eq(refusal_of(field))
+      expect(item.reload.get_field_value(field.slug)).to be_blank
     end
   end
 
@@ -88,7 +89,7 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
 
     before { sign_in_as(admin, site: current_site) }
 
-    it 'answers an XHR with the message and a 422, and stores no category' do
+    it 'answers an XHR with the message and a 422, and stores no option of the category' do
       post "/admin/post_type/#{post_type.id}/categories",
            params: 'category[name]=XHR+cat&category[slug]=xhr-cat&meta[]=x',
            headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }, xhr: true
