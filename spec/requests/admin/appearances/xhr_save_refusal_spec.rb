@@ -46,7 +46,7 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
     it 'answers an XHR with the refusal as text and a 422, stores nothing and sets no flash' do
       save_item_settings(script, xhr: true)
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.status).to eq(422)
       expect(response.media_type).to eq('text/plain')
       expect(response.body).to eq(refusal_of(field))
       expect(flash[:error]).to be_nil
@@ -70,7 +70,7 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
 
     it 'answers an XHR that loads admin pages in place with the redirect and the flash' do
       save_item_settings(script, xhr: true, headers: { 'HTTP_REFERER' => '/admin/appearances/nav_menus' })
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.status).to eq(422)
 
       post cama_admin_appearances_nav_menu_save_custom_settings_path(nav_menu_id: menu.id, id: item.id),
            params: { cama_ajax_request: 'true',
@@ -96,7 +96,7 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
            params: 'category[name]=XHR+cat&category[slug]=xhr-cat&meta[]=x',
            headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }, xhr: true
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.status).to eq(422)
       expect(response.body).to eq(I18n.t('camaleon_cms.admin.message.malformed_fields'))
       expect(flash[:error]).to be_nil
       expect(post_type.categories.find_by(slug: 'xhr-cat')&.options).to be_blank
@@ -129,7 +129,7 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
                                                                'values' => { '0' => script } } } } },
            xhr: true
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.status).to eq(422)
       expect(response.body).to eq(refusal_of(field))
       expect(flash[:error]).to be_nil
       buffer = post_type.posts.drafts.find_by(post_parent: parent.id)
