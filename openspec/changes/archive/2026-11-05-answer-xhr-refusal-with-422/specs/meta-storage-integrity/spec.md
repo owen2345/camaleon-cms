@@ -2,7 +2,7 @@
 
 ### Requirement: Meta and option writers refuse a container that is not a set of fields
 
-`set_metas` and `set_options` SHALL accept only a set of fields (a Hash, or request parameters) or nothing. A container that is present but not a set of fields, such as an array of pairs or a scalar, SHALL raise an argument error and store nothing. A `data_options` or `data_metas` value that is present but not a set of fields SHALL be refused the same way before the record's row is written, so no row is left behind it; a blank one SHALL be ignored. An admin save that passes such a container from the request SHALL answer with an error message, not a server error, and SHALL store none of it: on the submitted form's page for a submitted form, as text with a 422 for an XHR, as a refused admin save answers in `custom-field-value-rejection` (the requirement "A refused admin save answers by the kind of the request").
+`set_metas` and `set_options` SHALL accept only a set of fields (a Hash, or request parameters) or nothing. A container that is present but not a set of fields, such as an array of pairs or a scalar, SHALL raise an argument error and store nothing. A `data_options` or `data_metas` value that is present but not a set of fields SHALL be refused the same way before the record's row is written, so no row is left behind it; a blank one SHALL be ignored. An admin save that passes such a container SHALL store none of it and SHALL NOT answer with a server error. It SHALL answer as a refused admin save answers (`custom-field-value-rejection`, the requirement "A refused admin save answers by the kind of the request").
 
 #### Scenario: An array of pairs is refused by the writer
 

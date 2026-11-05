@@ -23,11 +23,10 @@ module CamaleonCms
 
       refuse_admin_save(record.errors.full_messages.to_sentence)
     end
-    # A meta or options container that is not a set of fields (an array of pairs, a scalar) is refused
-    # by the writers themselves (Metas::InvalidContainer), so every admin save that passes request
-    # params to set_metas/set_options answers the same way: named as refuse_admin_save answers (a
-    # flash for a submitted form, text with a 422 for an XHR), raised while serving a page, as for
-    # RecordInvalid above.
+    # The writers refuse a meta or options container that is not a set of fields, for example an array
+    # of pairs (Metas::InvalidContainer). So every admin save that passes request params to
+    # set_metas/set_options answers as refuse_admin_save says. The error is raised again for a GET or
+    # HEAD request, as for RecordInvalid above.
     rescue_from CamaleonCms::Metas::InvalidContainer do |exception|
       raise exception if request.get? || request.head?
 
