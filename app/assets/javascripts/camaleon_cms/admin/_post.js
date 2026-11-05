@@ -212,7 +212,7 @@ function cama_init_post(obj) {
             // reports for itself, so no alert; the failure handler closes what the caller opened. A plain-text
             // 422 with a message is a refusal of the draft's content (a custom-field value; AdminController
             // answers it as text), as a 200 with `error` is. Any other 422 is a failed request: one with no
-            // message, or an error page (a CSRF failure answers with JSON or HTML).
+            // message, or an error page (cama_text_refusal).
             error: function (xhr, status) {
                 var for_submit = status === 'submit';
                 var refusal = !for_submit && cama_text_refusal(xhr);
