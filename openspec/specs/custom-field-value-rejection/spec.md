@@ -420,9 +420,9 @@ values as before. A plain Hash with a String key and its Symbol twin at one leve
 The admin panel refuses a save in these cases:
 
 - a custom-field value with unsafe or too large content, an invalid group number, or a slug that
-  names no custom field;
-- a post type option that names no post decorator;
-- a meta or options container that is not a set of fields.
+  names no custom field
+- a post type option that names no post decorator
+- a meta or options container that is not a set of fields
 
 Each refusal SHALL answer in the same way, by the kind of the request:
 
