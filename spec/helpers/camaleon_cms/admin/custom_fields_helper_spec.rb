@@ -33,6 +33,34 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     end
   end
 
+  describe '#cama_custom_field_elements' do
+    before { allow(helper).to receive(:current_site).and_return(CamaleonCms::Site.first) }
+
+    it 'gives each field type its own options, so a hook that edits one type changes no other type' do
+      allow(helper).to receive(:hooks_run).with('extra_custom_fields', anything) do |_name, args|
+        args[:fields][:audio][:options][:required] = false
+        args[:fields][:file][:extra_fields].first[:label] = 'Changed'
+      end
+
+      fields = helper.cama_custom_field_elements
+
+      expect(fields[:audio][:options][:required]).to be(false)
+      expect(fields[:video][:options][:required]).to be(true)
+      expect(fields[:private_file][:extra_fields].first[:label]).to eq('File Formats (image,video,audio)')
+    end
+
+    it 'gives the next request the options as the table defines them' do
+      allow(helper).to receive(:hooks_run).with('extra_custom_fields', anything) do |_name, args|
+        args[:fields][:audio][:options][:required] = false
+      end
+      helper.cama_custom_field_elements
+      CurrentRequest.reset
+      allow(helper).to receive(:hooks_run)
+
+      expect(helper.cama_custom_field_elements[:audio][:options][:required]).to be(true)
+    end
+  end
+
   describe '#cama_submitted_field_values' do
     def submitted(payload)
       helper.cama_submitted_field_values(ActionController::Parameters.new(field_options: payload)[:field_options])

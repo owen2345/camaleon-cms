@@ -10,6 +10,8 @@ module CamaleonCms
       RECORD_OPTIONS = { required: true, multiple: true, show_frontend: true }.freeze
       REQUIRED_MULTIPLE_OPTIONS = { required: true, multiple: true }.freeze
       FORMATS_EXTRA_FIELDS = [{ type: 'text_box', key: 'formats', label: 'File Formats (image,video,audio)' }].freeze
+      private_constant :VALUE_OPTIONS, :TRANSLATED_VALUE_OPTIONS, :RECORD_OPTIONS, :REQUIRED_MULTIPLE_OPTIONS,
+                       :FORMATS_EXTRA_FIELDS
 
       def cama_custom_field_elements
         return CurrentRequest.custom_field_elements if CurrentRequest.custom_field_elements.present?
@@ -86,12 +88,6 @@ module CamaleonCms
         CurrentRequest.custom_field_elements = r[:fields]
       end
 
-      # One field type of the table: its key, its label for the custom-fields editor, a deep copy of its
-      # options and, when it has them, its extra fields.
-      def cf_element(key, label, options, extra_fields = nil)
-        { key: key, label: label, options: options.deep_dup, extra_fields: extra_fields.deep_dup }.compact
-      end
-
       # add your model class into custom fields editor
       # Note: to use custom fields on your model, you need the following:
       # - add: belongs_to :site (in your model)
@@ -136,6 +132,14 @@ module CamaleonCms
             values[slug] = submitted_values.is_a?(Hash) ? submitted_values.values : submitted_values
           end
         end
+      end
+
+      private
+
+      # One field type of the table: its key, its label for the custom-fields editor, a deep copy of its
+      # options and, when it has them, its extra fields. Private, so that no plugin or theme binds to it.
+      def cf_element(key, label, options, extra_fields = nil)
+        { key: key, label: label, options: options.deep_dup, extra_fields: extra_fields.deep_dup }.compact
       end
     end
   end
