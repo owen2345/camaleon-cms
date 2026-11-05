@@ -103,9 +103,9 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
     end
   end
 
-  # The draft save of the post editor sends an XHR too. Its script reads a 422 as a failed save, as it
-  # read the admin page that the redirect led to. The draft buffer keeps what the save stored before
-  # the custom-field values.
+  # The draft save of the post editor sends an XHR too. Its script shows the refusal of a plain-text
+  # 422 (post_draft_refused_value_spec). The draft buffer keeps what the save stored before the
+  # custom-field values.
   describe 'the draft save of the post editor' do
     let(:post_type) { current_site.post_types.find_by(slug: 'post') }
     let(:editor) { create(:user, role: 'editor', site: current_site) }
