@@ -42,8 +42,9 @@ that line.
 
 **D5. The 422 sets no flash.** A flash would show on the next page that the user opens.
 
-**D6. The modal shows a 422 in place, as text.** A refusal can quote user input. A failure that is
-not a 422 shows a generic message, `msg.save_failed` of the admin JavaScript locale. The spinner
+**D6. The modal shows a plain-text 422 in place, as text.** A refusal can quote user input. Any
+other failure shows a generic message, `msg.save_failed` of the admin JavaScript locale. A 422 of
+another type is one: an error page, for example of a CSRF failure. The spinner
 comes down on each outcome: before, a failed request left it up. A success keeps its answer: a
 non-empty body is alerted, and the modal closes.
 
