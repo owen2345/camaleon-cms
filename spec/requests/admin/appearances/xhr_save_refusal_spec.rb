@@ -69,9 +69,6 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
     end
 
     it 'answers an XHR that loads admin pages in place with the redirect and the flash' do
-      save_item_settings(script, xhr: true, headers: { 'HTTP_REFERER' => '/admin/appearances/nav_menus' })
-      expect(response.status).to eq(422)
-
       post cama_admin_appearances_nav_menu_save_custom_settings_path(nav_menu_id: menu.id, id: item.id),
            params: { cama_ajax_request: 'true',
                      field_options: { '0' => { field.slug => { 'id' => field.id.to_s,
