@@ -64,5 +64,10 @@ RSpec.configure do |config|
     # I18n.locale process-wide, so later examples otherwise run under whatever locale the last
     # request used (surfaced as es-locale "translation missing" in unrelated model specs).
     I18n.locale = I18n.default_locale
+    # A mailer that renders keeps its view as Draper's view context in RequestStore. Only a request
+    # clears that store, and Draper clears it only before decorator, controller and mailer examples.
+    # Without this reset, a later model example decorates with the mailer view, which does not have
+    # the Camaleon frontend helpers (NoMethodError on `h.verify_front_visibility`).
+    Draper::ViewContext.clear!
   end
 end
