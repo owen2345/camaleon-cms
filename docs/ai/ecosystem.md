@@ -306,6 +306,10 @@ Changes that look free from inside this repository and are not:
     that the call deleted.
   - Both methods need `custom_field_values` to be a `has_many` association. No consumer defines it
     as a plain relation.
+- **`get_field_value` and `get_field_values` with an invalid group number** (#1337) change no
+  surveyed consumer. The two readers now read no value for an invalid group number, other
+  than a negative Integer down to -2147483648, or a list of valid numbers and such negative
+  Integers, which reads each group in the list. Each surveyed call reads the default group number 0.
 - **`set_field_values` with a plain Hash with String keys** changes no surveyed consumer. Each
   surveyed caller passes request parameters or the result of `cama_permitted_field_options`, which
   has indifferent access. `camaleon-cms-shoppy` and the `new` theme of `camaleon_website` pass the

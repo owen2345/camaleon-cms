@@ -33,7 +33,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
 | Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
-| Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). The two methods raise `ActiveRecord::RecordInvalid` for any other number ([details](#custom-field-group-numbers-are-validated)) |
+| Has plugin or theme code that passes a group number to `set_field_value`, `set_field_values`, `get_field_value` or `get_field_values`, or rescues an error of `set_field_value` or `set_field_values` | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). `set_field_value` and `set_field_values` raise `ActiveRecord::RecordInvalid` for any other number. The two readers read no value for any other number, except a negative Integer down to -2147483648. They read each group of a list of such numbers (`[0, 1]`, `[-1, 0]`) ([details](#custom-field-group-numbers-are-validated)) |
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
@@ -559,7 +559,8 @@ raise `ActiveRecord::RecordInvalid`. In the admin, the save shows the error in a
 the record keeps its stored values. The admin forms of Camaleon always send a valid number.
 
 **Who must act:** check plugin or theme code that passes a group number to `set_field_value` or
-`set_field_values`. Also check code that rescues an error of those two methods.
+`set_field_values`. Also check code that rescues an error of those two methods, and code that
+passes a group number to `get_field_value` or `get_field_values`.
 
 | Group number | Before | Now |
 | --- | --- | --- |
@@ -574,6 +575,22 @@ the record keeps its stored values. The admin forms of Camaleon always send a va
 `set_field_values` still reads an absent or empty group number as group 0.
 `cama_permitted_field_options` now keeps a group number that is a list or a hash, with its content
 removed, so the save fails.
+
+**Reads.** `get_field_value` and `get_field_values` read no value for an invalid group number other
+than a negative Integer down to -2147483648 or a list (below), also with a loaded
+`custom_field_values` association. `get_field_value` then returns its default. Before, without a
+loaded association, they read `'1abc'` and `true` as group 1, `' 5'` as 5, and `2.5` and `'2.5'`
+as 2. With a loaded `custom_field_values` association, a String of digits (`'1'`) now reads its
+group, as it does without one. Before, it read no value there.
+
+A list now reads each group in the list, with or without a loaded association. Each number of
+the list must be a valid number or a negative Integer down to -2147483648 (`[0, 1]`, `[-1, 0]`). A
+list with any other group number reads no value.
+Before, a list read its groups only when the association was not loaded, and it read `'1abc'` as
+group 1.
+
+With a loaded `custom_field_values` association, a Symbol key (`:note`) now reads the values of its
+slug, as it does without one. Before, it read no value there.
 
 **Other changes of `set_field_value` and `set_field_values`**
 

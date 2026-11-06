@@ -205,6 +205,13 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **Calls with no values.** `set_field_value` with an empty list of values MUST get the error, and
   it SHALL validate the group number before it deletes a stored value. An entry of
   `set_field_values` with no values MUST get the error too.
+- **Reads.** `get_field_values` SHALL read no value for an invalid group number, other than a
+  negative Integer down to -2147483648 or a list. `get_field_value` SHALL return its default for
+  such a number. A negative Integer down to -2147483648 reads a stored value with that number. A
+  list (Array) of group numbers that `get_field_values` reads SHALL read the values of each group in
+  the list. A list with any other group number SHALL read no value. Each group number SHALL read
+  the same values with or without a loaded `custom_field_values` association, for a String key and
+  for a Symbol key.
 - **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
   `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
@@ -301,6 +308,40 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **WHEN** a caller copies a value with `dup`, and the value holds an invalid group number
 - **THEN** the save of the copy returns false, the copy holds the message of the group number
   error, and the save stores no row
+
+#### Scenario: A reader with a group number that the integer cast misreads
+
+- **WHEN** `get_field_values` or `get_field_value` gets `'1abc'` or `true` as the group number
+- **THEN** it reads no value, and `get_field_value` returns its default
+
+#### Scenario: A reader with an Integer outside the 4-byte range
+
+- **WHEN** a stored value holds a group number outside the 4-byte range (SQLite, a `bigint` column)
+- **AND** `get_field_values` gets that number, with or without a loaded association
+- **THEN** it reads no value
+
+#### Scenario: A reader with a String of digits and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `'1'` as the group number
+- **THEN** it reads the values of group 1
+
+#### Scenario: A reader with a Symbol key and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `:note` as the key
+- **THEN** it reads the values of the slug `note`
+
+#### Scenario: A reader with a list of group numbers
+
+- **WHEN** `get_field_values` gets `[0, 1]` as the group number, with or without a loaded
+  association
+- **THEN** it reads the values of group 0 and of group 1
+
+#### Scenario: A reader with a list that holds an invalid group number
+
+- **WHEN** `get_field_values` gets `[1, '1abc']` as the group number
+- **THEN** it reads no value
 
 #### Scenario: An empty list of values with an invalid group number
 

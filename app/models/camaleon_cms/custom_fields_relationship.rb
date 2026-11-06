@@ -105,6 +105,17 @@ module CamaleonCms
     end
 
     class << self
+      # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
+      # digits with such a number ('5'). Each other class is invalid. The encoding test comes before the
+      # regexp, because the regexp raises an error for a String in an invalid encoding.
+      def storable_group_number?(given)
+        return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
+        return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
+        return false if GroupNumberType.unreadable?(given)
+
+        given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
+      end
+
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).
       def gated_field_key?(field_key)
         GATED_FIELD_KEYS.include?(field_key.to_s)
@@ -218,18 +229,7 @@ module CamaleonCms
     # becomes 0, and true becomes 1. nil is valid: a value can have no group number.
     def group_number_refused?
       given = group_number_before_type_cast
-      !(given.nil? || storable_group_number?(given))
-    end
-
-    # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
-    # digits with such a number ('5'). Each other class is invalid. The encoding test comes before the
-    # regexp, because the regexp raises an error for a String in an invalid encoding.
-    def storable_group_number?(given)
-      return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
-      return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
-      return false if GroupNumberType.unreadable?(given)
-
-      given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
+      !(given.nil? || self.class.storable_group_number?(given))
     end
 
     # The message in the current language, or in English when that language has no translation. Only

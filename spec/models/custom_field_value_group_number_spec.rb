@@ -135,6 +135,93 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The integer cast reads '1abc' as group 1. So the readers read no value for a group number that is
+  # not nil, an Integer in the 4-byte range, a valid String or a list of them.
+  describe 'get_field_values' do
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    ['1abc', '-1', '', true, 1.5, 2_147_483_648, -2_147_483_649, [[1]], [1, '1abc'], "1\xFF",
+     '1'.encode('UTF-16LE')].each do |group_number|
+      it "reads no value for the group number #{group_number.inspect}" do
+        expect(post.get_field_values('note', group_number)).to eq([])
+        expect(post.get_field_value('note', 'default', group_number)).to eq('default')
+      end
+
+      it "reads no value for the group number #{group_number.inspect} with a loaded association" do
+        post.custom_field_values.load
+
+        expect(post.get_field_values('note', group_number)).to eq([])
+      end
+    end
+
+    # A list reads the values of each group in the list.
+    [[0, 1], [0, '1'], [1, nil, 0]].each do |group_numbers|
+      it "reads the values of each group of the list #{group_numbers.inspect}, with or without a loaded association" do
+        post.set_field_value('note', 'zero', group_number: 0)
+
+        expect(post.reload.get_field_values('note', group_numbers)).to contain_exactly('zero', 'kept')
+        post.custom_field_values.load
+        expect(post.get_field_values('note', group_numbers)).to contain_exactly('zero', 'kept')
+      end
+    end
+
+    # The database reads a Symbol key as its String, and so does a loaded association.
+    it 'reads the values of a Symbol key, with or without a loaded association' do
+      expect(post.get_field_values(:note, 1)).to eq(['kept'])
+      expect(post.get_field_value(:note, 'default', 1)).to eq('kept')
+
+      post.custom_field_values.load
+      expect(post.get_field_values(:note, 1)).to eq(['kept'])
+      expect(post.get_field_value(:note, 'default', 1)).to eq('kept')
+    end
+
+    it 'reads no value for an empty list' do
+      expect(post.get_field_values('note', [])).to eq([])
+      expect(post.get_field_value('note', 'default', [])).to eq('default')
+    end
+
+    it 'reads the group given as a String of digits, with or without a loaded association' do
+      expect(post.get_field_values('note', '1')).to eq(['kept'])
+
+      post.custom_field_values.load
+      expect(post.get_field_values('note', '1')).to eq(['kept'])
+    end
+
+    it 'reads a stored value with a negative group number' do
+      described_class.where(custom_field_slug: 'note').update_all(group_number: -1) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(post.reload.get_field_values('note', -1)).to eq(['kept'])
+    end
+
+    it 'reads each group of a list that holds a negative group number, with or without a loaded association' do
+      post.set_field_value('note', 'zero', group_number: 0)
+      described_class.where(custom_field_slug: 'note', group_number: 1).update_all(group_number: -1) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(post.reload.get_field_values('note', [-1, 0])).to contain_exactly('kept', 'zero')
+      post.custom_field_values.load
+      expect(post.get_field_values('note', [-1, 0])).to contain_exactly('kept', 'zero')
+    end
+
+    it 'reads no stored value with a negative group number given as a String' do
+      described_class.where(custom_field_slug: 'note').update_all(group_number: -1) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(post.reload.get_field_values('note', '-1')).to eq([])
+      post.custom_field_values.load
+      expect(post.get_field_values('note', '-1')).to eq([])
+    end
+
+    # The readers read an Integer from -2147483648 to 2147483647: the 4-byte range of the type.
+    [-2_147_483_648, 2_147_483_647].each do |number|
+      it "reads a stored value with the group number #{number}, with or without a loaded association" do
+        described_class.where(custom_field_slug: 'note').update_all(group_number: number) # rubocop:disable Rails/SkipsModelValidations
+
+        expect(post.reload.get_field_values('note', number)).to eq(['kept'])
+        post.custom_field_values.load
+        expect(post.get_field_values('note', number)).to eq(['kept'])
+      end
+    end
+  end
+
   # The method validates the current group number, not the errors of an earlier validation.
   describe 'refuse_invalid_group_number!' do
     let(:row) { described_class.new(custom_field_slug: 'note', group_number: -1) }
@@ -413,10 +500,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
           expect(post.custom_field_values.where.not(group_number: number)).to eq([row])
         end
 
-        it 'reads the value of the row through a loaded association' do
+        # The readers read an Integer only in the 4-byte range. So a loaded association reads no value,
+        # as the database does, on each database.
+        it 'reads no value through a loaded association either' do
           post.custom_field_values.load
 
-          expect(post.get_field_values('note', number)).to eq(['kept'])
+          expect(post.get_field_values('note', number)).to eq([])
+          expect(post.get_field_value('note', 'default', number)).to eq('default')
         end
 
         it 'reads the stored number and updates the value of the row' do

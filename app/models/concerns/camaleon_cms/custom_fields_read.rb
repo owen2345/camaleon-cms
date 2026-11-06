@@ -98,15 +98,18 @@ module CamaleonCms
     alias get_field! get_field_value
 
     # get custom field values
-    # _key: custom field key
+    # _key: custom field key, a String or a Symbol
+    # group_number: nil, an Integer from -2147483648 to 2147483647, or a String of 1 to 16 digits with a
+    #               number from 0 to 2147483647 ('5'). Each other group number reads no value: the
+    #               integer cast reads '1abc' as group 1, and the database finds no row outside the
+    #               4-byte range. A list (Array) of such group numbers reads the values of each group in
+    #               the list, and a list with any other group number reads no value. Each group number
+    #               reads the same values with or without a loaded custom_field_values association.
     def get_field_values(_key, group_number = 0)
-      if custom_field_values.loaded?
-        custom_field_values.select do |f|
-          f.custom_field_slug == _key && f.group_number == group_number
-        end.map(&:value)
-      else
-        custom_field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
-      end
+      rows = _cama_field_values_in_group(_key, group_number)
+      return [] unless rows
+
+      rows.is_a?(Array) ? rows.map(&:value) : rows.pluck(:value)
     end
     alias get_fields get_field_values
 
@@ -478,6 +481,34 @@ module CamaleonCms
         data.each_value { |value| _cama_refuse_twin_keys!(value) }
       when Array
         data.each { |value| _cama_refuse_twin_keys!(value) }
+      end
+    end
+
+    # True for a group number that get_field_values can read: nil, an Integer in the 4-byte range of
+    # the attribute, or a valid String. A stored value can hold a negative number from an earlier
+    # release. The database finds no row with an Integer outside that range, so a loaded association
+    # reads no value with it either.
+    def _cama_readable_group_number?(group_number)
+      max = CamaleonCms::CustomFieldsRelationship::MAX_GROUP_NUMBER
+      return group_number.between?(-max - 1, max) if group_number.is_a?(Integer)
+
+      group_number.nil? || CamaleonCms::CustomFieldsRelationship.storable_group_number?(group_number)
+    end
+
+    # The values of the field `key` with the group number, or with a group number of the list, as
+    # get_field_values reads them: an Array from a loaded custom_field_values association, else a
+    # relation. Nil when get_field_values cannot read the group number, or a group number of the list.
+    def _cama_field_values_in_group(key, group_number)
+      numbers = group_number.is_a?(Array) ? group_number : [group_number]
+      return unless numbers.all? { |number| _cama_readable_group_number?(number) }
+
+      numbers = numbers.map { |number| number.is_a?(String) ? number.to_i : number }
+      if custom_field_values.loaded?
+        # The database reads a Symbol key as its String, so the loaded branch compares the String too.
+        slug = key.is_a?(Symbol) ? key.to_s : key
+        custom_field_values.select { |f| f.custom_field_slug == slug && numbers.include?(f.group_number) }
+      else
+        custom_field_values.where(custom_field_slug: key, group_number: numbers)
       end
     end
 
