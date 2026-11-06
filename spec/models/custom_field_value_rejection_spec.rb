@@ -230,7 +230,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_value('body')).to eq('<p>ok</p>')
     end
 
-    # update_field_value updates the row that a loaded association holds, and the readers read that row.
+    # update_field_value updates the stored row, and puts only a saved value in the row that a loaded
+    # association holds. So a refused update changes no row, and the readers read the stored value.
     it 'keeps the stored value in a loaded association after a refused update_field_value' do
       as_user(contributor)
       post.set_field_value('body', '<p>ok</p>')
