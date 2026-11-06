@@ -226,9 +226,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       as_user(contributor)
       post.set_field_value('body', '<p>ok</p>')
 
-      post.update_field_value('body', script)
-
+      expect(post.update_field_value('body', script)).to be(false)
       expect(post.reload.get_field_value('body')).to eq('<p>ok</p>')
+    end
+
+    # update_field_value updates the row that a loaded association holds, and the readers read that row.
+    it 'keeps the stored value in a loaded association after a refused update_field_value' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>ok</p>')
+      post.custom_field_values.load
+
+      expect(post.update_field_value('body', script)).to be(false)
+      expect(post.get_field_value('body')).to eq('<p>ok</p>')
+      expect(post.custom_field_values.find { |row| row.custom_field_slug == 'body' }).not_to be_changed
     end
 
     # Audit M8: the admin form round-trips every value and set_field_values delete/recreates them

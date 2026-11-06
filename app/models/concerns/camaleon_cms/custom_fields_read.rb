@@ -283,8 +283,7 @@ module CamaleonCms
             group_number = 0 if group_number.nil? || (group_number == '' && group_number.encoding.ascii_compatible?)
             if values[:values].blank?
               # The entry has no value to create, so validate its group number here.
-              CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: field_key, group_number: group_number)
-                                                   .refuse_invalid_group_number!
+              _cama_refuse_invalid_group_number!(field_key, group_number)
               next
             end
 
@@ -317,14 +316,34 @@ module CamaleonCms
     end
 
     # Update the value for the field with slug _key
-    # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
+    # group_number: nil, an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a
+    #               number ('5'), as in set_field_value. A negative Integer down to -2147483648 finds a
+    #               stored value with that number, from an earlier release.
+    # Returns true for a saved value, false when a validation refuses the value, and nil when no
+    # stored value has the slug and the group number. The method updates the stored value in the
+    # database. With a loaded custom_field_values association, it then puts the saved value in the
+    # row that the association holds, so the record reads the new value.
+    # Errors:
+    # - ActiveRecord::RecordInvalid for an invalid group number other than a negative Integer. Each
+    #   other error returns nil.
+    # Sample: my_post.update_field_value('sub_title', 'Test Sub Title')
     def update_field_value(key, value = nil, group_number = 0)
-      # Route through validations so the scan-and-reject gate applies (audit M5): update_column
-      # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
-      custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-                         &.update(value: value)
-    rescue StandardError
-      nil
+      # Validate the group number before the lookup, outside the rescue. The lookup reads '1abc' as
+      # group 1, and the rescue would hide the error. A negative Integer needs no validation: the
+      # lookup finds only a value with that number, and the method changes no group number.
+      _cama_refuse_invalid_group_number!(key, group_number) unless group_number.is_a?(Integer) && group_number < 0
+      begin
+        # Route through validations so the scan-and-reject gate applies (audit M5): update_column
+        # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
+        # The lookup reads the database, also with a loaded association. A loaded row can be stale
+        # (another instance replaced the stored row) or hold unsaved changes of the caller.
+        row = _cama_field_values_in_group(key, group_number, loaded: false)&.first
+        saved = row&.update(value: value)
+        _cama_put_saved_field_value(row) if saved
+        saved
+      rescue StandardError
+        nil
+      end
     end
 
     # Set custom field values for current model
@@ -385,8 +404,7 @@ module CamaleonCms
       _cama_write_field_values do
         # Validate the group number before the delete. With an empty list of values, nothing else
         # validates it, and the delete reads '1abc' as group 1.
-        CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: key, group_number: args[:group_number])
-                                             .refuse_invalid_group_number!
+        _cama_refuse_invalid_group_number!(key, args[:group_number])
         if args[:clear]
           _cama_delete_field_values(custom_field_values.where(custom_field_slug: key,
                                                               group_number: args[:group_number]))
@@ -497,19 +515,41 @@ module CamaleonCms
 
     # The values of the field `key` with the group number, or with a group number of the list, as
     # get_field_values reads them: an Array from a loaded custom_field_values association, else a
-    # relation. Nil when get_field_values cannot read the group number, or a group number of the list.
-    def _cama_field_values_in_group(key, group_number)
+    # relation. loaded: false gives the relation also for a loaded association. Nil when
+    # get_field_values cannot read the group number, or a group number of the list.
+    def _cama_field_values_in_group(key, group_number, loaded: custom_field_values.loaded?)
       numbers = group_number.is_a?(Array) ? group_number : [group_number]
       return unless numbers.all? { |number| _cama_readable_group_number?(number) }
 
       numbers = numbers.map { |number| number.is_a?(String) ? number.to_i : number }
-      if custom_field_values.loaded?
+      if loaded
         # The database reads a Symbol key as its String, so the loaded branch compares the String too.
         slug = key.is_a?(Symbol) ? key.to_s : key
         custom_field_values.select { |f| f.custom_field_slug == slug && numbers.include?(f.group_number) }
       else
         custom_field_values.where(custom_field_slug: key, group_number: numbers)
       end
+    end
+
+    # Puts the saved value of the stored row in the row with its id that a loaded custom_field_values
+    # association holds. The method changes no other attribute of that row.
+    def _cama_put_saved_field_value(row)
+      return unless custom_field_values.loaded?
+
+      held = custom_field_values.target.find { |value_row| value_row.id == row.id }
+      return unless held
+
+      held.value = row.value
+      held.clear_attribute_changes(['value'])
+    end
+
+    # Raises ActiveRecord::RecordInvalid when group_number is invalid for a value of the field `key`.
+    # The method builds a record only for an invalid number, for the message of the error.
+    def _cama_refuse_invalid_group_number!(key, group_number)
+      return if group_number.nil? || CamaleonCms::CustomFieldsRelationship.storable_group_number?(group_number)
+
+      CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: key, group_number: group_number)
+                                           .refuse_invalid_group_number!
     end
 
     def _cama_field_id_for(key, field_groups)

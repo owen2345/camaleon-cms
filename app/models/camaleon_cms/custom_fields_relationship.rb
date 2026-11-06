@@ -88,8 +88,8 @@ module CamaleonCms
     end
 
     # Raises ActiveRecord::RecordInvalid for an invalid group number. The writers call it on an
-    # unsaved record: set_field_value before it deletes stored values, and set_field_values for an
-    # entry with no values.
+    # unsaved record: set_field_value before it deletes stored values, set_field_values for an entry
+    # with no values, and update_field_value before its lookup.
     def refuse_invalid_group_number!
       raise_group_number_refusal if group_number_refused?
     end
