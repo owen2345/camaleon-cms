@@ -205,6 +205,26 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **Calls with no values.** `set_field_value` with an empty list of values MUST get the error, and
   it SHALL validate the group number before it deletes a stored value. An entry of
   `set_field_values` with no values MUST get the error too.
+- **A call that looks the value up.** `update_field_value` MUST get the error for an invalid group
+  number, and it SHALL validate the number before its lookup. The lookup reads the number through
+  the integer cast (`'1abc'` is group 1). A negative Integer is the exception: the method SHALL look
+  it up with no validation. The lookup finds only a value with that number, and the method changes
+  no group number. The method returns false for a value that a validation refuses, and nil for each
+  other error, as before.
+  The method SHALL update the stored value in the database. With a loaded `custom_field_values`
+  association, it SHALL then put the saved value in the row with the same id that the association
+  holds. The record then reads the new value. When another instance replaced the stored row, the
+  association holds no such row, and the record reads the old value until it is loaded again. The
+  method SHALL save no other change of that row.
+- **Reads.** `get_field_values` SHALL read no value for an invalid group number, other than a
+  negative Integer down to -2147483648 or a list. `get_field_value` SHALL return its default for
+  such a number. A negative Integer down to -2147483648 reads a stored value with that number. A
+  list (Array) of group numbers that `get_field_values` reads SHALL read the values of each group in
+  the list. A list with any other group number SHALL read no value. Each group number SHALL read
+  the same stored values with or without a loaded `custom_field_values` association, for a String
+  key and for a Symbol key. There are two exceptions. A loaded association also reads the values
+  that the record built and did not save. On MySQL, the database can match a slug with other case
+  (`'Note'` for `'note'`), and a loaded association matches only the same slug.
 - **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
   `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
@@ -272,7 +292,9 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 
 #### Scenario: A stored value with a negative group number stays writable
 
-- **WHEN** a stored value holds a negative group number and a caller updates only its content
+- **WHEN** a stored value holds a negative group number down to -2147483648
+- **AND** a caller updates only its content: `row.update(value: 'new')`, or `update_field_value`
+  with that number as an Integer
 - **THEN** the update succeeds
 
 #### Scenario: A group number String that Rails cannot cast
@@ -301,6 +323,59 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **WHEN** a caller copies a value with `dup`, and the value holds an invalid group number
 - **THEN** the save of the copy returns false, the copy holds the message of the group number
   error, and the save stores no row
+
+#### Scenario: update_field_value with an invalid group number
+
+- **WHEN** `update_field_value` gets an invalid group number, for example `'1abc'` or `true`
+- **THEN** the caller gets the group number error, and the stored values of the record are
+  unchanged
+
+#### Scenario: update_field_value with a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `update_field_value`
+  updates a stored value
+- **THEN** the record reads the new value, also before it is loaded again
+
+#### Scenario: update_field_value after another instance replaced the stored value
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and another instance of the
+  record replaced the stored value with `set_field_value`
+- **AND** `update_field_value` updates that value
+- **THEN** the stored value holds the new value
+
+#### Scenario: A reader with a group number that the integer cast misreads
+
+- **WHEN** `get_field_values` or `get_field_value` gets `'1abc'` or `true` as the group number
+- **THEN** it reads no value, and `get_field_value` returns its default
+
+#### Scenario: A reader with an Integer outside the 4-byte range
+
+- **WHEN** a stored value holds a group number outside the 4-byte range (SQLite, a `bigint` column)
+- **AND** `get_field_values` gets that number, with or without a loaded association
+- **THEN** it reads no value
+
+#### Scenario: A reader with a String of digits and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `'1'` as the group number
+- **THEN** it reads the values of group 1
+
+#### Scenario: A reader with a Symbol key and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `:note` as the key
+- **THEN** it reads the values of the slug `note`
+
+#### Scenario: A reader with a list of group numbers
+
+- **WHEN** `get_field_values` gets `[0, 1]` as the group number, with or without a loaded
+  association
+- **THEN** it reads the values of group 0 and of group 1
+
+#### Scenario: A reader with a list that holds an invalid group number
+
+- **WHEN** `get_field_values` gets `[1, '1abc']` as the group number
+- **THEN** it reads no value
 
 #### Scenario: An empty list of values with an invalid group number
 

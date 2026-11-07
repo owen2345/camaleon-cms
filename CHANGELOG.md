@@ -4,6 +4,15 @@
 
 - **Tooling:** The spec suite now clears the Draper view context before each example. Before, a model spec that ran after a mailer spec failed with `NoMethodError` on a frontend helper. Development-only. [#1338](https://github.com/owen2345/camaleon-cms/pull/1338).
 
+- **Bug fix:** `update_field_value` now raises `ActiveRecord::RecordInvalid` for an invalid group number, as `set_field_value` and `set_field_values` do. A negative Integer down to -2147483648 still finds its stored value. Before, it read `'1abc'`, `true` or `[1]` as group 1 and updated that group. [#1337](https://github.com/owen2345/camaleon-cms/pull/1337).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#custom-field-group-numbers-are-validated).
+
+- **Bug fix:** `get_field_value` and `get_field_values` now read no value for an invalid group number, other than a negative Integer down to -2147483648. They read each group of a list of valid numbers and negative Integers down to -2147483648 (`[0, 1]`, `[-1, 0]`). Before, they read `'1abc'` or `true` as group 1 when the association was not loaded. With a loaded association, a String of digits (`'1'`) now reads its group. [#1337](https://github.com/owen2345/camaleon-cms/pull/1337).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#custom-field-group-numbers-are-validated).
+
+- **Bug fix:** With a loaded `custom_field_values` association, `get_field_value` and `get_field_values` now read the values of a Symbol key (`:note`), as they do without one. Before, they read no value. [#1337](https://github.com/owen2345/camaleon-cms/pull/1337).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#custom-field-group-numbers-are-validated).
+
 - **Bug fix:** An admin save that renders its form again, after a refusal or a failed validation, no longer answers with a 500 when `field_options` is not a set of groups of fields and the record has a custom field group. The form renders with no submitted custom-field value. [#1336](https://github.com/owen2345/camaleon-cms/pull/1336).
 
 - **Bug fix:** A refused admin save now answers an XHR without `cama_ajax_request` with the message as text and a 422, not with a redirect and a flash. The nav menu item settings modal shows the refusal and stays open, and the post editor shows a refused value of a draft save. [#1335](https://github.com/owen2345/camaleon-cms/pull/1335).

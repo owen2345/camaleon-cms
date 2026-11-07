@@ -33,7 +33,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 | Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
 | Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
-| Has plugin or theme code that passes a group number to `set_field_value` or `set_field_values`, or rescues an error of those two methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). The two methods raise `ActiveRecord::RecordInvalid` for any other number ([details](#custom-field-group-numbers-are-validated)) |
+| Has plugin or theme code that passes a group number to `set_field_value`, `set_field_values`, `update_field_value`, `get_field_value` or `get_field_values`, or rescues an error of those methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). `set_field_value`, `set_field_values` and `update_field_value` raise `ActiveRecord::RecordInvalid` for any other number, but `update_field_value` still finds a stored value with a negative Integer down to -2147483648. The two readers read no value for any other number, except a negative Integer down to -2147483648. They read each group of a list of such numbers (`[0, 1]`, `[-1, 0]`) ([details](#custom-field-group-numbers-are-validated)) |
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
@@ -554,26 +554,49 @@ A group number is now valid only in these cases:
 - An Integer from 0 to 2147483647.
 - A String of 1 to 16 digits with such a number (`'5'`).
 
-For any other group number, `set_field_value`, `set_field_values` and `custom_field_values.create!`
-raise `ActiveRecord::RecordInvalid`. In the admin, the save shows the error in a flash message, and
-the record keeps its stored values. The admin forms of Camaleon always send a valid number.
+For any other group number, `set_field_value`, `set_field_values`, `update_field_value` and
+`custom_field_values.create!` raise `ActiveRecord::RecordInvalid`. `update_field_value` still
+accepts a negative Integer: it finds a stored value with that number down to -2147483648 (see
+below). In the admin, the save shows the error in a flash message, and the record keeps its stored
+values. The admin forms of Camaleon always send a valid number.
 
-**Who must act:** check plugin or theme code that passes a group number to `set_field_value` or
-`set_field_values`. Also check code that rescues an error of those two methods.
+**Who must act:** check plugin or theme code that passes a group number to `set_field_value`,
+`set_field_values` or `update_field_value`. Also check code that rescues an error of those methods,
+and code that passes a group number to `get_field_value` or `get_field_values`.
+`update_field_value` raised no error before. It still returns false for a value that a validation
+refuses, and nil for each other error.
+With a loaded `custom_field_values` association, it now also puts the saved value in the row with
+the same id that the association holds. Before, the record read the old value until it was loaded again.
 
 | Group number | Before | Now |
 | --- | --- | --- |
-| A number above 2147483647 | `ActiveModel::RangeError` on PostgreSQL and on MySQL. SQLite stored it up to 9223372036854775807 | Invalid |
-| A negative number | `set_field_values` stored it in group 0. `set_field_value` stored it as given | Invalid |
-| A String that is not digits only (`'abc'`, `'1abc'`, `' 5'`, `'2.5'`), or a Float | `'abc'` went to group 0, `'1abc'` to 1, `' 5'` to 5, `'2.5'` and 2.5 to 2. For `'abc'`, `set_field_value` deleted no stored value | Invalid |
+| A number above 2147483647 | `ActiveModel::RangeError` on PostgreSQL and on MySQL, where `update_field_value` found no value and returned nil. SQLite stored it up to 9223372036854775807, and `update_field_value` updated the value stored with that number | Invalid |
+| A negative number | `set_field_values` stored it in group 0. `set_field_value` stored it as given, and `update_field_value` updated the value of that group | Invalid. `update_field_value` still updates a stored value with a negative Integer down to -2147483648 |
+| A String that is not digits only (`'abc'`, `'1abc'`, `' 5'`, `'2.5'`), or a Float | `'abc'` went to group 0, `'1abc'` to 1, `' 5'` to 5, `'2.5'` and 2.5 to 2. For `'abc'`, `set_field_value` deleted no stored value, and `update_field_value` updated no value | Invalid |
 | A String of more than 16 digits | Read as its number. On Rails 8.1.4 with a 4-byte column (PostgreSQL, MySQL), `set_field_value` deleted the values of that number, but stored the new value under the number of its first 16 digits | Invalid |
-| `''` in `set_field_value` | Stored with no group number | Invalid. Pass nil for no group number |
+| `''` in `set_field_value` or `update_field_value` | `set_field_value` stored it with no group number. `update_field_value` found no value and returned nil | Invalid. Pass nil for no group number |
 | A list or a hash in an admin request | The value went to group 0 | Invalid |
 | `true`, `false` or a file in an admin request | `NoMethodError` | Invalid |
 
 `set_field_values` still reads an absent or empty group number as group 0.
 `cama_permitted_field_options` now keeps a group number that is a list or a hash, with its content
 removed, so the save fails.
+
+**Reads.** `get_field_value` and `get_field_values` read no value for an invalid group number other
+than a negative Integer down to -2147483648 or a list (below), also with a loaded
+`custom_field_values` association. `get_field_value` then returns its default. Before, without a
+loaded association, they read `'1abc'` and `true` as group 1, `' 5'` as 5, and `2.5` and `'2.5'`
+as 2. With a loaded `custom_field_values` association, a String of digits (`'1'`) now reads its
+group, as it does without one. Before, it read no value there.
+
+A list now reads each group in the list, with or without a loaded association. Each number of
+the list must be a valid number or a negative Integer down to -2147483648 (`[0, 1]`, `[-1, 0]`). A
+list with any other group number reads no value.
+Before, a list read its groups only when the association was not loaded, and it read `'1abc'` as
+group 1.
+
+With a loaded `custom_field_values` association, a Symbol key (`:note`) now reads the values of its
+slug, as it does without one. Before, it read no value there.
 
 **Other changes of `set_field_value` and `set_field_values`**
 
@@ -590,9 +613,10 @@ removed, so the save fails.
 **Stored values with a negative group number**
 
 A value from an earlier release can hold a negative group number. Code can still update such a
-value while the number stays. A copy of it (`dup`) is validated as a new value, so its `save`
-returns false. The master branch of `camaleon-post-clone` copies the custom-field values of a post,
-so its clone of such a post raises `ActiveRecord::RecordInvalid`.
+value with a number down to -2147483648 while the number stays: `row.update(value: 'new')`, or
+`update_field_value` with that number as an Integer. A copy of the value (`dup`) is validated as a
+new value, so its `save` returns false. The master branch of `camaleon-post-clone` copies the
+custom-field values of a post, so its clone of such a post raises `ActiveRecord::RecordInvalid`.
 
 **Limits**
 
