@@ -320,8 +320,12 @@ module CamaleonCms
       # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
       # The value gets the form that set_field_value gives one value: JSON for a Hash or an Array. An
       # Array stays one row here, where set_field_value stores one row per item.
-      custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-                         &.update(value: _cama_field_column_value(value))
+      row = custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
+      return unless row
+
+      updated = row.update(value: _cama_field_column_value(value))
+      _cama_sync_loaded_field_value(row) if updated
+      updated
     rescue StandardError
       nil
     end
@@ -404,6 +408,20 @@ module CamaleonCms
     # of Metas, so a model that includes this concern without Metas can write custom-field values.
     def _cama_field_column_value(value)
       CamaleonCms::Metas.text_column_value(value)
+    end
+
+    # update_field_value reads its row from the database, so a loaded association holds another copy of
+    # that row, where get_field_values reads. This method gives that copy the stored value, without a
+    # write. The association keeps its other rows, also the unsaved rows that the caller built.
+    def _cama_sync_loaded_field_value(row)
+      return unless custom_field_values.loaded?
+
+      custom_field_values.proxy_association.target.each do |loaded|
+        next unless loaded.id == row.id
+
+        loaded.value = row.value
+        loaded.clear_attribute_changes(%i[value])
+      end
     end
 
     # Runs the block of set_field_value or set_field_values in a transaction. Both methods delete
