@@ -840,6 +840,55 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # update_field_value updates the row in the database. It also gives the new value to the row of a
+  # loaded association, where get_field_values reads it.
+  describe 'a loaded association after update_field_value' do
+    before do
+      post.set_field_value('note', 'old', group_number: 1)
+      post.set_field_value('note', 'other', group_number: 2)
+      post.custom_field_values.load
+    end
+
+    it 'reads the new value' do
+      post.update_field_value('note', 'new', 1)
+
+      expect(post.get_field_values('note', 1)).to eq(['new'])
+      expect(post.get_field_values('note', 2)).to eq(['other'])
+      expect(post.custom_field_values.target).to all(be_persisted)
+      expect(post.custom_field_values.target.map(&:changed?)).to all(be(false))
+    end
+
+    it 'keeps an unsaved row that the caller built, and the next save stores it' do
+      built = post.custom_field_values.build(custom_field_id: post.get_field_object('note').id,
+                                             custom_field_slug: 'note', value: 'built', group_number: 5)
+
+      post.update_field_value('note', 'new', 1)
+
+      expect(post.custom_field_values.target).to include(built)
+      expect(post.save).to be(true)
+      expect(described_class.where(custom_field_slug: 'note').pluck(:value)).to contain_exactly('new', 'other',
+                                                                                                'built')
+    end
+
+    it 'keeps the old value of the loaded row when a validation refuses the new value' do
+      allow_any_instance_of(described_class).to receive(:valid?).and_return(false)
+
+      expect(post.update_field_value('note', 'new', 1)).to be(false)
+
+      expect(post.get_field_values('note', 1)).to eq(['old'])
+    end
+
+    # The value is stored when the sync starts, so nil, the failure result, would be false
+    it 'raises an error of the sync, after the database stores the new value' do
+      loaded = post.custom_field_values.target.find { |row| row.group_number == 1 }
+      allow(loaded).to receive(:value=).and_raise(TypeError, 'sync failed')
+
+      expect { post.update_field_value('note', 'new', 1) }.to raise_error(TypeError, 'sync failed')
+
+      expect(described_class.find(loaded.id).value).to eq('new')
+    end
+  end
+
   # A callback of a row can raise ActiveRecord::Rollback before Rails stores the row. Rails then
   # stores nothing and raises no error, so set_field_value goes on (intended). The stub of valid? is
   # such a callback here.

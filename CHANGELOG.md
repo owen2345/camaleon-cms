@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** `update_field_value` stores a value as `set_field_value` stores one value. A Hash, an Array or `ActionController::Parameters` becomes JSON, and a boolean becomes `'true'` or `'false'`. Loaded custom-field values now hold the new value. The custom-field writers work without `CamaleonCms::Metas`. [#1339](https://github.com/owen2345/camaleon-cms/pull/1339).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#update_field_value-stores-a-value-as-set_field_value-stores-one-value).
+
 - **Tooling:** The spec suite now clears the Draper view context before each example. Before, a model spec that ran after a mailer spec failed with `NoMethodError` on a frontend helper. Development-only. [#1338](https://github.com/owen2345/camaleon-cms/pull/1338).
 
 - **Bug fix:** An admin save that renders its form again, after a refusal or a failed validation, no longer answers with a 500 when `field_options` is not a set of groups of fields and the record has a custom field group. The form renders with no submitted custom-field value. [#1336](https://github.com/owen2345/camaleon-cms/pull/1336).
