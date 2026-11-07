@@ -877,6 +877,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect(post.get_field_values('note', 1)).to eq(['old'])
     end
+
+    # The value is stored when the sync starts, so nil, the failure result, would be false
+    it 'raises an error of the sync, after the database stores the new value' do
+      loaded = post.custom_field_values.target.find { |row| row.group_number == 1 }
+      allow(loaded).to receive(:value=).and_raise(TypeError, 'sync failed')
+
+      expect { post.update_field_value('note', 'new', 1) }.to raise_error(TypeError, 'sync failed')
+
+      expect(described_class.find(loaded.id).value).to eq('new')
+    end
   end
 
   # A callback of a row can raise ActiveRecord::Rollback before Rails stores the row. Rails then

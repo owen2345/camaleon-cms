@@ -320,14 +320,17 @@ module CamaleonCms
       # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
       # The value gets the form that set_field_value gives one value: JSON for a Hash or an Array. An
       # Array stays one row here, where set_field_value stores one row per item.
-      row = custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-      return unless row
-
-      updated = row.update(value: _cama_field_column_value(value))
+      # A failed write returns nil. The sync runs after the rescue, so its error raises: the value is
+      # then stored, and nil would say that it is not.
+      row = nil
+      updated = begin
+        row = custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
+        row&.update(value: _cama_field_column_value(value))
+      rescue StandardError
+        nil
+      end
       _cama_sync_loaded_field_value(row) if updated
       updated
-    rescue StandardError
-      nil
     end
 
     # Set custom field values for current model
