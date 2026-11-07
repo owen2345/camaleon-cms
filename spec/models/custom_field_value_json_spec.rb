@@ -37,7 +37,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     before { post.set_field_value('note', 'old') }
 
     def stored_note
-      post.custom_field_values.find_by!(custom_field_slug: 'note').reload.value
+      post.custom_field_values.find_by!(custom_field_slug: 'note').value
     end
 
     it 'stores a Hash as JSON, which the_json_field reads' do
