@@ -334,6 +334,10 @@ Changes that look free from inside this repository and are not:
   raises no refusal. The settings forms of `camaleon_cms_rating`, `camaleon_image_optimizer`,
   `camaleon_sitemap_customizer`, `camaleon-download`, `camaleon-spree` and `camaleon-post-clone`
   pass custom-field values through a submitted form.
+- **`update_field_value` stores the value in the form of `set_field_value`** changes no surveyed
+  consumer. A Hash or an Array is stored as JSON, and `true` or `false` as `"true"` or `"false"`.
+  Before, a Hash was stored as its Ruby inspect String, and `true` as `"t"`. The only surveyed caller
+  is the `product_item_decorator.rb` of `camaleon-ecommerce`, which passes an Integer.
 
 ## APIs with no surveyed consumer
 

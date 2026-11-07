@@ -318,8 +318,9 @@ module CamaleonCms
     def update_field_value(key, value = nil, group_number = 0)
       # Route through validations so the scan-and-reject gate applies (audit M5): update_column
       # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
+      # fix_meta_value gives the value the form that set_field_value stores: JSON for a Hash or an Array.
       custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-                         &.update(value: value)
+                         &.update(value: fix_meta_value(value))
     rescue StandardError
       nil
     end
