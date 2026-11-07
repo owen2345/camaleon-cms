@@ -104,7 +104,10 @@ module CamaleonCms
     #               integer cast reads '1abc' as group 1, and the database finds no row outside the
     #               4-byte range. A list (Array) of such group numbers reads the values of each group in
     #               the list, and a list with any other group number reads no value. Each group number
-    #               reads the same values with or without a loaded custom_field_values association.
+    #               reads the same stored values with or without a loaded custom_field_values
+    #               association. A loaded association also reads the values that the record built and
+    #               did not save. On MySQL, the database can match a slug with other case ('Note' for
+    #               'note'), and a loaded association matches only the same slug.
     def get_field_values(_key, group_number = 0)
       rows = _cama_field_values_in_group(_key, group_number)
       return [] unless rows
@@ -322,7 +325,9 @@ module CamaleonCms
     # Returns true for a saved value, false when a validation refuses the value, and nil when no
     # stored value has the slug and the group number. The method updates the stored value in the
     # database. With a loaded custom_field_values association, it then puts the saved value in the
-    # row that the association holds, so the record reads the new value.
+    # row with the same id that the association holds, so the record reads the new value. When
+    # another instance replaced the stored row, the association holds no such row and keeps the old
+    # value.
     # Errors:
     # - ActiveRecord::RecordInvalid for an invalid group number other than a negative Integer. Each
     #   other error returns nil.

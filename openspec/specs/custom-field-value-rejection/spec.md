@@ -212,15 +212,19 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   no group number. The method returns false for a value that a validation refuses, and nil for each
   other error, as before.
   The method SHALL update the stored value in the database. With a loaded `custom_field_values`
-  association, it SHALL then put the saved value in the row that the association holds. The record
-  then reads the new value. The method SHALL save no other change of that row.
+  association, it SHALL then put the saved value in the row with the same id that the association
+  holds. The record then reads the new value. When another instance replaced the stored row, the
+  association holds no such row, and the record reads the old value until it is loaded again. The
+  method SHALL save no other change of that row.
 - **Reads.** `get_field_values` SHALL read no value for an invalid group number, other than a
   negative Integer down to -2147483648 or a list. `get_field_value` SHALL return its default for
   such a number. A negative Integer down to -2147483648 reads a stored value with that number. A
   list (Array) of group numbers that `get_field_values` reads SHALL read the values of each group in
   the list. A list with any other group number SHALL read no value. Each group number SHALL read
-  the same values with or without a loaded `custom_field_values` association, for a String key and
-  for a Symbol key.
+  the same stored values with or without a loaded `custom_field_values` association, for a String
+  key and for a Symbol key. A loaded association also reads the values that the record built and
+  did not save. On MySQL, the database can match a slug with other case (`'Note'` for `'note'`),
+  and a loaded association matches only the same slug.
 - **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
   `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a

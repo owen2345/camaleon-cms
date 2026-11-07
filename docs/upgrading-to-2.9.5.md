@@ -565,8 +565,8 @@ values. The admin forms of Camaleon always send a valid number.
 and code that passes a group number to `get_field_value` or `get_field_values`.
 `update_field_value` raised no error before. It still returns false for a value that a validation
 refuses, and nil for each other error.
-With a loaded `custom_field_values` association, it now also puts the saved value in the row that
-the association holds. Before, the record read the old value until it was loaded again.
+With a loaded `custom_field_values` association, it now also puts the saved value in the row with
+the same id that the association holds. Before, the record read the old value until it was loaded again.
 
 | Group number | Before | Now |
 | --- | --- | --- |
