@@ -416,12 +416,11 @@ module CamaleonCms
     def _cama_sync_loaded_field_value(row)
       return unless custom_field_values.loaded?
 
-      custom_field_values.proxy_association.target.each do |loaded|
-        next unless loaded.id == row.id
+      loaded = custom_field_values.proxy_association.target.find { |value| value.id == row.id }
+      return unless loaded
 
-        loaded.value = row.value
-        loaded.clear_attribute_changes(%i[value])
-      end
+      loaded.value = row.value
+      loaded.clear_attribute_changes(%i[value])
     end
 
     # Runs the block of set_field_value or set_field_values in a transaction. Both methods delete
