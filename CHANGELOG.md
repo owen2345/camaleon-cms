@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- **Bug fix:** `update_field_value` now stores a value as `set_field_value` does: JSON for a Hash or an Array, and `'true'` or `'false'` for a boolean, where it stored `'t'` or `'f'`. Before, `the_json_field` raised `JSON::ParserError` for a Hash that it stored. [#1339](https://github.com/owen2345/camaleon-cms/pull/1339).
-  - [Upgrade notes](docs/upgrading-to-2.9.5.md#update_field_value-stores-the-value-as-set_field_value-does).
+- **Bug fix:** `update_field_value` now stores a value as `set_field_value` stores one value. A Hash or an Array becomes JSON, and a boolean becomes `'true'` or `'false'`, where it was `'t'` or `'f'`. An Array stays one value, where `set_field_value` stores one row per item. Before, `the_json_field` raised `JSON::ParserError` for a Hash that it stored. [#1339](https://github.com/owen2345/camaleon-cms/pull/1339).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#update_field_value-stores-a-value-as-set_field_value-stores-one-value).
 
 - **Tooling:** The spec suite now clears the Draper view context before each example. Before, a model spec that ran after a mailer spec failed with `NoMethodError` on a frontend helper. Development-only. [#1338](https://github.com/owen2345/camaleon-cms/pull/1338).
 

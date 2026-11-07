@@ -32,7 +32,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     expect(post.get_field_values('note')).to eq(%w[t f])
   end
 
-  # update_field_value stores a value in the form that set_field_value stores it
+  # update_field_value stores a value in the form that set_field_value gives one value
   describe 'update_field_value' do
     before { post.set_field_value('note', 'old') }
 
