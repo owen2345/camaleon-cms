@@ -685,9 +685,16 @@ Before, `the_json_field` raised `JSON::ParserError` for a Hash that `update_fiel
 A custom-field read returns the String that the column holds, so a boolean now reads as `"true"`
 or `"false"`.
 
-**Who must act:** plugin or theme code that passes a boolean to `update_field_value` and compares
-the read to `"t"` or `"f"`. Compare it to `"true"` or `"false"`, as for a value that
-`set_field_value` stored. Values stored before the upgrade do not change.
+**Who must act:** plugin or theme code that passes one of these values to `update_field_value` and
+reads the stored String:
+
+- A boolean, with a read that the code compares to `"t"` or `"f"`. Compare the read to `"true"` or
+  `"false"`, as for a value that `set_field_value` stored.
+- A Hash, an Array or `ActionController::Parameters`, with a read that the code parses as a Ruby
+  inspect String. Parse the read with `JSON.parse`.
+
+Values stored before the upgrade do not change. Code that reads such a value must also read the old
+form.
 
 ---
 
