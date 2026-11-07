@@ -318,8 +318,9 @@ module CamaleonCms
     def update_field_value(key, value = nil, group_number = 0)
       # Route through validations so the scan-and-reject gate applies (audit M5): update_column
       # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
-      # The value gets the form that set_field_value gives one value: JSON for a Hash or an Array. An
-      # Array stays one row here, where set_field_value stores one row per item.
+      # The value gets the form that set_field_value gives one value: JSON for a Hash, an Array or
+      # ActionController::Parameters, and 'true' or 'false' for a boolean. An Array stays one row here,
+      # where set_field_value stores one row per item.
       # A failed write returns nil. The sync runs after the rescue, so its error raises: the value is
       # then stored, and nil would say that it is not.
       row = nil
