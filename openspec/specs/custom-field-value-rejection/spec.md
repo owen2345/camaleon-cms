@@ -222,9 +222,9 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   list (Array) of group numbers that `get_field_values` reads SHALL read the values of each group in
   the list. A list with any other group number SHALL read no value. Each group number SHALL read
   the same stored values with or without a loaded `custom_field_values` association, for a String
-  key and for a Symbol key. A loaded association also reads the values that the record built and
-  did not save. On MySQL, the database can match a slug with other case (`'Note'` for `'note'`),
-  and a loaded association matches only the same slug.
+  key and for a Symbol key. There are two exceptions. A loaded association also reads the values
+  that the record built and did not save. On MySQL, the database can match a slug with other case
+  (`'Note'` for `'note'`), and a loaded association matches only the same slug.
 - **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
   `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
