@@ -48,10 +48,11 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.decorate.the_json_field('note')).to eq('a' => '[1]', 'b' => '2')
     end
 
-    it 'stores an Array as JSON' do
+    it 'stores an Array as JSON in one row' do
       post.update_field_value('note', [1, 'x'])
 
       expect(stored_note).to eq('[1,"x"]')
+      expect(post.reload.get_field_values('note')).to eq(['[1,"x"]'])
     end
 
     it 'stores ActionController::Parameters as JSON' do

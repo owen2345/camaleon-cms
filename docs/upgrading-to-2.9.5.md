@@ -677,7 +677,7 @@ row per item of an Array.
 | --- | --- | --- |
 | A Hash, for example `{ a: 1 }` | Its Ruby inspect String, `{a: 1}` (`{:a=>1}` before Ruby 3.4) | JSON, `{"a":1}` |
 | An Array, for example `[1, "x"]` | `[1, "x"]` | JSON, `[1,"x"]` |
-| `ActionController::Parameters` | Its inspect String | JSON |
+| `ActionController::Parameters` | The inspect String of its Hash | JSON |
 | `true` or `false` | `"t"` or `"f"` | `"true"` or `"false"` |
 | A String or an Integer | The value | The value, as before |
 
