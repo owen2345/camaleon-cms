@@ -303,7 +303,7 @@ module CamaleonCms
             ).each do |value|
               row = custom_field_values.new(
                 custom_field_id: field_id, custom_field_slug: field_key,
-                value: fix_meta_value(value), term_order: order_value += 1, group_number: group_number
+                value: _cama_field_column_value(value), term_order: order_value += 1, group_number: group_number
               )
               row.unfiltered_value! if previously_stored.include?([field_key.to_s, row.value])
               row.save!
@@ -318,10 +318,10 @@ module CamaleonCms
     def update_field_value(key, value = nil, group_number = 0)
       # Route through validations so the scan-and-reject gate applies (audit M5): update_column
       # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
-      # fix_meta_value gives the value the form that set_field_value gives one value: JSON for a Hash or
-      # an Array. An Array stays one row here, where set_field_value stores one row per item.
+      # The value gets the form that set_field_value gives one value: JSON for a Hash or an Array. An
+      # Array stays one row here, where set_field_value stores one row per item.
       custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-                         &.update(value: fix_meta_value(value))
+                         &.update(value: _cama_field_column_value(value))
     rescue StandardError
       nil
     end
@@ -376,7 +376,7 @@ module CamaleonCms
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
       v = {
-        custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
+        custom_field_id: args[:field_id], custom_field_slug: key, value: _cama_field_column_value(value),
         term_order: args[:order], group_number: args[:group_number]
       }
       # One transaction deletes the old values (the clear option) and creates the new ones. When a
@@ -391,7 +391,7 @@ module CamaleonCms
                                                               group_number: args[:group_number]))
         end
         if value.is_a?(Array)
-          value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
+          value.each { |val| custom_field_values.create!(v.merge({ value: _cama_field_column_value(val) })) }
         else
           custom_field_values.create!(v)
         end
@@ -399,6 +399,12 @@ module CamaleonCms
     end
 
     private
+
+    # What the text column of a custom-field value is given for a value. The method is a module method
+    # of Metas, so a model that includes this concern without Metas can write custom-field values.
+    def _cama_field_column_value(value)
+      CamaleonCms::Metas.text_column_value(value)
+    end
 
     # Runs the block of set_field_value or set_field_values in a transaction. Both methods delete
     # stored values and then create the new ones, so a failed call must roll the delete back.
