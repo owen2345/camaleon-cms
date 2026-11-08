@@ -303,7 +303,8 @@ module CamaleonCms
             ).each do |value|
               row = custom_field_values.new(
                 custom_field_id: field_id, custom_field_slug: field_key,
-                value: fix_meta_value(value), term_order: order_value += 1, group_number: group_number
+                value: CamaleonCms::Metas.text_column_value(value), term_order: order_value += 1,
+                group_number: group_number
               )
               row.unfiltered_value! if previously_stored.include?([field_key.to_s, row.value])
               row.save!
@@ -374,8 +375,9 @@ module CamaleonCms
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
       v = {
-        custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
-        term_order: args[:order], group_number: args[:group_number]
+        custom_field_id: args[:field_id], custom_field_slug: key,
+        value: CamaleonCms::Metas.text_column_value(value), term_order: args[:order],
+        group_number: args[:group_number]
       }
       # One transaction deletes the old values (the clear option) and creates the new ones. When a
       # new value is invalid, the delete rolls back, and the old values stay.
@@ -389,7 +391,9 @@ module CamaleonCms
                                                               group_number: args[:group_number]))
         end
         if value.is_a?(Array)
-          value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
+          value.each do |val|
+            custom_field_values.create!(v.merge({ value: CamaleonCms::Metas.text_column_value(val) }))
+          end
         else
           custom_field_values.create!(v)
         end

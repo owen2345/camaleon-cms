@@ -42,6 +42,17 @@ module CamaleonCms
       JSON.generate(indifferent_json_value(value))
     end
 
+    # What the text column is given for a value: JSON for a container, and for a boolean its JSON literal,
+    # which reads back as the boolean where the text column would store 't' or 'f', a String every reader
+    # takes as present. The custom-field writers store their values in this form too. They call this method,
+    # so a model that includes CustomFieldsRead without Metas can write custom-field values.
+    def self.text_column_value(value)
+      changed_value = value.is_a?(ActionController::Parameters) ? value.to_json : value
+      changed_value = generate_json(changed_value) if changed_value.is_a?(Hash) || changed_value.is_a?(Array)
+      changed_value = changed_value.to_var if changed_value.is_a?(String)
+      [true, false].include?(changed_value) ? changed_value.to_s : changed_value
+    end
+
     # a parsed Hash, or the Hashes in a parsed Array, read by either key type
     def self.indifferent_json_value(value)
       case value
@@ -579,20 +590,10 @@ module CamaleonCms
       value.nil? || value == ''
     end
 
-    # What the text column is given for a value, which stored_form_of reads back into the form a read returns:
-    # JSON for a container, and for a boolean its JSON literal, which reads back as the boolean where the text
-    # column would store 't' or 'f', a String every reader takes as present. The custom fields store their
-    # values in this form too.
+    # What the text column is given for a value, which stored_form_of reads back into the form a read returns.
+    # CamaleonCms::Metas.text_column_value gives it.
     def fix_meta_value(value)
-      changed_value = if value.is_a?(ActionController::Parameters)
-                        value.to_json
-                      elsif hash_or_list?(value)
-                        CamaleonCms::Metas.generate_json(value)
-                      else
-                        value
-                      end
-      changed_value = fix_meta_var(changed_value)
-      [true, false].include?(changed_value) ? changed_value.to_s : changed_value
+      CamaleonCms::Metas.text_column_value(value)
     end
 
     # fix to detect type of the variable

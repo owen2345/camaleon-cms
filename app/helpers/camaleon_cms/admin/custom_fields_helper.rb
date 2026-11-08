@@ -92,7 +92,12 @@ module CamaleonCms
       # Note: to use custom fields on your model, you need the following:
       # - add: belongs_to :site (in your model)
       #   //don't forget multi site support, i.e.: you need site_id attribute in your table
-      # - add: include CamaleonCms::CustomFieldsRead (in your model)
+      # - add: include CamaleonCms::CommonRelationships and include CamaleonCms::CustomFieldsRead (in your
+      #   model). CommonRelationships gives the custom_field_values association.
+      # - add: include CamaleonCms::Metas (in your model) to show the fields in an admin form. The
+      #   custom_fields/render partial calls get_option, which Metas gives. Metas calls the cache methods
+      #   of CamaleonRecord, so the model must also inherit from CamaleonRecord. The custom-field readers
+      #   and writers need neither.
       # ==> With this, you can manage your model like a plugin. Check api -> custom fields section into docs)
       # model_class: class name (Product)
       def cf_add_model(model_class)
