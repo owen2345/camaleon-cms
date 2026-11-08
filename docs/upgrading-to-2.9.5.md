@@ -37,6 +37,7 @@ what theme/plugin developers should know.
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
+| Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 
 ---
 
@@ -665,6 +666,35 @@ option. Before, it showed "The draft could not be saved".
 **Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
 and reads the answer. Read a `text/plain` 422 as the refusal, with the message in the body. A 422
 of another type is an error page, for example of a CSRF failure.
+
+### `update_field_value` stores a value as `set_field_value` stores one value
+
+`update_field_value` now stores a value in the form that `set_field_value` and `set_field_values`
+give one value. It stores one row: an Array is one JSON value, where `set_field_value` stores one
+row per item of an Array.
+
+| Value | Stored before | Stored now |
+| --- | --- | --- |
+| A Hash, for example `{ a: 1 }` | Its Ruby inspect String, `{a: 1}` (`{:a=>1}` before Ruby 3.4) | JSON, `{"a":1}` |
+| An Array, for example `[1, "x"]` | `[1, "x"]` | JSON, `[1,"x"]` |
+| `ActionController::Parameters` | The inspect String of its Hash | JSON |
+| `true` or `false` | `"t"` or `"f"` | `"true"` or `"false"` |
+| A String or an Integer | The value | The value, as before |
+
+Before, `the_json_field` raised `JSON::ParserError` for a Hash that `update_field_value` stored.
+A custom-field read returns the String that the column holds, so a boolean now reads as `"true"`
+or `"false"`.
+
+**Who must act:** plugin or theme code that passes one of these values to `update_field_value` and
+reads the stored String:
+
+- A boolean, with a read that the code compares to `"t"` or `"f"`. Compare the read to `"true"` or
+  `"false"`, as for a value that `set_field_value` stored.
+- A Hash, an Array or `ActionController::Parameters`, with a read that the code parses as a Ruby
+  inspect String. Parse the read with `JSON.parse`.
+
+Values stored before the upgrade do not change. Code that reads such a value must also read the old
+form.
 
 ---
 

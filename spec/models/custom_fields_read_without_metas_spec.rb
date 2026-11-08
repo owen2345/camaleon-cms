@@ -45,4 +45,11 @@ RSpec.describe CamaleonCms::CustomFieldsRead do
 
     expect(stored_note).to eq('true')
   end
+
+  it 'stores a value through update_field_value' do
+    record.set_field_value('note', 'old', field_id: field_id)
+
+    expect(record.update_field_value('note', [1, 'x'])).to be(true)
+    expect(stored_note).to eq('[1,"x"]')
+  end
 end
