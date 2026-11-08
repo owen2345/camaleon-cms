@@ -39,7 +39,16 @@ module CamaleonCms
     # JSON for a Hash or Array value, with one entry per key however each key was written: a String key
     # replaces its Symbol twin, at any depth (json 3 refuses to generate both, json 2 stored both)
     def self.generate_json(value)
-      JSON.generate(indifferent_json_value(value))
+      JSON.generate(indifferent_json_value(parameters_as_hashes(value)))
+    end
+
+    # The value with each ActionController::Parameters object in it, at any depth, as its Hash. JSON.generate
+    # writes a Parameters object as the inspect String of its Hash.
+    private_class_method def self.parameters_as_hashes(value)
+      return value.to_unsafe_h if value.is_a?(ActionController::Parameters)
+      return value.transform_values { |item| parameters_as_hashes(item) } if value.is_a?(Hash)
+
+      value.is_a?(Array) ? value.map { |item| parameters_as_hashes(item) } : value
     end
 
     # What the text column is given for a value: JSON for a container, and for a boolean its JSON literal,
@@ -47,6 +56,10 @@ module CamaleonCms
     # takes as present. The custom-field writers store their values in this form too. They call this method,
     # so a model that includes CustomFieldsRead without Metas can write custom-field values.
     def self.text_column_value(value)
+      # A Parameters object keeps the to_json form, which escapes <, > and & (< as \u003c), and generate_json
+      # writes them as they are (intended). set_field_values skips the scan-and-reject gate for a value whose
+      # text is the stored text. A new stored text of Parameters makes the gate scan a stored field_attrs value
+      # with <, > or & again on an unrelated save.
       changed_value = value.is_a?(ActionController::Parameters) ? value.to_json : value
       changed_value = generate_json(changed_value) if changed_value.is_a?(Hash) || changed_value.is_a?(Array)
       changed_value = changed_value.to_var if changed_value.is_a?(String)

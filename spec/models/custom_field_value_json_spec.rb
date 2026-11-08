@@ -61,6 +61,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(stored_note).to eq('{"a":"1"}')
     end
 
+    # JSON.generate would write a Parameters object in a container as the inspect String of its Hash
+    it 'stores ActionController::Parameters in an Array or a Hash as a JSON object' do
+      params = ActionController::Parameters.new(a: '1')
+
+      post.update_field_value('note', [params, 2])
+      expect(stored_note).to eq('[{"a":"1"},2]')
+
+      post.update_field_value('note', { b: params })
+      expect(stored_note).to eq('{"b":{"a":"1"}}')
+    end
+
     it 'stores true and false as the Strings true and false' do
       post.update_field_value('note', true)
       expect(stored_note).to eq('true')

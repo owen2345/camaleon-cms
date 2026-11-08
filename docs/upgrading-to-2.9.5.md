@@ -38,6 +38,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
+| Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
 
 ---
 
@@ -698,6 +699,16 @@ reads the stored String:
 
 Values stored before the upgrade do not change. Code that reads such a value must also read the old
 form.
+
+### Parameters in a Hash or an Array are stored as JSON objects
+
+A Hash or an Array that holds `ActionController::Parameters`, at any depth, now stores each
+Parameters object as a JSON object. Before, the JSON held the inspect String of the Hash of the
+object, for example `{"shirt":"{\"color\" => \"red\"}"}` in place of `{"shirt":{"color":"red"}}`.
+This applies to every meta, option and custom-field writer, for example `set_meta`, `set_metas`,
+`set_options`, `save_field_value` and `update_field_value`. A read that parses such a value now finds a Hash where it found a String.
+
+Values stored before the upgrade do not change.
 
 ---
 
