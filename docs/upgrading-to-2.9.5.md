@@ -685,6 +685,9 @@ Before, `the_json_field` raised `JSON::ParserError` for a Hash that `update_fiel
 A custom-field read returns the String that the column holds, so a boolean now reads as `"true"`
 or `"false"`.
 
+A record whose custom-field values are loaded now reads the new value after `update_field_value`.
+Before, it read the old value until a reload.
+
 **Who must act:** plugin or theme code that passes one of these values to `update_field_value` and
 reads the stored String:
 
