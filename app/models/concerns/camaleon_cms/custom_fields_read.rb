@@ -303,7 +303,8 @@ module CamaleonCms
             ).each do |value|
               row = custom_field_values.new(
                 custom_field_id: field_id, custom_field_slug: field_key,
-                value: fix_meta_value(value), term_order: order_value += 1, group_number: group_number
+                value: CamaleonCms::Metas.text_column_value(value), term_order: order_value += 1,
+                group_number: group_number
               )
               row.unfiltered_value! if previously_stored.include?([field_key.to_s, row.value])
               row.save!
@@ -318,10 +319,19 @@ module CamaleonCms
     def update_field_value(key, value = nil, group_number = 0)
       # Route through validations so the scan-and-reject gate applies (audit M5): update_column
       # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
-      custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-                         &.update(value: value)
-    rescue StandardError
-      nil
+      # The value gets the form that set_field_value gives one value: JSON for a Hash, an Array or
+      # ActionController::Parameters, and 'true' or 'false' for a boolean. An Array stays one row here,
+      # where set_field_value stores one row per item.
+      # A refused value returns false. No row, or an error in the write, returns nil. The sync runs
+      # after the rescue, so its error raises: the value is then stored, and nil would say that it is not.
+      updated = begin
+        row = custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
+        row&.update(value: CamaleonCms::Metas.text_column_value(value))
+      rescue StandardError
+        nil
+      end
+      _cama_sync_loaded_field_value(row) if updated
+      updated
     end
 
     # Set custom field values for current model
@@ -374,8 +384,9 @@ module CamaleonCms
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
       v = {
-        custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
-        term_order: args[:order], group_number: args[:group_number]
+        custom_field_id: args[:field_id], custom_field_slug: key,
+        value: CamaleonCms::Metas.text_column_value(value), term_order: args[:order],
+        group_number: args[:group_number]
       }
       # One transaction deletes the old values (the clear option) and creates the new ones. When a
       # new value is invalid, the delete rolls back, and the old values stay.
@@ -389,7 +400,9 @@ module CamaleonCms
                                                               group_number: args[:group_number]))
         end
         if value.is_a?(Array)
-          value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
+          value.each do |val|
+            custom_field_values.create!(v.merge({ value: CamaleonCms::Metas.text_column_value(val) }))
+          end
         else
           custom_field_values.create!(v)
         end
@@ -397,6 +410,19 @@ module CamaleonCms
     end
 
     private
+
+    # update_field_value reads its row from the database, so a loaded association holds another copy of
+    # that row, where get_field_values reads. This method gives that copy the stored value, without a
+    # write. The association keeps its other rows, also the unsaved rows that the caller built.
+    def _cama_sync_loaded_field_value(row)
+      return unless custom_field_values.loaded?
+
+      loaded = custom_field_values.target.find { |value| value.id == row.id }
+      return unless loaded
+
+      loaded.value = row.value
+      loaded.clear_attribute_changes(%i[value])
+    end
 
     # Runs the block of set_field_value or set_field_values in a transaction. Both methods delete
     # stored values and then create the new ones, so a failed call must roll the delete back.

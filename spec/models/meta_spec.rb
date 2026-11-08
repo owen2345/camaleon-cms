@@ -136,6 +136,18 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post_type.options).to eq(CamaleonCms::PostType.find(post_type.id).options)
     end
 
+    # JSON.generate would write a Parameters object in a container as the inspect String of its Hash
+    it 'stores request parameters in a Hash or an Array as JSON objects' do
+      post_type = create(:post_type)
+      params = ActionController::Parameters.new('color' => 'red')
+      post_type.set_meta('probe', { 'shirt' => params, 'list' => [params] })
+
+      stored = JSON.parse(post_type.metas.find_by!(key: 'probe').value)
+      expect(stored).to eq('shirt' => { 'color' => 'red' }, 'list' => [{ 'color' => 'red' }])
+      expect(post_type.get_meta('probe')[:shirt][:color]).to eq('red')
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe')).to eq(post_type.get_meta('probe'))
+    end
+
     # The first option writer stores and caches its own indifferent copy, which get_meta returns from then
     # on; the caller's hash is left as passed, where 2.9.4 wrote into it.
     it 'returns the writer\'s hash from get_meta once an option is written after set_meta' do

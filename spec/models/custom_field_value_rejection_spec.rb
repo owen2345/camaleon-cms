@@ -231,6 +231,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_value('body')).to eq('<p>ok</p>')
     end
 
+    # update_field_value stores a Hash as JSON. JSON keeps the markup, so the gate refuses it.
+    it 'refuses a Hash with a dangerous value written through update_field_value' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>ok</p>')
+
+      expect(post.update_field_value('body', { html: script })).to be(false)
+
+      expect(post.reload.get_field_value('body')).to eq('<p>ok</p>')
+    end
+
     # Audit M8: the admin form round-trips every value and set_field_values delete/recreates them
     # all, so an unchanged pre-gate value must not fail the whole save on an unrelated edit.
     it 'does not re-gate an unchanged legacy value on an unrelated edit (M8)' do
