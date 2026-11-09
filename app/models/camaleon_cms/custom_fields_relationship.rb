@@ -87,9 +87,8 @@ module CamaleonCms
       cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER, digits: MAX_GROUP_NUMBER_DIGITS)
     end
 
-    # Raises ActiveRecord::RecordInvalid for an invalid group number. The writers call it on an
-    # unsaved record. set_field_value calls it before it deletes stored values, set_field_values for
-    # an entry with no values, and update_field_value before its lookup.
+    # Raises ActiveRecord::RecordInvalid for an invalid group number.
+    # _cama_refuse_invalid_group_number! of CustomFieldsRead calls it on an unsaved record.
     def refuse_invalid_group_number!
       raise_group_number_refusal if group_number_refused?
     end
@@ -111,21 +110,14 @@ module CamaleonCms
         given.nil? || storable_group_number?(given)
       end
 
-      # True for a group number that get_field_values can read: an Integer in the 4-byte range of the
-      # attribute, or a group number that valid_group_number? accepts. A stored value can hold a
-      # negative number from an earlier release. The database finds no row with an Integer outside
-      # that range, so a loaded association reads no value with it either.
-      def readable_group_number?(given)
-        return type_for_attribute('group_number').serializable?(given) if given.is_a?(Integer)
+      # True for a group number that _cama_field_values_in_group of CustomFieldsRead looks up: an
+      # Integer in the 4-byte range, or a group number that valid_group_number? accepts. A stored
+      # value can hold a negative number from an earlier release. The database finds no row with an
+      # Integer outside that range, so a loaded association reads no value with it either.
+      def lookup_group_number?(given)
+        return given.between?(-MAX_GROUP_NUMBER - 1, MAX_GROUP_NUMBER) if given.is_a?(Integer)
 
         valid_group_number?(given)
-      end
-
-      # True for a negative Integer. A stored value can hold such a number from an earlier release.
-      # update_field_value looks it up with no validation: the lookup finds only a value with that
-      # number, and the method changes no group number.
-      def legacy_group_number?(given)
-        given.is_a?(Integer) && given < 0
       end
 
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).

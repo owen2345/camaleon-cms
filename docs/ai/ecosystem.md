@@ -316,9 +316,12 @@ Changes that look free from inside this repository and are not:
   and such negative Integers reads each group in the list. Each surveyed call reads the default
   group number 0.
 - **`get_field_value` and `get_field_values` with a loaded `custom_field_values` association**
-  (#1337) now read a Symbol key (`:note`), a String of digits (`'1'`) and a list (`[0, 1]`).
-  Before, they read no value there, where the database read the values. So a consumer that loads
-  the association and passes such a key, number or list can now get a value where it got none.
+  (#1337) change no surveyed consumer. They now read a Symbol key (`:note`), a String of digits
+  (`'1'`) and a list (`[0, 1]`). Before, they read no value there, where the database read the
+  values. `camaleon-ecommerce` is the only consumer that passes a Symbol key:
+  `ProductDecorator#price` and `#tax` read `:ecommerce_price` and `:ecommerce_tax`. No surveyed
+  code reads them from a product with a loaded association. `camaleon-cms-shoppy` loads it with
+  `get_field_values_hash`, after the price read of that page.
 - **`set_field_values` with a plain Hash with String keys** changes no surveyed consumer. Each
   surveyed caller passes request parameters or the result of `cama_permitted_field_options`, which
   has indifferent access. `camaleon-cms-shoppy` and the `new` theme of `camaleon_website` pass the

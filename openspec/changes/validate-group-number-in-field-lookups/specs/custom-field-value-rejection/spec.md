@@ -38,16 +38,19 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   the old value until it is loaded again. The method SHALL save no other change of that row.
 - **Reads.** `get_field_values` SHALL read no value for an invalid group number, other than a
   negative Integer down to -2147483648 or a list. `get_field_value` SHALL return its default for
-  such a number. A negative Integer down to -2147483648 reads a stored value with that number. A
-  list (Array) of group numbers that `get_field_values` reads SHALL read the values of each group in
-  the list. A list with any other group number SHALL read no value.
+  a group number that reads no value. A negative Integer down to -2147483648 reads a stored value
+  with that number. A list (Array) SHALL read each group in the list when each item is a valid
+  group number or a negative Integer down to -2147483648. A list with any other item SHALL read no
+  value. A list in a list (`[[1]]`) is such an item.
 - **Reads with a loaded association.** Each group number SHALL read the same stored values with or
   without a loaded `custom_field_values` association, for a String key and for a Symbol key. The
   database gives the values in the order of `term_order`, and a loaded association in the order of
   its rows. So the first value, which `get_field_value` returns, can differ. The values differ in
   these cases:
   - A loaded association reads unsaved values: the values of the rows that the record built, and
-    the changed values of its rows.
+    the changed values of its rows. It reads each row under the group number and the slug that the
+    row holds, also when they are not saved. It reads an unsaved invalid group number as the
+    integer cast gives it (`'1abc'` as group 1).
   - A loaded association reads the rows that it holds, until it is loaded again. A write of another
     instance, or an `update_all`, changes no row that the association holds, so the association
     reads the old values.
@@ -180,6 +183,7 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   record replaced the stored value with `set_field_value`
 - **AND** `update_field_value` updates that value
 - **THEN** the stored value holds the new value
+- **AND** the record reads the old value until it is loaded again
 
 #### Scenario: A reader with a group number that the integer cast misreads
 

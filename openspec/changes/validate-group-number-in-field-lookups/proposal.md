@@ -53,6 +53,8 @@ None.
 - `app/models/concerns/camaleon_cms/custom_fields_read.rb`: `get_field_values` reads through a
   private lookup, `_cama_field_values_in_group`.
 - The same concern: `update_field_value` validates the group number and uses that lookup.
+- The same concern: the delete of `set_field_value` uses that lookup. It deletes the same stored
+  values as before.
 - `app/models/camaleon_cms/custom_fields_relationship.rb`: a predicate for the group numbers that
   the lookup reads.
 - The same model: the slug in UTF-8 for a message.

@@ -99,6 +99,15 @@ outside the rescue. For a slug in UTF-16, I18n then raised an encoding error in 
 number error. The model now converts the slug for the message. Ruby has no converter for some
 encodings (UTF-7), and the message then keeps only the ASCII characters of the slug.
 
+**D10. A loaded row gives its value through its `value` reader.** `Enumerable#pluck` reads the
+attribute of each row, and it does not call a `value` method that the row defines. So
+`get_field_values` calls `map(&:value)` on the Array of a loaded association. It calls
+`pluck(:value)` only on a relation.
+
+**D11. The delete of `set_field_value` uses the lookup of D5.** The method validates the group
+number first, so the lookup gives a relation for each number that reaches it. The delete removes
+the same stored values as before.
+
 ## Risks / Trade-offs
 
 - [Theme code passes a group number that the cast misread, and depends on that read] → the read now

@@ -8,6 +8,7 @@
 - [x] 1.2 Add `update_field_value` examples to the same spec: an invalid group number, a negative
   Integer, and a loaded association
 - [x] 1.3 Add an example with a slug in UTF-16 and an invalid group number
+- [x] 1.4 Add an example that reads a loaded row through its `value` reader
 
 ## 2. The fix
 
@@ -16,6 +17,8 @@
 - [x] 2.2 Validate the group number in `update_field_value` before its lookup, and look the value
   up in the database (D6 to D8)
 - [x] 2.3 Put the slug in UTF-8 into the message of the group number error (D9)
+- [x] 2.4 Read the value of a loaded row with its `value` reader (D10)
+- [x] 2.5 Delete the values of `set_field_value` through the lookup (D11)
 
 ## 3. Documentation
 

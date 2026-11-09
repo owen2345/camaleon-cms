@@ -563,10 +563,11 @@ below). In the admin, the save shows the error in a flash message, and the recor
 values. The admin forms of Camaleon always send a valid number.
 
 **Who must act:** check plugin or theme code that passes a group number to `set_field_value`,
-`set_field_values` or `update_field_value`. Also check code that rescues an error of those methods,
-and code that passes a group number to `get_field_value` or `get_field_values`.
-`update_field_value` raised no error before. It still returns false for a value that a validation
-refuses, and nil for each other error in the lookup or the write.
+`set_field_values` or `update_field_value`. Also check code that rescues an error of those methods.
+Also check code that passes a group number to `get_field_value` or `get_field_values`.
+`update_field_value` raised no error before: it updated group 0 for `false`, and group 1 for
+`true`. It still returns false for a value that a validation refuses, and nil for each other error
+in the lookup or the write.
 
 | Group number | Before | Now |
 | --- | --- | --- |
@@ -586,9 +587,9 @@ removed, so the save fails.
 `get_field_values` now read no value for an invalid group number. The exceptions are a negative
 Integer down to -2147483648, which reads its group, and a list, which reads each of its groups
 (below). For a group number that reads no value, `get_field_value` returns its default. Before,
-without a loaded association, `'1abc'` and `true` read group 1, `' 5'` read 5, `'-1'` read -1, and
-`2.5` and `'2.5'` read 2. Before, a Float with no fraction (`1.0`) read its group also with a
-loaded association.
+without a loaded association, `false` read group 0, and `'1abc'` and `true` read group 1. There,
+`' 5'` read 5, `'-1'` read -1, and `2.5` and `'2.5'` read 2. Before, a Float with no fraction
+(`1.0`) read its group also with a loaded association.
 
 With a loaded `custom_field_values` association, a String of digits (`'1'`) now reads its group, as
 it does without one. Before, it read no value there.
@@ -618,7 +619,7 @@ slug, as it does without one. Before, it read no value there.
 **Stored values with a negative group number**
 
 A value from an earlier release can hold a negative group number. Code can still update such a
-value with a number down to -2147483648 while the number stays: `row.update(value: 'new')`, or
+value with a number down to -2147483648 while the number stays. Use `row.update(value: 'new')`, or
 `update_field_value` with that number as an Integer. A copy of the value (`dup`) is validated as a
 new value, so its `save` returns false. The master branch of `camaleon-post-clone` copies the
 custom-field values of a post, so its clone of such a post raises `ActiveRecord::RecordInvalid`.
