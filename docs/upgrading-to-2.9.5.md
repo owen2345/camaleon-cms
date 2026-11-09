@@ -604,6 +604,11 @@ loaded association, the readers read each group of a Range or a Set.
 With a loaded `custom_field_values` association, a Symbol key (`:note`) now reads the values of its
 slug, as it does without one. Before, it read no value there.
 
+`get_fields_grouped` now reads the values of a Symbol key too, and each group gives them under that
+key (`[{ note: ['a'] }]`). Before, each group was an empty Hash for a Symbol key. The decorator
+methods `the_fields_grouped` and `the_field_grouped` read through it, so they now give the values
+of a Symbol key.
+
 **Other changes of `set_field_value` and `set_field_values`**
 
 - Both methods validate the group number also when they get no value to store: an empty list, or an

@@ -386,6 +386,23 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The database reads a Symbol key as its String. So get_fields_grouped compares the String of a
+  # Symbol key with the slug of each row.
+  describe 'get_fields_grouped' do
+    before do
+      post.set_field_value('note', 'zero', group_number: 0)
+      post.set_field_value('note', 'one', group_number: 1)
+    end
+
+    it 'gives the values of a String key for each group, under that key' do
+      expect(post.get_fields_grouped(['note'])).to eq([{ 'note' => ['zero'] }, { 'note' => ['one'] }])
+    end
+
+    it 'gives the values of a Symbol key for each group, under that key' do
+      expect(post.get_fields_grouped([:note])).to eq([{ note: ['zero'] }, { note: ['one'] }])
+    end
+  end
+
   # The method validates the current group number, not the errors of an earlier validation.
   describe 'refuse_invalid_group_number!' do
     let(:row) { described_class.new(custom_field_slug: 'note', group_number: -1) }

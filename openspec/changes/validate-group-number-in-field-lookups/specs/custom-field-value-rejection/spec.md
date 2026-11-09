@@ -56,6 +56,9 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
     reads the old values.
   - On MySQL, the collation can match another spelling of a slug (`'Note'` or `'nóte'` for
     `'note'`), and a loaded association matches only the same slug.
+- **Reads of each group.** `get_fields_grouped` SHALL read the values of a Symbol key (`:note`) as
+  it reads the values of the String key (`'note'`). Each group SHALL give the values under the key
+  as given.
 - **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
   `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
@@ -207,6 +210,11 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
   `:note` as the key
 - **THEN** it reads the values of the slug `note`
+
+#### Scenario: get_fields_grouped with a Symbol key
+
+- **WHEN** `get_fields_grouped` gets `[:note]` as the list of keys
+- **THEN** each group gives the values of the slug `note` under the key `:note`
 
 #### Scenario: A reader with a list of group numbers
 

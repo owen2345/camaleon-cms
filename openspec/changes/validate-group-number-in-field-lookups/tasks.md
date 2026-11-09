@@ -9,6 +9,7 @@
   Integer, and a loaded association
 - [x] 1.3 Add an example with a slug in UTF-16 and an invalid group number
 - [x] 1.4 Add an example that reads a loaded row through its `value` reader
+- [x] 1.5 Add `get_fields_grouped` examples with a String key and a Symbol key
 
 ## 2. The fix
 
@@ -19,6 +20,7 @@
 - [x] 2.3 Put the slug in UTF-8 into the message of the group number error (D9)
 - [x] 2.4 Read the value of a loaded row with its `value` reader (D10)
 - [x] 2.5 Delete the values of `set_field_value` through the lookup (D11)
+- [x] 2.6 Compare the String of a Symbol key in `get_fields_grouped` (D12)
 
 ## 3. Documentation
 
@@ -26,6 +28,7 @@
   the survey of the callers in `docs/ai/ecosystem.md`
 - [x] 3.2 Give the error of `update_field_value` in the same guide, and record its callers in the
   ecosystem inventory
+- [x] 3.3 Give the read of a Symbol key in `get_fields_grouped` in both documents
 
 ## 4. Verification and shipping
 

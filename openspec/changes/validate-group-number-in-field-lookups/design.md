@@ -108,6 +108,14 @@ attribute of each row, and it does not call a `value` method that the row define
 number first, so the lookup gives a relation for each number that reaches it. The delete removes
 the same stored values as before.
 
+**D12. `get_fields_grouped` compares the String of a Symbol key.** Its query already read a Symbol
+key as its String, so only the comparison with the slug of each row changed. Each group gives the
+values under the key as given (`:note`), so the caller reads the Hash with the key that it passed.
+The decorator methods `the_fields_grouped` and `the_field_grouped` read through this method.
+
+- *Alternative: give the values under the String of the key.* Rejected: a caller that passes
+  `:note` then finds no `:note` key in the Hash.
+
 ## Risks / Trade-offs
 
 - [Theme code passes a group number that the cast misread, and depends on that read] → the read now

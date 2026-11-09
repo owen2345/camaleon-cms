@@ -18,6 +18,8 @@ number did not validate it:
 - `update_field_value` looked the stored value up with the same cast, so it updated group 1 for
   `true` and group 0 for `false`. A rescue in the method hides each error of the lookup, so the
   caller got no error for an invalid group number.
+- `get_fields_grouped` read a Symbol key as its String in the query, but it compared the key as
+  given with the slug of each row. So each group was an empty Hash for a Symbol key.
 
 ## What Changes
 
@@ -35,6 +37,8 @@ number did not validate it:
   value with that number.
 - `update_field_value` looks the stored value up in the database, also with a loaded association.
 - The message of the group number error holds the slug of the field in UTF-8.
+- `get_fields_grouped` reads the values of a Symbol key, and each group gives them under the key as
+  given.
 
 ## Capabilities
 
@@ -45,8 +49,8 @@ None.
 ### Modified Capabilities
 
 - `custom-field-value-rejection`: the requirement "A custom-field value validates its group number"
-  now gives the reads of `get_field_value` and `get_field_values`, and the lookup of
-  `update_field_value`.
+  now gives the reads of `get_field_value`, `get_field_values` and `get_fields_grouped`, and the
+  lookup of `update_field_value`.
 
 ## Impact
 
@@ -55,6 +59,7 @@ None.
 - The same concern: `update_field_value` validates the group number and uses that lookup.
 - The same concern: the delete of `set_field_value` uses that lookup. It deletes the same stored
   values as before.
+- The same concern: `get_fields_grouped` compares the String of a Symbol key.
 - `app/models/camaleon_cms/custom_fields_relationship.rb`: a predicate for the group numbers that
   the lookup reads.
 - The same model: the slug in UTF-8 for a message.

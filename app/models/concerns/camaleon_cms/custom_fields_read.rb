@@ -115,7 +115,8 @@ module CamaleonCms
     alias get_fields get_field_values
 
     # return the values of custom fields grouped by group_number
-    # field_keys: (array of keys)
+    # field_keys: (array of keys), each a String or a Symbol. Each group gives its values under the
+    #             key as given: get_fields_grouped([:my_slug1]) gives [{ my_slug1: ["val 1"] }].
     # samples: my_object.get_fields_grouped(['my_slug1', 'my_slug2'])
     #   return: [
     #             { 'my_slug1' => ["val 1"], 'my_slug2' => ['val 2']},
@@ -134,8 +135,9 @@ module CamaleonCms
       custom_field_values.where(custom_field_slug: field_keys)
                          .order(group_number: :asc).group_by(&:group_number).each_value do |group_fields|
         group = field_keys.each_with_object({}) do |field_key, hsh|
-          _tmp = group_fields
-                 .each_with_object([]) { |field, ary| ary << field.value if field_key == field.custom_field_slug }
+          # The query above reads a Symbol key as its String, so the comparison uses the String too.
+          slug = _cama_field_slug(field_key)
+          _tmp = group_fields.select { |field| slug == field.custom_field_slug }.map(&:value)
           hsh[field_key] = _tmp if _tmp.present?
         end
         res << group
@@ -528,18 +530,25 @@ module CamaleonCms
     # loaded: false gives the relation also for a loaded association. An empty Array when
     # get_field_values cannot read the group number, or a group number of the list.
     def _cama_field_values_in_group(key, group_number, loaded: custom_field_values.loaded?)
-      numbers = group_number.is_a?(Array) ? group_number : [group_number]
+      list = group_number.is_a?(Array)
+      numbers = list ? group_number : [group_number]
       return [] unless numbers.all? { |number| CamaleonCms::CustomFieldsRelationship.lookup_group_number?(number) }
 
       type = CamaleonCms::CustomFieldsRelationship.type_for_attribute('group_number')
       numbers = numbers.map { |number| type.cast(number) }
       if loaded
         # The database reads a Symbol key as its String, so the loaded branch compares the String too.
-        slug = key.is_a?(Symbol) ? key.to_s : key
+        slug = _cama_field_slug(key)
         custom_field_values.select { |f| f.custom_field_slug == slug && numbers.include?(f.group_number) }
       else
-        custom_field_values.where(custom_field_slug: key, group_number: numbers)
+        # One group number goes to where as it is. A list of one number gives the same SQL with more work.
+        custom_field_values.where(custom_field_slug: key, group_number: list ? numbers : numbers.first)
       end
+    end
+
+    # The slug that the database reads for a key: the String of a Symbol key, else the key as given.
+    def _cama_field_slug(key)
+      key.is_a?(Symbol) ? key.to_s : key
     end
 
     # Raises ActiveRecord::RecordInvalid when group_number is invalid for a value of the field `key`.

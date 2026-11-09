@@ -322,6 +322,10 @@ Changes that look free from inside this repository and are not:
   `ProductDecorator#price` and `#tax` read `:ecommerce_price` and `:ecommerce_tax`. No surveyed
   code reads them from a product with a loaded association. `camaleon-cms-shoppy` loads it with
   `get_field_values_hash`, after the price read of that page.
+- **`get_fields_grouped` with a Symbol key** (#1337) changes no surveyed consumer. The method now
+  gives the values of a Symbol key under that key, where each group was an empty Hash before. No
+  surveyed consumer calls it. None calls the decorator methods `the_fields_grouped` and
+  `the_field_grouped`, which read through it.
 - **`set_field_values` with a plain Hash with String keys** changes no surveyed consumer. Each
   surveyed caller passes request parameters or the result of `cama_permitted_field_options`, which
   has indifferent access. `camaleon-cms-shoppy` and the `new` theme of `camaleon_website` pass the
