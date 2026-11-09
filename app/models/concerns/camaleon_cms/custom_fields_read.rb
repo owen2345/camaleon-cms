@@ -98,15 +98,17 @@ module CamaleonCms
     alias get_field! get_field_value
 
     # get custom field values
-    # _key: custom field key
+    # _key: custom field key, a String or a Symbol
+    # group_number: nil, an Integer from -2147483648 to 2147483647, or a String of 1 to 16 digits with
+    #               a number from 0 to 2147483647 ('5'). A list (Array) of such numbers reads each
+    #               group in the list. Each other group number reads no value, because the integer
+    #               cast reads '1abc' as group 1.
+    # A loaded custom_field_values association reads the rows that it holds. The bullet "Reads with a
+    # loaded association" of openspec/specs/custom-field-value-rejection/spec.md gives the cases where
+    # that read differs.
     def get_field_values(_key, group_number = 0)
-      if custom_field_values.loaded?
-        custom_field_values.select do |f|
-          f.custom_field_slug == _key && f.group_number == group_number
-        end.map(&:value)
-      else
-        custom_field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
-      end
+      # pluck reads both shapes of the rows: an Array (Active Support) and a relation (SQL).
+      _cama_field_values_in_group(_key, group_number)&.pluck(:value) || []
     end
     alias get_fields get_field_values
 
@@ -504,6 +506,24 @@ module CamaleonCms
         data.each_value { |value| _cama_refuse_twin_keys!(value) }
       when Array
         data.each { |value| _cama_refuse_twin_keys!(value) }
+      end
+    end
+
+    # The values of the field `key` with the group number, or with each group number of a list. A
+    # loaded custom_field_values association gives an Array, else the method gives a relation. Nil
+    # when get_field_values cannot read the group number, or a group number of the list.
+    def _cama_field_values_in_group(key, group_number)
+      numbers = group_number.is_a?(Array) ? group_number : [group_number]
+      return unless numbers.all? { |number| CamaleonCms::CustomFieldsRelationship.readable_group_number?(number) }
+
+      type = CamaleonCms::CustomFieldsRelationship.type_for_attribute('group_number')
+      numbers = numbers.map { |number| type.cast(number) }
+      if custom_field_values.loaded?
+        # The database reads a Symbol key as its String, so the loaded branch compares the String too.
+        slug = key.is_a?(Symbol) ? key.to_s : key
+        custom_field_values.select { |f| f.custom_field_slug == slug && numbers.include?(f.group_number) }
+      else
+        custom_field_values.where(custom_field_slug: key, group_number: numbers)
       end
     end
 

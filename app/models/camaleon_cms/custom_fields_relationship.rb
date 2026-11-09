@@ -105,6 +105,22 @@ module CamaleonCms
     end
 
     class << self
+      # True for a group number that the record validation accepts: nil (no group number), or a number
+      # that storable_group_number? accepts.
+      def valid_group_number?(given)
+        given.nil? || storable_group_number?(given)
+      end
+
+      # True for a group number that get_field_values can read: an Integer in the 4-byte range of the
+      # attribute, or a group number that valid_group_number? accepts. A stored value can hold a
+      # negative number from an earlier release. The database finds no row with an Integer outside
+      # that range, so a loaded association reads no value with it either.
+      def readable_group_number?(given)
+        return type_for_attribute('group_number').serializable?(given) if given.is_a?(Integer)
+
+        valid_group_number?(given)
+      end
+
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).
       def gated_field_key?(field_key)
         GATED_FIELD_KEYS.include?(field_key.to_s)
@@ -130,6 +146,17 @@ module CamaleonCms
       end
 
       private
+
+      # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
+      # digits with such a number ('5'). Each other class is invalid. The encoding test comes before the
+      # regexp, because the regexp raises an error for a String in an invalid encoding.
+      def storable_group_number?(given)
+        return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
+        return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
+        return false if GroupNumberType.unreadable?(given)
+
+        given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
+      end
 
       def markup_rejection_reason(value)
         return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
@@ -217,19 +244,7 @@ module CamaleonCms
     # Reads the group number before the type cast, because the cast hides an invalid one: 'abc'
     # becomes 0, and true becomes 1. nil is valid: a value can have no group number.
     def group_number_refused?
-      given = group_number_before_type_cast
-      !(given.nil? || storable_group_number?(given))
-    end
-
-    # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
-    # digits with such a number ('5'). Each other class is invalid. The encoding test comes before the
-    # regexp, because the regexp raises an error for a String in an invalid encoding.
-    def storable_group_number?(given)
-      return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
-      return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
-      return false if GroupNumberType.unreadable?(given)
-
-      given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
+      !self.class.valid_group_number?(group_number_before_type_cast)
     end
 
     # The message in the current language, or in English when that language has no translation. Only
