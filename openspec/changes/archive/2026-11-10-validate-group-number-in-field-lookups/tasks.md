@@ -45,4 +45,4 @@
 
 - [x] 4.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 4.2 Open the PR, add the CHANGELOG entries, archive this change on the branch
+- [x] 4.2 Open the PR, add the CHANGELOG entries, archive this change on the branch
