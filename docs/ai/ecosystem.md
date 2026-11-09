@@ -306,6 +306,10 @@ Changes that look free from inside this repository and are not:
     that the call deleted.
   - Both methods need `custom_field_values` to be a `has_many` association. No consumer defines it
     as a plain relation.
+- **`update_field_value` with an invalid group number** (#1337) changes no surveyed consumer. The
+  method now raises `ActiveRecord::RecordInvalid` for such a number, as `set_field_value` does,
+  except for a negative Integer. `camaleon-ecommerce` is the only consumer that calls it, with the
+  default group number 0.
 - **`get_field_value` and `get_field_values` with an invalid group number** (#1337) change no
   surveyed consumer. The two readers now read no value for an invalid group number, with two
   exceptions. A negative Integer down to -2147483648 still reads its group. A list of valid numbers

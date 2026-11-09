@@ -143,6 +143,120 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # update_field_value looks the row up before it updates the value. The lookup finds the groups of a
+  # list ([1]) and no row for '1abc', so the method validates the number first.
+  describe 'update_field_value' do
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    ['1abc', '-1', '', true, 1.5, 2_147_483_648, [1], "1\xFF", '1'.encode('UTF-16LE')].each do |group_number|
+      it "refuses the group number #{group_number_name(group_number)} and keeps the stored value" do
+        expect { post.update_field_value('note', 'new', group_number) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+    end
+
+    # I18n raises an encoding error when it puts a slug in such an encoding into a message. So the
+    # message of the group number error holds the slug in UTF-8.
+    { 'in UTF-16' => 'note'.encode('UTF-16LE'), 'in UTF-7' => (+'note').force_encoding('UTF-7') }.each do |kind, slug|
+      it "raises the group number error for a slug #{kind}, and the stored value stays" do
+        expect { post.update_field_value(slug, 'new', '1abc') }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+    end
+
+    it 'updates the value of the group given as a String of digits' do
+      expect(post.update_field_value('note', 'new', '1')).to be(true)
+      expect(post.reload.get_field_values('note', 1)).to eq(['new'])
+    end
+
+    it 'updates the value with no group number for nil' do
+      post.set_field_value('note', 'none', group_number: nil, clear: false)
+
+      expect(post.update_field_value('note', 'new', nil)).to be(true)
+      expect(post.reload.get_field_values('note', nil)).to eq(['new'])
+      expect(post.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    it 'returns nil for a valid group number with no stored value' do
+      expect(post.update_field_value('note', 'new', 2)).to be_nil
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    # A value from an earlier release can hold a negative group number. The method changes no group
+    # number, so it looks up a negative Integer with no validation.
+    it 'updates a stored value with a negative group number' do
+      described_class.where(custom_field_slug: 'note').update_all(group_number: -1) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(post.update_field_value('note', 'new', -1)).to be(true)
+      expect(post.reload.get_field_values('note', -1)).to eq(['new'])
+    end
+
+    it 'returns nil for a negative group number with no stored value' do
+      expect(post.update_field_value('note', 'new', -1)).to be_nil
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    it 'returns nil for a negative Integer below -2147483648' do
+      expect(post.update_field_value('note', 'new', -2_147_483_649)).to be_nil
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    # The lookup finds no row with an Integer outside the 4-byte range, also when a wider column holds
+    # a row with that number.
+    it 'keeps a stored row with a negative Integer below -2147483648' do
+      row = post.custom_field_values.first
+      store_wide_group_number(row, -2_147_483_649)
+
+      expect(post.update_field_value('note', 'new', -2_147_483_649)).to be_nil
+      expect(row.reload.value).to eq('kept')
+    end
+
+    # The cases of a loaded association that the group number and the lookup add. The describe
+    # 'a loaded association after update_field_value' below holds the common case.
+    context 'with a loaded association' do
+      before { post.custom_field_values.load }
+
+      it 'updates a stored value with a negative group number' do
+        described_class.where(custom_field_slug: 'note').update_all(group_number: -1) # rubocop:disable Rails/SkipsModelValidations
+        post.custom_field_values.reload
+
+        expect(post.update_field_value('note', 'new', -1)).to be(true)
+        expect(post.get_field_values('note', -1)).to eq(['new'])
+      end
+
+      it 'finds the value for a Symbol key' do
+        expect(post.update_field_value(:note, 'new', 1)).to be(true)
+        expect(post.get_field_values('note', 1)).to eq(['new'])
+      end
+
+      # set_field_value of another instance deletes the stored row and stores a new one, with a new id.
+      it 'updates the stored row that another instance of the record replaced' do
+        CamaleonCms::Post.find(post.id).set_field_value('note', 'replaced', group_number: 1)
+
+        expect(post.update_field_value('note', 'new', 1)).to be(true)
+        expect(post.reload.get_field_values('note', 1)).to eq(['new'])
+      end
+
+      it 'saves no other unsaved change of the row that the association holds' do
+        held = post.custom_field_values.find { |row| row.custom_field_slug == 'note' }
+        held.term_order = 7
+
+        expect(post.update_field_value('note', 'new', 1)).to be(true)
+        expect(described_class.find(held.id).term_order).to eq(0)
+        expect(held).to have_attributes(value: 'new', term_order: 7)
+      end
+
+      it 'stores no unsaved value of the association' do
+        post.custom_field_values.build(custom_field_slug: 'note', value: 'unsaved', group_number: 2)
+
+        expect(post.update_field_value('note', 'new', 2)).to be_nil
+        expect(post.reload.get_field_values('note', 2)).to eq([])
+      end
+    end
+  end
+
   # The integer cast reads '1abc' as group 1. So the readers read no value for a group number that is
   # not nil, an Integer in the 4-byte range, a valid String or a list of them.
   describe 'get_field_values' do

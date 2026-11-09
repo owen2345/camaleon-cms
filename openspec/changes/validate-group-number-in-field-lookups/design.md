@@ -24,6 +24,8 @@ refused a group number that the readers still read.
 
 - A group number that the writers refuse reads no value. D2 names the exception.
 - A reader gives the same stored values with or without a loaded `custom_field_values` association.
+- `update_field_value` gives the caller an error for an invalid group number, as `set_field_value`
+  does.
 
 **Non-Goals:**
 
@@ -73,6 +75,30 @@ with such a number. Before, a loaded association read a stored value with that n
 **D5. One private lookup holds the rule.** `_cama_field_values_in_group` tests the group number and
 reads the rows. It gives an Array for a loaded association, else a relation.
 
+**D6. `update_field_value` raises the group number error before its lookup.** The method rescues
+each error of the lookup and the write, and returns nil. So the validation runs outside the rescue.
+The method refuses the same group numbers as `set_field_value`, with the exception of D7.
+
+- *Alternative: return nil for an invalid group number.* Rejected: nil also says that the record
+  holds no stored value with the number. The caller cannot tell a wrong number from an absent value.
+
+**D7. `update_field_value` looks a negative Integer up with no validation.** The method changes no
+group number, and the lookup finds only a value with that number. So a stored value from an earlier
+release stays writable, as D4 of `refuse-invalid-field-group-number` says. The maintainer chose
+this exception. A negative Integer outside the 4-byte range finds no value, and the method returns
+nil.
+
+**D8. The lookup of `update_field_value` reads the database, also with a loaded association.** A
+loaded row can be stale: another instance replaced the stored row. A loaded row can also hold
+unsaved changes of the caller, and an update of that row saves them too. So the method calls the
+lookup of D5 with `loaded: false` and updates the stored row. It then puts the saved value in the
+loaded row with the same id.
+
+**D9. The message of the group number error holds the slug in UTF-8.** D6 put the validation
+outside the rescue. For a slug in UTF-16, I18n then raised an encoding error in place of the group
+number error. The model now converts the slug for the message. Ruby has no converter for some
+encodings (UTF-7), and the message then keeps only the ASCII characters of the slug.
+
 ## Risks / Trade-offs
 
 - [Theme code passes a group number that the cast misread, and depends on that read] → the read now
@@ -82,3 +108,6 @@ reads the rows. It gives an Array for a loaded association, else a relation.
   gives the stored values. Before, it gave none. No surveyed consumer reads that way.
 - [A stored value holds a group number outside the 4-byte range, see D4] → a loaded association now
   reads no value with it. The database read none before.
+- [Code calls `update_field_value` with an invalid group number and expects nil] → the call now
+  raises the group number error. `camaleon-ecommerce` is the only surveyed consumer that calls the
+  method, with the default group number 0.

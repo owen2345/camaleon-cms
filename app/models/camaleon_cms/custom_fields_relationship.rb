@@ -88,8 +88,8 @@ module CamaleonCms
     end
 
     # Raises ActiveRecord::RecordInvalid for an invalid group number. The writers call it on an
-    # unsaved record: set_field_value before it deletes stored values, and set_field_values for an
-    # entry with no values.
+    # unsaved record. set_field_value calls it before it deletes stored values, set_field_values for
+    # an entry with no values, and update_field_value before its lookup.
     def refuse_invalid_group_number!
       raise_group_number_refusal if group_number_refused?
     end
@@ -119,6 +119,13 @@ module CamaleonCms
         return type_for_attribute('group_number').serializable?(given) if given.is_a?(Integer)
 
         valid_group_number?(given)
+      end
+
+      # True for a negative Integer. A stored value can hold such a number from an earlier release.
+      # update_field_value looks it up with no validation: the lookup finds only a value with that
+      # number, and the method changes no group number.
+      def legacy_group_number?(given)
+        given.is_a?(Integer) && given < 0
       end
 
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).
@@ -254,7 +261,17 @@ module CamaleonCms
     # hold the placeholder syntax of I18n, and a second interpolation then raises an error.
     def cama_rejection_message(key, **values)
       full_key = "camaleon_cms.admin.custom_field.message.#{key}"
-      I18n.t(full_key, slug: custom_field_slug, **values, default: I18n.t(full_key, locale: :en))
+      I18n.t(full_key, slug: cama_message_slug, **values, default: I18n.t(full_key, locale: :en))
+    end
+
+    # The slug of the field in UTF-8, for a message. I18n raises an encoding error when it puts a
+    # slug in an encoding such as UTF-16 into a message. Ruby has no converter for some encodings
+    # (UTF-7). The method then keeps only the ASCII characters of the slug.
+    def cama_message_slug
+      slug = custom_field_slug.to_s
+      slug.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+    rescue EncodingError
+      slug.b.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
     end
 
     # Trust follows the post-content model: an admin may write anything; a post's field values may
