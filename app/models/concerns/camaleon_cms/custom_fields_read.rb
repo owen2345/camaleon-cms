@@ -107,10 +107,11 @@ module CamaleonCms
     # loaded association" of openspec/specs/custom-field-value-rejection/spec.md gives the cases where
     # that read differs.
     def get_field_values(_key, group_number = 0)
-      rows = _cama_field_values_in_group(_key, group_number)
       # The rows of a loaded association are an Array: map calls the value reader of each row. A
       # relation reads the column with SQL.
-      rows.is_a?(Array) ? rows.map(&:value) : rows.pluck(:value)
+      return _cama_loaded_field_values(_key, group_number).map(&:value) if custom_field_values.loaded?
+
+      _cama_stored_field_values(_key, group_number).pluck(:value)
     end
     alias get_fields get_field_values
 
@@ -347,7 +348,7 @@ module CamaleonCms
       # row can be stale (another instance replaced the stored row) or hold unsaved changes of the
       # caller.
       updated = begin
-        row = _cama_field_values_in_group(key, group_number, loaded: false).first
+        row = _cama_stored_field_values(key, group_number).first
         row&.update(value: CamaleonCms::Metas.text_column_value(value))
       rescue StandardError
         nil
@@ -414,9 +415,9 @@ module CamaleonCms
       # new value is invalid, the delete rolls back, and the old values stay.
       _cama_write_field_values do
         # Validate the group number before the delete. With an empty list of values, nothing else
-        # validates it. The lookup of the delete gives a relation for each valid group number.
+        # validates it.
         _cama_refuse_invalid_group_number!(key, args[:group_number])
-        _cama_delete_field_values(_cama_field_values_in_group(key, args[:group_number], loaded: false)) if args[:clear]
+        _cama_delete_field_values(_cama_stored_field_values(key, args[:group_number])) if args[:clear]
         if value.is_a?(Array)
           value.each do |val|
             custom_field_values.create!(v.merge({ value: CamaleonCms::Metas.text_column_value(val) }))
@@ -525,25 +526,37 @@ module CamaleonCms
       end
     end
 
-    # The values of the field `key` with the group number, or with each group number of a list. A
-    # loaded custom_field_values association gives an Array, else the method gives a relation.
-    # loaded: false gives the relation also for a loaded association. An empty Array when
-    # get_field_values cannot read the group number, or a group number of the list.
-    def _cama_field_values_in_group(key, group_number, loaded: custom_field_values.loaded?)
-      list = group_number.is_a?(Array)
-      numbers = list ? group_number : [group_number]
-      return [] unless numbers.all? { |number| CamaleonCms::CustomFieldsRelationship.lookup_group_number?(number) }
+    # The stored values of the field `key` with the group number, or with each group number of a
+    # list: a relation. The relation holds no row when get_field_values cannot read the group
+    # number, or a group number of the list.
+    def _cama_stored_field_values(key, group_number)
+      numbers = _cama_lookup_group_numbers(group_number)
+      return custom_field_values.none unless numbers
+
+      # One group number goes to where as it is. A list of one number gives the same SQL with more work.
+      numbers = numbers.first unless group_number.is_a?(Array)
+      custom_field_values.where(custom_field_slug: key, group_number: numbers)
+    end
+
+    # The rows of a loaded custom_field_values association that _cama_stored_field_values reads from
+    # the database: an Array. The association also holds the unsaved rows of the record.
+    def _cama_loaded_field_values(key, group_number)
+      numbers = _cama_lookup_group_numbers(group_number)
+      return [] unless numbers
+
+      # The database reads a Symbol key as its String, so the method compares the String too.
+      slug = _cama_field_slug(key)
+      custom_field_values.select { |f| f.custom_field_slug == slug && numbers.include?(f.group_number) }
+    end
+
+    # The group number of a lookup, or each group number of a list, as the type of the attribute
+    # casts it: an Array. nil when get_field_values cannot read one of the numbers.
+    def _cama_lookup_group_numbers(group_number)
+      numbers = group_number.is_a?(Array) ? group_number : [group_number]
+      return unless numbers.all? { |number| CamaleonCms::CustomFieldsRelationship.lookup_group_number?(number) }
 
       type = CamaleonCms::CustomFieldsRelationship.type_for_attribute('group_number')
-      numbers = numbers.map { |number| type.cast(number) }
-      if loaded
-        # The database reads a Symbol key as its String, so the loaded branch compares the String too.
-        slug = _cama_field_slug(key)
-        custom_field_values.select { |f| f.custom_field_slug == slug && numbers.include?(f.group_number) }
-      else
-        # One group number goes to where as it is. A list of one number gives the same SQL with more work.
-        custom_field_values.where(custom_field_slug: key, group_number: list ? numbers : numbers.first)
-      end
+      numbers.map { |number| type.cast(number) }
     end
 
     # The slug that the database reads for a key: the String of a Symbol key, else the key as given.

@@ -54,14 +54,16 @@ None.
 
 ## Impact
 
-- `app/models/concerns/camaleon_cms/custom_fields_read.rb`: `get_field_values` reads through a
-  private lookup, `_cama_field_values_in_group`.
-- The same concern: `update_field_value` validates the group number and uses that lookup.
-- The same concern: the delete of `set_field_value` uses that lookup. It deletes the same stored
-  values as before.
+- `app/models/concerns/camaleon_cms/custom_fields_read.rb`: `get_field_values` reads through two
+  private lookups. `_cama_stored_field_values` reads the database, and `_cama_loaded_field_values`
+  reads a loaded association.
+- The same concern: `update_field_value` validates the group number and uses the lookup of the
+  database.
+- The same concern: the delete of `set_field_value` uses the lookup of the database. It deletes the
+  same stored values as before.
 - The same concern: `get_fields_grouped` compares the String of a Symbol key.
 - `app/models/camaleon_cms/custom_fields_relationship.rb`: a predicate for the group numbers that
-  the lookup reads.
+  the lookups read.
 - The same model: the slug in UTF-8 for a message.
 - Specs: `spec/models/custom_field_value_group_number_spec.rb`.
 - Specs: `spec/models/custom_field_value_rejection_spec.rb`, for a refused value of

@@ -72,8 +72,13 @@ with such a number. Before, a loaded association read a stored value with that n
 - *Alternative: send a query also for a loaded association.* Rejected: a caller loads the
   association to send no query for each read. The query also reads no unsaved value of a loaded row.
 
-**D5. One private lookup holds the rule.** `_cama_field_values_in_group` tests the group number and
-reads the rows. It gives an Array for a loaded association, else a relation.
+**D5. One private method holds the rule of the group number.** `_cama_lookup_group_numbers` tests
+the group number and casts it. Two private lookups call it. `_cama_stored_field_values` gives the
+stored values as a relation, and `_cama_loaded_field_values` gives the rows of a loaded association
+as an Array.
+
+- *Alternative: one lookup with a `loaded:` keyword.* Rejected: the method then gives an Array or a
+  relation, and two of its three callers always pass `false`.
 
 **D6. `update_field_value` raises the group number error before its lookup.** The method rescues
 each error of the lookup and the write, and returns nil. So the validation runs outside the rescue.
@@ -90,8 +95,8 @@ nil.
 
 **D8. The lookup of `update_field_value` reads the database, also with a loaded association.** A
 loaded row can be stale: another instance replaced the stored row. A loaded row can also hold
-unsaved changes of the caller, and an update of that row saves them too. So the method calls the
-lookup of D5 with `loaded: false` and updates the stored row. It then puts the saved value in the
+unsaved changes of the caller, and an update of that row saves them too. So the method reads the
+row with the lookup of the stored values (D5) and updates it. It then puts the saved value in the
 loaded row with the same id.
 
 **D9. The message of the group number error holds the slug in UTF-8.** D6 put the validation
@@ -104,9 +109,9 @@ attribute of each row, and it does not call a `value` method that the row define
 `get_field_values` calls `map(&:value)` on the Array of a loaded association. It calls
 `pluck(:value)` only on a relation.
 
-**D11. The delete of `set_field_value` uses the lookup of D5.** The method validates the group
-number first, so the lookup gives a relation for each number that reaches it. The delete removes
-the same stored values as before.
+**D11. The delete of `set_field_value` uses the lookup of the stored values (D5).** The method
+validates the group number first, so each number that reaches the lookup is valid. The delete
+removes the same stored values as before.
 
 **D12. `get_fields_grouped` compares the String of a Symbol key.** Its query already read a Symbol
 key as its String, so only the comparison with the slug of each row changed. Each group gives the

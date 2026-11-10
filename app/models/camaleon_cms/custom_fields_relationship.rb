@@ -110,7 +110,7 @@ module CamaleonCms
         given.nil? || storable_group_number?(given)
       end
 
-      # True for a group number that _cama_field_values_in_group of CustomFieldsRead looks up: an
+      # True for a group number that _cama_lookup_group_numbers of CustomFieldsRead reads: an
       # Integer in the 4-byte range, or a group number that valid_group_number? accepts. A stored
       # value can hold a negative number from an earlier release. The database finds no row with an
       # Integer outside that range, so a loaded association reads no value with it either.
