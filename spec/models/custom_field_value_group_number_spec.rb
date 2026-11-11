@@ -788,60 +788,63 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
-    # Rails 7.2 and later open no savepoint before the first statement in the transaction of the
-    # caller. So the two methods run SELECT 1 first (see _cama_run_statement_in_caller_transaction).
-    context 'when no statement ran in the transaction of the caller' do
+    # In a restartable transaction of the caller, Rails 7.1 and later open no savepoint: a failed call
+    # restarts that transaction. So the two methods begin it and mark it as dirty (see
+    # _cama_force_savepoint_in_caller_transaction). In each kind of transaction of the caller below, a
+    # failed call rolls back to its own savepoint. The two methods run no SELECT 1.
+    describe 'the rollback to the savepoint of the call' do
       let(:field_id) { post.get_field_object('note').id }
 
       before { field_id }
 
-      # Opens a transaction of the caller and runs the block as its first code. Returns the
-      # SAVEPOINT and ROLLBACK TO SAVEPOINT statements that the block ran.
-      def savepoint_statements_in_a_new_caller_transaction
-        sql_queries(matching: /\A(ROLLBACK TO )?SAVEPOINT/, include_transactions: true) do
-          ActiveRecord::Base.transaction do
-            yield
-          rescue ActiveRecord::RecordInvalid, ActiveModel::RangeError
-            nil
-          end
+      # Runs the block in a transaction of the caller of the given kind. Returns the SELECT 1,
+      # SAVEPOINT and ROLLBACK TO SAVEPOINT statements that the block ran, and the SAVEPOINT statement
+      # of the savepoint that the call opens for itself.
+      def statements_in_a_caller_transaction(kind, &)
+        ActiveRecord::Base.transaction(joinable: kind != :not_joinable) do
+          CamaleonCms::Post.where(id: post.id).exists? if kind == :used
+          writer_statements(&)
         end
       end
 
-      def expect_a_rollback_to_a_savepoint_of_the_writer(statements)
-        savepoints = statements.grep(/\ASAVEPOINT/)
+      # Rails names a savepoint after the number of open transactions before it.
+      def writer_statements
+        depth = ActiveRecord::Base.connection_pool.with_connection(&:open_transactions)
+        statements = sql_queries(matching: /\A(SELECT 1\z|(ROLLBACK TO )?SAVEPOINT)/, include_transactions: true) do
+          yield
+        rescue ActiveRecord::RecordInvalid, ActiveModel::RangeError
+          nil
+        end
+        [statements, "SAVEPOINT active_record_#{depth}"]
+      end
 
-        expect(savepoints.size).to eq(2)
-        expect(statements.last).to eq("ROLLBACK TO #{savepoints.last}")
+      def expect_a_rollback_to_the_savepoint_of_the_call(kind, &)
+        statements, savepoint = statements_in_a_caller_transaction(kind, &)
+
+        expect(statements).to include(savepoint)
+        expect(statements.last).to eq("ROLLBACK TO #{savepoint}")
+        expect(statements).not_to include('SELECT 1')
         expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
 
-      it 'rolls a failed set_field_value back to its own savepoint' do
-        statements = savepoint_statements_in_a_new_caller_transaction do
-          post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
-        end
+      {
+        new: 'when no statement ran in the transaction of the caller',
+        used: 'when a statement ran in the transaction of the caller',
+        not_joinable: 'when the transaction of the caller is not joinable'
+      }.each do |kind, description|
+        context description do
+          it 'rolls a failed set_field_value back to its own savepoint' do
+            expect_a_rollback_to_the_savepoint_of_the_call(kind) do
+              post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
+            end
+          end
 
-        expect_a_rollback_to_a_savepoint_of_the_writer(statements)
-      end
-
-      # A SELECT 1 that the query cache answers does not reach the database, and Rails then opens no
-      # savepoint. So SELECT 1 runs with the cache off.
-      it 'rolls a failed call back to its own savepoint when the query cache holds SELECT 1' do
-        statements = ActiveRecord::Base.cache do
-          ActiveRecord::Base.connection.select_value('SELECT 1')
-          savepoint_statements_in_a_new_caller_transaction do
-            post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
+          it 'rolls a failed set_field_values back to its own savepoint' do
+            expect_a_rollback_to_the_savepoint_of_the_call(kind) do
+              post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+            end
           end
         end
-
-        expect_a_rollback_to_a_savepoint_of_the_writer(statements)
-      end
-
-      it 'rolls a failed set_field_values back to its own savepoint' do
-        statements = savepoint_statements_in_a_new_caller_transaction do
-          post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
-        end
-
-        expect_a_rollback_to_a_savepoint_of_the_writer(statements)
       end
     end
 
@@ -934,15 +937,6 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
         expect(statements).to be_empty
         expect(post.reload.get_field_values('note', 2)).to eq(['new'])
-      end
-
-      # The two methods run SELECT 1 before their transaction only when they ask for a savepoint.
-      it 'runs no SELECT 1 before the transaction of set_field_value' do
-        probes = sql_queries(matching: /\ASELECT 1\z/) do
-          ActiveRecord::Base.transaction { post.set_field_value('note', 'new', group_number: 2) }
-        end
-
-        expect(probes).to be_empty
       end
 
       it 'opens no savepoint in set_field_values, and the call stores its values' do

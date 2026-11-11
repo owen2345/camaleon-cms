@@ -466,7 +466,7 @@ module CamaleonCms
       built_before = field_values.target.select(&:new_record?)
       begin
         savepoint = _cama_field_values_savepoint?
-        _cama_run_statement_in_caller_transaction if savepoint
+        _cama_force_savepoint_in_caller_transaction if savepoint
         outcome = ActiveRecord::Base.transaction(requires_new: savepoint) { [yield] }
         outcome&.first
       ensure
@@ -477,14 +477,24 @@ module CamaleonCms
       end
     end
 
-    # Makes Rails open a real savepoint for _cama_write_field_values: Rails 7.2 and later open none
-    # before the first statement in the transaction of the caller. So this method runs SELECT 1 there.
-    # Without the SELECT 1, on SQLite with Rails 8.1, the caller can get an internal error of Rails
-    # after a failed call, not ActiveRecord::RecordInvalid. The query cache is off, because a cached
-    # SELECT sends no statement.
-    def _cama_run_statement_in_caller_transaction
+    # Makes Rails open a real savepoint for _cama_write_field_values. A transaction is restartable when
+    # it is joinable and no statement ran in it. In a restartable transaction of the caller, Rails 7.1
+    # and later open no savepoint: a failed call restarts that transaction. Then, on SQLite with Rails
+    # 8.1, the caller can get an internal error of Rails, not ActiveRecord::RecordInvalid.
+    #
+    # So this method begins that transaction and marks it as dirty, as a statement does. Rails connects
+    # a new connection, and reconnects a lost one, only while no open transaction is dirty. So the
+    # method begins the transaction before dirty!. A call that runs a statement begins it anyway.
+    # dirty! and materialize_transactions are internal APIs of Rails 7.1 to 8.1 (intended): the
+    # alternative, a SELECT 1, costs a round trip. Rails 6.1 and 7.0 have no restartable? and always
+    # open a savepoint.
+    def _cama_force_savepoint_in_caller_transaction
       ActiveRecord::Base.connection_pool.with_connection do |connection|
-        ActiveRecord::Base.uncached { connection.select_value('SELECT 1') } if connection.transaction_open?
+        transaction = connection.current_transaction
+        next unless transaction.try(:restartable?)
+
+        connection.materialize_transactions
+        transaction.dirty!
       end
     end
 
