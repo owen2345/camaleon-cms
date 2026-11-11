@@ -60,24 +60,19 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
     allow(record).to receive(:get_fields_grouped).with([field_slug]).and_return({})
   end
 
+  # get_option reads the same options as field.options, so the two agree for each key that a caller sets.
   def build_field(slug, field_key: 'text_area', options: {})
+    field_options = { 'field_key' => field_key, 'required' => false, 'multiple' => false, 'default_value' => '' }
+                    .merge(options).with_indifferent_access
     instance_double(
       CamaleonCms::CustomField,
       slug: slug,
       id: 12,
       name: slug.to_s.humanize,
       description: nil,
-      options: { 'field_key' => field_key, 'required' => false, 'multiple' => false, 'default_value' => '' }
-        .merge(options).with_indifferent_access
+      options: field_options
     ).tap do |field|
-      allow(field).to receive(:get_option).and_return(nil)
-      allow(field).to receive(:get_option).with('field_key').and_return(field_key)
-      allow(field).to receive(:get_option).with('render').and_return(nil)
-      allow(field).to receive(:get_option).with('disabled').and_return(nil)
-      allow(field).to receive(:get_option).with('readonly').and_return(nil)
-      allow(field).to receive(:get_option).with('required').and_return(false)
-      allow(field).to receive(:get_option).with('multiple').and_return(false)
-      allow(field).to receive(:get_option).with('default_value').and_return('')
+      allow(field).to receive(:get_option) { |key| field_options[key] }
     end
   end
 
