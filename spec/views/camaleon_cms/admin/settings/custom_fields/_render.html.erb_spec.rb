@@ -60,17 +60,18 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
     allow(record).to receive(:get_fields_grouped).with([field_slug]).and_return({})
   end
 
-  def build_field(slug)
+  def build_field(slug, field_key: 'text_area', options: {})
     instance_double(
       CamaleonCms::CustomField,
       slug: slug,
       id: 12,
       name: slug.to_s.humanize,
       description: nil,
-      options: { 'field_key' => 'text_area', 'required' => false, 'multiple' => false, 'default_value' => '' }
+      options: { 'field_key' => field_key, 'required' => false, 'multiple' => false, 'default_value' => '' }
+        .merge(options).with_indifferent_access
     ).tap do |field|
       allow(field).to receive(:get_option).and_return(nil)
-      allow(field).to receive(:get_option).with('field_key').and_return('text_area')
+      allow(field).to receive(:get_option).with('field_key').and_return(field_key)
       allow(field).to receive(:get_option).with('render').and_return(nil)
       allow(field).to receive(:get_option).with('disabled').and_return(nil)
       allow(field).to receive(:get_option).with('readonly').and_return(nil)
@@ -80,21 +81,14 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
     end
   end
 
-  def build_checkboxes_field(slug)
-    options = { 'field_key' => 'checkboxes',
-                'multiple_options' => [{ 'title' => 'Option 1', 'value' => '1', 'default' => '1' },
-                                       { 'title' => 'Option 2', 'value' => '2' }] }.with_indifferent_access
-    instance_double(CamaleonCms::CustomField, slug: slug, id: 12, name: slug.humanize, description: nil,
-                                              options: options).tap do |field|
-      allow(field).to receive(:get_option).and_return(nil)
-      allow(field).to receive(:get_option).with('field_key').and_return('checkboxes')
-    end
-  end
-
   context 'when a new record renders with the fields_name local' do
     let(:record) { instance_double(CamaleonCms::Site, new_record?: true, id: nil) }
     let(:field_slug) { 'colors' }
-    let(:fields) { [build_checkboxes_field(field_slug)] }
+    let(:fields) do
+      multiple_options = [{ 'title' => 'Option 1', 'value' => '1', 'default' => '1' },
+                          { 'title' => 'Option 2', 'value' => '2' }]
+      [build_field(field_slug, field_key: 'checkboxes', options: { 'multiple_options' => multiple_options })]
+    end
 
     def render_fields(submitted = {})
       allow(view).to receive(:params).and_return(ActionController::Parameters.new(submitted))
