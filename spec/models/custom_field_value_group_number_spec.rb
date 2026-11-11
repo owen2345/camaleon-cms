@@ -791,7 +791,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     # In a restartable transaction of the caller, Rails 7.1 and later open no savepoint: a failed call
     # restarts that transaction. So the two methods begin it and mark it as dirty (see
     # _cama_force_savepoint_in_caller_transaction). In each kind of transaction of the caller below, a
-    # failed call rolls back to its own savepoint, and the two methods run no SELECT 1.
+    # failed call rolls back to its own savepoint. The two methods run no SELECT 1.
     describe 'the rollback to the savepoint of the call' do
       let(:field_id) { post.get_field_object('note').id }
 
