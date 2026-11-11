@@ -57,6 +57,72 @@ module CamaleonCms
 
     attribute :group_number, GroupNumberType.new
 
+    # The slugs that where(custom_field_slug: key) reads for a key, with no query. A loaded
+    # custom_field_values association reads its rows with it. It follows the rules of where:
+    # - A key reads the slug that slug_of gives it: 'note' for :note, '5' for 5, '2020-01-01' for a Date.
+    # - A Range reads each slug from its first value to its last value. An infinite value
+    #   (Float::INFINITY) is no bound. With no other bound, a Range from Infinity or to -Infinity
+    #   reads no slug.
+    # - A list or a Set reads nil as a row with no slug, and a Range as a Range. When one other item
+    #   is left, it reads as a key of its own, so a list in a list reads its keys. Several other items
+    #   read as slugs.
+    class KeySlugs
+      def initialize(key)
+        @slugs = []
+        @ranges = []
+        add(key)
+      end
+
+      def include?(slug)
+        @slugs.include?(slug) || @ranges.any? { |range| range.cover?(slug) }
+      end
+
+      private
+
+      def add(key)
+        case key
+        when Array, Set then add_list(key.to_a)
+        when Range then add_range(key)
+        else @slugs << slug_of(key)
+        end
+      end
+
+      def add_range(range)
+        first = range_bound(range.begin)
+        last = range_bound(range.end)
+        return if first.nil? && last.nil? && (infinity(range.begin) == 1 || infinity(range.end) == -1)
+
+        @ranges << Range.new(first, last, range.exclude_end?)
+      end
+
+      def range_bound(value)
+        slug_of(value) unless infinity(value)
+      end
+
+      # 1 for Infinity, -1 for -Infinity, and nil for each other value.
+      def infinity(value)
+        value.infinite? if value.respond_to?(:infinite?)
+      end
+
+      def add_list(list)
+        special, keys = list.partition { |item| item.nil? || item.is_a?(Range) }
+        special.each { |item| add(item) }
+        keys.size == 1 ? add(keys.first) : keys.each { |item| @slugs << slug_of(item) }
+      end
+
+      # The database compares the slug with the key as the type of the attribute gives it and the
+      # connection quotes it: '2020-01-01' for a Date. The connection cannot quote some keys (a Hash),
+      # and the database then raises an error. Such a key stays as it is, and no slug is equal to it.
+      def slug_of(key)
+        value = CustomFieldsRelationship.type_for_attribute('custom_field_slug').serialize(key)
+        begin
+          CustomFieldsRelationship.connection_pool.with_connection { |connection| connection.type_cast(value) }
+        rescue TypeError, EncodingError
+          value
+        end
+      end
+    end
+
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :validate_group_number?
     # update_attribute and save(validate: false) skip the validation, and they store NULL for a String
@@ -87,9 +153,8 @@ module CamaleonCms
       cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER, digits: MAX_GROUP_NUMBER_DIGITS)
     end
 
-    # Raises ActiveRecord::RecordInvalid for an invalid group number. The writers call it on an
-    # unsaved record: set_field_value before it deletes stored values, and set_field_values for an
-    # entry with no values.
+    # Raises ActiveRecord::RecordInvalid for an invalid group number.
+    # _cama_refuse_invalid_group_number! of CustomFieldsRead calls it on an unsaved record.
     def refuse_invalid_group_number!
       raise_group_number_refusal if group_number_refused?
     end
@@ -105,6 +170,22 @@ module CamaleonCms
     end
 
     class << self
+      # True for a group number that the record validation accepts: nil (no group number), or a number
+      # that storable_group_number? accepts.
+      def valid_group_number?(given)
+        given.nil? || storable_group_number?(given)
+      end
+
+      # True for a group number that _cama_lookup_group_numbers of CustomFieldsRead reads: an
+      # Integer in the 4-byte range, or a group number that valid_group_number? accepts. A stored
+      # value can hold a negative number from an earlier release. The database finds no row with an
+      # Integer outside that range, so a loaded association reads no value with it either.
+      def lookup_group_number?(given)
+        return given.between?(-MAX_GROUP_NUMBER - 1, MAX_GROUP_NUMBER) if given.is_a?(Integer)
+
+        valid_group_number?(given)
+      end
+
       # Whether this field type's value is emitted into a markup or URL position (so it is gated).
       def gated_field_key?(field_key)
         GATED_FIELD_KEYS.include?(field_key.to_s)
@@ -130,6 +211,17 @@ module CamaleonCms
       end
 
       private
+
+      # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
+      # digits with such a number ('5'). Each other class is invalid. The encoding test comes before the
+      # regexp, because the regexp raises an error for a String in an invalid encoding.
+      def storable_group_number?(given)
+        return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
+        return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
+        return false if GroupNumberType.unreadable?(given)
+
+        given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
+      end
 
       def markup_rejection_reason(value)
         return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
@@ -217,19 +309,7 @@ module CamaleonCms
     # Reads the group number before the type cast, because the cast hides an invalid one: 'abc'
     # becomes 0, and true becomes 1. nil is valid: a value can have no group number.
     def group_number_refused?
-      given = group_number_before_type_cast
-      !(given.nil? || storable_group_number?(given))
-    end
-
-    # True for an Integer from 0 to MAX_GROUP_NUMBER, and for a String of 1 to MAX_GROUP_NUMBER_DIGITS
-    # digits with such a number ('5'). Each other class is invalid. The encoding test comes before the
-    # regexp, because the regexp raises an error for a String in an invalid encoding.
-    def storable_group_number?(given)
-      return given.between?(0, MAX_GROUP_NUMBER) if given.is_a?(Integer)
-      return false unless given.is_a?(String) && given.bytesize <= MAX_GROUP_NUMBER_DIGITS
-      return false if GroupNumberType.unreadable?(given)
-
-      given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
+      !self.class.valid_group_number?(group_number_before_type_cast)
     end
 
     # The message in the current language, or in English when that language has no translation. Only
@@ -239,7 +319,18 @@ module CamaleonCms
     # hold the placeholder syntax of I18n, and a second interpolation then raises an error.
     def cama_rejection_message(key, **values)
       full_key = "camaleon_cms.admin.custom_field.message.#{key}"
-      I18n.t(full_key, slug: custom_field_slug, **values, default: I18n.t(full_key, locale: :en))
+      I18n.t(full_key, slug: cama_message_slug, **values, default: I18n.t(full_key, locale: :en))
+    end
+
+    # The slug of the field in UTF-8, for a message. I18n raises an encoding error when it puts a
+    # slug in an encoding such as UTF-16 into a message. Ruby has no converter for some encodings
+    # (UTF-7). The method then keeps the ASCII characters of the slug, and puts U+FFFD in place of
+    # each other byte.
+    def cama_message_slug
+      slug = custom_field_slug.to_s
+      slug.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+    rescue EncodingError
+      slug.b.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
     end
 
     # Trust follows the post-content model: an admin may write anything; a post's field values may

@@ -306,6 +306,32 @@ Changes that look free from inside this repository and are not:
     that the call deleted.
   - Both methods need `custom_field_values` to be a `has_many` association. No consumer defines it
     as a plain relation.
+- **`update_field_value` with an invalid group number** (#1337) changes no surveyed consumer. The
+  method now raises `ActiveRecord::RecordInvalid` for such a number, as `set_field_value` does,
+  except for a negative Integer. `camaleon-ecommerce` is the only consumer that calls it, with the
+  default group number 0.
+- **`get_field_value` and `get_field_values` with an invalid group number** (#1337) change no
+  surveyed consumer. The two readers now read no value for an invalid group number, with two
+  exceptions. A negative Integer down to -2147483648 still reads its group. A list of valid numbers
+  and such negative Integers reads each group in the list. Each surveyed call reads the default
+  group number 0.
+- **`get_field_value` and `get_field_values` with a loaded `custom_field_values` association**
+  (#1337) change no surveyed consumer. They now read a Symbol key (`:note`), a String of digits
+  (`'1'`) and a list (`[0, 1]`). Before, they read no value there, where the database read the
+  values. `camaleon-ecommerce` is the only consumer that passes a Symbol key:
+  `ProductDecorator#price` and `#tax` read `:ecommerce_price` and `:ecommerce_tax`. No surveyed
+  code reads them from a product with a loaded association. `camaleon-cms-shoppy` loads it with
+  `get_field_values_hash`, after the price read of that page.
+- **`get_field_value` and `get_field_values` with a key that is not a String or a Symbol** (#1337)
+  change no surveyed consumer. With a loaded `custom_field_values` association, they now read an
+  Integer key as its String (`5` as `'5'`), and each slug in a Range key. A Date key reads the slug
+  that the connection quotes for it (`'2020-01-01'`). They also read the values
+  of each key of a list there. Before, they read no value there, where the database read the
+  values. Each surveyed call passes one String or one Symbol as the key.
+- **`get_fields_grouped` with a Symbol key, an Integer key or a Range key** (#1337) changes no
+  surveyed consumer. The method now gives the values of such a key under that key, where no group
+  held them before. No surveyed consumer calls it. None calls the decorator methods
+  `the_fields_grouped` and `the_field_grouped`, which read through it.
 - **`set_field_values` with a plain Hash with String keys** changes no surveyed consumer. Each
   surveyed caller passes request parameters or the result of `cama_permitted_field_options`, which
   has indifferent access. `camaleon-cms-shoppy` and the `new` theme of `camaleon_website` pass the

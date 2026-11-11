@@ -98,20 +98,26 @@ module CamaleonCms
     alias get_field! get_field_value
 
     # get custom field values
-    # _key: custom field key
+    # _key: custom field key, a String or a Symbol. A list (Array) of keys reads the values of each key.
+    # group_number: nil, an Integer from -2147483648 to 2147483647, or a String of 1 to 16 digits with
+    #               a number from 0 to 2147483647 ('5'). A list (Array) of such numbers reads each
+    #               group in the list. Each other group number reads no value, because the integer
+    #               cast reads '1abc' as group 1.
+    # A loaded custom_field_values association reads the rows that it holds. The bullet "Reads with a
+    # loaded association" of openspec/specs/custom-field-value-rejection/spec.md gives the cases where
+    # that read differs.
     def get_field_values(_key, group_number = 0)
-      if custom_field_values.loaded?
-        custom_field_values.select do |f|
-          f.custom_field_slug == _key && f.group_number == group_number
-        end.map(&:value)
-      else
-        custom_field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
-      end
+      # The rows of a loaded association are an Array: map calls the value reader of each row. A
+      # relation reads the column with SQL.
+      return _cama_loaded_field_values(_key, group_number).map(&:value) if custom_field_values.loaded?
+
+      _cama_stored_field_values(_key, group_number).pluck(:value)
     end
     alias get_fields get_field_values
 
     # return the values of custom fields grouped by group_number
-    # field_keys: (array of keys)
+    # field_keys: (array of keys), each a String or a Symbol. Each group gives its values under the
+    #             key as given: get_fields_grouped([:my_slug1]) gives [{ my_slug1: ["val 1"] }].
     # samples: my_object.get_fields_grouped(['my_slug1', 'my_slug2'])
     #   return: [
     #             { 'my_slug1' => ["val 1"], 'my_slug2' => ['val 2']},
@@ -127,11 +133,13 @@ module CamaleonCms
     #   puts res[0]['my_slug1'].first ==> "val 1"
     def get_fields_grouped(field_keys)
       res = []
+      # The query below reads a Symbol key or an Integer key as its String, and a Range key as each
+      # slug in the Range. KeySlugs gives the comparison the same rules.
+      key_slugs = field_keys.map { |field_key| [field_key, CamaleonCms::CustomFieldsRelationship::KeySlugs.new(field_key)] }
       custom_field_values.where(custom_field_slug: field_keys)
                          .order(group_number: :asc).group_by(&:group_number).each_value do |group_fields|
-        group = field_keys.each_with_object({}) do |field_key, hsh|
-          _tmp = group_fields
-                 .each_with_object([]) { |field, ary| ary << field.value if field_key == field.custom_field_slug }
+        group = key_slugs.each_with_object({}) do |(field_key, slugs), hsh|
+          _tmp = group_fields.select { |field| slugs.include?(field.custom_field_slug) }.map(&:value)
           hsh[field_key] = _tmp if _tmp.present?
         end
         res << group
@@ -280,8 +288,7 @@ module CamaleonCms
             group_number = 0 if group_number.nil? || (group_number == '' && group_number.encoding.ascii_compatible?)
             if values[:values].blank?
               # The entry has no value to create, so validate its group number here.
-              CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: field_key, group_number: group_number)
-                                                   .refuse_invalid_group_number!
+              _cama_refuse_invalid_group_number!(field_key, group_number)
               next
             end
 
@@ -315,17 +322,34 @@ module CamaleonCms
     end
 
     # Update the value for the field with slug _key
-    # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
+    # group_number: nil, an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a
+    #               number ('5'), as in set_field_value. A negative Integer down to -2147483648 finds a
+    #               stored value with that number, from an earlier release.
+    # Returns true for a saved value, and false when a validation refuses the value. Returns nil when
+    # the lookup finds no stored value with the slug and the group number. The bullet "An update with
+    # a loaded association" of openspec/specs/custom-field-value-rejection/spec.md gives the update of
+    # a loaded custom_field_values association.
+    # Errors:
+    # - ActiveRecord::RecordInvalid for an invalid group number other than a negative Integer. Each
+    #   other error in the lookup or the write returns nil.
+    # Sample: my_post.update_field_value('sub_title', 'Test Sub Title')
     def update_field_value(key, value = nil, group_number = 0)
+      # Validate the group number before the lookup and outside the rescue, because the rescue hides an
+      # error. A negative Integer needs no validation. A stored value can hold such a number from an
+      # earlier release. The lookup finds only a value with that number, and the method changes no
+      # group number.
+      _cama_refuse_invalid_group_number!(key, group_number) unless group_number.is_a?(Integer) && group_number < 0
       # Route through validations so the scan-and-reject gate applies (audit M5): update_column
       # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
       # The value gets the form that set_field_value gives one value: JSON for a Hash, an Array or
       # ActionController::Parameters, and 'true' or 'false' for a boolean. An Array stays one row here,
       # where set_field_value stores one row per item.
-      # A refused value returns false. No row, or an error in the write, returns nil. The sync runs
-      # after the rescue, so its error raises: the value is then stored, and nil would say that it is not.
+      # The sync runs after the rescue, so its error raises: the value is then stored, and nil would
+      # say that it is not. The lookup reads the database, also with a loaded association. A loaded
+      # row can be stale (another instance replaced the stored row) or hold unsaved changes of the
+      # caller.
       updated = begin
-        row = custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
+        row = _cama_stored_field_values(key, group_number).first
         row&.update(value: CamaleonCms::Metas.text_column_value(value))
       rescue StandardError
         nil
@@ -392,13 +416,9 @@ module CamaleonCms
       # new value is invalid, the delete rolls back, and the old values stay.
       _cama_write_field_values do
         # Validate the group number before the delete. With an empty list of values, nothing else
-        # validates it, and the delete reads '1abc' as group 1.
-        CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: key, group_number: args[:group_number])
-                                             .refuse_invalid_group_number!
-        if args[:clear]
-          _cama_delete_field_values(custom_field_values.where(custom_field_slug: key,
-                                                              group_number: args[:group_number]))
-        end
+        # validates it.
+        _cama_refuse_invalid_group_number!(key, args[:group_number])
+        _cama_delete_field_values(_cama_stored_field_values(key, args[:group_number])) if args[:clear]
         if value.is_a?(Array)
           value.each do |val|
             custom_field_values.create!(v.merge({ value: CamaleonCms::Metas.text_column_value(val) }))
@@ -505,6 +525,48 @@ module CamaleonCms
       when Array
         data.each { |value| _cama_refuse_twin_keys!(value) }
       end
+    end
+
+    # The stored values of the field `key` with the group number, or with each group number of a
+    # list: a relation. The relation holds no row when get_field_values cannot read the group
+    # number, or a group number of the list.
+    def _cama_stored_field_values(key, group_number)
+      numbers = _cama_lookup_group_numbers(group_number)
+      return custom_field_values.none unless numbers
+
+      # One group number goes to where as it is. A list of one number gives the same SQL with more work.
+      numbers = numbers.first unless group_number.is_a?(Array)
+      custom_field_values.where(custom_field_slug: key, group_number: numbers)
+    end
+
+    # The rows of a loaded custom_field_values association that _cama_stored_field_values reads from
+    # the database: an Array. The association also holds the unsaved rows of the record.
+    def _cama_loaded_field_values(key, group_number)
+      numbers = _cama_lookup_group_numbers(group_number)
+      return [] unless numbers
+
+      # KeySlugs gives the slugs that the database reads for the key.
+      slugs = CamaleonCms::CustomFieldsRelationship::KeySlugs.new(key)
+      custom_field_values.select { |f| slugs.include?(f.custom_field_slug) && numbers.include?(f.group_number) }
+    end
+
+    # The group number of a lookup, or each group number of a list, as the type of the attribute
+    # casts it: an Array. nil when get_field_values cannot read one of the numbers.
+    def _cama_lookup_group_numbers(group_number)
+      numbers = group_number.is_a?(Array) ? group_number : [group_number]
+      return unless numbers.all? { |number| CamaleonCms::CustomFieldsRelationship.lookup_group_number?(number) }
+
+      type = CamaleonCms::CustomFieldsRelationship.type_for_attribute('group_number')
+      numbers.map { |number| type.cast(number) }
+    end
+
+    # Raises ActiveRecord::RecordInvalid when group_number is invalid for a value of the field `key`.
+    # The method builds a record only for an invalid number, for the message of the error.
+    def _cama_refuse_invalid_group_number!(key, group_number)
+      return if CamaleonCms::CustomFieldsRelationship.valid_group_number?(group_number)
+
+      CamaleonCms::CustomFieldsRelationship.new(custom_field_slug: key, group_number: group_number)
+                                           .refuse_invalid_group_number!
     end
 
     def _cama_field_id_for(key, field_groups)

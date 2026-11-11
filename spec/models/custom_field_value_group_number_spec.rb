@@ -23,6 +23,26 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     described_class.where(id: row.id).update_all(['group_number = ?', number]) # rubocop:disable Rails/SkipsModelValidations
   end
 
+  # Stores a group number in the stored values of the 'note' field, with no validation. The scope
+  # limits the update to some of those values.
+  def store_group_number(number, **scope)
+    described_class.where(custom_field_slug: 'note', **scope).update_all(group_number: number) # rubocop:disable Rails/SkipsModelValidations
+  end
+
+  # Adds a field with the slug to the field group of the 'note' field.
+  def add_field(slug)
+    CamaleonCms::CustomFieldGroup.find_by!(slug: 'fields').add_manual_field({ name: slug, slug: slug },
+                                                                            { field_key: 'text_box' })
+  end
+
+  # Gives the name of a group number for the description of an example. The inspect of a String in
+  # UTF-16 shows only its characters: '1' in UTF-16 gives "1". So the name also gives the encoding.
+  def self.group_number_name(group_number)
+    return group_number.inspect unless group_number.is_a?(String) && !group_number.encoding.ascii_compatible?
+
+    "#{group_number.inspect} in #{group_number.encoding}"
+  end
+
   describe 'set_field_value' do
     before { post.set_field_value('note', 'kept', group_number: 1) }
 
@@ -132,6 +152,312 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
         expect(post.reload.custom_field_values).to be_empty
       end
+    end
+  end
+
+  # update_field_value looks the row up before it updates the value. The lookup finds the groups of a
+  # list ([1]) and no row for '1abc', so the method validates the number first.
+  describe 'update_field_value' do
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    ['1abc', '-1', '', true, 1.5, 2_147_483_648, [1], "1\xFF", '1'.encode('UTF-16LE')].each do |group_number|
+      it "refuses the group number #{group_number_name(group_number)} and keeps the stored value" do
+        expect { post.update_field_value('note', 'new', group_number) }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+    end
+
+    # I18n raises an encoding error when it puts a slug in such an encoding into a message. So the
+    # message of the group number error holds the slug in UTF-8.
+    { 'in UTF-16' => 'note'.encode('UTF-16LE'), 'in UTF-7' => (+'note').force_encoding('UTF-7') }.each do |kind, slug|
+      it "raises the group number error for a slug #{kind}, and the stored value stays" do
+        expect { post.update_field_value(slug, 'new', '1abc') }
+          .to raise_error(ActiveRecord::RecordInvalid, /group number of the 'note' field/)
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+    end
+
+    it 'updates the value of the group given as a String of digits' do
+      expect(post.update_field_value('note', 'new', '1')).to be(true)
+      expect(post.reload.get_field_values('note', 1)).to eq(['new'])
+    end
+
+    it 'updates the value with no group number for nil' do
+      post.set_field_value('note', 'none', group_number: nil, clear: false)
+
+      expect(post.update_field_value('note', 'new', nil)).to be(true)
+      expect(post.reload.get_field_values('note', nil)).to eq(['new'])
+      expect(post.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    it 'returns nil for a valid group number with no stored value' do
+      expect(post.update_field_value('note', 'new', 2)).to be_nil
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    # A value from an earlier release can hold a negative group number. The method changes no group
+    # number, so it looks up a negative Integer with no validation.
+    it 'updates a stored value with a negative group number' do
+      store_group_number(-1)
+
+      expect(post.update_field_value('note', 'new', -1)).to be(true)
+      expect(post.reload.get_field_values('note', -1)).to eq(['new'])
+    end
+
+    it 'returns nil for a negative group number with no stored value' do
+      expect(post.update_field_value('note', 'new', -1)).to be_nil
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    it 'returns nil for a negative Integer below -2147483648' do
+      expect(post.update_field_value('note', 'new', -2_147_483_649)).to be_nil
+      expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+    end
+
+    # The lookup finds no row with an Integer outside the 4-byte range, also when a wider column holds
+    # a row with that number.
+    it 'keeps a stored row with a negative Integer below -2147483648' do
+      row = post.custom_field_values.first
+      store_wide_group_number(row, -2_147_483_649)
+
+      expect(post.update_field_value('note', 'new', -2_147_483_649)).to be_nil
+      expect(row.reload.value).to eq('kept')
+    end
+
+    # The cases of a loaded association that the group number and the lookup add. The describe
+    # 'a loaded association after update_field_value' below holds the common case.
+    context 'with a loaded association' do
+      before { post.custom_field_values.load }
+
+      it 'updates a stored value with a negative group number' do
+        store_group_number(-1)
+        post.custom_field_values.reload
+
+        expect(post.update_field_value('note', 'new', -1)).to be(true)
+        expect(post.get_field_values('note', -1)).to eq(['new'])
+      end
+
+      it 'finds the value for a Symbol key' do
+        expect(post.update_field_value(:note, 'new', 1)).to be(true)
+        expect(post.get_field_values('note', 1)).to eq(['new'])
+      end
+
+      # set_field_value of another instance deletes the stored row and stores a new one, with a new id.
+      it 'updates the stored row that another instance of the record replaced' do
+        CamaleonCms::Post.find(post.id).set_field_value('note', 'replaced', group_number: 1)
+
+        expect(post.update_field_value('note', 'new', 1)).to be(true)
+        # The association still holds the old row.
+        expect(post.get_field_values('note', 1)).to eq(['kept'])
+        expect(post.reload.get_field_values('note', 1)).to eq(['new'])
+      end
+
+      it 'saves no other unsaved change of the row that the association holds' do
+        held = post.custom_field_values.find { |row| row.custom_field_slug == 'note' }
+        held.term_order = 7
+
+        expect(post.update_field_value('note', 'new', 1)).to be(true)
+        expect(described_class.find(held.id).term_order).to eq(0)
+        expect(held).to have_attributes(value: 'new', term_order: 7)
+      end
+
+      it 'stores no unsaved value of the association' do
+        post.custom_field_values.build(custom_field_slug: 'note', value: 'unsaved', group_number: 2)
+
+        expect(post.update_field_value('note', 'new', 2)).to be_nil
+        expect(post.reload.get_field_values('note', 2)).to eq([])
+      end
+    end
+  end
+
+  # The integer cast reads '1abc' as group 1. So the readers read only these group numbers: nil, an
+  # Integer in the 4-byte range, a valid String or a list of them.
+  describe 'get_field_values' do
+    before { post.set_field_value('note', 'kept', group_number: 1) }
+
+    # The integer cast reads false as group 0, and '' or a Range as no group number. So each example
+    # stores a value there.
+    ['1abc', '-1', '', true, false, 1.5, 1.0, 2_147_483_648, -2_147_483_649, [[1]], [1, '1abc'], 0..1, Set[1],
+     "1\xFF", '1'.encode('UTF-16LE')].each do |group_number|
+      it "reads no value for #{group_number_name(group_number)}, with or without a loaded association" do
+        post.set_field_value('note', 'zero', group_number: 0)
+        post.set_field_value('note', 'none', group_number: nil, clear: false)
+
+        expect(post.reload.get_field_values('note', group_number)).to eq([])
+        expect(post.get_field_value('note', 'default', group_number)).to eq('default')
+        post.custom_field_values.load
+        expect(post.get_field_values('note', group_number)).to eq([])
+      end
+    end
+
+    # A list reads the values of each group in the list.
+    [[0, 1], [0, '1']].each do |group_numbers|
+      it "reads the values of each group of the list #{group_numbers.inspect}, with or without a loaded association" do
+        post.set_field_value('note', 'zero', group_number: 0)
+
+        expect(post.reload.get_field_values('note', group_numbers)).to contain_exactly('zero', 'kept')
+        post.custom_field_values.load
+        expect(post.get_field_values('note', group_numbers)).to contain_exactly('zero', 'kept')
+      end
+    end
+
+    it 'reads the values with no group number for a nil in a list, with or without a loaded association' do
+      post.set_field_value('note', 'zero', group_number: 0)
+      post.set_field_value('note', 'none', group_number: nil, clear: false)
+
+      expect(post.reload.get_field_values('note', [1, nil, 0])).to contain_exactly('zero', 'kept', 'none')
+      post.custom_field_values.load
+      expect(post.get_field_values('note', [1, nil, 0])).to contain_exactly('zero', 'kept', 'none')
+    end
+
+    # The database reads a Symbol key as its String, and so does a loaded association.
+    it 'reads the values of a Symbol key, with or without a loaded association' do
+      expect(post.get_field_values(:note, 1)).to eq(['kept'])
+      expect(post.get_field_value(:note, 'default', 1)).to eq('kept')
+
+      post.custom_field_values.load
+      expect(post.get_field_values(:note, 1)).to eq(['kept'])
+      expect(post.get_field_value(:note, 'default', 1)).to eq('kept')
+    end
+
+    # The database reads the values of each key of a list, and so does a loaded association.
+    it 'reads the values of each key of a list, with or without a loaded association' do
+      add_field('other')
+      post.set_field_value('other', 'more', group_number: 1)
+
+      expect(post.reload.get_field_values(['note', :other], 1)).to contain_exactly('kept', 'more')
+      post.custom_field_values.load
+      expect(post.get_field_values(['note', :other], 1)).to contain_exactly('kept', 'more')
+    end
+
+    # The database reads an Integer key as its String, and so does a loaded association.
+    it 'reads the values of an Integer key, with or without a loaded association' do
+      add_field('5')
+      post.set_field_value('5', 'five', group_number: 1)
+
+      expect(post.reload.get_field_values(5, 1)).to eq(['five'])
+      post.custom_field_values.load
+      expect(post.get_field_values(5, 1)).to eq(['five'])
+      expect(post.get_field_value(5, 'default', 1)).to eq('five')
+    end
+
+    # The database reads the slugs in a Range, and so does a loaded association.
+    it 'reads the values of the slugs in a Range key, with or without a loaded association' do
+      add_field('other')
+      post.set_field_value('other', 'more', group_number: 1)
+
+      expect(post.reload.get_field_values('n'..'o', 1)).to eq(['kept'])
+      post.custom_field_values.load
+      expect(post.get_field_values('n'..'o', 1)).to eq(['kept'])
+    end
+
+    # The database reads a list that is the only item of a list as the list itself.
+    it 'reads the values of each key of a list in a list, with or without a loaded association' do
+      add_field('other')
+      post.set_field_value('other', 'more', group_number: 1)
+
+      expect(post.reload.get_field_values([%w[note other]], 1)).to contain_exactly('kept', 'more')
+      post.custom_field_values.load
+      expect(post.get_field_values([%w[note other]], 1)).to contain_exactly('kept', 'more')
+    end
+
+    it 'reads no value for an empty list' do
+      expect(post.get_field_values('note', [])).to eq([])
+      expect(post.get_field_value('note', 'default', [])).to eq('default')
+    end
+
+    it 'reads the values with no group number for nil, with or without a loaded association' do
+      post.set_field_value('note', 'none', group_number: nil, clear: false)
+
+      expect(post.reload.get_field_values('note', nil)).to eq(['none'])
+      post.custom_field_values.load
+      expect(post.get_field_values('note', nil)).to eq(['none'])
+    end
+
+    it 'reads the group given as a String of digits, with or without a loaded association' do
+      expect(post.get_field_values('note', '1')).to eq(['kept'])
+
+      post.custom_field_values.load
+      expect(post.get_field_values('note', '1')).to eq(['kept'])
+    end
+
+    it 'reads an unsaved value of a loaded association, with no query' do
+      post.custom_field_values.load
+      post.custom_field_values.build(custom_field_slug: 'note', value: 'unsaved', group_number: 2)
+
+      queries = sql_queries { expect(post.get_field_values('note', 2)).to eq(['unsaved']) }
+      expect(queries).to be_empty
+    end
+
+    # Enumerable#pluck reads the attribute of a row, and not its value reader.
+    it 'reads each value of a loaded association with the value reader of the row' do
+      post.custom_field_values.load
+      post.custom_field_values.first.define_singleton_method(:value) { 'from the reader' }
+
+      expect(post.get_field_values('note', 1)).to eq(['from the reader'])
+    end
+
+    it 'reads a stored value with a negative group number' do
+      store_group_number(-1)
+
+      expect(post.reload.get_field_values('note', -1)).to eq(['kept'])
+    end
+
+    it 'reads each group of a list that holds a negative group number, with or without a loaded association' do
+      post.set_field_value('note', 'zero', group_number: 0)
+      store_group_number(-1, group_number: 1)
+
+      expect(post.reload.get_field_values('note', [-1, 0])).to contain_exactly('kept', 'zero')
+      post.custom_field_values.load
+      expect(post.get_field_values('note', [-1, 0])).to contain_exactly('kept', 'zero')
+    end
+
+    it 'reads no stored value with a negative group number given as a String' do
+      store_group_number(-1)
+
+      expect(post.reload.get_field_values('note', '-1')).to eq([])
+      post.custom_field_values.load
+      expect(post.get_field_values('note', '-1')).to eq([])
+    end
+
+    # The readers read an Integer from -2147483648 to 2147483647: the 4-byte range of the type.
+    [-2_147_483_648, 2_147_483_647].each do |number|
+      it "reads a stored value with the group number #{number}, with or without a loaded association" do
+        store_group_number(number)
+
+        expect(post.reload.get_field_values('note', number)).to eq(['kept'])
+        post.custom_field_values.load
+        expect(post.get_field_values('note', number)).to eq(['kept'])
+      end
+    end
+  end
+
+  # The database reads a Symbol key or an Integer key as its String. So get_fields_grouped compares
+  # that String with the slug of each row.
+  describe 'get_fields_grouped' do
+    before do
+      post.set_field_value('note', 'zero', group_number: 0)
+      post.set_field_value('note', 'one', group_number: 1)
+    end
+
+    it 'gives the values of a String key for each group, under that key' do
+      expect(post.get_fields_grouped(['note'])).to eq([{ 'note' => ['zero'] }, { 'note' => ['one'] }])
+    end
+
+    it 'gives the values of a Symbol key for each group, under that key' do
+      expect(post.get_fields_grouped([:note])).to eq([{ note: ['zero'] }, { note: ['one'] }])
+    end
+
+    it 'gives the values of an Integer key for each group, under that key' do
+      add_field('5')
+      post.set_field_value('5', 'five', group_number: 0)
+
+      expect(post.get_fields_grouped([5])).to eq([{ 5 => ['five'] }])
+    end
+
+    it 'gives the values of the slugs in a Range key for each group, under that key' do
+      expect(post.get_fields_grouped(['n'..'o'])).to eq([{ ('n'..'o') => ['zero'] }, { ('n'..'o') => ['one'] }])
     end
   end
 
@@ -413,10 +739,13 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
           expect(post.custom_field_values.where.not(group_number: number)).to eq([row])
         end
 
-        it 'reads the value of the row through a loaded association' do
+        # The readers read an Integer only in the 4-byte range. So a loaded association reads no value,
+        # as the database does, on each database.
+        it 'reads no value through a loaded association either' do
           post.custom_field_values.load
 
-          expect(post.get_field_values('note', number)).to eq(['kept'])
+          expect(post.get_field_values('note', number)).to eq([])
+          expect(post.get_field_value('note', 'default', number)).to eq('default')
         end
 
         it 'reads the stored number and updates the value of the row' do
