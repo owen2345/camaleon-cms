@@ -116,6 +116,28 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     end
   end
 
+  describe '#cama_form_submitted_values?' do
+    def submitted_for(verb, params = {})
+      helper.request.request_method = verb
+      controller.params = ActionController::Parameters.new(params)
+      helper.cama_form_submitted_values?
+    end
+
+    let(:submitted) { { '0' => { 'note' => { 'values' => ['typed'] } } } }
+
+    it 'is false for a GET request with field values' do
+      expect(submitted_for('GET', field_options: submitted)).to be(false)
+    end
+
+    it 'is true for a POST request with field values' do
+      expect(submitted_for('POST', field_options: submitted)).to be(true)
+    end
+
+    it 'is false for a POST request with no field values' do
+      expect(submitted_for('POST')).to be(false)
+    end
+  end
+
   describe '#cf_extra_models_for_fields (regression M18)' do
     it 'returns models registered through cf_add_model so they reach the placement dropdown' do
       helper.cf_add_model(CamaleonCms::Post)

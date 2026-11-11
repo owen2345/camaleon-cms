@@ -126,9 +126,16 @@ module CamaleonCms
       # record: the record of the form
       # slugs: the slugs of the fields of the group
       def cama_form_field_values(record, slugs)
-        return record.get_fields_grouped(slugs) if request.get? || params[:field_options].blank?
+        return record.get_fields_grouped(slugs) unless cama_form_submitted_values?
 
         cama_submitted_field_values(params[:field_options])
+      end
+
+      # Whether the custom-fields partial shows the submitted values: a request that is not a GET and
+      # that holds field values. The partial then shows no default option, because the submitted
+      # values hold the choice of the admin.
+      def cama_form_submitted_values?
+        !request.get? && params[:field_options].present?
       end
 
       # The values that a request submits for the field groups of a record, in the shape that
