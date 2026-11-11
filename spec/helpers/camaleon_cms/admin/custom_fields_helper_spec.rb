@@ -136,6 +136,16 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     it 'is false for a POST request with no field values' do
       expect(submitted_for('POST')).to be(false)
     end
+
+    it 'reads the values under the field name that it gets' do
+      helper.request.request_method = 'POST'
+      controller.params = ActionController::Parameters.new(theme_fields: submitted)
+
+      expect(helper.cama_form_submitted_values?).to be(false)
+      expect(helper.cama_form_submitted_values?(:theme_fields)).to be(true)
+      expect(helper.cama_form_field_values(instance_double(CamaleonCms::Post), ['note'], :theme_fields))
+        .to eq([{ 'note' => ['typed'] }])
+    end
   end
 
   describe '#cf_extra_models_for_fields (regression M18)' do
