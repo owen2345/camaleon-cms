@@ -477,14 +477,14 @@ module CamaleonCms
       end
     end
 
-    # Makes Rails open a real savepoint for _cama_write_field_values. In a restartable transaction of
-    # the caller, Rails 7.1 and later open no savepoint: a failed call restarts that transaction.
-    # Then, on SQLite with Rails 8.1, the caller can get an internal error of Rails, not
-    # ActiveRecord::RecordInvalid. So this method begins that transaction and marks it as dirty, as a
-    # statement does. A transaction is restartable when it is joinable and no statement ran in it.
-    # Rails connects a new connection, and reconnects a lost one, only while no open transaction is
-    # dirty. So the method begins the transaction before dirty!. A call that runs a statement begins
-    # it anyway.
+    # Makes Rails open a real savepoint for _cama_write_field_values. A transaction is restartable when
+    # it is joinable and no statement ran in it. In a restartable transaction of the caller, Rails 7.1
+    # and later open no savepoint: a failed call restarts that transaction. Then, on SQLite with Rails
+    # 8.1, the caller can get an internal error of Rails, not ActiveRecord::RecordInvalid.
+    #
+    # So this method begins that transaction and marks it as dirty, as a statement does. Rails connects
+    # a new connection, and reconnects a lost one, only while no open transaction is dirty. So the
+    # method begins the transaction before dirty!. A call that runs a statement begins it anyway.
     # dirty! and materialize_transactions are internal APIs of Rails 7.1 to 8.1 (intended): the
     # alternative, a SELECT 1, costs a round trip. Rails 6.1 and 7.0 have no restartable? and always
     # open a savepoint.
