@@ -845,24 +845,37 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
-    # After a statement in the transaction of the caller, Rails opens a savepoint by itself. So the
-    # two methods run no SELECT 1 there.
-    context 'when a statement ran in the transaction of the caller' do
+    # Rails opens a savepoint by itself when the transaction of the caller is not restartable: after a
+    # statement, or when the transaction is not joinable. So the two methods run no SELECT 1 there.
+    context 'when the transaction of the caller is not restartable' do
       let(:field_id) { post.get_field_object('note').id }
 
       before { field_id }
 
-      # Opens a transaction of the caller, runs a SELECT in it, and then runs the block. Returns the
-      # SELECT 1, SAVEPOINT and ROLLBACK TO SAVEPOINT statements that the block ran.
-      def statements_in_a_used_caller_transaction
+      # Runs the block. Returns the SELECT 1, SAVEPOINT and ROLLBACK TO SAVEPOINT statements that the
+      # block ran.
+      def writer_statements
+        sql_queries(matching: /\A(SELECT 1\z|(ROLLBACK TO )?SAVEPOINT)/, include_transactions: true) do
+          yield
+        rescue ActiveRecord::RecordInvalid, ActiveModel::RangeError
+          nil
+        end
+      end
+
+      # Opens a transaction of the caller, runs a SELECT in it, and then runs the block.
+      def statements_in_a_used_caller_transaction(&)
         ActiveRecord::Base.transaction do
           CamaleonCms::Post.where(id: post.id).exists?
-          sql_queries(matching: /\A(SELECT 1\z|(ROLLBACK TO )?SAVEPOINT)/, include_transactions: true) do
-            yield
-          rescue ActiveRecord::RecordInvalid, ActiveModel::RangeError
-            nil
-          end
+          writer_statements(&)
         end
+      end
+
+      def expect_a_rollback_to_a_savepoint_with_no_select_one(statements)
+        savepoints = statements.grep(/\ASAVEPOINT/)
+
+        expect(statements).not_to include('SELECT 1')
+        expect(statements.last).to eq("ROLLBACK TO #{savepoints.last}")
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
 
       it 'rolls a failed set_field_value back to its own savepoint with no SELECT 1' do
@@ -870,10 +883,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
           post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
         end
 
-        expect(statements.size).to eq(2)
-        expect(statements.first).to start_with('SAVEPOINT')
-        expect(statements.last).to eq("ROLLBACK TO #{statements.first}")
-        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+        expect_a_rollback_to_a_savepoint_with_no_select_one(statements)
       end
 
       it 'rolls a failed set_field_values back to its own savepoint with no SELECT 1' do
@@ -881,10 +891,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
           post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
         end
 
-        expect(statements.size).to eq(2)
-        expect(statements.first).to start_with('SAVEPOINT')
-        expect(statements.last).to eq("ROLLBACK TO #{statements.first}")
-        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+        expect_a_rollback_to_a_savepoint_with_no_select_one(statements)
+      end
+
+      it 'rolls a failed call back to its own savepoint with no SELECT 1 when the transaction is not joinable' do
+        statements = ActiveRecord::Base.transaction(joinable: false) do
+          writer_statements do
+            post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
+          end
+        end
+
+        expect_a_rollback_to_a_savepoint_with_no_select_one(statements)
       end
     end
 
