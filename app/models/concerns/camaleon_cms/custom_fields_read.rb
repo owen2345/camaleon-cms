@@ -477,14 +477,19 @@ module CamaleonCms
       end
     end
 
-    # Makes Rails open a real savepoint for _cama_write_field_values: Rails 7.2 and later open none
+    # Makes Rails open a real savepoint for _cama_write_field_values: Rails 7.1 and later open none
     # before the first statement in the transaction of the caller. So this method runs SELECT 1 there.
     # Without the SELECT 1, on SQLite with Rails 8.1, the caller can get an internal error of Rails
     # after a failed call, not ActiveRecord::RecordInvalid. The query cache is off, because a cached
     # SELECT sends no statement.
+    # Rails opens a savepoint by itself when the transaction is not restartable, for example after a
+    # statement. The method then runs no SELECT 1. Rails 6.1 and 7.0 have no restartable? and always
+    # open a savepoint.
     def _cama_run_statement_in_caller_transaction
       ActiveRecord::Base.connection_pool.with_connection do |connection|
-        ActiveRecord::Base.uncached { connection.select_value('SELECT 1') } if connection.transaction_open?
+        next unless connection.transaction_open? && connection.current_transaction.try(:restartable?)
+
+        ActiveRecord::Base.uncached { connection.select_value('SELECT 1') }
       end
     end
 

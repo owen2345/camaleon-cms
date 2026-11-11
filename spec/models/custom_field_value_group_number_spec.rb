@@ -788,7 +788,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
     end
 
-    # Rails 7.2 and later open no savepoint before the first statement in the transaction of the
+    # Rails 7.1 and later open no savepoint before the first statement in the transaction of the
     # caller. So the two methods run SELECT 1 first (see _cama_run_statement_in_caller_transaction).
     context 'when no statement ran in the transaction of the caller' do
       let(:field_id) { post.get_field_object('note').id }
@@ -842,6 +842,49 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         end
 
         expect_a_rollback_to_a_savepoint_of_the_writer(statements)
+      end
+    end
+
+    # After a statement in the transaction of the caller, Rails opens a savepoint by itself. So the
+    # two methods run no SELECT 1 there.
+    context 'when a statement ran in the transaction of the caller' do
+      let(:field_id) { post.get_field_object('note').id }
+
+      before { field_id }
+
+      # Opens a transaction of the caller, runs a SELECT in it, and then runs the block. Returns the
+      # SELECT 1, SAVEPOINT and ROLLBACK TO SAVEPOINT statements that the block ran.
+      def statements_in_a_used_caller_transaction
+        ActiveRecord::Base.transaction do
+          CamaleonCms::Post.where(id: post.id).exists?
+          sql_queries(matching: /\A(SELECT 1\z|(ROLLBACK TO )?SAVEPOINT)/, include_transactions: true) do
+            yield
+          rescue ActiveRecord::RecordInvalid, ActiveModel::RangeError
+            nil
+          end
+        end
+      end
+
+      it 'rolls a failed set_field_value back to its own savepoint with no SELECT 1' do
+        statements = statements_in_a_used_caller_transaction do
+          post.set_field_value('note', %w[first second], field_id: field_id, group_number: 1, order: 2**64)
+        end
+
+        expect(statements.size).to eq(2)
+        expect(statements.first).to start_with('SAVEPOINT')
+        expect(statements.last).to eq("ROLLBACK TO #{statements.first}")
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
+      end
+
+      it 'rolls a failed set_field_values back to its own savepoint with no SELECT 1' do
+        statements = statements_in_a_used_caller_transaction do
+          post.set_field_values({ '0' => { 'note' => { group_number: -1, values: ['new'] } } })
+        end
+
+        expect(statements.size).to eq(2)
+        expect(statements.first).to start_with('SAVEPOINT')
+        expect(statements.last).to eq("ROLLBACK TO #{statements.first}")
+        expect(post.reload.get_field_values('note', 1)).to eq(['kept'])
       end
     end
 
