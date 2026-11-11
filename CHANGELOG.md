@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** After a failed save of a new record, the admin form shows the checkbox options that the admin submitted. Before, it checked each default option again, even one the admin had unchecked, and the next save stored it. [#1342](https://github.com/owen2345/camaleon-cms/pull/1342).
+
 - **Performance:** `set_field_value` and `set_field_values` no longer run `SELECT 1` in a transaction of the caller. [#1341](https://github.com/owen2345/camaleon-cms/pull/1341).
 
 - **Bug fix:** `update_field_value` stores a value as `set_field_value` does, and loaded custom-field values hold it. Custom-field writers work without `Metas`. Parameters in a Hash or an Array become JSON objects. [#1339](https://github.com/owen2345/camaleon-cms/pull/1339).

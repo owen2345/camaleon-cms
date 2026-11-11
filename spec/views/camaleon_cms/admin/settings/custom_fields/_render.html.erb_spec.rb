@@ -60,23 +60,48 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
     allow(record).to receive(:get_fields_grouped).with([field_slug]).and_return({})
   end
 
-  def build_field(slug)
+  # get_option reads the same options as field.options, so the two agree for each key that a caller sets.
+  def build_field(slug, field_key: 'text_area', options: {})
+    field_options = { 'field_key' => field_key, 'required' => false, 'multiple' => false, 'default_value' => '' }
+                    .merge(options).with_indifferent_access
     instance_double(
       CamaleonCms::CustomField,
       slug: slug,
       id: 12,
       name: slug.to_s.humanize,
       description: nil,
-      options: { 'field_key' => 'text_area', 'required' => false, 'multiple' => false, 'default_value' => '' }
+      options: field_options
     ).tap do |field|
-      allow(field).to receive(:get_option).and_return(nil)
-      allow(field).to receive(:get_option).with('field_key').and_return('text_area')
-      allow(field).to receive(:get_option).with('render').and_return(nil)
-      allow(field).to receive(:get_option).with('disabled').and_return(nil)
-      allow(field).to receive(:get_option).with('readonly').and_return(nil)
-      allow(field).to receive(:get_option).with('required').and_return(false)
-      allow(field).to receive(:get_option).with('multiple').and_return(false)
-      allow(field).to receive(:get_option).with('default_value').and_return('')
+      allow(field).to receive(:get_option) { |key| field_options[key] }
+    end
+  end
+
+  context 'when a new record renders with the fields_name local' do
+    let(:record) { instance_double(CamaleonCms::Site, new_record?: true, id: nil) }
+    let(:field_slug) { 'colors' }
+    let(:fields) do
+      multiple_options = [{ 'title' => 'Option 1', 'value' => '1', 'default' => '1' },
+                          { 'title' => 'Option 2', 'value' => '2' }]
+      [build_field(field_slug, field_key: 'checkboxes', options: { 'multiple_options' => multiple_options })]
+    end
+
+    def render_fields(submitted = {})
+      allow(view).to receive(:params).and_return(ActionController::Parameters.new(submitted))
+      render partial: 'camaleon_cms/admin/settings/custom_fields/render',
+             locals: { record: record, field_groups: [group], fields_name: 'item_fields' }
+    end
+
+    it 'checks the default options when the request submits no field values' do
+      render_fields
+
+      expect(rendered).to have_css("input[name='item_fields[colors][values][]'][value='1'][checked]")
+    end
+
+    it 'shows the submitted values and no default option after a failed save' do
+      render_fields(item_fields: { '0' => { 'colors' => { 'id' => '12', 'values' => ['2'] } } })
+
+      expect(rendered).to have_no_css("input[name='item_fields[colors][values][]'][checked]")
+      expect(rendered).to include('[{"colors":["2"]}]')
     end
   end
 
