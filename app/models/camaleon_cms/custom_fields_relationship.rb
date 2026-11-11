@@ -57,6 +57,72 @@ module CamaleonCms
 
     attribute :group_number, GroupNumberType.new
 
+    # The slugs that where(custom_field_slug: key) reads for a key, with no query. A loaded
+    # custom_field_values association reads its rows with it. It follows the rules of where:
+    # - A key reads the slug that slug_of gives it: 'note' for :note, '5' for 5, '2020-01-01' for a Date.
+    # - A Range reads each slug from its first value to its last value. An infinite value
+    #   (Float::INFINITY) is no bound. With no other bound, a Range from Infinity or to -Infinity
+    #   reads no slug.
+    # - A list or a Set reads nil as a row with no slug, and a Range as a Range. When one other item
+    #   is left, it reads as a key of its own, so a list in a list reads its keys. Several other items
+    #   read as slugs.
+    class KeySlugs
+      def initialize(key)
+        @slugs = []
+        @ranges = []
+        add(key)
+      end
+
+      def include?(slug)
+        @slugs.include?(slug) || @ranges.any? { |range| range.cover?(slug) }
+      end
+
+      private
+
+      def add(key)
+        case key
+        when Array, Set then add_list(key.to_a)
+        when Range then add_range(key)
+        else @slugs << slug_of(key)
+        end
+      end
+
+      def add_range(range)
+        first = range_bound(range.begin)
+        last = range_bound(range.end)
+        return if first.nil? && last.nil? && (infinity(range.begin) == 1 || infinity(range.end) == -1)
+
+        @ranges << Range.new(first, last, range.exclude_end?)
+      end
+
+      def range_bound(value)
+        slug_of(value) unless infinity(value)
+      end
+
+      # 1 for Infinity, -1 for -Infinity, and nil for each other value.
+      def infinity(value)
+        value.infinite? if value.respond_to?(:infinite?)
+      end
+
+      def add_list(list)
+        special, keys = list.partition { |item| item.nil? || item.is_a?(Range) }
+        special.each { |item| add(item) }
+        keys.size == 1 ? add(keys.first) : keys.each { |item| @slugs << slug_of(item) }
+      end
+
+      # The database compares the slug with the key as the type of the attribute gives it and the
+      # connection quotes it: '2020-01-01' for a Date. The connection cannot quote some keys (a Hash),
+      # and the database then raises an error. Such a key stays as it is, and no slug is equal to it.
+      def slug_of(key)
+        value = CustomFieldsRelationship.type_for_attribute('custom_field_slug').serialize(key)
+        begin
+          CustomFieldsRelationship.connection_pool.with_connection { |connection| connection.type_cast(value) }
+        rescue TypeError, EncodingError
+          value
+        end
+      end
+    end
+
     validate :reject_untrusted_dangerous_value
     validate :reject_invalid_group_number, if: :validate_group_number?
     # update_attribute and save(validate: false) skip the validation, and they store NULL for a String
@@ -258,7 +324,8 @@ module CamaleonCms
 
     # The slug of the field in UTF-8, for a message. I18n raises an encoding error when it puts a
     # slug in an encoding such as UTF-16 into a message. Ruby has no converter for some encodings
-    # (UTF-7). The method then keeps only the ASCII characters of the slug.
+    # (UTF-7). The method then keeps the ASCII characters of the slug, and puts U+FFFD in place of
+    # each other byte.
     def cama_message_slug
       slug = custom_field_slug.to_s
       slug.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)

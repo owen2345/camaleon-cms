@@ -32,8 +32,10 @@ refused a group number that the readers still read.
 - A repair of stored values. A stored value with a negative group number stays.
 - The same order of the values. The database gives them in the order of `term_order`, and a loaded
   association in the order of its rows.
-- A key that is not a String or a Symbol. With a loaded association, a list of keys or an Integer
-  key reads no value, as before. The database reads values for such a key.
+- An error for a key that the database refuses, for example a Hash. A loaded association reads no
+  value for such a key.
+- The collation of the database for a Range key. A loaded association compares the bytes of the
+  slugs.
 
 ## Decisions
 
@@ -61,9 +63,11 @@ no value.
 - *Alternative: read the groups of the items that pass.* Rejected: the caller then gets a part of
   the values, with no sign that an item was wrong.
 
-**D4. A loaded association reads as the database reads.** The loaded branch compares the String of
-a Symbol key with the slug of each row. It casts each group number with the type of the attribute.
-So `:note`, `'1'` and `[0, 1]` read the same stored values on both branches.
+**D4. A loaded association reads as the database reads.** The loaded branch gives each key the form
+that `where` gives it. The type of the slug attribute casts the key, and the connection quotes it.
+`:note` becomes `'note'`, `5` becomes `'5'`, and a Date becomes `'2020-01-01'`. The branch reads the values of each key of a list, and it casts each group number with the
+type of the attribute. So `:note`, `%w[note other]`, `'1'` and `[0, 1]` read the same stored values
+on both branches.
 
 An Integer outside the 4-byte range reads no value on both branches, because `where` finds no row
 with such a number. Before, a loaded association read a stored value with that number (SQLite, a
@@ -71,6 +75,8 @@ with such a number. Before, a loaded association read a stored value with that n
 
 - *Alternative: send a query also for a loaded association.* Rejected: a caller loads the
   association to send no query for each read. The query also reads no unsaved value of a loaded row.
+- *Alternative: read only a String key or a Symbol key from a loaded association.* Rejected: a list
+  of keys or an Integer key then reads values from the database and none from a loaded association.
 
 **D5. One private method holds the rule of the group number.** `_cama_lookup_group_numbers` tests
 the group number and casts it. Two private lookups call it. `_cama_stored_field_values` gives the
@@ -102,7 +108,8 @@ loaded row with the same id.
 **D9. The message of the group number error holds the slug in UTF-8.** D6 put the validation
 outside the rescue. For a slug in UTF-16, I18n then raised an encoding error in place of the group
 number error. The model now converts the slug for the message. Ruby has no converter for some
-encodings (UTF-7), and the message then keeps only the ASCII characters of the slug.
+encodings (UTF-7). The message then keeps the ASCII characters of the slug, and it holds U+FFFD
+in place of each other byte.
 
 **D10. A loaded row gives its value through its `value` reader.** `Enumerable#pluck` reads the
 attribute of each row, and it does not call a `value` method that the row defines. So
@@ -113,21 +120,36 @@ attribute of each row, and it does not call a `value` method that the row define
 validates the group number first, so each number that reaches the lookup is valid. The delete
 removes the same stored values as before.
 
-**D12. `get_fields_grouped` compares the String of a Symbol key.** Its query already read a Symbol
-key as its String, so only the comparison with the slug of each row changed. Each group gives the
-values under the key as given (`:note`), so the caller reads the Hash with the key that it passed.
+**D12. `get_fields_grouped` compares each key with the rules of D13.** Its query already read a
+Symbol key or an Integer key as its String, and a Range key as its slugs. So only the comparison
+with the slug of each row changed. Each group gives the values under the key as given (`:note`), so
+the caller reads the Hash with the key that it passed.
 The decorator methods `the_fields_grouped` and `the_field_grouped` read through this method.
 
 - *Alternative: give the values under the String of the key.* Rejected: a caller that passes
   `:note` then finds no `:note` key in the Hash.
+
+**D13. One class holds the rules of `where` for a key.** `CustomFieldsRelationship::KeySlugs` gives
+the slugs that `where(custom_field_slug: key)` reads, with no query. The lookup of a loaded
+association and `get_fields_grouped` compare each slug with this class. A spec compares the class
+with the query for each kind of key, so a change of Rails shows in CI.
+
+A Range reads each slug from its first value to its last value. A list reads nil as a row with no
+slug. When one other item of a list is left, `where` reads it as a key of its own. So a list in a
+list reads its keys.
+
+- *Alternative: read only a slug or a flat list of slugs from a loaded association.* Rejected: a
+  Range key or a list in a list then reads values from the database and none from a loaded
+  association.
 
 ## Risks / Trade-offs
 
 - [Theme code passes a group number that the cast misread, and depends on that read] → the read now
   gives no value. `docs/upgrading-to-2.9.5.md` names each such number. Each surveyed consumer reads
   the default group number 0 (`docs/ai/ecosystem.md`).
-- [Code loads the association and passes a Symbol key, a String of digits or a list] → the read now
-  gives the stored values. Before, it gave none. No surveyed consumer reads that way.
+- [Code loads the association and passes a key or a group number that only the database read] → the
+  read now gives the stored values. Before, it gave none. D3 and D4 name those keys and numbers. No
+  surveyed consumer reads that way.
 - [A stored value holds a group number outside the 4-byte range, see D4] → a loaded association now
   reads no value with it. The database read none before.
 - [Code calls `update_field_value` with an invalid group number and expects nil] → the call now

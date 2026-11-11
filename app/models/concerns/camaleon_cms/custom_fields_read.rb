@@ -98,7 +98,7 @@ module CamaleonCms
     alias get_field! get_field_value
 
     # get custom field values
-    # _key: custom field key, a String or a Symbol
+    # _key: custom field key, a String or a Symbol. A list (Array) of keys reads the values of each key.
     # group_number: nil, an Integer from -2147483648 to 2147483647, or a String of 1 to 16 digits with
     #               a number from 0 to 2147483647 ('5'). A list (Array) of such numbers reads each
     #               group in the list. Each other group number reads no value, because the integer
@@ -133,12 +133,13 @@ module CamaleonCms
     #   puts res[0]['my_slug1'].first ==> "val 1"
     def get_fields_grouped(field_keys)
       res = []
+      # The query below reads a Symbol key or an Integer key as its String, and a Range key as each
+      # slug in the Range. KeySlugs gives the comparison the same rules.
+      key_slugs = field_keys.map { |field_key| [field_key, CamaleonCms::CustomFieldsRelationship::KeySlugs.new(field_key)] }
       custom_field_values.where(custom_field_slug: field_keys)
                          .order(group_number: :asc).group_by(&:group_number).each_value do |group_fields|
-        group = field_keys.each_with_object({}) do |field_key, hsh|
-          # The query above reads a Symbol key as its String, so the comparison uses the String too.
-          slug = _cama_field_slug(field_key)
-          _tmp = group_fields.select { |field| slug == field.custom_field_slug }.map(&:value)
+        group = key_slugs.each_with_object({}) do |(field_key, slugs), hsh|
+          _tmp = group_fields.select { |field| slugs.include?(field.custom_field_slug) }.map(&:value)
           hsh[field_key] = _tmp if _tmp.present?
         end
         res << group
@@ -544,9 +545,9 @@ module CamaleonCms
       numbers = _cama_lookup_group_numbers(group_number)
       return [] unless numbers
 
-      # The database reads a Symbol key as its String, so the method compares the String too.
-      slug = _cama_field_slug(key)
-      custom_field_values.select { |f| f.custom_field_slug == slug && numbers.include?(f.group_number) }
+      # KeySlugs gives the slugs that the database reads for the key.
+      slugs = CamaleonCms::CustomFieldsRelationship::KeySlugs.new(key)
+      custom_field_values.select { |f| slugs.include?(f.custom_field_slug) && numbers.include?(f.group_number) }
     end
 
     # The group number of a lookup, or each group number of a list, as the type of the attribute
@@ -557,11 +558,6 @@ module CamaleonCms
 
       type = CamaleonCms::CustomFieldsRelationship.type_for_attribute('group_number')
       numbers.map { |number| type.cast(number) }
-    end
-
-    # The slug that the database reads for a key: the String of a Symbol key, else the key as given.
-    def _cama_field_slug(key)
-      key.is_a?(Symbol) ? key.to_s : key
     end
 
     # Raises ActiveRecord::RecordInvalid when group_number is invalid for a value of the field `key`.

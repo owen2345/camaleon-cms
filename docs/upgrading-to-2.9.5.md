@@ -602,10 +602,15 @@ group 1. A Range (`0..2`) or a Set is not a list, and it now reads no value. Bef
 loaded association, the readers read each group of a Range or a Set.
 
 With a loaded `custom_field_values` association, a Symbol key (`:note`) now reads the values of its
-slug, as it does without one. Before, it read no value there.
+slug, as it does without one. An Integer key (`5`) now reads the values of the slug `'5'` there. A
+Date key now reads the values of the slug that the connection quotes for it (`'2020-01-01'`). A list
+of keys (`['note', 'other']`) now reads the values of each key there, and a list in a list
+(`[['note']]`) reads as the list. A Range key (`'a'..'c'`) now reads the values of each slug in the
+Range there. Before, each of them read no value there.
 
 `get_fields_grouped` now reads the values of a Symbol key too, and each group gives them under that
-key (`[{ note: ['a'] }]`). Before, each group was an empty Hash for a Symbol key. The decorator
+key (`[{ note: ['a'] }]`). Before, no group held the values of a Symbol key. An Integer key,
+a Date key and a Range key read in the same way. The decorator
 methods `the_fields_grouped` and `the_field_grouped` read through it, so they now give the values
 of a Symbol key.
 

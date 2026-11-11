@@ -43,10 +43,11 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   group number or a negative Integer down to -2147483648. A list with any other item SHALL read no
   value. A list in a list (`[[1]]`) is such an item.
 - **Reads with a loaded association.** Each group number SHALL read the same stored values with or
-  without a loaded `custom_field_values` association, for a String key and for a Symbol key. The
-  database gives the values in the order of `term_order`, and a loaded association in the order of
-  its rows. So the first value, which `get_field_value` returns, can differ. The values differ in
-  these cases:
+  without a loaded `custom_field_values` association. A loaded association SHALL read `:note` as
+  `'note'`, `5` as `'5'`, a Date as `'2020-01-01'` and a Range key as its slugs, as the database
+  does. It SHALL read each key of a list, and the keys of a list in a list. The database gives the
+  values in the order of `term_order`, and a loaded association in the order of its rows. So the
+  first value, which `get_field_value` returns, can differ. The values differ in these cases:
   - A loaded association reads unsaved values: the values of the rows that the record built, and
     the changed values of its rows. It reads each row under the group number and the slug that the
     row holds, also when they are not saved. It reads an unsaved invalid group number as the
@@ -56,9 +57,15 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
     reads the old values.
   - On MySQL, the collation can match another spelling of a slug (`'Note'` or `'nóte'` for
     `'note'`), and a loaded association matches only the same slug.
+  - The database compares the slugs in a Range key with its collation. A loaded association
+    compares their bytes.
+  - The database raises an error for a key that it cannot read, for example a Hash. A loaded
+    association reads no value for such a key.
 - **Reads of each group.** `get_fields_grouped` SHALL read the values of a Symbol key (`:note`) as
-  it reads the values of the String key (`'note'`). Each group SHALL give the values under the key
-  as given.
+  it reads the values of the String key (`'note'`). An Integer key (`5`) SHALL read the values of
+  its String (`'5'`). A Date key SHALL read the values of the slug that the connection quotes for it
+  (`'2020-01-01'`). A Range key SHALL read the values of each slug in the Range. Each group
+  SHALL give the values under the key as given.
 - **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
   encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
   `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
@@ -211,10 +218,44 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   `:note` as the key
 - **THEN** it reads the values of the slug `note`
 
+#### Scenario: A reader with a list of keys and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `['note', :other]` as the key
+- **THEN** it reads the values of the slugs `note` and `other`
+
+#### Scenario: A reader with an Integer key and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `5` as the key
+- **THEN** it reads the values of the slug `5`
+
+#### Scenario: A reader with a Range key and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `'n'..'o'` as the key
+- **THEN** it reads the values of the slug `note`, and no value of the slug `other`
+
+#### Scenario: A reader with a list in a list and a loaded association
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `get_field_values` gets
+  `[['note', 'other']]` as the key
+- **THEN** it reads the values of the slugs `note` and `other`
+
 #### Scenario: get_fields_grouped with a Symbol key
 
 - **WHEN** `get_fields_grouped` gets `[:note]` as the list of keys
 - **THEN** each group gives the values of the slug `note` under the key `:note`
+
+#### Scenario: get_fields_grouped with an Integer key
+
+- **WHEN** `get_fields_grouped` gets `[5]` as the list of keys
+- **THEN** each group gives the values of the slug `5` under the key `5`
+
+#### Scenario: get_fields_grouped with a Range key
+
+- **WHEN** `get_fields_grouped` gets `['n'..'o']` as the list of keys
+- **THEN** each group gives the values of the slug `note` under the Range
 
 #### Scenario: A reader with a list of group numbers
 

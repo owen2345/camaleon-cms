@@ -29,6 +29,12 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     described_class.where(custom_field_slug: 'note', **scope).update_all(group_number: number) # rubocop:disable Rails/SkipsModelValidations
   end
 
+  # Adds a field with the slug to the field group of the 'note' field.
+  def add_field(slug)
+    CamaleonCms::CustomFieldGroup.find_by!(slug: 'fields').add_manual_field({ name: slug, slug: slug },
+                                                                            { field_key: 'text_box' })
+  end
+
   # Gives the name of a group number for the description of an example. The inspect of a String in
   # UTF-16 shows only its characters: '1' in UTF-16 gives "1". So the name also gives the encoding.
   def self.group_number_name(group_number)
@@ -315,6 +321,47 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value(:note, 'default', 1)).to eq('kept')
     end
 
+    # The database reads the values of each key of a list, and so does a loaded association.
+    it 'reads the values of each key of a list, with or without a loaded association' do
+      add_field('other')
+      post.set_field_value('other', 'more', group_number: 1)
+
+      expect(post.reload.get_field_values(['note', :other], 1)).to contain_exactly('kept', 'more')
+      post.custom_field_values.load
+      expect(post.get_field_values(['note', :other], 1)).to contain_exactly('kept', 'more')
+    end
+
+    # The database reads an Integer key as its String, and so does a loaded association.
+    it 'reads the values of an Integer key, with or without a loaded association' do
+      add_field('5')
+      post.set_field_value('5', 'five', group_number: 1)
+
+      expect(post.reload.get_field_values(5, 1)).to eq(['five'])
+      post.custom_field_values.load
+      expect(post.get_field_values(5, 1)).to eq(['five'])
+      expect(post.get_field_value(5, 'default', 1)).to eq('five')
+    end
+
+    # The database reads the slugs in a Range, and so does a loaded association.
+    it 'reads the values of the slugs in a Range key, with or without a loaded association' do
+      add_field('other')
+      post.set_field_value('other', 'more', group_number: 1)
+
+      expect(post.reload.get_field_values('n'..'o', 1)).to eq(['kept'])
+      post.custom_field_values.load
+      expect(post.get_field_values('n'..'o', 1)).to eq(['kept'])
+    end
+
+    # The database reads a list that is the only item of a list as the list itself.
+    it 'reads the values of each key of a list in a list, with or without a loaded association' do
+      add_field('other')
+      post.set_field_value('other', 'more', group_number: 1)
+
+      expect(post.reload.get_field_values([%w[note other]], 1)).to contain_exactly('kept', 'more')
+      post.custom_field_values.load
+      expect(post.get_field_values([%w[note other]], 1)).to contain_exactly('kept', 'more')
+    end
+
     it 'reads no value for an empty list' do
       expect(post.get_field_values('note', [])).to eq([])
       expect(post.get_field_value('note', 'default', [])).to eq('default')
@@ -386,8 +433,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # The database reads a Symbol key as its String. So get_fields_grouped compares the String of a
-  # Symbol key with the slug of each row.
+  # The database reads a Symbol key or an Integer key as its String. So get_fields_grouped compares
+  # that String with the slug of each row.
   describe 'get_fields_grouped' do
     before do
       post.set_field_value('note', 'zero', group_number: 0)
@@ -400,6 +447,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
     it 'gives the values of a Symbol key for each group, under that key' do
       expect(post.get_fields_grouped([:note])).to eq([{ note: ['zero'] }, { note: ['one'] }])
+    end
+
+    it 'gives the values of an Integer key for each group, under that key' do
+      add_field('5')
+      post.set_field_value('5', 'five', group_number: 0)
+
+      expect(post.get_fields_grouped([5])).to eq([{ 5 => ['five'] }])
+    end
+
+    it 'gives the values of the slugs in a Range key for each group, under that key' do
+      expect(post.get_fields_grouped(['n'..'o'])).to eq([{ ('n'..'o') => ['zero'] }, { ('n'..'o') => ['one'] }])
     end
   end
 
