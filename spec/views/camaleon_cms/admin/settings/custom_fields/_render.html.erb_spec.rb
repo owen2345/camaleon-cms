@@ -80,6 +80,42 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
     end
   end
 
+  def build_checkboxes_field(slug)
+    options = { 'field_key' => 'checkboxes',
+                'multiple_options' => [{ 'title' => 'Option 1', 'value' => '1', 'default' => '1' },
+                                       { 'title' => 'Option 2', 'value' => '2' }] }.with_indifferent_access
+    instance_double(CamaleonCms::CustomField, slug: slug, id: 12, name: slug.humanize, description: nil,
+                                              options: options).tap do |field|
+      allow(field).to receive(:get_option).and_return(nil)
+      allow(field).to receive(:get_option).with('field_key').and_return('checkboxes')
+    end
+  end
+
+  context 'when a new record renders with the fields_name local' do
+    let(:record) { instance_double(CamaleonCms::Site, new_record?: true, id: nil) }
+    let(:field_slug) { 'colors' }
+    let(:fields) { [build_checkboxes_field(field_slug)] }
+
+    def render_fields(submitted = {})
+      allow(view).to receive(:params).and_return(ActionController::Parameters.new(submitted))
+      render partial: 'camaleon_cms/admin/settings/custom_fields/render',
+             locals: { record: record, field_groups: [group], fields_name: 'item_fields' }
+    end
+
+    it 'checks the default options when the request submits no field values' do
+      render_fields
+
+      expect(rendered).to have_css("input[name='item_fields[colors][values][]'][value='1'][checked]")
+    end
+
+    it 'shows the submitted values and no default option after a failed save' do
+      render_fields(item_fields: { '0' => { 'colors' => { 'id' => '12', 'values' => ['2'] } } })
+
+      expect(rendered).to have_no_css("input[name='item_fields[colors][values][]'][checked]")
+      expect(rendered).to include('[{"colors":["2"]}]')
+    end
+  end
+
   context 'when rendering footer description field' do
     let(:field_slug) { 'footer_description' }
 

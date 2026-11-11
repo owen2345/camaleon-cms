@@ -1,5 +1,5 @@
 <%# A new record shows the default options of its fields. A form that renders again from the submitted values shows those values. %>
-<% submitted = params[:field_options].present?; default_use = record.new_record? && !submitted; field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym; obj_class = record.class.name.parseCamaClass.downcase %>
+<% field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym; submitted = params[field_name].present?; default_use = record.new_record? && !submitted; obj_class = record.class.name.parseCamaClass.downcase %>
 <% field_groups.each do |group| fields = group.fields.where.not(slug: record.get_option("skip_fields", [])).eager_load(:metas); next if fields.size == 0; group_field_data = {} %>
     <div class="panel panel-default panel-lite c-field-group" id="custom_field_group_<%= group.id %>">
         <div class="panel-heading <%= 'hidden' if defined?(skip_panel) || group.slug == "_default" %>">
@@ -58,7 +58,7 @@
                 </div>
                 <%
                   field_options_json = if submitted
-                                         cama_submitted_field_values(params[:field_options]).to_json
+                                         cama_submitted_field_values(params[field_name]).to_json
                                        else
                                          record.get_fields_grouped(fields.pluck(:slug).uniq).to_json
                                        end
