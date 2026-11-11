@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** After a failed save of a new record, the admin form shows the checkbox options that the admin submitted. Before, it checked each default option again, even one the admin had unchecked, and the next save stored it. [#1342](https://github.com/owen2345/camaleon-cms/pull/1342).
+
 - **Security fix:** The development lockfile moves puma to 8.1.1, which the Audit job of CI refused at 8.0.2 for advisories. The gemspec does not change, so a host app updates puma in its own bundle. Development-only. [#1344](https://github.com/owen2345/camaleon-cms/pull/1344).
 
 - **Security fix:** A link can no longer put custom-field values into an admin form. The image field preview no longer runs markup from its URL. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
