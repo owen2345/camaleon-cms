@@ -761,8 +761,8 @@ for example a failed save, shows the submitted values as before.
 
 The image preview now sets its URL as the `href` of its link and the `src` of its image. A stored URL
 gives the same preview as before, unless the old preview read it as HTML and changed it. For
-example, the old preview changed a URL with a double quote, `/>` or a character reference such as
-`&amp;`.
+example, the old preview could change a URL with a double quote, `/>` or a character reference such
+as `&amp;`.
 
 **Who must act:** plugin or theme code that links to an admin form with `field_options` values in the
 query, to fill the form. Store the values on the record first, then link to its form. For the form of
