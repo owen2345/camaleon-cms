@@ -45,5 +45,6 @@ the link and the image get the whole value.
   a value that is no script once the preview is correct, and it cannot reach the value of a link.
 
 **D3. The preview keeps the URL scheme as it is.** The gate refuses a script URL from an author who
-is not an administrator, and an administrator can store any value. After D1, a link cannot put a URL
-into the form.
+is not trusted. An administrator can store any value. For the field values of a post, so can a role
+with `post_content_unfiltered_html` for its post type. After D1, a link cannot put a URL into the
+form.
