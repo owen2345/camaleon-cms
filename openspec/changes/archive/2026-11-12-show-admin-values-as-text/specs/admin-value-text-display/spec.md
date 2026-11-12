@@ -87,6 +87,12 @@ A param with markup MUST NOT add an element to the page.
 - **WHEN** an admin opens the media manager through a link whose `folder` param holds an `img` tag
 - **THEN** the breadcrumb shows the value as text and adds no `img` element
 
+#### Scenario: A link with a tag and a quote in a parent folder
+
+- **WHEN** an admin opens the media manager through a link whose `folder` param holds an `img` tag and
+  a quote in its parent folders
+- **THEN** the breadcrumb shows each parent folder as the text of a link, and adds no `img` element
+
 #### Scenario: A folder path
 
 - **WHEN** an admin opens the media manager with the `folder` param `/photos/2026`

@@ -8,14 +8,23 @@ RSpec.describe 'the params of the media manager page', :js do
   init_site
 
   let(:media_path) { "#{cama_root_relative_path}/admin/media" }
+  let(:markup) { '<img src=q onerror="window.mediaScriptRan=true">' }
 
   before { admin_sign_in }
 
   it 'shows a folder param with markup as the text of the breadcrumb' do
-    markup = '<img src=q onerror="window.mediaScriptRan=true">'
     visit "#{media_path}?#{{ folder: markup }.to_query}"
 
     expect(page).to have_css('.media_folder_breadcrumb li', exact_text: markup)
+    expect(page).to have_no_css('.media_folder_breadcrumb img', visible: :all)
+  end
+
+  # The breadcrumb shows a parent folder as a link, with the path of the folder in data-path.
+  it 'shows a parent folder with markup or a quote as the text of its link' do
+    visit "#{media_path}?#{{ folder: "/a'b/#{markup}/2026" }.to_query}"
+
+    expect(page).to have_css('.media_folder_breadcrumb li a', exact_text: markup)
+    expect(page).to have_css(%(.media_folder_breadcrumb li a[data-path="/a'b"]), exact_text: "a'b")
     expect(page).to have_no_css('.media_folder_breadcrumb img', visible: :all)
   end
 

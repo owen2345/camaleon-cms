@@ -26,8 +26,9 @@
 ## 3. The media manager
 
 - [x] 3.1 Add `spec/features/admin/media_manager_param_markup_spec.rb`. A `folder` param and a
-  `dimension` param with an `img` tag must show as text. Make sure that the examples fail before the
-  fix.
+  `dimension` param with an `img` tag must show as text. A parent folder with an `img` tag or a quote
+  must show as the text of its link. A plain folder path must keep its links. Make sure that each
+  example fails before the fix, except the example of the plain path.
 - [x] 3.2 Build the breadcrumb, the dimension of the details and the editor title from text in
   `_media_manager.js` (D1).
 - [x] 3.3 Give the change in `docs/upgrading-to-2.9.5.md`.
