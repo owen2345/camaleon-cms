@@ -3,11 +3,13 @@
 ## 1. Reproduce first
 
 - [x] 1.1 Add `spec/requests/security/custom_field_form_get_values_spec.rb`. Its GET examples
-  open the form of a new post and of an existing post. The form must show no value of the query.
-  A failed create must show the submitted values. Make sure that the GET examples fail before the fix.
+  open the form of a new post, the form of an existing post and the field list of a post type. Each
+  must show no value of the query. A failed create and a failed update must show the submitted
+  values. Make sure that the GET examples fail before the fix.
 - [x] 1.2 Add `spec/features/admin/custom_field_image_preview_spec.rb`. Store an image value with a
-  quote and an `img` tag. The preview must hold one link and one image, and no handler must run. Make
-  sure that the example fails before the fix.
+  quote and an `img` tag. The preview must hold one link and one image, and no handler must run. A
+  new URL must replace the preview, and the remove button must remove it. Make sure that the first
+  example fails before the fix.
 
 ## 2. Fix
 
