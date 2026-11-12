@@ -9,6 +9,9 @@ RSpec.describe 'the image preview of a custom field', :js do
 
   let(:post_type) { @site.post_types.find_by!(slug: 'post') }
   let(:image_url) { 'x"><img src=x onerror="window.previewScriptRan=true">' }
+  # The browser sends no request for a data URL to the test server.
+  let(:data_url) { 'data:image/gif;base64,R0lGODlhAQABAAAAACw=' }
+  let(:admin_post) { create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin')) }
 
   before do
     group = @site.custom_field_groups.create!(name: 'Image fields', slug: '_image-preview-fields',
@@ -17,13 +20,16 @@ RSpec.describe 'the image preview of a custom field', :js do
     admin_sign_in
   end
 
+  # Stores the URL as the image value of the post and opens the edit form of the post.
+  def open_edit_form_with(url)
+    admin_post.set_field_value('photo', url)
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/posts/#{admin_post.id}/edit"
+  end
+
   # An onerror handler runs only after its image fails to load. So the example does not wait for the
   # handler: it checks that no element of the field group has one.
   it 'shows the stored URL as the link and the image of the preview, and adds no other element' do
-    post = create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin'))
-    post.set_field_value('photo', image_url)
-
-    visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/posts/#{post.id}/edit"
+    open_edit_form_with(image_url)
 
     expect(page).to have_css('.custom_field_image_preview', visible: :all)
     expect(page).to have_css('.custom_field_image_preview *', count: 2, visible: :all)
@@ -33,14 +39,10 @@ RSpec.describe 'the image preview of a custom field', :js do
   end
 
   # The upload button sets a new URL and triggers the change event of the field, as this example does.
-  # The URLs are data URLs, so the browser sends no request for them to the test server.
   it 'replaces the preview when the URL changes' do
-    first_url = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
     second_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACw='
-    post = create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin'))
-    post.set_field_value('photo', first_url)
+    open_edit_form_with(data_url)
 
-    visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/posts/#{post.id}/edit"
     expect(page).to have_css('.custom_field_image_preview', visible: :all)
     page.execute_script("$('.custom_field_image_preview').closest('.input-group').find('input')" \
                         ".val('#{second_url}').trigger('change')")
@@ -50,10 +52,8 @@ RSpec.describe 'the image preview of a custom field', :js do
   end
 
   it 'removes the preview when the remove button empties the URL' do
-    post = create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin'))
-    post.set_field_value('photo', 'data:image/gif;base64,R0lGODlhAQABAAAAACw=')
+    open_edit_form_with(data_url)
 
-    visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/posts/#{post.id}/edit"
     find('.custom_field_image_preview', visible: :all).ancestor('.input-group').find('.btn-primary').click
 
     expect(page).to have_no_css('.custom_field_image_preview', visible: :all)
