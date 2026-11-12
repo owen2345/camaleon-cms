@@ -16,7 +16,7 @@ HTML from its URL.
 
 **Non-Goals:**
 
-- A change to the save of an image value. The gate still refuses only a script URL.
+- A change to the save of an image value. The save still refuses only a script URL.
 - The other params that a form reads on a GET request, such as `categories` in the post sidebar,
   which selects checkboxes by id.
 
@@ -45,7 +45,7 @@ the link and the image get the whole value.
   preview, such a value runs no script, so the save has no reason to refuse it. A check at save also
   does not see the `field_options` value of a GET link.
 
-**D3. The preview keeps the URL scheme as it is.** The gate refuses a script URL from an author who
-is not trusted. An administrator can store any value. For the field values of a post, so can a role
-with `post_content_unfiltered_html` for its post type. After D1, a link cannot put a URL into the
-form.
+**D3. The preview keeps the URL scheme as it is.** The save of an image value refuses a script URL
+from an author who is not trusted. An administrator can store any value. A role with
+`post_content_unfiltered_html` for its post type can store any value in the field values of a post.
+After D1, a link cannot put a URL into the form.
