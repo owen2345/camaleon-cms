@@ -56,4 +56,5 @@ None.
   `spec/features/admin/post_slug_markup_spec.rb` and
   `spec/features/admin/media_manager_param_markup_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
-- Ecosystem: no sibling checkout of a surveyed member calls `tagEditor`.
+- Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a
+  surveyed member calls it.
