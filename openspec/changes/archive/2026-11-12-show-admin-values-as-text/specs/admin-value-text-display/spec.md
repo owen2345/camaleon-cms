@@ -26,6 +26,11 @@ an element to the form. When the admin opens a tag, the input of the tag SHALL h
 - **WHEN** the admin opens a tag whose name holds a double quote and an `onfocus` attribute
 - **THEN** the input of the tag holds the whole name and has no `onfocus` attribute
 
+#### Scenario: The admin renames, removes and adds tags
+
+- **WHEN** the admin renames a tag, removes a tag and adds a tag in the tag editor, and saves the post
+- **THEN** the post holds the tags that the editor shows, also a tag with `&` in its name
+
 ### Requirement: The permalink line of the post form shows the slug as text
 
 The permalink line of the post form SHALL show the slug of the post as text, inside the URL of the

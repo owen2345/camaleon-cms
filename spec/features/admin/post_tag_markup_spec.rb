@@ -49,4 +49,26 @@ RSpec.describe 'the tag editor of the post form', :js do
     expect(find('.tag-editor .tag-editor-tag.active input').value).to eq(quoted_name)
     expect(page).to have_no_css('.tag-editor [onfocus]', visible: :all)
   end
+
+  # The text form of a tag name must not change the normal use of the editor. The editor closes an
+  # open tag on a focusout event.
+  it 'renames, deletes and adds a tag, and the save stores the result' do
+    tags_input = %q{$('#form-post input[name="tags"]')}
+    @post.update_tags('News,Ruby on Rails,R&D')
+    visit "#{posts_path}/#{@post.id}/edit"
+    expect(page).to have_css('.tag-editor .tag-editor-tag', exact_text: 'R&D', wait: 10)
+
+    page.execute_script("$('.tag-editor .tag-editor-tag').eq(1).trigger('click')")
+    expect(find('.tag-editor .tag-editor-tag.active input').value).to eq('Ruby on Rails')
+    page.execute_script("$('.tag-editor .tag-editor-tag.active input').val('Rails 8').trigger('focusout')")
+    expect(page).to have_css('.tag-editor .tag-editor-tag', exact_text: 'Rails 8')
+
+    page.execute_script("#{tags_input}.tagEditor('removeTag', 'News', true)")
+    page.execute_script("#{tags_input}.tagEditor('addTag', 'Extra', true)")
+    expect(page.evaluate_script("#{tags_input}.val()")).to eq('Rails 8,R&D,Extra')
+
+    page.execute_script("$('#form-post').submit()")
+    expect(page).to have_css('.alert-success', wait: 10)
+    expect(@post.object.reload.post_tags.pluck(:name)).to contain_exactly('Rails 8', 'R&D', 'Extra')
+  end
 end
