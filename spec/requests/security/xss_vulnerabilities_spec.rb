@@ -25,7 +25,8 @@ RSpec.describe 'Security: XSS Vulnerabilities Fixes', type: :request do
               )
       group.add_field({ name: malicious_payload, slug: 'test-field' }, { field_key: 'text_box' })
 
-      get '/admin/settings/custom_fields/list', params: {
+      # The form shows submitted field values only for a request that is not a GET.
+      post '/admin/settings/custom_fields/list', params: {
         post_type: post_type.id,
         field_options: {
           '0' => {

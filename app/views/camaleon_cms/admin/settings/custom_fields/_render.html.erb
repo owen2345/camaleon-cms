@@ -56,7 +56,9 @@
                     <% end %>
                 </div>
                 <%
-                  field_options_json = if params[:field_options].present?
+                  # A form that renders again after a failed save shows the submitted values. A GET
+                  # request shows the values of the record, so a link cannot put values into the form.
+                  field_options_json = if !request.get? && params[:field_options].present?
                                          cama_submitted_field_values(params[:field_options]).to_json
                                        else
                                          record.get_fields_grouped(fields.pluck(:slug).uniq).to_json
