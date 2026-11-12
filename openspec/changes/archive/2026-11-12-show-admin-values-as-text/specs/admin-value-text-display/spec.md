@@ -8,6 +8,9 @@ The admin JavaScript shows a value as text. A value with markup adds no element 
 
 The tag editor of the post form SHALL show each tag name as text. A name with markup MUST NOT add
 an element to the form. When the admin opens a tag, the input of the tag SHALL hold the whole name.
+A name that the admin types again, alone or in a list with a delimiter, SHALL replace its tag. The
+editor SHALL give a tag name as text to the `beforeTagDelete` callback, and its `removeTag` method
+SHALL take a name as text.
 
 #### Scenario: A stored tag name with a tag
 
@@ -30,6 +33,26 @@ an element to the form. When the admin opens a tag, the input of the tag SHALL h
 
 - **WHEN** the admin renames a tag, removes a tag and adds a tag in the tag editor, and saves the post
 - **THEN** the post holds the tags that the editor shows, also a tag with `&` in its name
+
+#### Scenario: The admin adds a tag name with markup
+
+- **WHEN** the admin adds a tag whose name holds the markup of an `img` element, alone and then in a
+  list with a delimiter
+- **THEN** the tag editor shows the whole name as text and adds no `img` element
+
+#### Scenario: The admin types names that exist already
+
+- **WHEN** the admin types a list in an open tag, and the list holds the name of that tag and of
+  another tag
+- **AND** the admin then types the name of a tag again
+- **THEN** the tag editor holds one tag for each of these names, also for a name with `&`
+
+#### Scenario: The code of a plugin deletes tags
+
+- **WHEN** a tag editor with a `beforeTagDelete` callback holds tags with `&` or `<` in their names
+- **AND** a right click, the `removeTag` method and the Delete key on the selected tags each delete
+  one tag
+- **THEN** the callback gets each name as text
 
 ### Requirement: The permalink line of the post form shows the slug as text
 

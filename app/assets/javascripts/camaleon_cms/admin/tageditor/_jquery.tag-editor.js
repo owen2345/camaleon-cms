@@ -197,8 +197,10 @@
                         if (o.forceLowercase) tag = tag.toLowerCase();
                         tag = o.beforeTagSave(el, ed, old_tags, old_tag, tag) || tag;
                         // remove duplicates
+                        // Camaleon CMS change: the open tag is no duplicate. Its text is the copy of its
+                        // input that tagEditorInput keeps.
                         if (o.removeDuplicates && ~$.inArray(tag, old_tags))
-                            $('.tag-editor-tag', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
+                            $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
                         old_tags.push(tag);
                         li.before('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+tag_as_html(tag)+'</div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>');
                     }

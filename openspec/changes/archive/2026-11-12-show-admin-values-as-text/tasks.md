@@ -2,9 +2,14 @@
 
 ## 1. The tag editor
 
-- [x] 1.1 Add `spec/features/admin/post_tag_markup_spec.rb`. A stored tag name with an `img` tag and
-  the `tags` param of a GET link must show as text. An open tag must hold a name with a quote. The
-  normal use of the editor must still work. Make sure that the first three examples fail before the fix.
+- [x] 1.1 Add `spec/features/admin/post_tag_markup_spec.rb`, with the examples below. Make sure that
+  each example fails before the fix, except the example of the normal use.
+  - A stored tag name with an `img` tag and the `tags` param of a GET link must show as text.
+  - An open tag must hold a name with a quote.
+  - The normal use of the editor must still work.
+  - A name with markup that the admin adds must show as text.
+  - A name that the admin types again must replace its tag.
+  - The `beforeTagDelete` callback must get a name as text.
 - [x] 1.2 Read a tag as text and encode the name in the HTML strings of the tag editor (D1, D2).
 - [x] 1.3 Give the text form of a tag name in `docs/upgrading-to-2.9.5.md`.
 
