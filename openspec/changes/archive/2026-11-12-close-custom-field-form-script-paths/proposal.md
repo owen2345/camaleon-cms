@@ -48,5 +48,7 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/_custom_fields.js`
 - Specs: the two reproductions, and the POST request of `spec/requests/security/xss_vulnerabilities_spec.rb`.
 - `docs/upgrading-to-2.9.5.md`
-- Ecosystem: `camaleon-post-clone`, `camaleon-spree` and the themes of `camaleon_website` render the
-  partial. No sibling checkout of a surveyed member links to a form with `field_options` values.
+- Ecosystem: `docs/ai/ecosystem.md` lists `camaleon-post-clone` as a consumer of the partial.
+  `camaleon-spree` and the themes of `camaleon_website` render the partial too. No sibling checkout of
+  a surveyed member links to a form with `field_options` values, and none calls the two image preview
+  functions.
