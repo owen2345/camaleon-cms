@@ -30,4 +30,13 @@ RSpec.shared_context 'with the post editor' do
   def stored_post
     CamaleonCms::Post.find(published_post.id)
   end
+
+  # Adds a field group of the post type with one text field, `note`. `object_class` names the forms
+  # that show the group: `PostType_Post` for the posts, `PostType_Category` for the categories.
+  def add_note_field_group(object_class)
+    group = CamaleonCms::CustomFieldGroup.create!(name: "#{object_class} fields", slug: object_class.underscore,
+                                                  object_class: object_class, objectid: post_type.id,
+                                                  site: current_site)
+    group.add_manual_field({ 'name' => 'Note', 'slug' => 'note' }, { 'field_key' => 'text_box' })
+  end
 end

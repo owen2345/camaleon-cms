@@ -11,13 +11,6 @@
 RSpec.describe 'Security: the admin form renders again with a malformed field_options', type: :request do
   include_context 'with the post editor'
 
-  def add_group(object_class)
-    group = CamaleonCms::CustomFieldGroup.create!(name: "#{object_class} fields", slug: object_class.underscore,
-                                                  object_class: object_class, objectid: post_type.id,
-                                                  site: current_site)
-    group.add_manual_field({ 'name' => 'Note', 'slug' => 'note' }, { 'field_key' => 'text_box' })
-  end
-
   def update_post(params)
     patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
           params: "post[title]=Changed&post[content]=body&#{params}",
@@ -25,8 +18,8 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
   end
 
   before do
-    add_group('PostType_Post')
-    add_group('PostType_Category')
+    add_note_field_group('PostType_Post')
+    add_note_field_group('PostType_Category')
     sign_in_as(admin, site: current_site)
   end
 

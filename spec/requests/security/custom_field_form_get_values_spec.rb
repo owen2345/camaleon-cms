@@ -14,63 +14,62 @@ RSpec.describe 'Security: a GET request does not put field values into the admin
   # own URL, with the query, in its meta tags.
   let(:link_value_json) { %({"note":["#{link_value}"]}) }
 
-  def add_group(object_class)
-    group = CamaleonCms::CustomFieldGroup.create!(name: "#{object_class} fields", slug: object_class.underscore,
-                                                  object_class: object_class, objectid: post_type.id,
-                                                  site: current_site)
-    group.add_manual_field({ 'name' => 'Note', 'slug' => 'note' }, { 'field_key' => 'text_box' })
-  end
-
   def link_params
     { field_options: { '0' => { 'note' => { 'values' => [link_value] } } } }
   end
 
-  before do
-    add_group('PostType_Post')
-    add_group('PostType_Category')
-    sign_in_as(admin, site: current_site)
-  end
+  before { sign_in_as(admin, site: current_site) }
 
-  it 'shows no value of the link in the form of a new post' do
-    get "/admin/post_type/#{post_type.id}/posts/new", params: link_params
+  describe 'the form of a post' do
+    before { add_note_field_group('PostType_Post') }
 
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include('build_custom_field_group(')
-    expect(response.body).not_to include(link_value_json)
-  end
+    it 'shows no value of the link in the form of a new post' do
+      get "/admin/post_type/#{post_type.id}/posts/new", params: link_params
 
-  it 'shows the stored value and no value of the link in the form of an existing post' do
-    published_post.set_field_value('note', 'stored-note')
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('build_custom_field_group(')
+      expect(response.body).not_to include(link_value_json)
+    end
 
-    get "/admin/post_type/#{post_type.id}/posts/#{published_post.id}/edit", params: link_params
+    it 'shows the stored value and no value of the link in the form of an existing post' do
+      published_post.set_field_value('note', 'stored-note')
 
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include('{"note":["stored-note"]}')
-    expect(response.body).not_to include(link_value_json)
+      get "/admin/post_type/#{post_type.id}/posts/#{published_post.id}/edit", params: link_params
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('{"note":["stored-note"]}')
+      expect(response.body).not_to include(link_value_json)
+    end
   end
 
   # A category with the slug of another category of the post type fails its validation.
-  it 'shows the submitted value again after a failed create' do
-    post_type.categories.create!(name: 'Taken', slug: 'taken')
+  describe 'the form of a category after a failed save' do
+    before do
+      add_note_field_group('PostType_Category')
+      post_type.categories.create!(name: 'Taken', slug: 'taken')
+    end
 
-    post "/admin/post_type/#{post_type.id}/categories",
-         params: { category: { name: 'Taken again', slug: 'taken' } }.merge(link_params)
+    def expect_submitted_value_again
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
+      expect(response.body).to include(link_value_json)
+    end
 
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
-    expect(response.body).to include(link_value_json)
-  end
+    it 'shows the submitted value again after a failed create' do
+      post "/admin/post_type/#{post_type.id}/categories",
+           params: { category: { name: 'Taken again', slug: 'taken' } }.merge(link_params)
 
-  # An admin update is a PATCH request. A failed update must show the submitted values too.
-  it 'shows the submitted value again after a failed update' do
-    post_type.categories.create!(name: 'Taken', slug: 'taken')
-    category = post_type.categories.create!(name: 'Other', slug: 'other')
+      expect_submitted_value_again
+    end
 
-    patch "/admin/post_type/#{post_type.id}/categories/#{category.id}",
-          params: { category: { name: 'Other', slug: 'taken' } }.merge(link_params)
+    # An admin update is a PATCH request.
+    it 'shows the submitted value again after a failed update' do
+      category = post_type.categories.create!(name: 'Other', slug: 'other')
 
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
-    expect(response.body).to include(link_value_json)
+      patch "/admin/post_type/#{post_type.id}/categories/#{category.id}",
+            params: { category: { name: 'Other', slug: 'taken' } }.merge(link_params)
+
+      expect_submitted_value_again
+    end
   end
 end
