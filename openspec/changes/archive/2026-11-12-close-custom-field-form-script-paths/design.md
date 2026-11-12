@@ -2,7 +2,7 @@
 
 ## Context
 
-See proposal.md, "Why". The custom-fields partial gives the values of a form to
+See `proposal.md`, "Why". The custom-fields partial gives the values of a form to
 `build_custom_field_group`, which builds each field and calls the render callback of its kind. Two
 paths ran script from a value. A GET request put values into the form, and the image preview built
 HTML from its URL.
