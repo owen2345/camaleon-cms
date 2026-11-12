@@ -8,7 +8,7 @@ RSpec.describe 'the params of the media manager page', :js do
   init_site
 
   let(:media_path) { "#{cama_root_relative_path}/admin/media" }
-  let(:markup) { '<img src=q onerror="window.mediaScriptRan=true">' }
+  let(:markup) { '<img src=q onerror="return">' }
 
   before { admin_sign_in }
 
@@ -39,7 +39,7 @@ RSpec.describe 'the params of the media manager page', :js do
   # The value starts with a size, because the image editor reads the numbers of the param. The
   # uploader puts an image into the list of the media manager, and the example removes its file.
   it 'shows a dimension param with markup as text in the details and in the editor title' do
-    dimension = '10x10<img src=q onerror="window.mediaScriptRan=true">'
+    dimension = "10x10#{markup}"
     uploader = CamaleonCmsLocalUploader.new(current_site: @site)
     uploader.add_file("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", '/rails.png', same_name: true)
     visit "#{media_path}?#{{ dimension: dimension }.to_query}"

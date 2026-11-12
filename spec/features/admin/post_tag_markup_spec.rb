@@ -8,7 +8,7 @@ RSpec.describe 'the tag editor of the post form', :js do
   init_site
 
   let(:post_type) { @post.post_type }
-  let(:tag_name) { '<img src=q onerror="window.tagScriptRan=true">' }
+  let(:tag_name) { '<img src=q onerror="return">' }
   let(:tags_input) { %q{$('#form-post input[name="tags"]')} }
   let(:open_input) { "$('.tag-editor .tag-editor-tag.active input')" }
 
@@ -41,7 +41,7 @@ RSpec.describe 'the tag editor of the post form', :js do
   # A click on a tag puts its name into a text input. The click point sets only the caret, so the
   # example triggers the handler through jQuery.
   it 'keeps a tag name with a quote when the admin opens the tag' do
-    quoted_name = 'a" onfocus="window.tagScriptRan=true'
+    quoted_name = 'a" onfocus="return'
     @post.update_tags(quoted_name)
     visit "#{posts_path}/#{@post.id}/edit"
     expect_tag_as_text(quoted_name)

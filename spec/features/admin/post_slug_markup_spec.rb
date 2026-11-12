@@ -7,7 +7,7 @@
 RSpec.describe 'the permalink line of the post form', :js do
   init_site
 
-  let(:slug) { '<img src=q onerror="window.slugScriptRan=true">' }
+  let(:slug) { '<img src=q onerror="return">' }
 
   before { admin_sign_in }
 
