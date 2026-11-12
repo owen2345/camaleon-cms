@@ -277,15 +277,16 @@ function load_upload_image_field($input) {
 
 // permit to show preview image of image custom fields
 // The URL goes into attribute values, never into the HTML of the preview: a value with a quote
-// and a tag would add that tag to the form.
+// and a tag would add that tag to the form. A new URL replaces the preview of the old one.
 function cama_custom_field_image_changed(field){
     var url = field.val();
+    var $group = field.closest('.input-group');
+    $group.find('.custom_field_image_preview').remove();
     if(url){
         var $image = $('<img style="width: 50px; height: 20px;">').attr('src', url);
         var $link = $('<a target="_blank"></a>').attr('href', url).append($image);
-        field.closest('.input-group').append($('<span class="input-group-addon custom_field_image_preview"></span>').append($link));
+        $group.append($('<span class="input-group-addon custom_field_image_preview"></span>').append($link));
     }
-    else field.closest('.input-group').find('.custom_field_image_preview').remove();
 }
 
 function cama_custom_field_image_remove(field){

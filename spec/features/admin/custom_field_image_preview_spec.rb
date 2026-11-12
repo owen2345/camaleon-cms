@@ -29,4 +29,21 @@ RSpec.describe 'the image preview of a custom field', :js do
     expect(page.evaluate_script("$('.custom_field_image_preview img').attr('src')")).to eq(image_url)
     expect(page.evaluate_script('window.previewScriptRan')).to be_nil
   end
+
+  # The upload button sets a new URL and triggers the change event of the field, as this example does.
+  # The URLs are data URLs, so the browser sends no request for them to the test server.
+  it 'replaces the preview when the URL changes' do
+    first_url = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+    second_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACw='
+    post = create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin'))
+    post.set_field_value('photo', first_url)
+
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/posts/#{post.id}/edit"
+    expect(page).to have_css('.custom_field_image_preview', visible: :all)
+    page.execute_script("$('.custom_field_image_preview').closest('.input-group').find('input')" \
+                        ".val('#{second_url}').trigger('change')")
+
+    expect(page).to have_css('.custom_field_image_preview', count: 1, visible: :all)
+    expect(page.evaluate_script("$('.custom_field_image_preview a').attr('href')")).to eq(second_url)
+  end
 end
