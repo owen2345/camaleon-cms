@@ -1,6 +1,9 @@
 ## Purpose
 
-The admin JavaScript shows a value as text. A value with markup adds no element to the admin page.
+The post form shows a tag name as text in its tag editor and the slug as text in its permalink line.
+The media manager shows the `folder` param as text in its breadcrumb. The media manager shows the
+`dimension` param as text in the details of an image and in the title of the image editor. In these
+places, markup in a tag name, a slug or a param adds no element to the admin page.
 
 ## ADDED Requirements
 

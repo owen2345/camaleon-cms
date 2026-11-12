@@ -40,7 +40,8 @@ A probe opened the media manager through a link with an `img` tag in `folder`, a
 
 ### New Capabilities
 
-- `admin-value-text-display`: the admin JavaScript shows a value as text, not as HTML.
+- `admin-value-text-display`: the admin JavaScript shows a tag name, a slug, and the `folder` and
+  `dimension` params of the media manager as text, not as HTML.
 
 ### Modified Capabilities
 
