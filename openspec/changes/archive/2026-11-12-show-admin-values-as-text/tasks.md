@@ -16,8 +16,11 @@
 ## 2. The permalink line
 
 - [x] 2.1 Add `spec/features/admin/post_slug_markup_spec.rb`. A stored slug with an `img` tag must show
-  as text. Make sure that the example fails before the fix.
-- [x] 2.2 Set the slug and the URL around it as text in `set_slug` of `_post.js` (D1).
+  as text. A plain slug must show inside the URL of the post. The Preview link and the View link must
+  hold a slug with `$&` as the post stores it. Make sure that the first example and the last example
+  fail before the fix.
+- [x] 2.2 Set the slug and the URL around it as text in `set_slug` of `_post.js` (D1). Build the Preview
+  link and the View link from the same parts of the URL, with no `replace` call.
 - [x] 2.3 Give the change in `docs/upgrading-to-2.9.5.md`.
 
 ## 3. The media manager

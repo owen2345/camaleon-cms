@@ -443,15 +443,16 @@ function cama_init_post(obj) {
             $this.addClass('sluged');
             $this.after($link)
 
+            // The server gives the URL of the post with the placeholder __-__ at the place of the slug.
+            // The form joins the text before the placeholder, a slug and the text after it.
+            var url_parts = post_path.split('__-__'), url_start = url_parts[0], url_end = url_parts.slice(1).join('__-__');
+            function post_url(slug) { return url_start + slug + url_end; }
+
             // The slug and the URL around it are text. A slug with a tag adds no element to the form.
             function set_slug(slug) {
-                var url_parts = post_path.split('__-__');
-                var $permalink = $link.show().find('.sl-link').empty().append(document.createTextNode(url_parts[0]));
-                if (url_parts.length > 1) {
-                    $permalink.append($('<span class="sl-url"></span>').text(slug))
-                        .append(document.createTextNode(url_parts.slice(1).join('__-__')));
-                }
-                $link.find('.btn-preview').attr('href', post_path.replace('__-__', slug) + '?draft_id=' + post_draft_id)
+                $link.show().find('.sl-link').empty().append(
+                    document.createTextNode(url_start), $('<span class="sl-url"></span>').text(slug), document.createTextNode(url_end));
+                $link.find('.btn-preview').attr('href', post_url(slug) + '?draft_id=' + post_draft_id)
                 $input_slug.trigger('change_in');
                 set_meta_slug();
             }
@@ -496,7 +497,7 @@ function cama_init_post(obj) {
             });
             if ($input_slug.val()) {
                 set_slug($input_slug.val());
-                if (post_status == "published") $link.find('.btn-view').show().attr('href', post_path.replace('__-__', $input_slug.val()))
+                if (post_status == "published") $link.find('.btn-view').show().attr('href', post_url($input_slug.val()))
             }
             $link.find('.btn-preview').click(function (e) { // preview button
                 // Prevented first: if the save throws, the link (naming no draft yet) must not open in a tab.

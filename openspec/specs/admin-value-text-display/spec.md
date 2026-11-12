@@ -59,7 +59,8 @@ SHALL take a name as text.
 ### Requirement: The permalink line of the post form shows the slug as text
 
 The permalink line of the post form SHALL show the slug of the post as text, inside the URL of the
-post. A slug with markup MUST NOT add an element to the form.
+post. A slug with markup MUST NOT add an element to the form. The Preview link and the View link of
+the line SHALL hold the slug as the post stores it.
 
 #### Scenario: A stored slug with a tag
 
@@ -71,6 +72,11 @@ post. A slug with markup MUST NOT add an element to the form.
 
 - **WHEN** an admin opens the edit form of a post with a plain slug
 - **THEN** the permalink line shows the URL of the post, with the slug in it
+
+#### Scenario: A stored slug with a replacement pattern
+
+- **WHEN** an admin opens the edit form of a published post whose slug holds `$&`
+- **THEN** the Preview link and the View link hold the URL that the permalink line shows
 
 ### Requirement: The media manager shows the params of its page as text
 

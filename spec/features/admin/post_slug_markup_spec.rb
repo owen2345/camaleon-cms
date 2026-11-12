@@ -25,4 +25,16 @@ RSpec.describe 'the permalink line of the post form', :js do
     expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: @post.slug, wait: 10)
     expect(find('.sl-slug-edit .sl-link').text).to match(%r{\Ahttp.+/#{Regexp.escape(@post.slug)}})
   end
+
+  # String#replace reads $& in a replacement String as the text that it replaces. The links must
+  # hold the slug as the post stores it.
+  it 'gives the Preview link and the View link the URL that the line shows' do
+    @post.object.update!(slug: 'a$&b')
+    visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
+
+    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: 'a$&b', wait: 10)
+    permalink = find('.sl-slug-edit .sl-link').text
+    expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')")).to start_with("#{permalink}?draft_id=")
+    expect(page.evaluate_script("$('.sl-slug-edit .btn-view').attr('href')")).to eq(permalink)
+  end
 end
