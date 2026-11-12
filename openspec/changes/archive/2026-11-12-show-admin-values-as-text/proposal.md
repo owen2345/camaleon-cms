@@ -16,6 +16,10 @@ The media manager built its breadcrumb from the `folder` param of its page. So a
 when the page opened. The details of an image and the title of the image editor held the `dimension`
 param. Its markup ran after a click on an image.
 
+The media manager also put the name and the URL of a file into HTML. The URL holds the names of the
+folders of the file, and an upload takes the folder from its request. So a role with the media right
+can store a file whose URL holds markup.
+
 ### Triage verdict: legit
 
 A probe stored a tag name with `img` markup as a Contributor. The `onerror` handler of that markup
@@ -29,19 +33,26 @@ A probe opened the media manager through a link with an `img` tag in `folder`, a
 `dimension`. Its `onerror` handler ran at once for `folder`, and after a click for `dimension`.
 `spec/features/admin/media_manager_param_markup_spec.rb` fails before the fix.
 
+A probe stored an image in a folder with `img` markup in its name. A click on the file added an `img`
+element from that name to the details. `spec/features/admin/media_manager_file_markup_spec.rb` fails
+before the fix.
+
 ## What Changes
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
 - The permalink line of the post form shows the slug, and the URL around it, as text.
 - The media manager shows the `folder` param and the `dimension` param of its page as text.
+- The media manager shows the name and the URL of a file as text. It sets the URL as an attribute
+  value of the link of the details and of the image of the image editor.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `admin-value-text-display`: the admin JavaScript shows a tag name, a slug, and the `folder` and
-  `dimension` params of the media manager as text, not as HTML.
+- `admin-value-text-display`: the admin JavaScript shows a tag name and a slug as text, not as HTML.
+  The media manager does the same for its `folder` and `dimension` params, and for the name and the
+  URL of a file.
 
 ### Modified Capabilities
 
@@ -53,8 +64,9 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/_post.js`
 - `app/assets/javascripts/camaleon_cms/admin/uploader/_media_manager.js`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
-  `spec/features/admin/post_slug_markup_spec.rb` and
-  `spec/features/admin/media_manager_param_markup_spec.rb`
+  `spec/features/admin/post_slug_markup_spec.rb`,
+  `spec/features/admin/media_manager_param_markup_spec.rb` and
+  `spec/features/admin/media_manager_file_markup_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a
   surveyed member calls it.

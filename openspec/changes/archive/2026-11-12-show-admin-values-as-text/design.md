@@ -18,7 +18,8 @@ use it as markup.
 - A scan or a change of a slug at save. A stored slug, and each URL that holds it, stays as it is.
 - A check of the `folder` param or of the `dimension` param in the media controller. An unknown
   folder still gives an empty list.
-- The name and the URL of a file in the media manager. They come from the list of the server.
+- A check of a folder name at an upload or at the creation of a folder. A folder with markup in its
+  name stays valid.
 
 ## Decisions
 
@@ -37,3 +38,12 @@ names, and to fill the text input that a click on a tag opens. For a name that t
 text, `.html()` returns the encoded form. So the editor reads a tag with `.text()` and sets the input
 with `.val()`. The `beforeTagDelete` callback, the `old_tag` argument of `beforeTagSave` and the
 `removeTag` method use the name as text too.
+
+**D3. The media manager sets the name and the URL of a file as text.** The URL of a file holds the
+names of its folders. An upload and the creation of a folder take the folder from the request, and
+the server refuses only `..` and `://` in it. So the URL is a value of a request, as the `folder`
+param is. An upload cleans the name of a file, but a file that reaches the storage another way keeps
+its name.
+
+- *Alternative: refuse a folder name with markup.* Rejected: a stored folder with such a name keeps
+  its files, and the code that writes the HTML stays wrong.

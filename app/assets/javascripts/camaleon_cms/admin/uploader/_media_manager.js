@@ -34,10 +34,10 @@ window.cama_init_media = function(mediaPanel) {
     mediaInfoTabInfo.click()
     let tpl =
       "<div class='p_thumb'></div>" +
-        "<div class='p_label'><b>" + I18n('button.name') + ': </b><br> <span>' + data.name + '</span></div>' +
+        "<div class='p_label'><b>" + I18n('button.name') + ': </b><br> <span></span></div>' +
         "<div class='p_body'>" +
         "<div style='overflow: auto'><b>" +
-        I18n('button.url') + ":</b><br> <a target='_blank' href='" + data.url + "'>" + data.url + '</a></div>' +
+        I18n('button.url') + ":</b><br> <a target='_blank'></a></div>" +
         '<div><b>' + I18n('button.size') + ':</b> <span>' +
         window.camaHumanFileSize(parseFloat(data.file_size)) + '</span></div>' +
         '</div>'
@@ -58,6 +58,9 @@ window.cama_init_media = function(mediaPanel) {
     }
 
     mediaInfo.html(tpl)
+    // The name and the URL of a file are text. The URL holds the names of the folders of the file.
+    mediaInfo.find('.p_label span').text(data.name)
+    mediaInfo.find('.p_body a').attr('href', data.url).text(data.url)
     mediaInfo.find('.p_thumb').html(item.find('.thumb').html())
     if (data.file_type === 'image') {
       let editImg
@@ -461,6 +464,7 @@ window.cama_init_media = function(mediaPanel) {
       })
 
       // show cropper image
+      // The URL of the image is an attribute value. The code sets it after it binds the load handler.
       showLoading()
       return modal.find('img.editable').load(() => setTimeout(function() {
         const label = modal.find('.label_dimension')
@@ -484,7 +488,7 @@ window.cama_init_media = function(mediaPanel) {
                     '<div class="alert alert-danger">' +
                       I18n(
                         'msg.cors_error',
-                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: data.url, url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
+                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: textAsHtml(data.url), url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
                       ) +
                       '</div>'
                   )
@@ -517,15 +521,15 @@ window.cama_init_media = function(mediaPanel) {
         cropper = modal.find('img.editable').cropper(cropperData)
         return hideLoading()
       }
-      , 300))
+      , 300)).attr('src', data.url)
     }
     open_modal({
       zindex: 999991,
       id: 'media_panel_editor_image',
-      title: I18n('button.edit_image', 'Edit Image') + ' - ' + data.name + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + textAsHtml(mediaPanel.attr('data-dimension')) + ')</i></small>' : ''),
+      title: I18n('button.edit_image', 'Edit Image') + ' - ' + textAsHtml(data.name) + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + textAsHtml(mediaPanel.attr('data-dimension')) + ')</i></small>' : ''),
       content: '<div>' +
                 '<div class="editable_wrapper">' +
-                  '<img style="max-width: 100%" class="editable" id="media_editable_image" crossorigin src="' + data.url + '">' +
+                  '<img style="max-width: 100%" class="editable" id="media_editable_image" crossorigin>' +
                 '</div>' +
                 '<div class="row" style="margin-top: 5px">' +
                   '<div class="col-md-8">' +

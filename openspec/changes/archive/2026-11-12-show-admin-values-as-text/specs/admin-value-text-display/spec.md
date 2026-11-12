@@ -2,8 +2,9 @@
 
 The post form shows a tag name as text in its tag editor and the slug as text in its permalink line.
 The media manager shows the `folder` param as text in its breadcrumb. The media manager shows the
-`dimension` param as text in the details of an image and in the title of the image editor. In these
-places, markup in a tag name, a slug or a param adds no element to the admin page.
+`dimension` param as text in the details of an image and in the title of the image editor. The media
+manager shows the name and the URL of a file as text in the details of the file and in the image
+editor. In these places, markup in such a value adds no element to the admin page.
 
 ## ADDED Requirements
 
@@ -107,3 +108,26 @@ A param with markup MUST NOT add an element to the page.
   tag, clicks an image, and opens the image editor
 - **THEN** the details of the image and the title of the editor show the value as text and add no
   `img` element
+
+### Requirement: The media manager shows the name and the URL of a file as text
+
+The media manager SHALL show the name and the URL of a file as text in the details of the file. The
+image editor SHALL show the name as text in its title, and SHALL set the URL as the source of its
+image. The message of a failed image request SHALL show the URL as text. A name or a URL with markup
+MUST NOT add an element to the page.
+
+#### Scenario: A file in a folder with markup in its name
+
+- **WHEN** an admin clicks a file whose name and folder hold `img` markup and a quote
+- **THEN** the details show the name and the URL as text, and the link holds the whole URL
+
+#### Scenario: The image editor of a file in a folder with markup in its name
+
+- **WHEN** an admin opens the image editor for an image whose name and folder hold `img` markup and
+  a quote
+- **THEN** the title shows the name as text, and the image has the whole URL as its source
+
+#### Scenario: A failed image request in the image editor
+
+- **WHEN** the image editor cannot read such an image again
+- **THEN** its message shows the URL as text and adds no `img` element

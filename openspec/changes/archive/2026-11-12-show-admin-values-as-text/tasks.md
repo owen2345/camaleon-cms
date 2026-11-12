@@ -32,6 +32,12 @@
 - [x] 3.2 Build the breadcrumb, the dimension of the details and the editor title from text in
   `_media_manager.js` (D1).
 - [x] 3.3 Give the change in `docs/upgrading-to-2.9.5.md`.
+- [x] 3.4 Add `spec/features/admin/media_manager_file_markup_spec.rb`. A name and a URL with `img`
+  markup must show as text in the details of a file and in the image editor. The message of a failed
+  image request must show the URL as text. Make sure that the examples fail before the fix.
+- [x] 3.5 Set the name and the URL of a file as text and as attribute values in `_media_manager.js`
+  (D3).
+- [x] 3.6 Give the change in `docs/upgrading-to-2.9.5.md`.
 
 ## 4. Verification and shipping
 
