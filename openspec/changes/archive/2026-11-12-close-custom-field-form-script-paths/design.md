@@ -37,8 +37,8 @@ case: Rails sends its answer with no body (`Rack::Head`).
 
 **D2. The image preview sets its URL as attribute values.** The URL is a value, not markup. The
 preview puts it in the position of an attribute value, as `<%= %>` puts a value in a view. That is
-the normal output encoding of the platform, not a transform of the value: the remedy rule
-(`docs/security/permissions.md`) is not touched. The stored value stays as the author wrote it, and
+the normal output encoding of the platform, not a transform of the value. So D2 does not change the
+remedy rule (`docs/security/permissions.md`). The stored value stays as the author wrote it, and
 the link and the image get the whole value.
 
 - *Alternative: refuse an image value with a quote or a tag at save.* Rejected: the gate refuses
