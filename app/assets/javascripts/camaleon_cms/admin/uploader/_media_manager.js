@@ -11,9 +11,6 @@ window.cama_init_media = function(mediaPanel) {
   const mediaInfoTabInfo = mediaPanel.find('.media_file_info_col .nav-tabs .link_media_info')
   const mediaLinkTabUpload = mediaPanel.find('.media_file_info_col .nav-tabs .link_media_upload')
 
-  // Encodes a value for an HTML string, so that the page shows the value as text.
-  const textAsHtml = (value) => $('<div></div>').text(value).html()
-
   // ############### visualize item
   // loading last opened folder on current page
   mediaPanel.ready(function() {
@@ -488,7 +485,7 @@ window.cama_init_media = function(mediaPanel) {
                     '<div class="alert alert-danger">' +
                       I18n(
                         'msg.cors_error',
-                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: textAsHtml(data.url), url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
+                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: cama_escape_html(data.url), url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
                       ) +
                       '</div>'
                   )
@@ -526,7 +523,7 @@ window.cama_init_media = function(mediaPanel) {
     open_modal({
       zindex: 999991,
       id: 'media_panel_editor_image',
-      title: I18n('button.edit_image', 'Edit Image') + ' - ' + textAsHtml(data.name) + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + textAsHtml(mediaPanel.attr('data-dimension')) + ')</i></small>' : ''),
+      title: I18n('button.edit_image', 'Edit Image') + ' - ' + cama_escape_html(data.name) + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + cama_escape_html(mediaPanel.attr('data-dimension')) + ')</i></small>' : ''),
       content: '<div>' +
                 '<div class="editable_wrapper">' +
                   '<img style="max-width: 100%" class="editable" id="media_editable_image" crossorigin>' +

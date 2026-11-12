@@ -47,3 +47,8 @@ its name.
 
 - *Alternative: refuse a folder name with markup.* Rejected: a stored folder with such a name keeps
   its files, and the code that writes the HTML stays wrong.
+
+**D4. One function encodes text for an HTML string.** `cama_escape_html` in `_modal.js` encodes text
+for the content of an element. The media manager and the post form call it. The function lives in
+`_modal.js`, because `uploader_manifest.js` loads that file. A plugin such as `camaleon-spree` loads
+the uploader manifest without `_libraries.js`.

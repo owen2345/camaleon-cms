@@ -63,6 +63,7 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/tageditor/_jquery.tag-editor.js`
 - `app/assets/javascripts/camaleon_cms/admin/_post.js`
 - `app/assets/javascripts/camaleon_cms/admin/uploader/_media_manager.js`
+- `app/assets/javascripts/camaleon_cms/admin/_modal.js`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
   `spec/features/admin/post_slug_markup_spec.rb`,
   `spec/features/admin/media_manager_param_markup_spec.rb` and

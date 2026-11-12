@@ -174,7 +174,7 @@ function cama_init_post(obj) {
         // handler would have done. The timer sends nothing until the form changes; re-sent, it would be
         // refused again.
         function refused(refusal) {
-            show_error(escape_html(refusal));
+            show_error(cama_escape_html(refusal));
             var validator = held_form && $(held_form).data('validator');
             if (validator) validator.cancelSubmit = false;
             drop_hold();
@@ -317,14 +317,11 @@ function cama_init_post(obj) {
         var left = form_left(), overlay_up = overlay_element().length > 0, owner = overlay_owner();
         if (left) {
             var title = $(post_form).find('.title-post' + class_translate).filter(function () { return this.value.trim(); }).first().val();
-            if (title) text = escape_html(title) + ': ' + text;
+            if (title) text = cama_escape_html(title) + ': ' + text;
         }
         $.fn.alert({type: 'error', title: text, icon: "times"});
         if (left && overlay_up && owner !== post_form) put_overlay_up(owner);
     }
-
-    // Text for the alert, which puts its title into HTML.
-    function escape_html(text) { return $('<div>').text(text).html(); }
 
     function drop_hold() {
         held_form = null;
