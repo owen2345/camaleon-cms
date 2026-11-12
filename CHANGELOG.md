@@ -6,6 +6,9 @@
   - **Breaking change:** an admin form that opens through a GET request no longer shows the `field_options` values of its query.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form).
 
+- **Security fix:** The tag editor and the permalink line of the post form, and the media manager, now show a value as text. A value with markup no longer adds an element to the admin page. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-admin-javascript-shows-a-value-as-text).
+
 - **Performance:** `set_field_value` and `set_field_values` no longer run `SELECT 1` in a transaction of the caller. [#1341](https://github.com/owen2345/camaleon-cms/pull/1341).
 
 - **Bug fix:** `update_field_value` stores a value as `set_field_value` does, and loaded custom-field values hold it. Custom-field writers work without `Metas`. Parameters in a Hash or an Array become JSON objects. [#1339](https://github.com/owen2345/camaleon-cms/pull/1339).
