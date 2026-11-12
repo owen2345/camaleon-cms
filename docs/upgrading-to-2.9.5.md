@@ -767,8 +767,8 @@ preview.
 
 **Who must act:** plugin or theme code that links to an admin form with `field_options` values in the
 query, to fill the form. Store the values on the record first, then link to its form. For the form of
-a new record, create the record with the values, for example as a draft post, then link to its edit
-form.
+a new record, create the record with the values first, for example as a draft post. Then link to its
+edit form.
 
 ### The admin JavaScript shows a value as text
 
