@@ -754,11 +754,10 @@ Values stored before the upgrade do not change.
 
 ### A GET request shows the values of the record in the custom-field form
 
-After a failed save, the custom-fields partial of an admin form shows the submitted field values
-again. Before, it also showed the `field_options` values of a GET request. So a link could put values
-into the form of the admin who opened it. The image preview of the form could then run markup from
-those values. Now a GET request shows the values of the record. A request that is not a GET,
-for example a failed save, shows the submitted values as before.
+Before, the custom-fields partial of an admin form showed the `field_options` values of a GET request
+too. So a link could put values into the form of the admin who opened it. Now a GET request shows the
+values of the record. A request that is not a GET, for example a failed save, shows the submitted
+values as before.
 
 The image preview now sets its URL as the `href` of its link and the `src` of its image. A stored URL
 gives the same preview as before, unless the old preview read it as HTML and changed it. For
