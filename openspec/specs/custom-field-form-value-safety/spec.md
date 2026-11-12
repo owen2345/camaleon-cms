@@ -2,8 +2,9 @@
 
 ## Purpose
 
-The admin custom-field form must not run markup from a link or from a stored value. The capability
-gives the request that shows submitted values in the form, and how the image preview shows its URL.
+A link must not put field values into the admin custom-field form. The image preview of the form must
+not run markup from its URL, also for a stored value. The capability gives the request that shows
+submitted values in the form, and how the image preview shows its URL.
 
 ## Requirements
 
