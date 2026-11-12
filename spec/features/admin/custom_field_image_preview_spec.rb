@@ -17,6 +17,8 @@ RSpec.describe 'the image preview of a custom field', :js do
     admin_sign_in
   end
 
+  # An onerror handler runs only after its image fails to load. So the example does not wait for the
+  # handler: it checks that no element of the field group has one.
   it 'shows the stored URL as the link and the image of the preview, and adds no other element' do
     post = create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin'))
     post.set_field_value('photo', image_url)
@@ -27,7 +29,7 @@ RSpec.describe 'the image preview of a custom field', :js do
     expect(page).to have_css('.custom_field_image_preview *', count: 2, visible: :all)
     expect(page.evaluate_script("$('.custom_field_image_preview a').attr('href')")).to eq(image_url)
     expect(page.evaluate_script("$('.custom_field_image_preview img').attr('src')")).to eq(image_url)
-    expect(page.evaluate_script('window.previewScriptRan')).to be_nil
+    expect(page).to have_no_css('.c-field-group [onerror]', visible: :all)
   end
 
   # The upload button sets a new URL and triggers the change event of the field, as this example does.
