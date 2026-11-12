@@ -31,6 +31,12 @@ field value from the params of a GET request.
 - **WHEN** the create of a category fails its validation and the request holds `field_options` values
 - **THEN** the form that renders again shows the submitted values
 
+#### Scenario: A failed update shows the submitted values
+
+- **WHEN** the update of a category fails its validation and the PATCH request holds `field_options`
+  values
+- **THEN** the form that renders again shows the submitted values
+
 ### Requirement: The image preview shows its URL as attribute values
 
 The preview of an image field SHALL set the URL as the `href` of its link and the `src` of its image.

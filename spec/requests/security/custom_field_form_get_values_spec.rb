@@ -60,4 +60,17 @@ RSpec.describe 'Security: a GET request does not put field values into the admin
     expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
     expect(response.body).to include(link_value_json)
   end
+
+  # An admin update is a PATCH request. A failed update must show the submitted values too.
+  it 'shows the submitted value again after a failed update' do
+    post_type.categories.create!(name: 'Taken', slug: 'taken')
+    category = post_type.categories.create!(name: 'Other', slug: 'other')
+
+    patch "/admin/post_type/#{post_type.id}/categories/#{category.id}",
+          params: { category: { name: 'Other', slug: 'taken' } }.merge(link_params)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
+    expect(response.body).to include(link_value_json)
+  end
 end
