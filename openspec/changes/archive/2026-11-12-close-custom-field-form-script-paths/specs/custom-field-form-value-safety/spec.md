@@ -31,7 +31,8 @@ field value from the params of a GET request.
 ### Requirement: The image preview shows its URL as attribute values
 
 The preview of an image field SHALL set the URL as the `href` of its link and the `src` of its image.
-It MUST NOT parse the URL as HTML. For any value, the preview SHALL hold one link and one image.
+It MUST NOT parse the URL as HTML. For a value that is not empty, the preview SHALL hold one link and
+one image. For an empty value, the field SHALL show no preview.
 
 #### Scenario: A stored URL with a quote and a tag
 
@@ -39,3 +40,8 @@ It MUST NOT parse the URL as HTML. For any value, the preview SHALL hold one lin
   `onerror` handler
 - **THEN** the preview holds one link and one image, their `href` and `src` are the whole value, and
   the handler does not run
+
+#### Scenario: The remove button empties the URL
+
+- **WHEN** the admin clicks the remove button of an image field that shows a preview
+- **THEN** the URL of the field is empty and the field shows no preview

@@ -48,4 +48,15 @@ RSpec.describe 'the image preview of a custom field', :js do
     expect(page).to have_css('.custom_field_image_preview', count: 1, visible: :all)
     expect(page.evaluate_script("$('.custom_field_image_preview a').attr('href')")).to eq(second_url)
   end
+
+  it 'removes the preview when the remove button empties the URL' do
+    post = create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin'))
+    post.set_field_value('photo', 'data:image/gif;base64,R0lGODlhAQABAAAAACw=')
+
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/posts/#{post.id}/edit"
+    find('.custom_field_image_preview', visible: :all).ancestor('.input-group').find('.btn-primary').click
+
+    expect(page).to have_no_css('.custom_field_image_preview', visible: :all)
+    expect(find('.c-field-image input.input-value').value).to eq('')
+  end
 end
