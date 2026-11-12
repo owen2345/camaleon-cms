@@ -40,7 +40,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
-| Has plugin or theme code that calls `tagEditor` with a `beforeTagDelete` callback or the `removeTag` method | A tag name is now text, not HTML, in the callback and in the method ([details](#the-admin-javascript-shows-a-value-as-text)) |
+| Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 
 ---
 
@@ -776,8 +776,14 @@ The tag editor of the post form now shows a tag name as text. Before, it read th
 name with a tag added an element to the form. The permalink line of the post form now shows the slug
 as text too. The media manager shows the `folder` param and the `dimension` param of its page as text.
 
-**Who must act:** plugin or theme code that calls `tagEditor`. The `beforeTagDelete` callback and the
-`removeTag` method now use a tag name as text. For example, they use `a&b` where they used `a&amp;b`.
+**Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
+text, and compare a name from the editor as text.
+
+- The editor reads each name that it gets as text, not as HTML. Examples are its input,
+  `initialTags`, `addTag` and the return value of `beforeTagSave`.
+- The `beforeTagDelete` callback, the `old_tag` argument of `beforeTagSave` and the `removeTag`
+  method use the text of a name, not its HTML form. For the tag `a&b`, the text is `a&b` and the
+  HTML form is `a&amp;b`.
 
 ---
 

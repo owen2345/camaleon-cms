@@ -35,4 +35,5 @@ link.
 **D2. The tag editor reads a tag as text.** The plugin read a tag back with `.html()` to compare
 names and to fill the input of an open tag. For a name that the editor shows as text, `.html()`
 returns the encoded form. So the plugin reads a tag with `.text()` and sets the input with `.val()`.
-The `beforeTagDelete` callback and the `removeTag` method use the name as text too.
+The `beforeTagDelete` callback, the `old_tag` argument of `beforeTagSave` and the `removeTag` method
+use the name as text too.
