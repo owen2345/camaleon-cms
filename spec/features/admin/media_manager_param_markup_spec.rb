@@ -36,12 +36,12 @@ RSpec.describe 'the params of the media manager page', :js do
     expect(page).to have_css('.media_folder_breadcrumb li span', exact_text: '2026')
   end
 
-  # The value starts with a size, because the image editor reads the numbers of the param.
+  # The value starts with a size, because the image editor reads the numbers of the param. The
+  # uploader puts an image into the list of the media manager, and the example removes its file.
   it 'shows a dimension param with markup as text in the details and in the editor title' do
     dimension = '10x10<img src=q onerror="window.mediaScriptRan=true">'
-    visit media_path
-    attach_file('file_upload[]', "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", make_visible: true)
-    wait_for_ajax
+    uploader = CamaleonCmsLocalUploader.new(current_site: @site)
+    uploader.add_file("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", '/rails.png', same_name: true)
     visit "#{media_path}?#{{ dimension: dimension }.to_query}"
 
     page.execute_script("$('#cama_media_gallery .file_item.image_format').first().trigger('click')")
@@ -51,5 +51,7 @@ RSpec.describe 'the params of the media manager page', :js do
     page.execute_script("$('#cama_media_gallery .file_item.image_format').first().find('.edit_item').trigger('click')")
     expect(page).to have_css('#media_panel_editor_image .modal-title', text: dimension)
     expect(page).to have_no_css('#media_panel_editor_image .modal-title img', visible: :all)
+  ensure
+    FileUtils.rm_f(File.join(uploader.instance_variable_get(:@root_folder), 'rails.png')) if uploader
   end
 end
