@@ -32,7 +32,7 @@ case: Rails sends its answer with no body (`Rack::Head`).
   too, and their TinyMCE configuration allows `div`, `span` and `a` with any attribute.
 - *Alternative: the save actions give the submitted values to the partial as a local.* Rejected:
   plugin and theme views render the partial too, for example the product form of `camaleon-spree`.
-  A plugin form that renders again after a failed save and gives no local would lose the input of
+  A plugin form that renders again after a failed save and gives no local loses the input of
   the admin. One test of the request method in the partial covers every form.
 
 **D2. The image preview sets its URL as attribute values.** The URL is a value, not markup. The
@@ -41,7 +41,7 @@ the normal output encoding of the platform, not a transform of the value: the re
 (`docs/security/permissions.md`) is not touched. The stored value stays as the author wrote it, and
 the link and the image get the whole value.
 
-- *Alternative: refuse an image value with a quote or a tag at save.* Rejected: the gate would refuse
+- *Alternative: refuse an image value with a quote or a tag at save.* Rejected: the gate refuses
   a value that is no script once the preview is correct, and it cannot reach the value of a link.
 
 **D3. The preview keeps the URL scheme as it is.** The gate refuses a script URL from an author who
