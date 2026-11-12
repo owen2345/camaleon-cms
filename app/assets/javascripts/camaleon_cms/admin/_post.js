@@ -443,8 +443,14 @@ function cama_init_post(obj) {
             $this.addClass('sluged');
             $this.after($link)
 
+            // The slug and the URL around it are text. A slug with a tag adds no element to the form.
             function set_slug(slug) {
-                $link.show().find('.sl-link').html(post_path.replace('__-__', '<span class="sl-url">' + slug + '</span>'))
+                var url_parts = post_path.split('__-__');
+                var $permalink = $link.show().find('.sl-link').empty().append(document.createTextNode(url_parts[0]));
+                if (url_parts.length > 1) {
+                    $permalink.append($('<span class="sl-url"></span>').text(slug))
+                        .append(document.createTextNode(url_parts.slice(1).join('__-__')));
+                }
                 $link.find('.btn-preview').attr('href', post_path.replace('__-__', slug) + '?draft_id=' + post_draft_id)
                 $input_slug.trigger('change_in');
                 set_meta_slug();

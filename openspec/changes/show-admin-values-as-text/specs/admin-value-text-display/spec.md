@@ -25,3 +25,19 @@ an element to the form. When the admin opens a tag, the input of the tag SHALL h
 
 - **WHEN** the admin opens a tag whose name holds a double quote and an `onfocus` attribute
 - **THEN** the input of the tag holds the whole name and has no `onfocus` attribute
+
+### Requirement: The permalink line of the post form shows the slug as text
+
+The permalink line of the post form SHALL show the slug of the post as text, inside the URL of the
+post. A slug with markup MUST NOT add an element to the form.
+
+#### Scenario: A stored slug with a tag
+
+- **WHEN** an admin opens the edit form of a post whose slug holds an `img` tag with an `onerror`
+  handler
+- **THEN** the permalink line shows the whole slug as text and adds no `img` element
+
+#### Scenario: A plain slug
+
+- **WHEN** an admin opens the edit form of a post with a plain slug
+- **THEN** the permalink line shows the URL of the post, with the slug in it

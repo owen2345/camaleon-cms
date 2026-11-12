@@ -15,6 +15,7 @@ use it as markup.
 
 - A scan of a tag name at save. The stored name stays as the author wrote it.
 - The `tags` param of a GET request. The post form still shows it, as text.
+- A scan or a change of a slug at save. A stored slug, and each URL that holds it, stays as it is.
 
 ## Decisions
 
