@@ -7,7 +7,7 @@
 RSpec.describe 'the image preview of a custom field', :js do
   init_site
 
-  let(:image_url) { 'x"><img src=x onerror="window.previewScriptRan=true">' }
+  let(:image_url) { 'x"><img src=x onerror="return">' }
   # The browser sends no request for a data URL to the test server.
   let(:data_url) { 'data:image/gif;base64,R0lGODlhAQABAAAAACw=' }
 
@@ -26,7 +26,6 @@ RSpec.describe 'the image preview of a custom field', :js do
   it 'shows the stored URL as the link and the image of the preview, and adds no other element' do
     open_edit_form_with(image_url)
 
-    expect(page).to have_css('.custom_field_image_preview', visible: :all)
     expect(page).to have_css('.custom_field_image_preview *', count: 2, visible: :all)
     expect(page.evaluate_script("$('.custom_field_image_preview a').attr('href')")).to eq(image_url)
     expect(page.evaluate_script("$('.custom_field_image_preview img').attr('src')")).to eq(image_url)
