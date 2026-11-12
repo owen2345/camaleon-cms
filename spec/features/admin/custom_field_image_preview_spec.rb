@@ -7,23 +7,18 @@
 RSpec.describe 'the image preview of a custom field', :js do
   init_site
 
-  let(:post_type) { @site.post_types.find_by!(slug: 'post') }
   let(:image_url) { 'x"><img src=x onerror="window.previewScriptRan=true">' }
   # The browser sends no request for a data URL to the test server.
   let(:data_url) { 'data:image/gif;base64,R0lGODlhAQABAAAAACw=' }
-  let(:admin_post) { create(:post, post_type: post_type, owner: CamaleonCms::User.find_by!(username: 'admin')) }
 
   before do
-    group = @site.custom_field_groups.create!(name: 'Image fields', slug: '_image-preview-fields',
-                                              object_class: 'PostType_Post', objectid: post_type.id)
-    group.add_manual_field({ 'name' => 'Photo', 'slug' => 'photo' }, { 'field_key' => 'image' })
+    @post.add_field({ 'name' => 'Photo', 'slug' => 'photo' }, { 'field_key' => 'image' })
     admin_sign_in
   end
 
-  # Stores the URL as the image value of the post and opens the edit form of the post.
   def open_edit_form_with(url)
-    admin_post.set_field_value('photo', url)
-    visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/posts/#{admin_post.id}/edit"
+    @post.set_field_value('photo', url)
+    visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
   end
 
   # An onerror handler runs only after its image fails to load. So the example does not wait for the
