@@ -290,8 +290,8 @@ function cama_custom_field_image_changed(field){
 }
 
 function cama_custom_field_image_remove(field){
-    field.val('')
-    field.closest('.input-group').find('.custom_field_image_preview').remove();
+    field.val('');
+    cama_custom_field_image_changed(field);
 }
 
 function load_upload_video_field(thiss) {
