@@ -11,8 +11,8 @@
 
 ## 2. Fix
 
-- [x] 2.1 Show submitted values only for a request that is not a GET (D1); the 1.1 spec passes
-- [x] 2.2 Set the URL of the image preview as attribute values (D2); the 1.2 spec passes
+- [x] 2.1 Show submitted values only for a request that is not a GET (D1). The 1.1 spec passes.
+- [x] 2.2 Set the URL of the image preview as attribute values (D2). The 1.2 spec passes.
 - [x] 2.3 Send the submitted values of `spec/requests/security/xss_vulnerabilities_spec.rb` in a POST
   request
 
