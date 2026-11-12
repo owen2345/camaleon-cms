@@ -10,7 +10,7 @@
   - A name with markup that the admin adds must show as text.
   - A name that the admin types again must replace its tag.
   - The `beforeTagDelete` callback must get a name as text.
-- [x] 1.2 Read a tag as text and encode the name in the HTML strings of the tag editor (D1, D2).
+- [x] 1.2 Set and read the name of a tag as text in the tag editor (D1, D2).
 - [x] 1.3 Give the text form of a tag name in `docs/upgrading-to-2.9.5.md`.
 
 ## 2. The permalink line

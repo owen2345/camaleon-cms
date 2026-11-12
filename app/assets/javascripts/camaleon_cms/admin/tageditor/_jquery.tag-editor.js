@@ -9,9 +9,9 @@
     // auto grow input (stackoverflow.com/questions/931207)
     $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.html(t.replace(/&/g,"&amp;").replace(/\s/g,"&nbsp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"));var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.bind("keyup keydown focus",s)};
 
-    // Camaleon CMS change: a tag name is text. The editor reads a tag with .text(), and it encodes
-    // the name before it puts the name into an HTML string. A name with a tag then adds no element.
-    function tag_as_html(tag){ return $('<div></div>').text(tag).html(); }
+    // Camaleon CMS change: a tag name is text. The editor sets and reads the name of a tag with
+    // .text(), and it sets the input of an open tag with .val(). A name with markup then adds no
+    // element.
 
     // plugin with val as parameter for public methods
     $.fn.tagEditor = function(options, val, blur){
@@ -202,7 +202,7 @@
                         if (o.removeDuplicates && ~$.inArray(tag, old_tags))
                             $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
                         old_tags.push(tag);
-                        li.before('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+tag_as_html(tag)+'</div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>');
+                        li.before($(new_tag).find('.tag-editor-tag').text(tag).end());
                     }
                     if (o.maxTags && old_tags.length >= o.maxTags) { exceeded = true; break; }
                 }
@@ -324,7 +324,7 @@
                 if (tag) {
                     if (o.forceLowercase) tag = tag.toLowerCase();
                     tag_list.push(tag);
-                    ed.append('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+tag_as_html(tag)+'</div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>');
+                    ed.append($(new_tag).find('.tag-editor-tag').text(tag).end());
                 }
             }
             update_globals(true); // true -> no onChange callback

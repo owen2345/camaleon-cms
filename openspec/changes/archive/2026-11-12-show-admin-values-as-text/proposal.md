@@ -31,8 +31,7 @@ A probe opened the media manager through a link with an `img` tag in `folder`, a
 
 ## What Changes
 
-- The tag editor shows a tag name as text. It reads a tag as text, and it encodes the name before
-  it puts the name into an HTML string.
+- The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
 - The permalink line of the post form shows the slug, and the URL around it, as text.
 - The media manager shows the `folder` param and the `dimension` param of its page as text.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
