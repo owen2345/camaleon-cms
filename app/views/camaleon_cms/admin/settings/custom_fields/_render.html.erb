@@ -58,6 +58,8 @@
                 <%
                   # A form that renders again after a failed save shows the submitted values. A GET
                   # request shows the values of the record, so a link cannot put values into the form.
+                  # The partial reads the request method itself, and no save action passes a local,
+                  # because plugin forms render the partial too.
                   field_options_json = if !request.get? && params[:field_options].present?
                                          cama_submitted_field_values(params[:field_options]).to_json
                                        else
