@@ -41,3 +41,26 @@ post. A slug with markup MUST NOT add an element to the form.
 
 - **WHEN** an admin opens the edit form of a post with a plain slug
 - **THEN** the permalink line shows the URL of the post, with the slug in it
+
+### Requirement: The media manager shows the params of its page as text
+
+The media manager SHALL show the `folder` param of its page as the text of its breadcrumb. It SHALL
+show the `dimension` param as text in the details of an image and in the title of the image editor.
+A param with markup MUST NOT add an element to the page.
+
+#### Scenario: A link with a tag in the folder param
+
+- **WHEN** an admin opens the media manager through a link whose `folder` param holds an `img` tag
+- **THEN** the breadcrumb shows the value as text and adds no `img` element
+
+#### Scenario: A folder path
+
+- **WHEN** an admin opens the media manager with the `folder` param `/photos/2026`
+- **THEN** the breadcrumb holds a link for the root and for `photos`, and the text `2026`
+
+#### Scenario: A link with a tag in the dimension param
+
+- **WHEN** an admin opens the media manager through a link whose `dimension` param holds an `img`
+  tag, clicks an image, and opens the image editor
+- **THEN** the details of the image and the title of the editor show the value as text and add no
+  `img` element

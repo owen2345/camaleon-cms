@@ -15,8 +15,17 @@
 - [x] 2.2 Set the slug and the URL around it as text in `set_slug` of `_post.js` (D1).
 - [x] 2.3 Give the change in `docs/upgrading-to-2.9.5.md`.
 
-## 3. Verification and shipping
+## 3. The media manager
 
-- [ ] 3.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 3.1 Add `spec/features/admin/media_manager_param_markup_spec.rb`. A `folder` param and a
+  `dimension` param with an `img` tag must show as text. Make sure that the examples fail before the
+  fix.
+- [x] 3.2 Build the breadcrumb, the dimension of the details and the editor title from text in
+  `_media_manager.js` (D1).
+- [x] 3.3 Give the change in `docs/upgrading-to-2.9.5.md`.
+
+## 4. Verification and shipping
+
+- [ ] 4.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 3.2 Update the CHANGELOG entry and the PR description, archive this change on the branch
+- [ ] 4.2 Update the CHANGELOG entry and the PR description, archive this change on the branch

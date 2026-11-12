@@ -774,7 +774,7 @@ form.
 
 The tag editor of the post form now shows a tag name as text. Before, it read the name as HTML, so a
 name with a tag added an element to the form. The permalink line of the post form now shows the slug
-as text too.
+as text too. The media manager shows the `folder` param and the `dimension` param of its page as text.
 
 **Who must act:** plugin or theme code that calls `tagEditor`. The `beforeTagDelete` callback and the
 `removeTag` method now use a tag name as text. For example, they use `a&b` where they used `a&amp;b`.

@@ -11,6 +11,9 @@ window.cama_init_media = function(mediaPanel) {
   const mediaInfoTabInfo = mediaPanel.find('.media_file_info_col .nav-tabs .link_media_info')
   const mediaLinkTabUpload = mediaPanel.find('.media_file_info_col .nav-tabs .link_media_upload')
 
+  // Encodes a value for an HTML string, so that the page shows the value as text.
+  const textAsHtml = (value) => $('<div></div>').text(value).html()
+
   // ############### visualize item
   // loading last opened folder on current page
   mediaPanel.ready(function() {
@@ -78,7 +81,7 @@ window.cama_init_media = function(mediaPanel) {
           const _ww = parseInt(mediaPanel.attr('data-dimension').split('x')[0]) || ww
           const _hh = parseInt(mediaPanel.attr('data-dimension').split('x')[1]) || hh
           mediaInfo.find('.cdimension')
-            .append("<span style='color: black'> ==> " + mediaPanel.attr('data-dimension') + '</span>')
+            .append($("<span style='color: black'></span>").text(' ==> ' + mediaPanel.attr('data-dimension')))
 
           if ((_ww === ww) && (_hh === hh))
             return btn.prop('disabled', false)
@@ -212,16 +215,16 @@ window.cama_init_media = function(mediaPanel) {
       if ((value === '/') || (value === ''))
         name = I18n('button.root')
 
+      // A folder name and its path are text. A name with a tag adds no element to the page.
       if (index === (folderItems.length - 1))
-        breadrumb.push('<li><span>' + name + '</span></li>')
+        breadrumb.push($('<li></li>').append($('<span></span>').text(name)))
       else {
         folderPrefix.push(value)
-        breadrumb.push(
-          "<li><a data-path='" + (folderPrefix.join('/') || '/').replace(/\/{2,}/g, '/') + "' href='#'>" + name + '</a></li>'
-        )
+        const path = (folderPrefix.join('/') || '/').replace(/\/{2,}/g, '/')
+        breadrumb.push($('<li></li>').append($("<a href='#'></a>").attr('data-path', path).text(name)))
       }
     }
-    return mediaPanel.find('.media_folder_breadcrumb').html(breadrumb.join(''))
+    return mediaPanel.find('.media_folder_breadcrumb').empty().append(breadrumb)
   }).trigger('update_breadcrumb')
   // # end folders
 
@@ -519,7 +522,7 @@ window.cama_init_media = function(mediaPanel) {
     open_modal({
       zindex: 999991,
       id: 'media_panel_editor_image',
-      title: I18n('button.edit_image', 'Edit Image') + ' - ' + data.name + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + mediaPanel.attr('data-dimension') + ')</i></small>' : ''),
+      title: I18n('button.edit_image', 'Edit Image') + ' - ' + data.name + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + textAsHtml(mediaPanel.attr('data-dimension')) + ')</i></small>' : ''),
       content: '<div>' +
                 '<div class="editable_wrapper">' +
                   '<img style="max-width: 100%" class="editable" id="media_editable_image" crossorigin src="' + data.url + '">' +
