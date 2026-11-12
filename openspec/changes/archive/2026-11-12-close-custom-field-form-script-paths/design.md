@@ -41,8 +41,9 @@ the normal output encoding of the platform, not a transform of the value. So D2 
 remedy rule (`docs/security/permissions.md`). The stored value stays as the author wrote it, and
 the link and the image get the whole value.
 
-- *Alternative: refuse an image value with a quote or a tag at save.* Rejected: the gate refuses
-  a value that is no script once the preview is correct, and it cannot reach the value of a link.
+- *Alternative: refuse an image value with a quote or a tag at save.* Rejected: with a correct
+  preview, such a value runs no script, so the save has no reason to refuse it. A check at save also
+  does not see the `field_options` value of a GET link.
 
 **D3. The preview keeps the URL scheme as it is.** The gate refuses a script URL from an author who
 is not trusted. An administrator can store any value. For the field values of a post, so can a role
