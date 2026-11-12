@@ -760,7 +760,8 @@ those values. Now a GET request shows the values of the record. A request that i
 for example a failed save, shows the submitted values as before.
 
 The image preview now sets its URL as the `href` of its link and the `src` of its image. A stored URL
-gives the same preview as before, unless it holds a double quote or a character reference such as
+gives the same preview as before, unless the old preview read it as HTML and changed it. For
+example, the old preview changed a URL with a double quote, `/>` or a character reference such as
 `&amp;`.
 
 **Who must act:** plugin or theme code that links to an admin form with `field_options` values in the
