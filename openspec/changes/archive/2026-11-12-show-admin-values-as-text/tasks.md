@@ -4,8 +4,8 @@
 
 - [x] 1.1 Add `spec/features/admin/post_tag_markup_spec.rb`, with the examples below. Make sure that
   each example fails before the fix, except the example of the normal use.
-  - A stored tag name with an `img` tag and the `tags` param of a GET link must show as text.
-  - An open tag must hold a name with a quote.
+  - A stored tag name with `img` markup and the `tags` param of a GET link must show as text.
+  - The text input of an open tag must hold a name with a quote.
   - The normal use of the editor must still work.
   - A name with markup that the admin adds must show as text.
   - A name that the admin types again must replace its tag.

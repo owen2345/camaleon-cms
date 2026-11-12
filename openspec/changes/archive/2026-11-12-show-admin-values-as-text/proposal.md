@@ -6,7 +6,7 @@ The admin JavaScript put some values into HTML strings. A value with a tag then 
 the admin page. The event handler of that element ran in the session of the admin.
 
 The tag editor of the post form built each tag from the value of the tags input. The save of a post
-stores a tag name as sent. So an author who is not an administrator can store a name with a tag.
+stores a tag name as sent. So an author who is not an administrator can store a name with markup.
 The tags input also takes the `tags` param of a GET request, so a link reached the same code.
 
 The post form put the slug into the HTML of its permalink line. No server code changes a slug. So
@@ -18,8 +18,8 @@ param. Its markup ran after a click on an image.
 
 ### Triage verdict: legit
 
-A probe stored a tag name with an `img` tag as a Contributor. Its `onerror` handler ran in the edit
-form of an admin. A link with the `tags` param ran the same handler.
+A probe stored a tag name with `img` markup as a Contributor. The `onerror` handler of that markup
+ran in the edit form of an admin. A link with the `tags` param ran the same handler.
 `spec/features/admin/post_tag_markup_spec.rb` fails before the fix.
 
 A probe stored a slug with an `img` tag as an Editor and as a Contributor. Its `onerror` handler ran

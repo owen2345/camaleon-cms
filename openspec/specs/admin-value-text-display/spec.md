@@ -12,27 +12,27 @@ places, markup in a tag name, a slug or a param adds no element to the admin pag
 ### Requirement: The tag editor shows a tag name as text
 
 The tag editor of the post form SHALL show each tag name as text. A name with markup MUST NOT add
-an element to the form. When the admin opens a tag, the input of the tag SHALL hold the whole name.
-A name that the admin types again, alone or in a list with a delimiter, SHALL replace its tag. The
-editor SHALL give a tag name as text to the `beforeTagDelete` callback, and its `removeTag` method
-SHALL take a name as text.
+an element to the form. A click on a tag opens it: the editor puts the name into a text input, and
+that input SHALL hold the whole name. A name that the admin types again, alone or in a list with a
+delimiter, SHALL replace its tag. The editor SHALL give a tag name as text to the `beforeTagDelete`
+callback, and its `removeTag` method SHALL take a name as text.
 
-#### Scenario: A stored tag name with a tag
+#### Scenario: A stored tag name with markup
 
-- **WHEN** an admin opens the edit form of a post with a tag whose name holds an `img` tag with an
+- **WHEN** an admin opens the edit form of a post with a tag whose name holds `img` markup with an
   `onerror` handler
 - **THEN** the tag editor shows the whole name as text and adds no `img` element
 
 #### Scenario: A link with the tags param
 
-- **WHEN** an admin opens the form of a new post through a GET link whose `tags` param holds an `img`
-  tag
+- **WHEN** an admin opens the form of a new post through a GET link whose `tags` param holds `img`
+  markup
 - **THEN** the tag editor shows the value as text and adds no `img` element
 
 #### Scenario: The admin opens a tag whose name holds a quote
 
 - **WHEN** the admin opens a tag whose name holds a double quote and an `onfocus` attribute
-- **THEN** the input of the tag holds the whole name and has no `onfocus` attribute
+- **THEN** the text input of the tag holds the whole name and has no `onfocus` attribute
 
 #### Scenario: The admin renames, removes and adds tags
 
@@ -41,8 +41,8 @@ SHALL take a name as text.
 
 #### Scenario: The admin adds a tag name with markup
 
-- **WHEN** the admin adds a tag whose name holds the markup of an `img` element, alone and then in a
-  list with a delimiter
+- **WHEN** the admin adds a tag whose name holds `img` markup, alone and then in a list with a
+  delimiter
 - **THEN** the tag editor shows the whole name as text and adds no `img` element
 
 #### Scenario: The admin types names that exist already

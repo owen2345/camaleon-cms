@@ -2,8 +2,8 @@
 
 # The tag editor of the post form built each tag as HTML from the value of the tags input. The save
 # of a post stores a tag name as sent. So an author who is not an administrator can store a name
-# with a tag. That tag then ran its event handler in the form of an admin. The tags param of a GET
-# link reached the same code. The editor must show a tag name as text.
+# with markup. An element of that markup then ran its event handler in the form of an admin. The
+# tags param of a GET link reached the same code. The editor must show a tag name as text.
 RSpec.describe 'the tag editor of the post form', :js do
   init_site
 
