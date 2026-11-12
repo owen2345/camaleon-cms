@@ -18,8 +18,8 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
   end
 
   before do
-    add_note_field_group('PostType_Post')
-    add_note_field_group('PostType_Category')
+    add_note_field('Post')
+    add_note_field('Category')
     sign_in_as(admin, site: current_site)
   end
 

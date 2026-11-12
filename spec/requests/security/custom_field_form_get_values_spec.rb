@@ -21,7 +21,7 @@ RSpec.describe 'Security: a GET request does not put field values into the admin
   before { sign_in_as(admin, site: current_site) }
 
   describe 'the form of a post' do
-    before { add_note_field_group('PostType_Post') }
+    before { add_note_field('Post') }
 
     it 'shows no value of the link in the form of a new post' do
       get "/admin/post_type/#{post_type.id}/posts/new", params: link_params
@@ -54,7 +54,7 @@ RSpec.describe 'Security: a GET request does not put field values into the admin
   # A category with the slug of another category of the post type fails its validation.
   describe 'the form of a category after a failed save' do
     before do
-      add_note_field_group('PostType_Category')
+      add_note_field('Category')
       post_type.categories.create!(name: 'Taken', slug: 'taken')
     end
 
