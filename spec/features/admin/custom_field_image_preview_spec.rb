@@ -45,10 +45,14 @@ RSpec.describe 'the image preview of a custom field', :js do
     expect(page.evaluate_script("$('.custom_field_image_preview a').attr('href')")).to eq(second_url)
   end
 
+  # A mouse click on the button can miss while the page loads the text editor. So the example waits
+  # for the preview and triggers the click handler of the button through jQuery.
   it 'removes the preview when the remove button empties the URL' do
     open_edit_form_with(data_url)
 
-    find('.custom_field_image_preview', visible: :all).ancestor('.input-group').find('.btn-primary').click
+    expect(page).to have_css('.custom_field_image_preview', visible: :all)
+    page.execute_script("$('.custom_field_image_preview').closest('.input-group').find('.btn-primary')" \
+                        ".trigger('click')")
 
     expect(page).to have_no_css('.custom_field_image_preview', visible: :all)
     expect(find('.c-field-image input.input-value').value).to eq('')
