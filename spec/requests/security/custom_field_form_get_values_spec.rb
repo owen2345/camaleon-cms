@@ -40,6 +40,15 @@ RSpec.describe 'Security: a GET request does not put field values into the admin
       expect(response.body).to include('{"note":["stored-note"]}')
       expect(response.body).not_to include(link_value_json)
     end
+
+    # The list action renders the partial with no form around it.
+    it 'shows no value of the link in the field list of a post type' do
+      get '/admin/settings/custom_fields/list', params: { post_type: post_type.id }.merge(link_params)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('build_custom_field_group(')
+      expect(response.body).not_to include(link_value_json)
+    end
   end
 
   # A category with the slug of another category of the post type fails its validation.
