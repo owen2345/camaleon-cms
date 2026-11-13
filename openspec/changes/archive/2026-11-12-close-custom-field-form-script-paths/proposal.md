@@ -49,6 +49,6 @@ None.
 - Specs: the two reproductions, and the POST request of `spec/requests/security/xss_vulnerabilities_spec.rb`.
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists `camaleon-post-clone` as a consumer of the partial.
-  `camaleon-spree` and the themes of `camaleon_website` render the partial too. No sibling checkout of
-  a surveyed member links to a form with `field_options` values, and none calls the two image preview
-  functions.
+  `camaleon-spree` renders the partial too. So do the themes of `camaleon_website`, and its
+  `camaleon_notification` and `store` plugins. No sibling checkout of a surveyed member links to a
+  form with `field_options` values, and none calls the two image preview functions.
