@@ -85,8 +85,16 @@
 - [x] 6.4 Give the name with one escape in the four `data-help` attributes of `form.html.erb` (D8).
 - [x] 6.5 Give the form in `docs/upgrading-to-2.9.5.md`.
 
-## 7. Verification and shipping
+## 7. The label of an option group
 
-- [x] 7.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 7.1 Add `spec/features/admin/front_cache_post_type_markup_spec.rb`. The Front Cache settings
+  page must show the name of a post type with `img` markup as the text of a group header. Make sure
+  that the example fails before the fix.
+- [x] 7.2 Encode the label of an option group in the bundled `_bootstrap-select.js` (D9).
+- [x] 7.3 Give the label in `docs/upgrading-to-2.9.5.md`.
+
+## 8. Verification and shipping
+
+- [x] 8.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [x] 7.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 8.2 Add the CHANGELOG entry, archive this change on the branch

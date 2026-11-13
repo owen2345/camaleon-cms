@@ -31,6 +31,10 @@ The form of a custom field group put the help of the selected placement into HTM
 category holds the name of the category, and an Editor can store a name with markup. That markup ran
 when an admin opened a group of that category.
 
+The Front Cache settings page gives the name of each post type to bootstrap-select as the label of
+an option group. The bundled library put that label into HTML. A role with the `settings` permission
+can store the name of a post type.
+
 ### Triage verdict: legit
 
 A probe stored a tag name with `img` markup as a Contributor. The `onerror` handler of that markup
@@ -60,6 +64,10 @@ A probe named a category with `img` markup and opened a custom field group of th
 form added an `img` element from that name when the page loaded.
 `spec/features/admin/custom_field_group_help_markup_spec.rb` fails before the fix.
 
+A probe named a post type with `img` markup and opened the Front Cache settings page. Each list of
+posts added an `img` element from that name.
+`spec/features/admin/front_cache_post_type_markup_spec.rb` fails before the fix.
+
 ## What Changes
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
@@ -72,6 +80,7 @@ form added an `img` element from that name when the page loaded.
   handler as attribute values.
 - The form of a custom field group shows the help of a placement as text. Each placement option with
   a name gives that name with one escape.
+- The bundled bootstrap-select library shows the label of an option group as text.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
 
 ## Capabilities
@@ -82,7 +91,8 @@ form added an `img` element from that name when the page loaded.
   The media manager does the same for its `folder` and `dimension` params, and for the name and the
   URL of a file. The Featured Image panel does the same for the name of a picked file. Its Upload
   Image link gives the image options of the post type to its handler as attribute values. The form
-  of a custom field group shows the help of a placement as text.
+  of a custom field group shows the help of a placement as text. The bundled bootstrap-select
+  library shows the label of an option group as text.
 
 ### Modified Capabilities
 
@@ -97,12 +107,14 @@ None.
 - `app/views/camaleon_cms/admin/posts/_sidebar.html.erb`
 - `app/assets/javascripts/camaleon_cms/admin/custom_fields_form.js`
 - `app/views/camaleon_cms/admin/settings/custom_fields/form.html.erb`
+- `app/assets/javascripts/camaleon_cms/admin/_bootstrap-select.js`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
   `spec/features/admin/post_slug_markup_spec.rb`,
   `spec/features/admin/media_manager_param_markup_spec.rb`,
   `spec/features/admin/media_manager_file_markup_spec.rb`,
   `spec/features/admin/post_featured_image_markup_spec.rb`,
-  `spec/features/admin/custom_field_group_help_markup_spec.rb` and
+  `spec/features/admin/custom_field_group_help_markup_spec.rb`,
+  `spec/features/admin/front_cache_post_type_markup_spec.rb` and
   `spec/requests/admin/title_escaping_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a

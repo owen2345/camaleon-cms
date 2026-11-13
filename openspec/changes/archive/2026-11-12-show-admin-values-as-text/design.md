@@ -22,6 +22,7 @@ use it as markup.
   name stays valid.
 - A check of an image option of a post type at save. A stored option stays as it is.
 - A scan of a category name at save. The stored name stays as the author wrote it.
+- A scan of a post type name at save. The stored name stays as the author wrote it.
 
 ## Decisions
 
@@ -87,3 +88,14 @@ options gives its name with one escape.
 - *Alternative: give the category name with two escapes again.* Rejected: the requirement of
   `escaped-title-composition` asks for the literal name in the attribute, and the code that writes
   the HTML stays wrong.
+
+**D9. The bundled bootstrap-select encodes the label of an option group.** The library put the
+`label` property of an `optgroup` element into the HTML of a group header. The browser decodes the
+attribute, so the escape of the view gave no protection. The Front Cache settings page gives the
+name of each post type as such a label. The library now encodes the label first, and each select
+with option groups gets the fix.
+
+- *Alternative: a newer release of the library.* Rejected: a new release changes much more than
+  this one line.
+- *Alternative: no bootstrap-select on the Front Cache settings page.* Rejected: the page loses the
+  search in its lists, and each other select with option groups keeps the path.

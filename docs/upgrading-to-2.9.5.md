@@ -785,6 +785,10 @@ The Upload Image link of the Featured Image panel now holds the image options of
 The form of a custom field group now shows the help of a placement as text. The `data-help`
 attribute of a placement option now holds the name of a post type or of a post with one escape.
 
+The bundled bootstrap-select library now shows the label of an option group as text. Before, markup
+in the `label` attribute of an `optgroup` element added an element to the list. For an icon or a
+second text in a group header, use the `data-icon` or the `data-subtext` attribute of the group.
+
 **Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
 text, and compare a name from the editor as text.
 
