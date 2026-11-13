@@ -157,7 +157,10 @@
                 ed.on('mousedown', '.tag-editor-tag', function(e){
                     if (e.ctrlKey || e.which > 1) {
                         var li = $(this).closest('li'), tag = li.find('.tag-editor-tag');
-                        if (o.beforeTagDelete(el, ed, tag_list, tag.text()) === false) return false;
+                        // Camaleon CMS change: the name of an open tag is the value of its input. Its text is
+                        // the copy that tagEditorInput keeps, with a no-break space for each space.
+                        var name = tag.hasClass('active') ? tag.find('input').val() : tag.text();
+                        if (o.beforeTagDelete(el, ed, tag_list, name) === false) return false;
                         tag.addClass('deleted').animate({width: 0}, o.animateDelete, function(){ li.remove(); set_placeholder(); });
                         update_globals();
                         return false;

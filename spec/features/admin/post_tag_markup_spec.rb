@@ -130,4 +130,23 @@ RSpec.describe 'the tag editor of the post form', :js do
     JS
     expect(page.evaluate_script('window.deletedTags')).to eq(['R&D', 'Q&A', 'A<B'])
   end
+
+  # An open tag holds its name in a text input. The editor keeps a copy of the typed text beside the
+  # input, with a no-break space for each space. The admin layout loads the tag editor, so the list of
+  # posts serves here.
+  it 'gives the name of an open tag to the beforeTagDelete callback' do
+    visit posts_path
+
+    page.execute_script(<<~JS)
+      window.deletedTags = [];
+      $('<input type="text" id="plugin_tags">').appendTo('body').tagEditor({
+        initialTags: ['Ruby on Rails'], forceLowercase: false, clickDelete: true, animateDelete: 0,
+        beforeTagDelete: function (field, editor, tags, name) { window.deletedTags.push(name); }
+      });
+      var tag = $('#plugin_tags').next().find('.tag-editor-tag').first();
+      tag.trigger('click').find('input').trigger('keyup');
+      tag.trigger($.Event('mousedown', { which: 3 }));
+    JS
+    expect(page.evaluate_script('window.deletedTags')).to eq(['Ruby on Rails'])
+  end
 end
