@@ -6,7 +6,7 @@
   - **Breaking change:** an admin form that opens through a GET request no longer shows the `field_options` values of its query.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form).
 
-- **Security fix:** The tag editor and the permalink line of the post form now show a tag name and the slug as text. The media manager shows its `folder` and `dimension` params, and the name and the URL of a file, as text. Markup in such a value no longer adds an element there. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+- **Security fix:** The tag editor, the permalink line and the Featured Image panel of the post form now show a tag name, the slug and the name of a picked file as text. The media manager shows its `folder` and `dimension` params, and the name and the URL of a file, as text. Markup in such a value no longer adds an element there. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-admin-javascript-shows-a-value-as-text).
 
 - **Performance:** `set_field_value` and `set_field_values` no longer run `SELECT 1` in a transaction of the caller. [#1341](https://github.com/owen2345/camaleon-cms/pull/1341).
