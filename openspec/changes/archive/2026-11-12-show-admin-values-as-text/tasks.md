@@ -48,8 +48,8 @@
 - [x] 3.5 Set the name and the URL of a file as text and as attribute values in `_media_manager.js`
   (D3).
 - [x] 3.6 Give the name and the URL of a file in `docs/upgrading-to-2.9.5.md`.
-- [x] 3.7 Encode text for an HTML string with one function, `cama_escape_html` in `_modal.js`, in the
-  media manager and in the post form (D4).
+- [x] 3.7 Encode text for an HTML string with one function, `cama_escape_html` in `_modal.js`. Call
+  it in the media manager and in the post form (D4).
 - [x] 3.8 Add `spec/features/admin/post_featured_image_markup_spec.rb`. The Featured Image panel of
   the post form must show the name of a picked file with `img` markup as text. Make sure that the
   example fails before the fix.
