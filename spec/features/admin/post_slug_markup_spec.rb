@@ -92,4 +92,37 @@ RSpec.describe 'the permalink line of the post form', :js do
     expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')"))
       .to match(/\A#{Regexp.escape(permalink)}\?draft_id=\d+&lang=es\z/)
   end
+
+  # A decorator of a host app can give a URL with no place for the slug. The form joined the slug to
+  # the end of that URL. The line and the links must hold the URL as it is.
+  context 'when the URL of the post has no placeholder for the slug' do
+    let(:url) { 'http://www.example.com/fixed' }
+
+    before do
+      allow_any_instance_of(CamaleonCms::PostDecorator)
+        .to receive(:the_urls).and_return(@site.get_languages.index_with { |_language| url })
+    end
+
+    it 'shows the URL as it is, and gives it to the Preview link and the View link' do
+      visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
+
+      expect(page).to have_css('.sl-slug-edit .sl-link', exact_text: url, wait: 10)
+      expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')")).to start_with("#{url}?draft_id=")
+      expect(page.evaluate_script("$('.sl-slug-edit .btn-view').attr('href')")).to eq(url)
+    end
+  end
+
+  # With no URL for the language of the form, the code that starts the form threw. The editor of the
+  # content then did not start. The line has no URL for a link, so it shows the slug alone.
+  context 'when the post has no URL for the language of the form' do
+    before { allow_any_instance_of(CamaleonCms::PostDecorator).to receive(:the_urls).and_return({}) }
+
+    it 'starts the form and shows the slug alone, with no Preview link and no View link' do
+      visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
+
+      expect(page).to have_css('.sl-slug-edit .btn-edit', wait: 10)
+      expect(page).to have_css('.sl-slug-edit .sl-link', exact_text: @post.slug)
+      expect(page).to have_no_css('.sl-slug-edit .btn-preview, .sl-slug-edit .btn-view', visible: :all)
+    end
+  end
 end

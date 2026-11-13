@@ -94,6 +94,10 @@ change the query or the fragment of a link. The characters that Rails writes as 
 segment of a path SHALL stay as they are in the links. A draft save SHALL change only the draft id
 of the Preview link.
 
+For a URL with no place for the slug, the line and the links SHALL hold that URL as it is. With no
+URL for the language of the form, the form SHALL start. The line SHALL then show the slug alone,
+with no Preview link and no View link.
+
 #### Scenario: A stored slug with a tag
 
 - **WHEN** an admin opens the edit form of a post whose slug holds an `img` tag with an `onerror`
@@ -132,6 +136,17 @@ of the Preview link.
 
 - **WHEN** other code adds a param after the draft id of the Preview link, and the form saves a draft
 - **THEN** the Preview link holds the id of the draft and keeps that param
+
+#### Scenario: A URL with no place for the slug
+
+- **WHEN** a post decorator gives a URL with no placeholder for the slug
+- **THEN** the permalink line, the Preview link and the View link hold that URL, with no slug after it
+
+#### Scenario: No URL for the language of the form
+
+- **WHEN** a post decorator gives no URL for the language of the form
+- **THEN** the form starts, and the permalink line shows the slug alone
+- **AND** the line has no Preview link and no View link
 
 ### Requirement: The media manager shows the params of its page as text
 

@@ -137,3 +137,8 @@ wrote the JSON of each file into a hidden `textarea` with `raw`. Rails writes `<
 escapes, but a host app can turn that setting off. A folder name with a closing `textarea` tag then
 ended the element, and the markup after it ran. The view now writes the JSON with `<%= %>`, and the
 browser gives the same text to the script.
+
+**D15. A URL with no placeholder stays as it is.** The form splits the URL of the post at the
+placeholder `__-__`, and joined the slug to the end of a URL with no placeholder. The line and the
+links now hold such a URL as it is. With no URL for the language of the form, the code that starts
+the form threw. The form now shows the slug alone, and removes the Preview link and the View link.

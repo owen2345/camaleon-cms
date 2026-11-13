@@ -42,6 +42,10 @@
   hold a slug with `+ , ; = : @` as it is. Make sure that the first example fails before the fix.
 - [x] 2.7 Encode the slug in `post_url` of `_post.js` (D12).
 - [x] 2.8 Give the form of the links in `docs/upgrading-to-2.9.5.md`.
+- [x] 2.9 Add two examples to `spec/features/admin/post_slug_markup_spec.rb`. The line and the links
+  must hold a URL with no placeholder as it is. With no URL for its language, the form must start
+  and show the slug alone. Make sure that the examples fail before the fix.
+- [x] 2.10 Keep a URL with no placeholder, and start the form with no URL, in `_post.js` (D15).
 
 ## 3. The media manager
 

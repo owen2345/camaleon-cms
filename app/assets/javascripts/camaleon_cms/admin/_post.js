@@ -445,19 +445,28 @@ function cama_init_post(obj) {
             $this.after($link)
 
             // The server gives the URL of the post with the placeholder __-__ at the place of the slug.
-            // The form joins the text before the placeholder, a slug and the text after it.
-            var url_parts = post_path.split('__-__'), url_start = url_parts[0], url_end = url_parts.slice(1).join('__-__');
+            // The form joins the text before the placeholder, a slug and the text after it. A URL with
+            // no placeholder has no place for a slug, so the line and the links hold that URL as it is.
+            // With no URL for the language of the form, the line shows the slug alone, and has no
+            // Preview link and no View link.
+            if (post_path == null) {
+                post_path = '__-__';
+                $link.find('.btn-preview, .btn-view').remove();
+            }
+            var url_parts = String(post_path).split('__-__'), with_slug = url_parts.length > 1;
+            var url_start = url_parts[0], url_end = url_parts.slice(1).join('__-__');
             // A link holds the slug as one segment of the path, so a slug with ? or # keeps the path
             // and the draft id of the link. The characters $ & + , ; = : @ stay as they are, as Rails
             // writes them in a segment of a path.
             function post_url(slug) {
+                if (!with_slug) return url_start;
                 return url_start + encodeURIComponent(slug).replace(/%(?:24|26|2B|2C|3B|3D|3A|40)/g, decodeURIComponent) + url_end;
             }
 
             // The slug and the URL around it are text. A slug with a tag adds no element to the form.
             function set_slug(slug) {
-                $link.show().find('.sl-link').empty().append(
-                    document.createTextNode(url_start), $('<span class="sl-url"></span>').text(slug), document.createTextNode(url_end));
+                var line = $link.show().find('.sl-link').empty().append(document.createTextNode(url_start));
+                if (with_slug) line.append($('<span class="sl-url"></span>').text(slug), document.createTextNode(url_end));
                 $link.find('.btn-preview').attr('href', post_url(slug) + '?draft_id=' + post_draft_id)
                 $input_slug.trigger('change_in');
                 set_meta_slug();
