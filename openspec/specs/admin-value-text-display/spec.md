@@ -31,6 +31,9 @@ get the name that the tag had when the admin opened it. The editor SHALL NOT cal
 new tag, which has no such name. A right click SHALL delete an open tag with no text, and MUST NOT
 throw an error.
 
+The editor SHALL give the name that a tag had to the `old_tag` argument of the `beforeTagSave`
+callback, as text.
+
 #### Scenario: A stored tag name with markup
 
 - **WHEN** an admin opens the edit form of a post with a tag whose name holds `img` markup with an
@@ -86,6 +89,12 @@ throw an error.
   whose text the admin removed
 - **AND** a right click deletes that tag
 - **THEN** the editor removes the tag and throws no error
+
+#### Scenario: The code of a plugin reads the old name of a tag
+
+- **WHEN** a tag editor with a `beforeTagSave` callback holds a tag with `&` in its name
+- **AND** the admin opens that tag and types another name
+- **THEN** the callback gets the old name as text in its `old_tag` argument
 
 ### Requirement: The permalink line of the post form shows the slug as text
 

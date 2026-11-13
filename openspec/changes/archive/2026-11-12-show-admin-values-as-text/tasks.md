@@ -21,6 +21,13 @@
   a new tag with no text, and an open tag whose text the admin removed, with no error. Make sure
   that the example fails before the fix.
 - [x] 1.7 Catch the error of the second removal in the right-click delete of the tag editor (D13).
+- [x] 1.8 Add an example to `spec/features/admin/post_tag_markup_spec.rb`. The `beforeTagSave`
+  callback must get the old name of a tag as text. Make sure that the example fails when `old_tag`
+  comes from `.html()`.
+- [x] 1.9 Remove the closed tags with a given name in one function, `remove_duplicates`, of the tag
+  editor. `split_cleanup` and the blur handler call it.
+- [x] 1.10 Start the `beforeTagDelete` example on the list of posts. It needs only the tag editor
+  plugin, which the admin layout loads.
 
 ## 2. The permalink line
 

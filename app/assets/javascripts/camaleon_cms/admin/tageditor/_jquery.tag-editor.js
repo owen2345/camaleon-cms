@@ -193,6 +193,12 @@
                 return false;
             });
 
+            // Camaleon CMS change: one function removes each closed tag with the given name. The open
+            // tag is no duplicate. Its text is the copy of its input that tagEditorInput keeps.
+            function remove_duplicates(tag){
+                $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
+            }
+
             // helper: split into multiple tags, e.g. after paste
             function split_cleanup(input){
                 var li = input.closest('li'), sub_tags = input.val().replace(/ +/, ' ').split(o.dregex), old_tag = input.data('old_tag');
@@ -203,10 +209,7 @@
                         if (o.forceLowercase) tag = tag.toLowerCase();
                         tag = o.beforeTagSave(el, ed, old_tags, old_tag, tag) || tag;
                         // remove duplicates
-                        // Camaleon CMS change: the open tag is no duplicate. Its text is the copy of its
-                        // input that tagEditorInput keeps.
-                        if (o.removeDuplicates && ~$.inArray(tag, old_tags))
-                            $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
+                        if (o.removeDuplicates && ~$.inArray(tag, old_tags)) remove_duplicates(tag);
                         old_tags.push(tag);
                         li.before($(new_tag).find('.tag-editor-tag').text(tag).end());
                     }
@@ -235,8 +238,7 @@
                     if (o.forceLowercase) tag = tag.toLowerCase();
                     tag = o.beforeTagSave(el, ed, tag_list, old_tag, tag) || tag;
                     // remove duplicates
-                    if (o.removeDuplicates)
-                        $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
+                    if (o.removeDuplicates) remove_duplicates(tag);
                 }
                 input.parent().text(tag).removeClass('active');
                 if (tag != old_tag) update_globals();

@@ -105,10 +105,10 @@ RSpec.describe 'the tag editor of the post form', :js do
   end
 
   # Plugin and theme code can start a tag editor of its own. This one deletes a tag in three ways: a
-  # right click, the removeTag method, and the Delete key on the selected tags.
+  # right click, the removeTag method, and the Delete key on the selected tags. The admin layout
+  # loads the tag editor, so the example can use the list of posts.
   it 'gives a tag name as text to the beforeTagDelete callback' do
-    visit "#{posts_path}/#{@post.id}/edit"
-    expect(page).to have_css('.tag-editor', wait: 10)
+    visit posts_path
 
     page.execute_script(<<~JS)
       window.deletedTags = [];
@@ -131,9 +131,28 @@ RSpec.describe 'the tag editor of the post form', :js do
     expect(page.evaluate_script('window.deletedTags')).to eq(['R&D', 'Q&A', 'A<B'])
   end
 
+  # The editor gives the name that a tag had before a change to the old_tag argument of the
+  # beforeTagSave callback.
+  it 'gives the old name of a tag as text to the beforeTagSave callback' do
+    visit posts_path
+
+    page.execute_script(<<~JS)
+      window.savedTags = [];
+      $('<input type="text" id="plugin_tags">').appendTo('body').tagEditor({
+        initialTags: ['R&D'], forceLowercase: false,
+        beforeTagSave: function (field, editor, tags, oldTag, newTag) { window.savedTags.push([oldTag, newTag]); }
+      });
+      window.savedTags.length = 0;
+      var tag = $('#plugin_tags').next().find('.tag-editor-tag').first();
+      tag.trigger('click').find('input').val('A<B').trigger('keyup')[0].blur();
+    JS
+
+    expect(page.evaluate_script('window.savedTags')).to eq([['R&D', 'A<B']])
+    expect(page.evaluate_script("$('#plugin_tags').val()")).to eq('A<B')
+  end
+
   # The tag list holds the name that an open tag had when the admin opened it, and the text input of
-  # the tag holds what the admin typed. A new tag has no name in the list yet. The admin layout loads
-  # the tag editor, so the example can use the list of posts.
+  # the tag holds what the admin typed. A new tag has no name in the list yet.
   it 'gives the stored name of an open tag to the beforeTagDelete callback, and no call for a new tag' do
     visit posts_path
 
