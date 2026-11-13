@@ -80,6 +80,8 @@ before the fix.
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
 - The permalink line of the post form shows the slug, and the URL around it, as text.
+- The Preview link and the View link of the permalink line hold the slug as one segment of the
+  path.
 - The media manager shows the `folder` param and the `dimension` param of its page as text.
 - The image editor starts for a `dimension` param that has a part with no digit.
 - The media manager shows the name and the URL of a file as text. It sets the URL as an attribute

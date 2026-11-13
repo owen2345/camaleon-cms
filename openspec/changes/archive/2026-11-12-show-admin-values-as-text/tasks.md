@@ -33,6 +33,11 @@
   fix.
 - [x] 2.5 Write the draft id into the last `draft_id` param of the Preview link in
   `set_preview_draft_id` of `_post.js`.
+- [x] 2.6 Add two examples to `spec/features/admin/post_slug_markup_spec.rb`. The Preview link and
+  the View link must hold a slug with `?`, `#` and a space in its percent-encoded form. They must
+  hold a slug with `+ , ; = : @` as it is. Make sure that the first example fails before the fix.
+- [x] 2.7 Encode the slug in `post_url` of `_post.js` (D12).
+- [x] 2.8 Give the form of the links in `docs/upgrading-to-2.9.5.md`.
 
 ## 3. The media manager
 

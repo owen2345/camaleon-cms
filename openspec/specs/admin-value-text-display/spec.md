@@ -80,8 +80,10 @@ new tag, which has no such name.
 
 The permalink line of the post form SHALL show the slug of the post as text, inside the URL of the
 post. A slug with markup MUST NOT add an element to the form. The Preview link and the View link of
-the line SHALL hold the slug as the post stores it. A draft save SHALL change only the draft id of
-the Preview link.
+the line SHALL hold the slug as one segment of the path of the URL. A slug with `?` or `#` MUST NOT
+change the query or the fragment of a link. The characters that Rails writes as they are in a
+segment of a path SHALL stay as they are in the links. A draft save SHALL change only the draft id
+of the Preview link.
 
 #### Scenario: A stored slug with a tag
 
@@ -97,6 +99,18 @@ the Preview link.
 #### Scenario: A stored slug with a replacement pattern
 
 - **WHEN** an admin opens the edit form of a published post whose slug holds `$&`
+- **THEN** the Preview link and the View link hold the URL that the permalink line shows
+
+#### Scenario: A stored slug with a question mark and a number sign
+
+- **WHEN** an admin opens the edit form of a published post whose slug holds `?`, `#` and a space
+- **THEN** the Preview link and the View link hold these characters in their percent-encoded form
+- **AND** the Preview link keeps its `draft_id` param
+
+#### Scenario: A stored slug with characters that a segment of a path can hold
+
+- **WHEN** an admin opens the edit form of a published post whose slug holds `+`, `,`, `;`, `=`,
+  `:` and `@`
 - **THEN** the Preview link and the View link hold the URL that the permalink line shows
 
 #### Scenario: A draft save for a slug that holds the text of the draft param

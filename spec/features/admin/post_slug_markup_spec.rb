@@ -38,6 +38,29 @@ RSpec.describe 'the permalink line of the post form', :js do
     expect(page.evaluate_script("$('.sl-slug-edit .btn-view').attr('href')")).to eq(permalink)
   end
 
+  # A slug with ? or # ended the path of a link, so the link went to another URL and lost its draft
+  # id. The links must hold the slug as one segment of the path.
+  it 'gives the Preview link and the View link a slug with ? and # as one segment of the path' do
+    @post.object.update!(slug: 'a?b#c d')
+    visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
+
+    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: 'a?b#c d', wait: 10)
+    link = find('.sl-slug-edit .sl-link').text.sub('a?b#c d', 'a%3Fb%23c%20d')
+    expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')")).to start_with("#{link}?draft_id=")
+    expect(page.evaluate_script("$('.sl-slug-edit .btn-view').attr('href')")).to eq(link)
+  end
+
+  # Rails writes these characters as they are in a segment of a path. The links must do the same.
+  it 'keeps the characters that a segment of a path can hold in the Preview link and the View link' do
+    @post.object.update!(slug: 'a+b,c;d=e:f@g')
+    visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
+
+    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: 'a+b,c;d=e:f@g', wait: 10)
+    link = find('.sl-slug-edit .sl-link').text
+    expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')")).to start_with("#{link}?draft_id=")
+    expect(page.evaluate_script("$('.sl-slug-edit .btn-view').attr('href')")).to eq(link)
+  end
+
   # A draft save writes the id of the draft into the draft_id param of the Preview link. The slug
   # comes before that param in the link, and a stored slug can hold the same text.
   it 'keeps a slug with the text &draft_id= in the Preview link after a draft save' do

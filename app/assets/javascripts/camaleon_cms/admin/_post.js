@@ -447,7 +447,12 @@ function cama_init_post(obj) {
             // The server gives the URL of the post with the placeholder __-__ at the place of the slug.
             // The form joins the text before the placeholder, a slug and the text after it.
             var url_parts = post_path.split('__-__'), url_start = url_parts[0], url_end = url_parts.slice(1).join('__-__');
-            function post_url(slug) { return url_start + slug + url_end; }
+            // A link holds the slug as one segment of the path, so a slug with ? or # keeps the path
+            // and the draft id of the link. The characters $ & + , ; = : @ stay as they are, as Rails
+            // writes them in a segment of a path.
+            function post_url(slug) {
+                return url_start + encodeURIComponent(slug).replace(/%(?:24|26|2B|2C|3B|3D|3A|40)/g, decodeURIComponent) + url_end;
+            }
 
             // The slug and the URL around it are text. A slug with a tag adds no element to the form.
             function set_slug(slug) {

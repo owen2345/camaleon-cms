@@ -116,3 +116,12 @@ as an empty part.
 
 - *Alternative: refuse the param in the media controller.* Rejected: a check of the param there is
   a Non-Goal.
+
+**D12. A link holds the slug as one segment of the path.** `post_url` joined the raw slug into the
+URL of the Preview link and of the View link. A slug with `?` or `#` then ended the path, and the
+link lost its draft id. `post_url` now encodes the slug, and then restores the characters
+`$ & + , ; = : @`, which Rails writes as they are in a segment of a path. The permalink line still
+shows the slug as the post stores it.
+
+- *Alternative: remove `?` from the slug that the form makes.* Rejected: a stored slug with `?` or
+  `#` keeps its wrong links.
