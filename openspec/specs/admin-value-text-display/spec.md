@@ -9,6 +9,9 @@ manager shows the name and the URL of a file as text in the details of the file 
 editor. The Featured Image panel of the post form shows the name of a picked file as text. In these
 places, markup in such a value adds no element to the admin page.
 
+The Upload Image link of the Featured Image panel gives the image options of the post type to its
+handler as attribute values. A quote in such an option runs no script.
+
 ## Requirements
 
 ### Requirement: The tag editor shows a tag name as text
@@ -170,3 +173,16 @@ text. A name with markup MUST NOT add an element to the form.
 
 - **WHEN** an admin picks a file whose name holds `img` markup as the featured image of a post
 - **THEN** the panel shows the whole name as text and adds no `img` element
+
+### Requirement: The Upload Image link gives the options of the post type to its handler as text
+
+The Upload Image link of the Featured Image panel SHALL hold three options of the post type as
+attribute values. The options are `posts_thumb_versions`, `posts_thumb_size` and
+`posts_image_dimension`. The handler of the link SHALL read them from there. An option with a quote
+MUST NOT run as script.
+
+#### Scenario: A post type option with a quote
+
+- **WHEN** a post type holds an image option with a quote and script after it
+- **AND** an admin clicks Upload Image in the form of a post of that type
+- **THEN** the file picker gets the whole option as text, and the script does not run

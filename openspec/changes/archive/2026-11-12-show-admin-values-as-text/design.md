@@ -20,6 +20,7 @@ use it as markup.
   folder still gives an empty list.
 - A check of a folder name at an upload or at the creation of a folder. A folder with markup in its
   name stays valid.
+- A check of an image option of a post type at save. A stored option stays as it is.
 
 ## Decisions
 
@@ -64,3 +65,14 @@ text of that element.
 **D6. The Featured Image panel of the post form sets the name of a picked file as text.** The panel
 gets the file that the admin picks in the media manager. The name of that file can hold markup (D3),
 so the panel sets it as text.
+
+**D7. The Upload Image link holds the options of the post type as attribute values.** The link put
+the three image options of the post type into the JavaScript of its `onclick` attribute. A view
+escapes a value for HTML, and the browser decodes it before it reads the handler, so a quote ended
+the String. The link now holds each option in a `data-` attribute, and the handler reads it from
+there. The image field of a custom field group gives its options the same way.
+
+- *Alternative: escape each option for JavaScript with `j`.* Rejected: the value stays in the code
+  of the handler, and each new option needs the same escape.
+- *Alternative: refuse an option that is no list of sizes at save.* Rejected: a stored option stays,
+  and the code that writes the handler stays wrong.

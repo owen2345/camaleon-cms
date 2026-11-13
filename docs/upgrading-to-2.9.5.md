@@ -778,6 +778,10 @@ as text too. The media manager shows the `folder` param and the `dimension` para
 The media manager also shows the name and the URL of a file as text. The Featured Image panel of the
 post form shows the name of a picked file as text.
 
+The Upload Image link of the Featured Image panel now holds the image options of the post type as
+`data-` attributes. Its handler reads them from there. Copy the new link into a view that overrides
+`camaleon_cms/admin/posts/_sidebar.html.erb`.
+
 **Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
 text, and compare a name from the editor as text.
 

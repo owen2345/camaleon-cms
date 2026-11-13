@@ -23,6 +23,10 @@ permission can store a file whose URL holds markup.
 The Featured Image panel of the post form put the name of the picked file into HTML. An upload cleans
 the name of a file, but a file that reaches the storage another way keeps its name.
 
+The Upload Image link of that panel put three image options of the post type into the JavaScript of
+its click handler. A role with the `settings` permission can store such an option. A quote in the
+option ended the String, and the rest of the option ran as script.
+
 ### Triage verdict: legit
 
 A probe stored a tag name with `img` markup as a Contributor. The `onerror` handler of that markup
@@ -44,6 +48,10 @@ A probe picked a file with `img` markup in its name as the featured image of a p
 an `img` element from that name. `spec/features/admin/post_featured_image_markup_spec.rb` fails
 before the fix.
 
+A probe stored a post type option with a quote and script after it. A click on Upload Image ran that
+script. The example of the option in `spec/features/admin/post_featured_image_markup_spec.rb` fails
+before the fix.
+
 ## What Changes
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
@@ -52,6 +60,8 @@ before the fix.
 - The media manager shows the name and the URL of a file as text. It sets the URL as an attribute
   value of the link of the details and of the image of the image editor.
 - The Featured Image panel of the post form shows the name of the picked file as text.
+- The Upload Image link of the Featured Image panel gives the image options of the post type to its
+  handler as attribute values.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
 
 ## Capabilities
@@ -60,7 +70,8 @@ before the fix.
 
 - `admin-value-text-display`: the admin JavaScript shows a tag name and a slug as text, not as HTML.
   The media manager does the same for its `folder` and `dimension` params, and for the name and the
-  URL of a file. The Featured Image panel does the same for the name of a picked file.
+  URL of a file. The Featured Image panel does the same for the name of a picked file. Its Upload
+  Image link gives the image options of the post type to its handler as attribute values.
 
 ### Modified Capabilities
 
@@ -72,6 +83,7 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/_post.js`
 - `app/assets/javascripts/camaleon_cms/admin/uploader/_media_manager.js`
 - `app/assets/javascripts/camaleon_cms/admin/_modal.js`
+- `app/views/camaleon_cms/admin/posts/_sidebar.html.erb`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
   `spec/features/admin/post_slug_markup_spec.rb`,
   `spec/features/admin/media_manager_param_markup_spec.rb`,

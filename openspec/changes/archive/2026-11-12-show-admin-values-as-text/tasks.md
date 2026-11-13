@@ -64,8 +64,17 @@
 - [x] 4.2 Set the name of the picked file as text in `cama_upload_feature_image` of `_post.js` (D6).
 - [x] 4.3 Give the Featured Image panel in `docs/upgrading-to-2.9.5.md`.
 
-## 5. Verification and shipping
+## 5. The Upload Image link
 
-- [x] 5.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 5.1 Add an example to `spec/features/admin/post_featured_image_markup_spec.rb`. The file picker
+  must get a post type option with a quote as text, and the script after the quote must not run.
+  Make sure that the example fails before the fix.
+- [x] 5.2 Hold the three image options of the post type in `data-` attributes of the link in
+  `posts/_sidebar.html.erb`. Read them in its handler (D7).
+- [x] 5.3 Give the link in `docs/upgrading-to-2.9.5.md`.
+
+## 6. Verification and shipping
+
+- [x] 6.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [x] 5.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 6.2 Add the CHANGELOG entry, archive this change on the branch
