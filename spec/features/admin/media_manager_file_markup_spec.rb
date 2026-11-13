@@ -25,6 +25,19 @@ RSpec.describe 'the name and the URL of a file in the media manager', :js do
 
   after { FileUtils.rm_rf(File.join(uploader.instance_variable_get(:@root_folder), folder)) }
 
+  # The image editor reads the image again with $.get and shows a message with the URL when that
+  # request fails. The helper makes the request fail, and then opens the image editor.
+  def open_image_editor_with_failed_request
+    page.execute_script(<<~JS)
+      $.get = function () {
+        var request = $.Deferred().reject().promise();
+        request.error = request.fail;
+        return request;
+      };
+    JS
+    page.execute_script("#{first_file}.find('.edit_item').trigger('click')")
+  end
+
   it 'shows the name and the URL as text in the details of the file' do
     page.execute_script("#{first_file}.trigger('click')")
 
@@ -46,19 +59,22 @@ RSpec.describe 'the name and the URL of a file in the media manager', :js do
     expect(page).to have_css('#media_panel_editor_image .cropper-container', visible: :all, wait: 10)
   end
 
-  # The image editor reads the image again with $.get and shows a message with the URL when that
-  # request fails. The example makes the request fail.
   it 'shows the URL as text in the message of a failed image request' do
-    page.execute_script(<<~JS)
-      $.get = function () {
-        var request = $.Deferred().reject().promise();
-        request.error = request.fail;
-        return request;
-      };
-    JS
-    page.execute_script("#{first_file}.find('.edit_item').trigger('click')")
+    open_image_editor_with_failed_request
 
     expect(page).to have_css('#media_panel_editor_image .alert-danger li', text: image['url'], wait: 10)
     expect(page).to have_no_css('#media_panel_editor_image .alert-danger img', visible: :all)
+  end
+
+  # I18n builds the message from a template. JavaScript reads $& in a replacement String as the
+  # text that it replaces, so the URL must not reach the template as such a String.
+  context 'when a folder of the file holds a replacement pattern' do
+    let(:folder) { 'a$&b' }
+
+    it 'shows the whole URL in the message of a failed image request' do
+      open_image_editor_with_failed_request
+
+      expect(page).to have_css('#media_panel_editor_image .alert-danger li', text: image['url'], wait: 10)
+    end
   end
 end

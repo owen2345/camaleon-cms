@@ -135,6 +135,11 @@ MUST NOT add an element to the page.
 - **WHEN** the image editor cannot read such an image again
 - **THEN** its message shows the URL as text and adds no `img` element
 
+#### Scenario: A failed image request for a URL with a replacement pattern
+
+- **WHEN** the image editor cannot read again an image whose folder name holds `$&`
+- **THEN** its message shows the whole URL as text
+
 ### Requirement: The Featured Image panel of the post form shows the name of a file as text
 
 The Featured Image panel of the post form SHALL show the name of the file that the admin picks as

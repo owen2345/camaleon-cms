@@ -53,3 +53,8 @@ and sets it as text too.
 for the content of an element. The media manager and the post form call it. The function lives in
 `_modal.js`, because `uploader_manifest.js` loads that file. A plugin such as `camaleon-spree` loads
 the uploader manifest without `_libraries.js`.
+
+**D5. The message of a failed image request gets the URL as the text of an element.** `I18n` builds
+the message from a template, and it gives each value to `String.prototype.replace` as a replacement
+String. JavaScript reads `$&`, and the other patterns that start with `$`, in such a String. So the
+template gets an empty element for the URL, and the code sets the URL as the text of that element.

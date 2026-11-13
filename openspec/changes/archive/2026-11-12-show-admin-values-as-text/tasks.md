@@ -45,6 +45,10 @@
   example fails before the fix.
 - [x] 3.9 Set the name of the picked file as text in `cama_upload_feature_image` of `_post.js` (D3).
 - [x] 3.10 Give the Featured Image panel in `docs/upgrading-to-2.9.5.md`.
+- [x] 3.11 Add an example to `spec/features/admin/media_manager_file_markup_spec.rb`. The message of
+  a failed image request must show a URL with `$&` as text. Make sure that the example fails before
+  the fix.
+- [x] 3.12 Set the URL as the text of an element in the message of a failed image request (D5).
 
 ## 4. Verification and shipping
 

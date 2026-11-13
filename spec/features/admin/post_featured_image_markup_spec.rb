@@ -26,12 +26,14 @@ RSpec.describe 'the Featured Image panel of the post form', :js do
     expect(page).to have_css('.sl-slug-edit .sl-url', wait: 10)
     find('#feature-image ~ a', text: 'Upload Image').click
     expect(page).to have_css('#cama_modal_file_uploader .file_item', wait: 10)
+    # The modal still moves into its place now, so the example clicks with jQuery, not at a position.
     page.execute_script(<<~JS)
-      $('#cama_modal_file_uploader .file_item').filter(function () {
+      var modal = $('#cama_modal_file_uploader');
+      modal.find('.file_item').filter(function () {
         return $(this).attr('data-key') === #{name.to_json};
       }).trigger('click');
+      modal.find('.insert_btn').trigger('click');
     JS
-    find('#cama_modal_file_uploader .insert_btn').click
 
     expect(page).to have_css('#feature-image .meta strong', exact_text: image['name'])
     expect(page).to have_no_css('#feature-image .meta img', visible: :all)

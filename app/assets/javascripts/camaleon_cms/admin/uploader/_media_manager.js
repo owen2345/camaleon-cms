@@ -480,15 +480,18 @@ window.cama_init_media = function(mediaPanel) {
           built() {
             return $.get(data.url)
               .error(
+                // The URL of the image is text. I18n reads a pattern such as $& in a value, so it gets an
+                // empty element for the URL. The code then sets the URL as the text of that element.
                 () => modal.find('.modal-body')
                   .html(
                     '<div class="alert alert-danger">' +
                       I18n(
                         'msg.cors_error',
-                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: cama_escape_html(data.url), url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
+                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: '<span class="url_img"></span>', url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
                       ) +
                       '</div>'
                   )
+                  .find('.url_img').text(data.url)
               )
           }
         }
