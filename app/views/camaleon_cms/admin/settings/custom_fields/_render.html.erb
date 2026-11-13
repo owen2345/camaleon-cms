@@ -56,15 +56,8 @@
                     <% end %>
                 </div>
                 <%
-                  # A form that renders again after a failed save shows the submitted values. A GET
-                  # request shows the values of the record, so a link cannot put values into the form.
-                  # The partial reads the request method itself, and no save action passes a local,
-                  # because plugin forms render the partial too.
-                  field_options_json = if !request.get? && params[:field_options].present?
-                                         cama_submitted_field_values(params[:field_options]).to_json
-                                       else
-                                         record.get_fields_grouped(fields.pluck(:slug).uniq).to_json
-                                       end
+                  # The helper gives the submitted values of a failed save, or the values of the record.
+                  field_options_json = cama_form_field_values(record, fields.pluck(:slug).uniq).to_json
                 %>
                 <script>
                     jQuery(function () {

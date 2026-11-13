@@ -757,7 +757,7 @@ Values stored before the upgrade do not change.
 Before, the custom-fields partial of an admin form showed the `field_options` values of a GET request
 too. So a link could put values into the form of the admin who opened it. Now a GET request shows the
 values of the record. A request that is not a GET, for example a failed save, shows the submitted
-values as before.
+values as before. The `cama_form_field_values` helper gives these values to the partial.
 
 The image preview now sets its URL as the `href` of its link and the `src` of its image. A stored URL
 gives the same preview as before, unless the old preview read it as HTML and changed it. For

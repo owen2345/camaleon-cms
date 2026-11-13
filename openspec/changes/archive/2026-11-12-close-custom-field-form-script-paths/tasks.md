@@ -17,6 +17,9 @@
 - [x] 2.2 Set the URL of the image preview as attribute values (D2). The 1.2 spec passes.
 - [x] 2.3 Send the submitted values of `spec/requests/security/xss_vulnerabilities_spec.rb` in a POST
   request
+- [x] 2.4 Move the test of the request method to the `cama_form_field_values` helper, which the
+  partial calls. Add examples of the helper to
+  `spec/helpers/camaleon_cms/admin/custom_fields_helper_spec.rb`.
 
 ## 3. Documentation
 

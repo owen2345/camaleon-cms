@@ -45,6 +45,7 @@ None.
 ## Impact
 
 - `app/views/camaleon_cms/admin/settings/custom_fields/_render.html.erb`
+- `app/helpers/camaleon_cms/admin/custom_fields_helper.rb`
 - `app/assets/javascripts/camaleon_cms/admin/_custom_fields.js`
 - Specs: the two reproductions, and the POST request of `spec/requests/security/xss_vulnerabilities_spec.rb`.
 - `docs/upgrading-to-2.9.5.md`

@@ -33,7 +33,8 @@ case: Rails sends its answer with no body (`Rack::Head`).
 - *Alternative: the save actions give the submitted values to the partial as a local.* Rejected:
   plugin and theme views render the partial too, for example the product form of `camaleon-spree`.
   A plugin form that renders again after a failed save and gives no local loses the input of
-  the admin. One test of the request method in the partial covers every form.
+  the admin. One test of the request method covers every form. The test is in the
+  `cama_form_field_values` helper, which the partial calls.
 
 **D2. The image preview sets its URL as attribute values.** The URL is a value, not markup. The
 preview puts it in the position of an attribute value, as `<%= %>` puts a value in a view. That is
