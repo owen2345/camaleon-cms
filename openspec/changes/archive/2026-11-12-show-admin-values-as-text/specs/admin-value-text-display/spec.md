@@ -4,7 +4,8 @@ The post form shows a tag name as text in its tag editor and the slug as text in
 The media manager shows the `folder` param as text in its breadcrumb. The media manager shows the
 `dimension` param as text in the details of an image and in the title of the image editor. The media
 manager shows the name and the URL of a file as text in the details of the file and in the image
-editor. In these places, markup in such a value adds no element to the admin page.
+editor. The Featured Image panel of the post form shows the name of a picked file as text. In these
+places, markup in such a value adds no element to the admin page.
 
 ## ADDED Requirements
 
@@ -131,3 +132,13 @@ MUST NOT add an element to the page.
 
 - **WHEN** the image editor cannot read such an image again
 - **THEN** its message shows the URL as text and adds no `img` element
+
+### Requirement: The Featured Image panel of the post form shows the name of a file as text
+
+The Featured Image panel of the post form SHALL show the name of the file that the admin picks as
+text. A name with markup MUST NOT add an element to the form.
+
+#### Scenario: The admin picks a file with markup in its name
+
+- **WHEN** an admin picks a file whose name holds `img` markup as the featured image of a post
+- **THEN** the panel shows the whole name as text and adds no `img` element

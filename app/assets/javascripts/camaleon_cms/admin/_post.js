@@ -789,7 +789,8 @@ function cama_upload_feature_image(data) {
             var image_url = image.url;
             $('#feature-image img').attr('src', image_url);
             $('#feature-image input').val(image_url);
-            $('#feature-image .meta strong').html(image.name);
+            // The name of a file is text. A name with a tag adds no element to the form.
+            $('#feature-image .meta strong').text(image.name);
             $('#feature-image').show();
         }
     }, data));

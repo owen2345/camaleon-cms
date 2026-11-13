@@ -20,6 +20,9 @@ The media manager also put the name and the URL of a file into HTML. The URL hol
 folders of the file, and an upload takes the folder from its request. So a role with the media right
 can store a file whose URL holds markup.
 
+The Featured Image panel of the post form put the name of the picked file into HTML. An upload cleans
+the name of a file, but a file that reaches the storage another way keeps its name.
+
 ### Triage verdict: legit
 
 A probe stored a tag name with `img` markup as a Contributor. The `onerror` handler of that markup
@@ -37,6 +40,10 @@ A probe stored an image in a folder with `img` markup in its name. A click on th
 element from that name to the details. `spec/features/admin/media_manager_file_markup_spec.rb` fails
 before the fix.
 
+A probe picked a file with `img` markup in its name as the featured image of a post. The panel added
+an `img` element from that name. `spec/features/admin/post_featured_image_markup_spec.rb` fails
+before the fix.
+
 ## What Changes
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
@@ -44,6 +51,7 @@ before the fix.
 - The media manager shows the `folder` param and the `dimension` param of its page as text.
 - The media manager shows the name and the URL of a file as text. It sets the URL as an attribute
   value of the link of the details and of the image of the image editor.
+- The Featured Image panel of the post form shows the name of the picked file as text.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
 
 ## Capabilities
@@ -52,7 +60,7 @@ before the fix.
 
 - `admin-value-text-display`: the admin JavaScript shows a tag name and a slug as text, not as HTML.
   The media manager does the same for its `folder` and `dimension` params, and for the name and the
-  URL of a file.
+  URL of a file. The Featured Image panel does the same for the name of a picked file.
 
 ### Modified Capabilities
 
@@ -66,8 +74,9 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/_modal.js`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
   `spec/features/admin/post_slug_markup_spec.rb`,
-  `spec/features/admin/media_manager_param_markup_spec.rb` and
-  `spec/features/admin/media_manager_file_markup_spec.rb`
+  `spec/features/admin/media_manager_param_markup_spec.rb`,
+  `spec/features/admin/media_manager_file_markup_spec.rb` and
+  `spec/features/admin/post_featured_image_markup_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a
   surveyed member calls it.

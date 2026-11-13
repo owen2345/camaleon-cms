@@ -43,7 +43,8 @@ with `.val()`. The `beforeTagDelete` callback, the `old_tag` argument of `before
 names of its folders. An upload and the creation of a folder take the folder from the request, and
 the server refuses only `..` and `://` in it. So the URL is a value of a request, as the `folder`
 param is. An upload cleans the name of a file, but a file that reaches the storage another way keeps
-its name.
+its name. The Featured Image panel of the post form gets the name of the file that the admin picks,
+and sets it as text too.
 
 - *Alternative: refuse a folder name with markup.* Rejected: a stored folder with such a name keeps
   its files, and the code that writes the HTML stays wrong.

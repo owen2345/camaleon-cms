@@ -775,7 +775,8 @@ edit form.
 The tag editor of the post form now shows a tag name as text. Before, it read the name as HTML, so a
 name with markup added an element to the form. The permalink line of the post form now shows the slug
 as text too. The media manager shows the `folder` param and the `dimension` param of its page as text.
-The media manager also shows the name and the URL of a file as text.
+The media manager also shows the name and the URL of a file as text. The Featured Image panel of the
+post form shows the name of a picked file as text.
 
 **Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
 text, and compare a name from the editor as text.
