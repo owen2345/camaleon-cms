@@ -23,10 +23,10 @@ RSpec.describe 'the Featured Image panel of the post form', :js do
   after { FileUtils.rm_f(@site.upload_directory(name)) }
 
   it 'shows the name of the picked file as text' do
-    expect(page).to have_css('.sl-slug-edit .sl-url', wait: 10)
-    find('#feature-image ~ a', text: 'Upload Image').click
+    # A mouse click can miss while the text editor loads and while the modal moves into its place,
+    # so the example clicks with jQuery.
+    page.execute_script("$('#feature-image ~ a').trigger('click')")
     expect(page).to have_css('#cama_modal_file_uploader .file_item', wait: 10)
-    # The modal still moves into its place now, so the example clicks with jQuery, not at a position.
     page.execute_script(<<~JS)
       var modal = $('#cama_modal_file_uploader');
       modal.find('.file_item').filter(function () {
