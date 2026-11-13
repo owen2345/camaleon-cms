@@ -51,18 +51,21 @@
 - [x] 3.6 Give the name and the URL of a file in `docs/upgrading-to-2.9.5.md`.
 - [x] 3.7 Encode text for an HTML string with one function, `cama_escape_html` in `_modal.js`. Call
   it in the media manager and in the post form (D4).
-- [x] 3.8 Add `spec/features/admin/post_featured_image_markup_spec.rb`. The Featured Image panel of
-  the post form must show the name of a picked file with `img` markup as text. Make sure that the
-  example fails before the fix.
-- [x] 3.9 Set the name of the picked file as text in `cama_upload_feature_image` of `_post.js` (D3).
-- [x] 3.10 Give the Featured Image panel in `docs/upgrading-to-2.9.5.md`.
-- [x] 3.11 Add an example to `spec/features/admin/media_manager_file_markup_spec.rb`. The message of
+- [x] 3.8 Add an example to `spec/features/admin/media_manager_file_markup_spec.rb`. The message of
   a failed image request must show a URL with `$&` as text. Make sure that the example fails before
   the fix.
-- [x] 3.12 Set the URL as the text of an element in the message of a failed image request (D5).
+- [x] 3.9 Set the URL as the text of an element in the message of a failed image request (D5).
 
-## 4. Verification and shipping
+## 4. The Featured Image panel
 
-- [x] 4.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 4.1 Add `spec/features/admin/post_featured_image_markup_spec.rb`. The Featured Image panel of
+  the post form must show the name of a picked file with `img` markup as text. Make sure that the
+  example fails before the fix.
+- [x] 4.2 Set the name of the picked file as text in `cama_upload_feature_image` of `_post.js` (D6).
+- [x] 4.3 Give the Featured Image panel in `docs/upgrading-to-2.9.5.md`.
+
+## 5. Verification and shipping
+
+- [x] 5.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [x] 4.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 5.2 Add the CHANGELOG entry, archive this change on the branch

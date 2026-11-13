@@ -44,8 +44,7 @@ with `.val()`. The `beforeTagDelete` callback, the `old_tag` argument of `before
 names of its folders. An upload and the creation of a folder take the folder from the request, and
 the server refuses only `..` and `://` in it. So the URL is a value of a request, as the `folder`
 param is. An upload cleans the name of a file, but a file that reaches the storage another way keeps
-its name. The Featured Image panel of the post form gets the name of the file that the admin picks,
-and sets it as text too.
+its name.
 
 - *Alternative: refuse a folder name with markup.* Rejected: a stored folder with such a name keeps
   its files, and the code that writes the HTML stays wrong.
@@ -59,3 +58,7 @@ the uploader manifest without `_libraries.js`.
 the message from a template, and it gives each value to `String.prototype.replace` as a replacement
 String. JavaScript reads `$&`, and the other patterns that start with `$`, in such a String. So the
 template gets an empty element for the URL, and the code sets the URL as the text of that element.
+
+**D6. The Featured Image panel of the post form sets the name of a picked file as text.** The panel
+gets the file that the admin picks in the media manager. The name of that file can hold markup (D3),
+so the panel sets it as text.
