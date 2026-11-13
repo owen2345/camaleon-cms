@@ -13,6 +13,8 @@
   - **Breaking change:** a role with no `custom_fields` permission now gets a redirect to the dashboard from these pages.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-custom-field-group-pages-check-the-custom_fields-permission).
 
+- **Tooling:** A failed spec job of CI now keeps the page captures of the failed examples and the test log as an artifact. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+
 - **Bug fix:** The image editor of the media manager now starts for a `dimension` param with no digit. The Preview and View links of the post form now hold a slug with `?` or `#` in its percent-encoded form. A right click in the tag editor now deletes an open tag with no text. The media list now writes its file data with the HTML escape. The `I18n` function of the admin JavaScript now reads a value as text. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
 
 - **Performance:** `set_field_value` and `set_field_values` no longer run `SELECT 1` in a transaction of the caller. [#1341](https://github.com/owen2345/camaleon-cms/pull/1341).
