@@ -81,6 +81,7 @@ before the fix.
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
 - The permalink line of the post form shows the slug, and the URL around it, as text.
 - The media manager shows the `folder` param and the `dimension` param of its page as text.
+- The image editor starts for a `dimension` param that has a part with no digit.
 - The media manager shows the name and the URL of a file as text. It sets the URL as an attribute
   value of the link of the details and of the image of the image editor.
 - The Featured Image panel of the post form shows the name of the picked file as text.

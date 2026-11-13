@@ -108,3 +108,11 @@ a browser with no File API gets the same call, and no example can reach that cod
 
 - *Alternative: no change, because the user selects the file.* Rejected: another person can give
   the file to the user, and the code that writes the HTML stays wrong.
+
+**D11. A part of the dimension with no digit sets no size limit.** The image editor reads a number
+from each part of the `dimension` param. A part with no digit gave no number, and the code that
+starts the editor threw. The loading bar then stayed on the page. The editor now reads such a part
+as an empty part.
+
+- *Alternative: refuse the param in the media controller.* Rejected: a check of the param there is
+  a Non-Goal.

@@ -114,7 +114,8 @@ the Preview link.
 
 The media manager SHALL show the `folder` param of its page as the text of its breadcrumb. It SHALL
 show the `dimension` param as text in the details of an image and in the title of the image editor.
-A param with markup MUST NOT add an element to the page.
+A param with markup MUST NOT add an element to the page. The image editor SHALL start for a
+`dimension` param that has a part with no digit. Such a part SHALL set no size limit.
 
 #### Scenario: A link with a tag in the folder param
 
@@ -138,6 +139,18 @@ A param with markup MUST NOT add an element to the page.
   tag, clicks an image, and opens the image editor
 - **THEN** the details of the image and the title of the editor show the value as text and add no
   `img` element
+
+#### Scenario: A dimension param with no digit
+
+- **WHEN** an admin opens the media manager with the `dimension` param `abc`, and opens the image
+  editor
+- **THEN** the editor shows the image, and the width and the height have no limit
+
+#### Scenario: A dimension param whose height has no digit
+
+- **WHEN** an admin opens the media manager with the `dimension` param `30xabc`, and opens the
+  image editor
+- **THEN** the editor shows the image with the width 30, and the height has no limit
 
 ### Requirement: The media manager shows the name and the URL of a file as text
 

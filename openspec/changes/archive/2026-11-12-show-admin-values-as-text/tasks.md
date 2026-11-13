@@ -55,6 +55,11 @@
   a failed image request must show a URL with `$&` as text. Make sure that the example fails before
   the fix.
 - [x] 3.9 Set the URL as the text of an element in the message of a failed image request (D5).
+- [x] 3.10 Add two examples to `spec/features/admin/media_manager_param_markup_spec.rb`. The image
+  editor must start for a `dimension` param with no digit, and for a param whose height has no
+  digit. Make sure that the examples fail before the fix.
+- [x] 3.11 Read a part of the dimension with no digit as an empty part in `_media_manager.js`
+  (D11).
 
 ## 4. The Featured Image panel
 

@@ -497,7 +497,9 @@ window.cama_init_media = function(mediaPanel) {
         }
 
         if (mediaPanel.attr('data-dimension')) { // TODO: control dimensions
-          const dim = mediaPanel.attr('data-dimension').split('x')
+          // The editor reads a number from each part of the dimension. A part with no digit gives no
+          // number, so it sets no limit.
+          const dim = mediaPanel.attr('data-dimension').split('x').map((part) => (/\d/.test(part) ? part : ''))
           if (dim[0]) {
             cropperData.data.width = parseFloat(dim[0].match(/\d+/)[0])
             fieldWidth.val(cropperData.data.width)

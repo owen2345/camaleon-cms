@@ -36,22 +36,56 @@ RSpec.describe 'the params of the media manager page', :js do
     expect(page).to have_css('.media_folder_breadcrumb li span', exact_text: '2026')
   end
 
-  # The value starts with a size, because the image editor reads the numbers of the param. The
-  # uploader puts an image into the list of the media manager, and the example removes its file.
-  it 'shows a dimension param with markup as text in the details and in the editor title' do
-    dimension = "10x10#{markup}"
+  # The uploader puts an image into the list of the media manager, and the helper removes its file.
+  def with_image_in_the_list
     uploader = CamaleonCmsLocalUploader.new(current_site: @site)
     uploader.add_file("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", '/rails.png', same_name: true)
-    visit "#{media_path}?#{{ dimension: dimension }.to_query}"
-
-    page.execute_script("$('#cama_media_gallery .file_item.image_format').first().trigger('click')")
-    expect(page).to have_css('.cdimension', text: dimension)
-    expect(page).to have_no_css('.cdimension img', visible: :all)
-
-    page.execute_script("$('#cama_media_gallery .file_item.image_format').first().find('.edit_item').trigger('click')")
-    expect(page).to have_css('#media_panel_editor_image .modal-title', text: dimension)
-    expect(page).to have_no_css('#media_panel_editor_image .modal-title img', visible: :all)
+    yield
   ensure
     FileUtils.rm_f(File.join(uploader.instance_variable_get(:@root_folder), 'rails.png')) if uploader
+  end
+
+  def open_image_editor
+    page.execute_script("$('#cama_media_gallery .file_item.image_format').first().find('.edit_item').trigger('click')")
+  end
+
+  # The value starts with a size, because the image editor reads the numbers of the param.
+  it 'shows a dimension param with markup as text in the details and in the editor title' do
+    dimension = "10x10#{markup}"
+    with_image_in_the_list do
+      visit "#{media_path}?#{{ dimension: dimension }.to_query}"
+
+      page.execute_script("$('#cama_media_gallery .file_item.image_format').first().trigger('click')")
+      expect(page).to have_css('.cdimension', text: dimension)
+      expect(page).to have_no_css('.cdimension img', visible: :all)
+
+      open_image_editor
+      expect(page).to have_css('#media_panel_editor_image .modal-title', text: dimension)
+      expect(page).to have_no_css('#media_panel_editor_image .modal-title img', visible: :all)
+    end
+  end
+
+  # The image editor reads a number from each part of the param. A part with no digit gave no
+  # number, and the code that starts the editor stopped there.
+  it 'starts the image editor with no size limit for a dimension param with no digit' do
+    with_image_in_the_list do
+      visit "#{media_path}?dimension=abc"
+      open_image_editor
+
+      expect(page).to have_css('#media_panel_editor_image .cropper-container', visible: :all, wait: 10)
+      expect(page).to have_no_css('#media_panel_editor_image .with_image[readonly]')
+    end
+  end
+
+  it 'keeps the width of a dimension param whose height has no digit' do
+    with_image_in_the_list do
+      visit "#{media_path}?dimension=30xabc"
+      open_image_editor
+
+      expect(page).to have_css('#media_panel_editor_image .cropper-container', visible: :all, wait: 10)
+      expect(page).to have_css('#media_panel_editor_image .with_image[readonly]')
+      expect(find('#media_panel_editor_image .with_image').value).to eq('30')
+      expect(page).to have_no_css('#media_panel_editor_image .height_image[readonly]')
+    end
   end
 end
