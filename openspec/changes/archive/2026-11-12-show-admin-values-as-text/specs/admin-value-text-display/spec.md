@@ -10,7 +10,8 @@ places, markup in such a value adds no element to the admin page.
 The Upload Image link of the Featured Image panel gives the image options of the post type to its
 handler as attribute values. A quote in such an option runs no script. The form of a custom field
 group shows the help of a placement as text. A select with the bundled bootstrap-select library
-shows the label of an option group as text.
+shows the label of an option group as text. The upload plugin of the media manager shows the name of
+a selected file as text.
 
 ## ADDED Requirements
 
@@ -224,3 +225,26 @@ markup MUST NOT add an element to the page.
 - **AND** an admin opens the Front Cache settings page
 - **THEN** each list of posts shows the whole name as the text of a group header and adds no `img`
   element
+
+### Requirement: The upload plugin shows the name of a selected file as text
+
+The bundled upload plugin of the media manager SHALL show the name of a selected file as text in its
+status bar. It SHALL show the name as text in each message that refuses a file. A name with markup
+MUST NOT add an element to the page.
+
+#### Scenario: The admin selects a file with markup in its name
+
+- **WHEN** an admin selects a file whose name holds `img` markup in the media manager
+- **THEN** the status bar shows the whole name as text and adds no `img` element
+
+#### Scenario: The plugin refuses a file with markup in its name
+
+- **WHEN** code starts the plugin with an option that refuses such a file
+- **AND** the option is a limit on the file type, the file size, the count of files or a second
+  file with the same name
+- **THEN** the message shows the whole name as text and adds no `img` element
+
+#### Scenario: Code adds a status bar with createProgress
+
+- **WHEN** code calls `createProgress` of the plugin with such a name
+- **THEN** the status bar shows the whole name as text and adds no `img` element

@@ -99,3 +99,12 @@ with option groups gets the fix.
   this one line.
 - *Alternative: no bootstrap-select on the Front Cache settings page.* Rejected: the page loses the
   search in its lists, and each other select with option groups keeps the path.
+
+**D10. The bundled upload plugin sets the name of a file as text.** The plugin put the name of each
+selected file into the HTML of its status bar, and into each message that refuses a file. The status
+bar now gets the name with `.text()`, and a function `camaText` encodes the name for a message. The
+media manager sets no option that refuses a file, but a plugin or a theme can set one. The code for
+a browser with no File API gets the same call, and no example can reach that code.
+
+- *Alternative: no change, because the user selects the file.* Rejected: another person can give
+  the file to the user, and the code that writes the HTML stays wrong.

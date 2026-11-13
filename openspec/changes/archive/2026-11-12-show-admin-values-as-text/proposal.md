@@ -35,6 +35,10 @@ The Front Cache settings page gives the name of each post type to bootstrap-sele
 an option group. The bundled library put that label into HTML. A role with the `settings` permission
 can store the name of a post type.
 
+The upload plugin of the media manager put the name of each selected file into HTML. The name went
+into the status bar of the file, and into each message that refuses a file. A file on the computer
+of a user can have markup in its name.
+
 ### Triage verdict: legit
 
 A probe stored a tag name with `img` markup as a Contributor. The `onerror` handler of that markup
@@ -68,6 +72,10 @@ A probe named a post type with `img` markup and opened the Front Cache settings 
 posts added an `img` element from that name.
 `spec/features/admin/front_cache_post_type_markup_spec.rb` fails before the fix.
 
+A probe selected a file with `img` markup in its name in the media manager. The status bar added an
+`img` element from that name. `spec/features/admin/media_upload_file_name_markup_spec.rb` fails
+before the fix.
+
 ## What Changes
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
@@ -81,6 +89,7 @@ posts added an `img` element from that name.
 - The form of a custom field group shows the help of a placement as text. Each placement option with
   a name gives that name with one escape.
 - The bundled bootstrap-select library shows the label of an option group as text.
+- The bundled upload plugin of the media manager shows the name of a selected file as text.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
 
 ## Capabilities
@@ -92,7 +101,8 @@ posts added an `img` element from that name.
   URL of a file. The Featured Image panel does the same for the name of a picked file. Its Upload
   Image link gives the image options of the post type to its handler as attribute values. The form
   of a custom field group shows the help of a placement as text. The bundled bootstrap-select
-  library shows the label of an option group as text.
+  library shows the label of an option group as text. The bundled upload plugin shows the name of a
+  selected file as text.
 
 ### Modified Capabilities
 
@@ -108,13 +118,15 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/custom_fields_form.js`
 - `app/views/camaleon_cms/admin/settings/custom_fields/form.html.erb`
 - `app/assets/javascripts/camaleon_cms/admin/_bootstrap-select.js`
+- `app/assets/javascripts/camaleon_cms/admin/uploader/_jquery.uploadfile.min.js`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
   `spec/features/admin/post_slug_markup_spec.rb`,
   `spec/features/admin/media_manager_param_markup_spec.rb`,
   `spec/features/admin/media_manager_file_markup_spec.rb`,
   `spec/features/admin/post_featured_image_markup_spec.rb`,
   `spec/features/admin/custom_field_group_help_markup_spec.rb`,
-  `spec/features/admin/front_cache_post_type_markup_spec.rb` and
+  `spec/features/admin/front_cache_post_type_markup_spec.rb`,
+  `spec/features/admin/media_upload_file_name_markup_spec.rb` and
   `spec/requests/admin/title_escaping_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a

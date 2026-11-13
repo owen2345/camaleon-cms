@@ -789,6 +789,10 @@ The bundled bootstrap-select library now shows the label of an option group as t
 in the `label` attribute of an `optgroup` element added an element to the list. For an icon or a
 second text in a group header, use the `data-icon` or the `data-subtext` attribute of the group.
 
+The bundled upload plugin of the media manager now shows the name of a selected file as text. This
+applies to its status bar and to each message that refuses a file. The `createProgress` method also
+reads its first argument, the name of a file, as text.
+
 **Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
 text, and compare a name from the editor as text.
 

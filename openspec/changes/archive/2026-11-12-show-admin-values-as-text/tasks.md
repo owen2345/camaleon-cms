@@ -93,8 +93,20 @@
 - [x] 7.2 Encode the label of an option group in the bundled `_bootstrap-select.js` (D9).
 - [x] 7.3 Give the label in `docs/upgrading-to-2.9.5.md`.
 
-## 8. Verification and shipping
+## 8. The upload plugin
 
-- [x] 8.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 8.1 Add `spec/features/admin/media_upload_file_name_markup_spec.rb`. The plugin must show the
+  name of a file with `img` markup as text, in each place of the list below. Make sure that each
+  example fails before the fix.
+  - The status bar of the media manager.
+  - Each message that refuses a file.
+  - The status bar of a plugin that sends a form.
+  - The status bar that `createProgress` adds.
+- [x] 8.2 Set the name of a file as text in the bundled `_jquery.uploadfile.min.js` (D10).
+- [x] 8.3 Give the plugin in `docs/upgrading-to-2.9.5.md`.
+
+## 9. Verification and shipping
+
+- [x] 9.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [x] 8.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 9.2 Add the CHANGELOG entry, archive this change on the branch
