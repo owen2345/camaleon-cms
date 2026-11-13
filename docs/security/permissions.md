@@ -153,7 +153,7 @@ parameter before the target is resolved, so it discloses nothing about which use
 
 ## Manager permissions
 
-- `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission
+- `custom_fields` — Controls who can read, create, update, delete and reorder Custom Field Groups and Custom Fields. This is a manager-level permission
   and should be granted only to trusted users. The permission is checked at write-time by the admin controller so that only permitted roles can
   persist custom field definitions that may contain advanced behavior.
 - `contact_form_unfiltered_html` — Permits storing raw HTML anywhere in the bundled contact-form plugin. Without it, a save carrying such content is
@@ -164,8 +164,8 @@ parameter before the target is resolved, so it discloses nothing about which use
 
 Where enforcement happens
 - Write-time enforcement: `CamaleonCms::Admin::Settings::CustomFieldsController` uses CanCan (`authorize! :manage, :custom_fields`) to require the
-  `custom_fields` manager permission for create/update/destroy actions. This prevents users without the permission from saving Custom Field Groups
-  or fields.
+  `custom_fields` manager permission for each action except `list`. This prevents users without the permission from reading, saving or reordering
+  Custom Field Groups or fields. The `list` action gives the fields of a post to the post form, and it checks the right of the user on that post.
 - Render-time behavior: certain field types (notably the `select_eval` field) evaluate stored data when rendering. The project maintains render-time
   behavior for backward compatibility, but write-time restrictions are the primary control: only users with the `custom_fields` permission can create
   or modify fields that might include executable commands. If you need a more restrictive runtime policy, consider auditing/clearing any stored

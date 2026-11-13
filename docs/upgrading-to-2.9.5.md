@@ -813,6 +813,18 @@ text, and compare a name from the editor as text.
   method use the text of a name, not its HTML form. For the tag `a&b`, the text is `a&b` and the
   HTML form is `a&amp;b`.
 
+### The custom field group pages check the `custom_fields` permission
+
+Before, the custom fields controller checked the `custom_fields` permission only for the create,
+the update and the delete of a field group. A signed-in user with no such permission could change
+the order of the field groups. That user could also read each group in the list and in the form.
+Now each action of the controller checks the permission, except the `list` action. The `list`
+action gives the fields of a post to the post form, and checks the right of the user on that post.
+
+**Who must act:** a site whose role opens the custom field group pages with no `custom_fields`
+permission. Give that role the permission. Without it, each of these pages redirects to the
+dashboard.
+
 ---
 
 ## Recommended rollout
