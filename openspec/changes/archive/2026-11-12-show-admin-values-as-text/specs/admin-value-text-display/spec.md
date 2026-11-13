@@ -93,9 +93,14 @@ the Preview link.
 
 #### Scenario: A draft save for a slug that holds the text of the draft param
 
-- **WHEN** an admin opens the edit form of a post whose slug holds `draft_id=`, and the form saves a
+- **WHEN** an admin opens the edit form of a post whose slug holds `&draft_id=`, and the form saves a
   draft
 - **THEN** the Preview link holds the URL that the permalink line shows, with the id of the draft
+
+#### Scenario: A draft save for a Preview link with one more param
+
+- **WHEN** other code adds a param after the draft id of the Preview link, and the form saves a draft
+- **THEN** the Preview link holds the id of the draft and keeps that param
 
 ### Requirement: The media manager shows the params of its page as text
 

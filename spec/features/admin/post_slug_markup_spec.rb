@@ -38,18 +38,35 @@ RSpec.describe 'the permalink line of the post form', :js do
     expect(page.evaluate_script("$('.sl-slug-edit .btn-view').attr('href')")).to eq(permalink)
   end
 
-  # A draft save writes the id of the draft into the Preview link. The slug comes before that id in
-  # the link, and a stored slug can hold the text of the param of the id.
-  it 'keeps a slug with the text draft_id= in the Preview link after a draft save' do
-    @post.object.update!(slug: 'x-draft_id=5')
+  # A draft save writes the id of the draft into the draft_id param of the Preview link. The slug
+  # comes before that param in the link, and a stored slug can hold the same text.
+  it 'keeps a slug with the text &draft_id= in the Preview link after a draft save' do
+    @post.object.update!(slug: 'x&draft_id=5')
     visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
 
-    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: 'x-draft_id=5', wait: 10)
+    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: 'x&draft_id=5', wait: 10)
     permalink = find('.sl-slug-edit .sl-link').text
     page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-draft-saved', 'yes'); }, false)")
     expect(page).to have_css('body[data-draft-saved]', wait: 10)
 
     expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')"))
       .to match(/\A#{Regexp.escape(permalink)}\?draft_id=\d+\z/)
+  end
+
+  # Plugin code can add a param to the Preview link. A draft save must change only the draft id.
+  it 'keeps a param after the draft id of the Preview link after a draft save' do
+    visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
+
+    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: @post.slug, wait: 10)
+    permalink = find('.sl-slug-edit .sl-link').text
+    page.execute_script(<<~JS)
+      var link = $('.sl-slug-edit .btn-preview');
+      link.attr('href', link.attr('href') + '&lang=es');
+      App_post.save_draft_ajax(function () { $('body').attr('data-draft-saved', 'yes'); }, false);
+    JS
+    expect(page).to have_css('body[data-draft-saved]', wait: 10)
+
+    expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')"))
+      .to match(/\A#{Regexp.escape(permalink)}\?draft_id=\d+&lang=es\z/)
   end
 end

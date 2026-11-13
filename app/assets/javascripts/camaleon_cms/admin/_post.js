@@ -329,12 +329,13 @@ function cama_init_post(obj) {
         clearTimeout(submit_wait_timer);
     }
 
-    // The href of a Preview link ends with the draft id. The slug before it can hold the text
-    // draft_id= too, so the code looks for the last ?draft_id= of the href.
+    // A draft save writes the id of the draft into the draft_id param of each Preview link. The slug
+    // of a link can hold the same text, so the code changes the last draft_id param of the href. A
+    // link with no slug yet has the href #, and it stays as it is.
     function set_preview_draft_id() {
         $(post_form).find('.sl-slug-edit .btn-preview').each(function () {
-            var href = $(this).attr('href'), at = href.lastIndexOf('?draft_id=');
-            if (at >= 0) $(this).attr('href', href.slice(0, at) + '?draft_id=' + post_draft_id);
+            var href = $(this).attr('href').replace(/^([\s\S]*[?&]draft_id=)[^&#]*/, function (match, start) { return start + post_draft_id; });
+            $(this).attr('href', href);
         });
     }
 
