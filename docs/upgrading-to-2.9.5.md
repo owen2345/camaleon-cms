@@ -801,6 +801,9 @@ The bundled upload plugin of the media manager now shows the name of a selected 
 applies to its status bar and to each message that refuses a file. The `createProgress` method also
 reads its first argument, the name of a file, as text.
 
+The list of the media manager now writes the JSON data of each file with the HTML escape. Copy the
+new line into a view that overrides `camaleon_cms/admin/media/_render_file_item.html.erb`.
+
 **Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
 text, and compare a name from the editor as text.
 

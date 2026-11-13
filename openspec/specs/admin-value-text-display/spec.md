@@ -13,7 +13,8 @@ The Upload Image link of the Featured Image panel gives the image options of the
 handler as attribute values. A quote in such an option runs no script. The form of a custom field
 group shows the help of a placement as text. A select with the bundled bootstrap-select library
 shows the label of an option group as text. The upload plugin of the media manager shows the name of
-a selected file as text.
+a selected file as text. The list of the media manager gives the data of each file to its script as
+text.
 
 ## Requirements
 
@@ -201,6 +202,20 @@ MUST NOT add an element to the page.
 
 - **WHEN** the image editor cannot read again an image whose folder name holds `$&`
 - **THEN** its message shows the whole URL as text
+
+### Requirement: The list of the media manager gives the data of a file as text
+
+The list of the media manager SHALL write the JSON data of each file as text in its hidden
+`textarea`. The data MUST NOT add an element to the page, also for a host app that turns off the
+`escape_html_entities_in_json` setting of Active Support. The script of the media manager SHALL get
+the same data as before.
+
+#### Scenario: A host app writes JSON with no HTML escapes
+
+- **WHEN** a host app sets `escape_html_entities_in_json` to `false`
+- **AND** an admin opens a folder whose path holds a closing `textarea` tag and an `img` tag
+- **THEN** the list adds no `img` element from that path
+- **AND** a click on the file shows its whole URL in the details
 
 ### Requirement: The Featured Image panel of the post form shows the name of a file as text
 

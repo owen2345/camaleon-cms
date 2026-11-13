@@ -131,3 +131,9 @@ the text input of an open tag when the tag leaves the page. The blur handler rem
 text itself, so the removal of the right-click delete then threw `NotFoundError`. The delete now
 catches that error, as the blur handler of the library does for its own removal. Only an editor
 with the `clickDelete` option has this delete, and the post form does not set that option.
+
+**D14. The list of the media manager writes the data of a file with the HTML escape.** The view
+wrote the JSON of each file into a hidden `textarea` with `raw`. Rails writes `<` and `&` of JSON as
+escapes, but a host app can turn that setting off. A folder name with a closing `textarea` tag then
+ended the element, and the markup after it ran. The view now writes the JSON with `<%= %>`, and the
+browser gives the same text to the script.
