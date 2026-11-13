@@ -9,6 +9,8 @@
 - **Security fix:** The admin panel now shows a tag name, a slug, and the name and the URL of a file as text. The media manager shows its `folder` and `dimension` params as text. The field group form shows a category name as text, and a select shows an option group label as text. An image option of a post type no longer runs as script. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-admin-javascript-shows-a-value-as-text).
 
+- **Bug fix:** The image editor of the media manager now starts for a `dimension` param with no digit. The Preview and View links of the post form now hold a slug with `?` or `#` in its percent-encoded form. A right click in the tag editor now deletes an open tag with no text. The media list now writes its file data with the HTML escape. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+
 - **Performance:** `set_field_value` and `set_field_values` no longer run `SELECT 1` in a transaction of the caller. [#1341](https://github.com/owen2345/camaleon-cms/pull/1341).
 
 - **Bug fix:** `update_field_value` stores a value as `set_field_value` does, and loaded custom-field values hold it. Custom-field writers work without `Metas`. Parameters in a Hash or an Array become JSON objects. [#1339](https://github.com/owen2345/camaleon-cms/pull/1339).
