@@ -18,7 +18,8 @@ an element to the form. A click on a tag opens it: the editor puts the name into
 that input SHALL hold the whole name. A name that the admin types again, alone or in a list with a
 delimiter, SHALL replace its tag. The editor SHALL give a tag name as text to the `beforeTagDelete`
 callback, and its `removeTag` method SHALL take a name as text. For an open tag, the callback SHALL
-get the value of the text input of the tag.
+get the name that the tag had when the admin opened it. The editor SHALL NOT call the callback for a
+new tag, which has no such name.
 
 #### Scenario: A stored tag name with markup
 
@@ -64,9 +65,10 @@ get the value of the text input of the tag.
 
 #### Scenario: The code of a plugin deletes an open tag
 
-- **WHEN** a tag editor with a `beforeTagDelete` callback holds an open tag whose name has a space
-- **AND** a right click deletes that tag
-- **THEN** the callback gets the name with its space
+- **WHEN** a tag editor with a `beforeTagDelete` callback holds an open tag whose text the admin
+  changed, and a new tag with typed text
+- **AND** a right click deletes each of the two tags
+- **THEN** the callback gets one call, with the name that the first tag had when the admin opened it
 
 ### Requirement: The permalink line of the post form shows the slug as text
 

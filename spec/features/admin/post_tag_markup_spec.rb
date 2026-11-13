@@ -131,10 +131,10 @@ RSpec.describe 'the tag editor of the post form', :js do
     expect(page.evaluate_script('window.deletedTags')).to eq(['R&D', 'Q&A', 'A<B'])
   end
 
-  # An open tag holds its name in a text input. The editor keeps a copy of the typed text beside the
-  # input, with a no-break space for each space. The admin layout loads the tag editor, so the list of
-  # posts serves here.
-  it 'gives the name of an open tag to the beforeTagDelete callback' do
+  # The tag list holds the name that an open tag had when the admin opened it, and the text input of
+  # the tag holds what the admin typed. A new tag has no name in the list yet. The admin layout loads
+  # the tag editor, so the example can use the list of posts.
+  it 'gives the stored name of an open tag to the beforeTagDelete callback, and no call for a new tag' do
     visit posts_path
 
     page.execute_script(<<~JS)
@@ -143,9 +143,12 @@ RSpec.describe 'the tag editor of the post form', :js do
         initialTags: ['Ruby on Rails'], forceLowercase: false, clickDelete: true, animateDelete: 0,
         beforeTagDelete: function (field, editor, tags, name) { window.deletedTags.push(name); }
       });
-      var tag = $('#plugin_tags').next().find('.tag-editor-tag').first();
-      tag.trigger('click').find('input').trigger('keyup');
+      var editor = $('#plugin_tags').next();
+      var tag = editor.find('.tag-editor-tag').first();
+      tag.trigger('click').find('input').val('Ruby on Rail').trigger('keyup');
       tag.trigger($.Event('mousedown', { which: 3 }));
+      editor.trigger('click').find('.tag-editor-tag.active input').val('New').trigger('keyup');
+      editor.find('.tag-editor-tag.active').trigger($.Event('mousedown', { which: 3 }));
     JS
     expect(page.evaluate_script('window.deletedTags')).to eq(['Ruby on Rails'])
   end

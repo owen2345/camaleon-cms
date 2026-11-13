@@ -12,11 +12,11 @@
   - The `beforeTagDelete` callback must get a name as text.
 - [x] 1.2 Set and read the name of a tag as text in the tag editor (D1, D2).
 - [x] 1.3 Give the text form of a tag name in `docs/upgrading-to-2.9.5.md`.
-- [x] 1.4 Add an example to `spec/features/admin/post_tag_markup_spec.rb`. The `beforeTagDelete`
-  callback must get the name of an open tag with its spaces. Make sure that the example fails
-  before the fix.
-- [x] 1.5 Give the value of the input of an open tag to `beforeTagDelete` in the right-click delete
-  (D2).
+- [x] 1.4 Add an example to `spec/features/admin/post_tag_markup_spec.rb`. For an open tag, the
+  `beforeTagDelete` callback must get the name that the tag had when the admin opened it. A new tag
+  must give no call. Make sure that the example fails before the fix.
+- [x] 1.5 Give `beforeTagDelete` the stored name of an open tag in the right-click delete (D2). Skip
+  the call for a new tag.
 
 ## 2. The permalink line
 

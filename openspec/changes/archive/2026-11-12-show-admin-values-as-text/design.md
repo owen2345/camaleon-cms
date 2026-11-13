@@ -37,8 +37,8 @@ link.
 names, and to fill the text input that a click on a tag opens. For a name that the editor shows as
 text, `.html()` returns the encoded form. So the editor reads a tag with `.text()` and sets the input
 with `.val()`. The `beforeTagDelete` callback, the `old_tag` argument of `beforeTagSave` and the
-`removeTag` method use the name as text too. An open tag holds its name in its text input, so the
-right-click delete gives the value of that input to `beforeTagDelete`.
+`removeTag` method use the name as text too. The right-click delete of an open tag gives
+`beforeTagDelete` the name that the tag had when the admin opened it.
 
 **D3. The media manager sets the name and the URL of a file as text.** The URL of a file holds the
 names of its folders. An upload and the creation of a folder take the folder from the request, and
