@@ -782,6 +782,9 @@ The Upload Image link of the Featured Image panel now holds the image options of
 `data-` attributes. Its handler reads them from there. Copy the new link into a view that overrides
 `camaleon_cms/admin/posts/_sidebar.html.erb`.
 
+The form of a custom field group now shows the help of a placement as text. The `data-help`
+attribute of a placement option now holds the name of a post type or of a post with one escape.
+
 **Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
 text, and compare a name from the editor as text.
 

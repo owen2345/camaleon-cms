@@ -21,6 +21,7 @@ use it as markup.
 - A check of a folder name at an upload or at the creation of a folder. A folder with markup in its
   name stays valid.
 - A check of an image option of a post type at save. A stored option stays as it is.
+- A scan of a category name at save. The stored name stays as the author wrote it.
 
 ## Decisions
 
@@ -76,3 +77,13 @@ there. The image field of a custom field group gives its options the same way.
   of the handler, and each new option needs the same escape.
 - *Alternative: refuse an option that is no list of sizes at save.* Rejected: a stored option stays,
   and the code that writes the handler stays wrong.
+
+**D8. The custom field group form sets the help of a placement as text.** The form put the
+`data-help` of the selected option into HTML. The option of a category gives its name with one
+escape since 2.9.3, so a name with a tag added an element. The other options with a name gave it
+with two escapes, and the HTML write hid that. The form now sets the help as text, and each of these
+options gives its name with one escape.
+
+- *Alternative: give the category name with two escapes again.* Rejected: the requirement of
+  `escaped-title-composition` asks for the literal name in the attribute, and the code that writes
+  the HTML stays wrong.

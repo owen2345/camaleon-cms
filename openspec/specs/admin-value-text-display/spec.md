@@ -10,7 +10,8 @@ editor. The Featured Image panel of the post form shows the name of a picked fil
 places, markup in such a value adds no element to the admin page.
 
 The Upload Image link of the Featured Image panel gives the image options of the post type to its
-handler as attribute values. A quote in such an option runs no script.
+handler as attribute values. A quote in such an option runs no script. The form of a custom field
+group shows the help of a placement as text.
 
 ## Requirements
 
@@ -186,3 +187,29 @@ MUST NOT run as script.
 - **WHEN** a post type holds an image option with a quote and script after it
 - **AND** an admin clicks Upload Image in the form of a post of that type
 - **THEN** the file picker gets the whole option as text, and the script does not run
+
+### Requirement: The custom field group form shows the help of a placement as text
+
+The form of a custom field group SHALL show the help of the selected placement as text. The help can
+hold the name of a category, a post type or a post. A name with markup MUST NOT add an element to
+the form. The `data-help` attribute of an option with such a name SHALL hold the name with one
+escape. The form then shows the name as the author wrote it.
+
+#### Scenario: A group of a category with markup in its name
+
+- **WHEN** an admin opens the edit form of a custom field group whose placement is a category with
+  `img` markup in its name
+- **THEN** the help shows the whole name as text and adds no `img` element
+
+#### Scenario: A group of a post type with markup in its name
+
+- **WHEN** an admin opens the edit form of a custom field group whose placement is the posts of a
+  post type named `Ben & Jerry's <b>x</b>`
+- **THEN** the help shows the name as the author wrote it and adds no `b` element
+
+#### Scenario: The help attribute of a placement option
+
+- **WHEN** a post type and a post are named `Ben & Jerry's <b>x</b>`
+- **AND** an admin opens the form of a new custom field group
+- **THEN** the `data-help` attribute of each option of that post type, and of that post, reads the
+  name literally

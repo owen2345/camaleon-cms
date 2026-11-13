@@ -73,8 +73,20 @@
   `posts/_sidebar.html.erb`. Read them in its handler (D7).
 - [x] 5.3 Give the link in `docs/upgrading-to-2.9.5.md`.
 
-## 6. Verification and shipping
+## 6. The custom field group form
 
-- [x] 6.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 6.1 Add `spec/features/admin/custom_field_group_help_markup_spec.rb`. The help of a category
+  with `img` markup in its name must show as text. The help of a post type must show its name as the
+  author wrote it. Make sure that the example of the category fails before the fix.
+- [x] 6.2 Add examples to `spec/requests/admin/title_escaping_spec.rb`. The `data-help` attribute of
+  each option of a post type, and of a post, must read the name literally. Make sure that the
+  examples fail before the fix.
+- [x] 6.3 Set the help of the selected option as text in `custom_fields_form.js` (D8).
+- [x] 6.4 Give the name with one escape in the four `data-help` attributes of `form.html.erb` (D8).
+- [x] 6.5 Give the form in `docs/upgrading-to-2.9.5.md`.
+
+## 7. Verification and shipping
+
+- [x] 7.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [x] 6.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 7.2 Add the CHANGELOG entry, archive this change on the branch

@@ -27,6 +27,10 @@ The Upload Image link of that panel put three image options of the post type int
 its click handler. A role with the `settings` permission can store such an option. A quote in the
 option ended the String, and the rest of the option ran as script.
 
+The form of a custom field group put the help of the selected placement into HTML. The help of a
+category holds the name of the category, and an Editor can store a name with markup. That markup ran
+when an admin opened a group of that category.
+
 ### Triage verdict: legit
 
 A probe stored a tag name with `img` markup as a Contributor. The `onerror` handler of that markup
@@ -52,6 +56,10 @@ A probe stored a post type option with a quote and script after it. A click on U
 script. The example of the option in `spec/features/admin/post_featured_image_markup_spec.rb` fails
 before the fix.
 
+A probe named a category with `img` markup and opened a custom field group of that category. The
+form added an `img` element from that name when the page loaded.
+`spec/features/admin/custom_field_group_help_markup_spec.rb` fails before the fix.
+
 ## What Changes
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
@@ -62,6 +70,8 @@ before the fix.
 - The Featured Image panel of the post form shows the name of the picked file as text.
 - The Upload Image link of the Featured Image panel gives the image options of the post type to its
   handler as attribute values.
+- The form of a custom field group shows the help of a placement as text. Each placement option with
+  a name gives that name with one escape.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
 
 ## Capabilities
@@ -71,7 +81,8 @@ before the fix.
 - `admin-value-text-display`: the admin JavaScript shows a tag name and a slug as text, not as HTML.
   The media manager does the same for its `folder` and `dimension` params, and for the name and the
   URL of a file. The Featured Image panel does the same for the name of a picked file. Its Upload
-  Image link gives the image options of the post type to its handler as attribute values.
+  Image link gives the image options of the post type to its handler as attribute values. The form
+  of a custom field group shows the help of a placement as text.
 
 ### Modified Capabilities
 
@@ -84,11 +95,15 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/uploader/_media_manager.js`
 - `app/assets/javascripts/camaleon_cms/admin/_modal.js`
 - `app/views/camaleon_cms/admin/posts/_sidebar.html.erb`
+- `app/assets/javascripts/camaleon_cms/admin/custom_fields_form.js`
+- `app/views/camaleon_cms/admin/settings/custom_fields/form.html.erb`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
   `spec/features/admin/post_slug_markup_spec.rb`,
   `spec/features/admin/media_manager_param_markup_spec.rb`,
-  `spec/features/admin/media_manager_file_markup_spec.rb` and
-  `spec/features/admin/post_featured_image_markup_spec.rb`
+  `spec/features/admin/media_manager_file_markup_spec.rb`,
+  `spec/features/admin/post_featured_image_markup_spec.rb`,
+  `spec/features/admin/custom_field_group_help_markup_spec.rb` and
+  `spec/requests/admin/title_escaping_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a
   surveyed member calls it.
