@@ -3,7 +3,7 @@
 ## Purpose
 
 A link must not put field values into the admin custom-field form. The image preview of the form must
-not run markup from its URL, also for a stored value. The capability gives the request that shows
+not run markup from its URL, also for a stored value. The capability says which request shows
 submitted values in the form, and how the image preview shows its URL.
 
 ## Requirements
@@ -20,7 +20,7 @@ field value from the params of a GET request.
   its query
 - **THEN** the field values of the form hold no value of the query
 
-#### Scenario: A link with field values opens the form of an existing post
+#### Scenario: A link with field values opens the form of a saved post
 
 - **WHEN** an admin opens the edit form of a post with a stored field value, through a GET link with
   `field_options` values

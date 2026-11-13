@@ -215,7 +215,8 @@ window.cama_init_media = function(mediaPanel) {
       if ((value === '/') || (value === ''))
         name = I18n('button.root')
 
-      // A folder name and its path are text. A name with a tag adds no element to the page.
+      // A folder name is text, and its path is an attribute value. A name with a tag adds no element
+      // to the page.
       if (index === (folderItems.length - 1))
         breadrumb.push($('<li></li>').append($('<span></span>').text(name)))
       else {

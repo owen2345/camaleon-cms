@@ -31,7 +31,7 @@ RSpec.describe 'Security: a GET request does not put field values into the admin
       expect(response.body).not_to include(link_value_json)
     end
 
-    it 'shows the stored value and no value of the link in the form of an existing post' do
+    it 'shows the stored value and no value of the link in the form of a saved post' do
       published_post.set_field_value('note', 'stored-note')
 
       get "/admin/post_type/#{post_type.id}/posts/#{published_post.id}/edit", params: link_params

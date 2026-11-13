@@ -37,7 +37,7 @@
   `$&` fail before the fix.
 - [x] 2.2 Set the slug and the URL around it as text in `set_slug` of `_post.js` (D1). Build the Preview
   link and the View link from the same parts of the URL, with no `replace` call.
-- [x] 2.3 Give the change in `docs/upgrading-to-2.9.5.md`.
+- [x] 2.3 Give the text form of the slug in `docs/upgrading-to-2.9.5.md`.
 - [x] 2.4 Add two examples to `spec/features/admin/post_slug_markup_spec.rb`. After a draft save, the
   Preview link must hold a slug with `&draft_id=` as the post stores it. It must also keep a param
   that other code added after the draft id. Make sure that the example of the slug fails before the
@@ -65,7 +65,8 @@
   example fails before the fix, except the example of the plain path.
 - [x] 3.2 Build the breadcrumb, the dimension of the details and the editor title from text in
   `_media_manager.js` (D1).
-- [x] 3.3 Give the change in `docs/upgrading-to-2.9.5.md`.
+- [x] 3.3 Give the text form of the `folder` param and of the `dimension` param in
+  `docs/upgrading-to-2.9.5.md`.
 - [x] 3.4 Add `spec/features/admin/media_manager_file_markup_spec.rb`. A name and a URL with `img`
   markup must show as text in the details of a file and in the image editor. The message of a failed
   image request must show the URL as text. Make sure that the examples fail before the fix.

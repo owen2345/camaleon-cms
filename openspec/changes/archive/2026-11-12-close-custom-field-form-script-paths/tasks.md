@@ -3,7 +3,7 @@
 ## 1. Reproduce first
 
 - [x] 1.1 Add `spec/requests/security/custom_field_form_get_values_spec.rb`. Its GET examples
-  open the form of a new post, the form of an existing post and the field list of a post type. Each
+  open the form of a new post, the form of a saved post and the field list of a post type. Each
   must show no value of the query. A failed create and a failed update must show the submitted
   values. Make sure that the GET examples fail before the fix.
 - [x] 1.2 Add `spec/features/admin/custom_field_image_preview_spec.rb`. Store an image value with a
