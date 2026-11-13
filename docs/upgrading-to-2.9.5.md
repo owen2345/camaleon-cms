@@ -778,6 +778,11 @@ as text too. The media manager shows the `folder` param and the `dimension` para
 The media manager also shows the name and the URL of a file as text. The Featured Image panel of the
 post form shows the name of a picked file as text.
 
+The CORS message of the image editor (`msg.cors_error`) now gets an empty element for its
+`%{url_img}` placeholder. The media manager then sets the URL of the image as the text of that
+element. A translation of this message must keep the placeholder in the text of the message, not in
+an attribute such as `href`.
+
 The Upload Image link of the Featured Image panel now holds the image options of the post type as
 `data-` attributes. Its handler reads them from there. Copy the new link into a view that overrides
 `camaleon_cms/admin/posts/_sidebar.html.erb`.
