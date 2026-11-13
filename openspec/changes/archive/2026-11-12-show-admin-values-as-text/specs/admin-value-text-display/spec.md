@@ -146,6 +146,13 @@ with no Preview link and no View link.
 - **WHEN** other code adds a param after the draft id of the Preview link, and the form saves a draft
 - **THEN** the Preview link holds the id of the draft and keeps that param
 
+#### Scenario: The admin edits the slug
+
+- **WHEN** an admin clicks Edit in the permalink line, types a slug and clicks Cancel
+- **THEN** the line shows the same URL as before
+- **WHEN** the admin clicks Edit again, types a slug and clicks Accept
+- **THEN** the line shows one URL, with the new slug in it
+
 #### Scenario: A URL with no place for the slug
 
 - **WHEN** a post decorator gives a URL with no placeholder for the slug

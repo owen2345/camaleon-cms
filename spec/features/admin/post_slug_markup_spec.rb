@@ -26,8 +26,9 @@ RSpec.describe 'the permalink line of the post form', :js do
     expect(find('.sl-slug-edit .sl-link').text).to match(%r{\Ahttp.+/#{Regexp.escape(@post.slug)}})
   end
 
-  # String#replace reads $& in a replacement String as the text that it replaces. The links must
-  # hold the slug as the post stores it.
+  # The form code built the links with the replace method of JavaScript. That method reads the
+  # characters $& in a replacement String as the text that it replaces. The links must hold such a
+  # slug as it is.
   it 'gives the Preview link and the View link the URL that the line shows' do
     @post.object.update!(slug: 'a$&b')
     visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
@@ -91,6 +92,25 @@ RSpec.describe 'the permalink line of the post form', :js do
 
     expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')"))
       .to match(/\A#{Regexp.escape(permalink)}\?draft_id=\d+&lang=es\z/)
+  end
+
+  # Each change of the slug writes the permalink line again. The line must then hold one URL.
+  it 'shows one URL with the new slug after the admin edits the slug' do
+    visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
+
+    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: @post.slug, wait: 10)
+    permalink = find('.sl-slug-edit .sl-link').text
+    find('.sl-slug-edit .btn-edit').click
+    find('.sl-slug-edit .sl-link input').set('Other Slug')
+    find('.sl-slug-edit .btn-cancel').click
+    expect(page).to have_css('.sl-slug-edit .sl-link', exact_text: permalink)
+
+    find('.sl-slug-edit .btn-edit').click
+    find('.sl-slug-edit .sl-link input').set('New Slug')
+    find('.sl-slug-edit .btn-edit').click
+
+    expect(page).to have_css('.sl-slug-edit .sl-link', exact_text: permalink.sub(@post.slug, 'new-slug'))
+    expect(page).to have_css('.sl-slug-edit .sl-url', exact_text: 'new-slug', count: 1)
   end
 
   # A decorator of a host app can give a URL with no place for the slug. The form joined the slug to

@@ -53,6 +53,9 @@
   must hold a URL with no placeholder as it is. With no URL for its language, the form must start
   and show the slug alone. Make sure that the examples fail before the fix.
 - [x] 2.10 Keep a URL with no placeholder, and start the form with no URL, in `_post.js` (D15).
+- [x] 2.11 Add an example to `spec/features/admin/post_slug_markup_spec.rb`. After Edit and Cancel,
+  the line must show the same URL. After Edit and Accept, the line must show one URL with the new
+  slug. Make sure that the example fails when `set_slug` does not empty the line.
 
 ## 3. The media manager
 
