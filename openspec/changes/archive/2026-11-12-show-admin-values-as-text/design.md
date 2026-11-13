@@ -142,3 +142,9 @@ browser gives the same text to the script.
 placeholder `__-__`, and joined the slug to the end of a URL with no placeholder. The line and the
 links now hold such a URL as it is. With no URL for the language of the form, the code that starts
 the form threw. The form now shows the slug alone, and removes the Preview link and the View link.
+
+**D16. `I18n` puts each value into a translation as text.** The function gave each value to
+`String.prototype.replace` as a replacement String, and replaced one placeholder after the other.
+It now replaces the placeholders in one pass, with a function that returns the value. So it also
+replaces each occurrence of a placeholder, where the old code replaced only the first. The element
+of D5 stays, because the message is HTML and the URL is text.

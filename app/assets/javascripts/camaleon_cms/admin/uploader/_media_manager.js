@@ -480,8 +480,8 @@ window.cama_init_media = function(mediaPanel) {
           built() {
             return $.get(data.url)
               .error(
-                // The URL of the image is text. I18n reads a pattern such as $& in a value, so it gets an
-                // empty element for the URL. The code then sets the URL as the text of that element.
+                // The message is HTML, and the URL of the image is text. So I18n gets an empty element for
+                // the URL, and the code then sets the URL as the text of that element.
                 () => modal.find('.modal-body')
                   .html(
                     '<div class="alert alert-danger">' +

@@ -105,6 +105,7 @@ tag and an `img` tag. The list added an `img` element from that path.
 - The bundled bootstrap-select library shows the label of an option group as text.
 - The bundled upload plugin of the media manager shows the name of a selected file as text.
 - The list of the media manager writes the JSON data of a file with the HTML escape.
+- The `I18n` function of the admin JavaScript puts each value into a translation as text.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
 
 ## Capabilities
@@ -136,6 +137,7 @@ None.
 - `app/assets/javascripts/camaleon_cms/admin/_bootstrap-select.js`
 - `app/assets/javascripts/camaleon_cms/admin/uploader/_jquery.uploadfile.min.js`
 - `app/views/camaleon_cms/admin/media/_render_file_item.html.erb`
+- `app/assets/javascripts/camaleon_cms/admin/_i18n.js`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
   `spec/features/admin/post_slug_markup_spec.rb`,
   `spec/features/admin/media_manager_param_markup_spec.rb`,
@@ -144,7 +146,8 @@ None.
   `spec/features/admin/custom_field_group_help_markup_spec.rb`,
   `spec/features/admin/front_cache_post_type_markup_spec.rb`,
   `spec/features/admin/media_upload_file_name_markup_spec.rb`,
-  `spec/features/admin/media_list_file_data_markup_spec.rb` and
+  `spec/features/admin/media_list_file_data_markup_spec.rb`,
+  `spec/features/admin/js_translation_value_spec.rb` and
   `spec/requests/admin/title_escaping_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a

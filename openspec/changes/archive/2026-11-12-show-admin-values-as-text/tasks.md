@@ -129,8 +129,17 @@
 - [x] 8.2 Set the name of a file as text in the bundled `_jquery.uploadfile.min.js` (D10).
 - [x] 8.3 Give the plugin in `docs/upgrading-to-2.9.5.md`.
 
-## 9. Verification and shipping
+## 9. The I18n function
 
-- [x] 9.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 9.1 Add `spec/features/admin/js_translation_value_spec.rb`. The result of `I18n` must hold a
+  value with `$&` as it is, and a value that holds a later placeholder as it is. Make sure that the
+  two examples fail before the fix.
+- [x] 9.2 Replace the placeholders in one pass in `_i18n.js`, with a function that returns the
+  value (D16).
+- [x] 9.3 Give the function in `docs/upgrading-to-2.9.5.md`.
+
+## 10. Verification and shipping
+
+- [x] 10.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [x] 9.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 10.2 Add the CHANGELOG entry, archive this change on the branch

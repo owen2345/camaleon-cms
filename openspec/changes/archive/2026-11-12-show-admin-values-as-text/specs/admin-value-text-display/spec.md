@@ -14,6 +14,8 @@ shows the label of an option group as text. The upload plugin of the media manag
 a selected file as text. The list of the media manager gives the data of each file to its script as
 text.
 
+The `I18n` function of the admin JavaScript reads each value of a translation as text.
+
 ## ADDED Requirements
 
 ### Requirement: The tag editor shows a tag name as text
@@ -313,3 +315,25 @@ MUST NOT add an element to the page.
 
 - **WHEN** code calls `createProgress` of the plugin with such a name
 - **THEN** the status bar shows the whole name as text and adds no `img` element
+
+### Requirement: The I18n function of the admin JavaScript reads a value as text
+
+The `I18n` function SHALL put each value of its third argument into the translation as text. A
+replacement pattern of JavaScript in a value, such as `$&`, MUST NOT change the result. A value
+that holds a placeholder SHALL stay as it is. The function SHALL replace each occurrence of a
+placeholder, and SHALL keep a placeholder with no value.
+
+#### Scenario: A value with a replacement pattern
+
+- **WHEN** code calls `I18n` with a value that holds the patterns `$&`, `$'` and `$$`
+- **THEN** the result holds the value as it is
+
+#### Scenario: A value that holds a placeholder
+
+- **WHEN** code calls `I18n` with a value that holds the placeholder of a later value
+- **THEN** the result holds that placeholder as text
+
+#### Scenario: A placeholder with no value
+
+- **WHEN** code calls `I18n` with a number for one placeholder and no value for a second placeholder
+- **THEN** the result holds the number, and keeps the second placeholder

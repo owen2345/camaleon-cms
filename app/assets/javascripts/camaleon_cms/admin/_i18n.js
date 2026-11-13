@@ -14,11 +14,12 @@ var I18n = function(key, default_val, data){
     if (!res) res = default_val ? default_val : ("" + key.split(".").pop()).titleize();
 
     // replacements
+    // One pass gives each placeholder its value as text. So a pattern such as $& in a value has no
+    // meaning, and a placeholder that a value holds stays as it is.
     data = data || {}
-    for(key in data){
-        res = res.replace("%{"+key+"}", data[key])
-    }
-    return res;
+    return res.replace(/%\{([^}]*)\}/g, function(placeholder, name){
+        return Object.prototype.hasOwnProperty.call(data, name) ? data[name] : placeholder;
+    });
 }
 
 // helper to convert not found translations key into titleized string

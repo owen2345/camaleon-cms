@@ -804,6 +804,10 @@ reads its first argument, the name of a file, as text.
 The list of the media manager now writes the JSON data of each file with the HTML escape. Copy the
 new line into a view that overrides `camaleon_cms/admin/media/_render_file_item.html.erb`.
 
+The `I18n` function of the admin JavaScript now puts each value of its third argument into the
+translation as text. A pattern such as `$&` in a value stays as it is. The function now replaces
+each occurrence of a placeholder. Before, it replaced only the first.
+
 **Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
 text, and compare a name from the editor as text.
 
