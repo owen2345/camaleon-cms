@@ -72,7 +72,8 @@ get the value of the text input of the tag.
 
 The permalink line of the post form SHALL show the slug of the post as text, inside the URL of the
 post. A slug with markup MUST NOT add an element to the form. The Preview link and the View link of
-the line SHALL hold the slug as the post stores it.
+the line SHALL hold the slug as the post stores it. A draft save SHALL change only the draft id of
+the Preview link.
 
 #### Scenario: A stored slug with a tag
 
@@ -89,6 +90,12 @@ the line SHALL hold the slug as the post stores it.
 
 - **WHEN** an admin opens the edit form of a published post whose slug holds `$&`
 - **THEN** the Preview link and the View link hold the URL that the permalink line shows
+
+#### Scenario: A draft save for a slug that holds the text of the draft param
+
+- **WHEN** an admin opens the edit form of a post whose slug holds `draft_id=`, and the form saves a
+  draft
+- **THEN** the Preview link holds the URL that the permalink line shows, with the id of the draft
 
 ### Requirement: The media manager shows the params of its page as text
 

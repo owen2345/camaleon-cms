@@ -329,9 +329,12 @@ function cama_init_post(obj) {
         clearTimeout(submit_wait_timer);
     }
 
+    // The href of a Preview link ends with the draft id. The slug before it can hold the text
+    // draft_id= too, so the code looks for the last ?draft_id= of the href.
     function set_preview_draft_id() {
         $(post_form).find('.sl-slug-edit .btn-preview').each(function () {
-            $(this).attr('href', $(this).attr('href').replace(/draft_id=[^&]*/, 'draft_id=' + post_draft_id));
+            var href = $(this).attr('href'), at = href.lastIndexOf('?draft_id=');
+            if (at >= 0) $(this).attr('href', href.slice(0, at) + '?draft_id=' + post_draft_id);
         });
     }
 

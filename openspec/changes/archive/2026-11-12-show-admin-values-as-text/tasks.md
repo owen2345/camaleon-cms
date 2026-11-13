@@ -27,6 +27,11 @@
 - [x] 2.2 Set the slug and the URL around it as text in `set_slug` of `_post.js` (D1). Build the Preview
   link and the View link from the same parts of the URL, with no `replace` call.
 - [x] 2.3 Give the change in `docs/upgrading-to-2.9.5.md`.
+- [x] 2.4 Add an example to `spec/features/admin/post_slug_markup_spec.rb`. After a draft save, the
+  Preview link must hold a slug with `draft_id=` as the post stores it. Make sure that the example
+  fails before the fix.
+- [x] 2.5 Write the draft id at the end of the Preview link in `set_preview_draft_id` of `_post.js`,
+  with no `replace` call.
 
 ## 3. The media manager
 
