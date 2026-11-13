@@ -17,42 +17,44 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
           headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
   end
 
-  before do
-    add_note_field('Post')
-    add_note_field('Category')
-    sign_in_as(admin, site: current_site)
-  end
+  before { sign_in_as(admin, site: current_site) }
 
-  it 'renders the refused post form when field_options is a scalar' do
-    update_post('post[status]=published&field_options=foo')
+  context 'with a field group of the post' do
+    before { add_note_field('Post') }
 
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.malformed_group', group: 'field_options'))
-    expect(stored_post.title).not_to eq('Changed')
-  end
-
-  { 'a group is a scalar' => 'field_options[0]=x',
-    'a field entry is a list' => 'field_options[0][note][]=x',
-    'a field entry is a scalar' => 'field_options[0][note]=x' }.each do |shape, field_options|
-    it "renders the refused post form when #{shape}" do
-      update_post("post[status]=nope&#{field_options}")
+    it 'renders the refused post form when field_options is a scalar' do
+      update_post('post[status]=published&field_options=foo')
 
       expect(response).to have_http_status(:ok)
-      expect(response.body)
-        .to include(I18n.t('camaleon_cms.admin.post.message.status_not_offered', field: 'post[status]'))
+      expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.malformed_group',
+                                              group: 'field_options'))
       expect(stored_post.title).not_to eq('Changed')
     end
-  end
 
-  it 'shows the submitted value again in the refused post form' do
-    update_post('post[status]=nope&field_options[0][note][values][0]=kept+note')
+    { 'a group is a scalar' => 'field_options[0]=x',
+      'a field entry is a list' => 'field_options[0][note][]=x',
+      'a field entry is a scalar' => 'field_options[0][note]=x' }.each do |shape, field_options|
+      it "renders the refused post form when #{shape}" do
+        update_post("post[status]=nope&#{field_options}")
 
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include('{"note":["kept note"]}')
+        expect(response).to have_http_status(:ok)
+        expect(response.body)
+          .to include(I18n.t('camaleon_cms.admin.post.message.status_not_offered', field: 'post[status]'))
+        expect(stored_post.title).not_to eq('Changed')
+      end
+    end
+
+    it 'shows the submitted value again in the refused post form' do
+      update_post('post[status]=nope&field_options[0][note][values][0]=kept+note')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('{"note":["kept note"]}')
+    end
   end
 
   # A category with the slug of another category of the post type fails its validation.
   it 'renders the category form again when the category is invalid and field_options is a scalar' do
+    add_note_field('Category')
     post_type.categories.create!(name: 'Taken', slug: 'taken')
 
     post "/admin/post_type/#{post_type.id}/categories",

@@ -7,8 +7,8 @@
 RSpec.describe 'the image preview of a custom field', :js do
   init_site
 
-  let(:image_url) { 'x"><img src=x onerror="return">' }
   # The browser sends no request for a data URL to the test server.
+  let(:image_url) { 'data:image/gif;base64,x"><img src=x onerror="return">' }
   let(:data_url) { 'data:image/gif;base64,R0lGODlhAQABAAAAACw=' }
 
   before do
