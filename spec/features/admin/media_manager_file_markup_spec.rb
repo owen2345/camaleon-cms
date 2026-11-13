@@ -2,8 +2,9 @@
 
 # The media manager built HTML from the name and the URL of a file. The URL of a file holds the
 # names of its folders, and an upload takes the folder from its request. So a role with the media
-# right can store a file in a folder with markup in its name. That markup then ran in the session of
-# the admin who clicked the file. The media manager must show the name and the URL as text.
+# permission can store a file in a folder with markup in its name. That markup then ran in the
+# session of the admin who clicked the file. The media manager must show the name and the URL as
+# text.
 RSpec.describe 'the name and the URL of a file in the media manager', :js do
   init_site
 

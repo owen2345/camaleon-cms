@@ -17,8 +17,8 @@ when the page opened. The details of an image and the title of the image editor 
 param. Its markup ran after a click on an image.
 
 The media manager also put the name and the URL of a file into HTML. The URL holds the names of the
-folders of the file, and an upload takes the folder from its request. So a role with the media right
-can store a file whose URL holds markup.
+folders of the file, and an upload takes the folder from its request. So a role with the `media`
+permission can store a file whose URL holds markup.
 
 The Featured Image panel of the post form put the name of the picked file into HTML. An upload cleans
 the name of a file, but a file that reaches the storage another way keeps its name.
