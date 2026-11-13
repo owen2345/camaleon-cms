@@ -79,6 +79,7 @@ before the fix.
 ## What Changes
 
 - The tag editor shows a tag name as text. It sets and reads the name of a tag as text.
+- The right-click delete of the tag editor removes an open tag with no text, with no error.
 - The permalink line of the post form shows the slug, and the URL around it, as text.
 - The Preview link and the View link of the permalink line hold the slug as one segment of the
   path.

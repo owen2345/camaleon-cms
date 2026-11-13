@@ -25,7 +25,8 @@ that input SHALL hold the whole name. A name that the admin types again, alone o
 delimiter, SHALL replace its tag. The editor SHALL give a tag name as text to the `beforeTagDelete`
 callback, and its `removeTag` method SHALL take a name as text. For an open tag, the callback SHALL
 get the name that the tag had when the admin opened it. The editor SHALL NOT call the callback for a
-new tag, which has no such name.
+new tag, which has no such name. A right click SHALL delete an open tag with no text, and MUST NOT
+throw an error.
 
 #### Scenario: A stored tag name with markup
 
@@ -75,6 +76,13 @@ new tag, which has no such name.
   changed, and a new tag with typed text
 - **AND** a right click deletes each of the two tags
 - **THEN** the callback gets one call, with the name that the first tag had when the admin opened it
+
+#### Scenario: A right click deletes an open tag with no text
+
+- **WHEN** a tag editor with the `clickDelete` option holds a new tag with no text, or an open tag
+  whose text the admin removed
+- **AND** a right click deletes that tag
+- **THEN** the editor removes the tag and throws no error
 
 ### Requirement: The permalink line of the post form shows the slug as text
 

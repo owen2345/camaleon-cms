@@ -152,4 +152,29 @@ RSpec.describe 'the tag editor of the post form', :js do
     JS
     expect(page.evaluate_script('window.deletedTags')).to eq(['Ruby on Rails'])
   end
+
+  # Chrome fires blur on the text input of a tag when the editor removes the tag. The blur handler
+  # removes a tag with no text itself. The second removal of the same tag then threw NotFoundError.
+  it 'deletes an open tag with no text on a right click' do
+    visit posts_path
+
+    page.execute_script(<<~JS)
+      $('<input type="text" id="plugin_tags">').appendTo('body').tagEditor({
+        initialTags: ['Ruby'], forceLowercase: false, clickDelete: true, animateDelete: 0
+      });
+      var editor = $('#plugin_tags').next();
+      try {
+        editor.trigger('click');
+        editor.find('.tag-editor-tag.active').trigger($.Event('mousedown', { which: 3 }));
+        editor.find('.tag-editor-tag').first().trigger('click').find('input').val('').trigger('keyup');
+        editor.find('.tag-editor-tag.active').trigger($.Event('mousedown', { which: 3 }));
+      } catch (error) {
+        $('body').attr('data-delete-error', error.name);
+      }
+    JS
+
+    expect(page).to have_no_css('body[data-delete-error]')
+    expect(page).to have_no_css('#plugin_tags + .tag-editor .tag-editor-tag', visible: :all)
+    expect(page.evaluate_script("$('#plugin_tags').val()")).to eq('')
+  end
 end

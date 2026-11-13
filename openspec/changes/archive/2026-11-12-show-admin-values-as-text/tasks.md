@@ -17,6 +17,10 @@
   must give no call. Make sure that the example fails before the fix.
 - [x] 1.5 Give `beforeTagDelete` the stored name of an open tag in the right-click delete (D2). Skip
   the call for a new tag.
+- [x] 1.6 Add an example to `spec/features/admin/post_tag_markup_spec.rb`. A right click must delete
+  a new tag with no text, and an open tag whose text the admin removed, with no error. Make sure
+  that the example fails before the fix.
+- [x] 1.7 Catch the error of the second removal in the right-click delete of the tag editor (D13).
 
 ## 2. The permalink line
 

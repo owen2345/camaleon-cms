@@ -125,3 +125,9 @@ shows the slug as the post stores it.
 
 - *Alternative: remove `?` from the slug that the form makes.* Rejected: a stored slug with `?` or
   `#` keeps its wrong links.
+
+**D13. The right-click delete removes a tag that the blur handler removed.** Chrome fires blur on
+the text input of an open tag when the tag leaves the page. The blur handler removes a tag with no
+text itself, so the removal of the right-click delete then threw `NotFoundError`. The delete now
+catches that error, as the blur handler of the library does for its own removal. Only an editor
+with the `clickDelete` option has this delete, and the post form does not set that option.
