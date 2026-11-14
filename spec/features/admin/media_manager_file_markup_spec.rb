@@ -67,8 +67,8 @@ RSpec.describe 'the name and the URL of a file in the media manager', :js do
     expect(page).to have_no_css('#media_panel_editor_image .alert-danger img', visible: :all)
   end
 
-  # I18n builds the message from a template. JavaScript reads $& in a replacement String as the
-  # text that it replaces, so the URL must not reach the template as such a String.
+  # The URL of the file holds a replacement pattern of JavaScript. The message of a failed image
+  # request must show that URL whole.
   context 'when a folder of the file holds a replacement pattern' do
     let(:folder) { 'a$&b' }
 
