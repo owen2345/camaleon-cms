@@ -196,4 +196,26 @@ RSpec.describe 'the tag editor of the post form', :js do
     expect(page).to have_no_css('#plugin_tags + .tag-editor .tag-editor-tag', visible: :all)
     expect(page.evaluate_script("$('#plugin_tags').val()")).to eq('')
   end
+
+  # Chrome fires blur on the text input of a tag when the editor removes the tag. The blur handler
+  # read the typed text as a new tag. It called beforeTagSave, and it removed a closed tag with that
+  # name too.
+  it 'deletes only the open tag on a right click, with no call of the beforeTagSave callback' do
+    visit posts_path
+
+    page.execute_script(<<~JS)
+      window.savedTags = [];
+      $('<input type="text" id="plugin_tags">').appendTo('body').tagEditor({
+        initialTags: ['Ruby', 'Rails'], forceLowercase: false, clickDelete: true, animateDelete: 0,
+        beforeTagSave: function (field, editor, tags, oldTag, newTag) { window.savedTags.push([oldTag, newTag]); }
+      });
+      var tag = $('#plugin_tags').next().find('.tag-editor-tag').last();
+      tag.trigger('click').find('input').val('Ruby').trigger('keyup');
+      tag.trigger($.Event('mousedown', { which: 3 }));
+    JS
+
+    expect(page).to have_css('#plugin_tags + .tag-editor .tag-editor-tag', exact_text: 'Ruby', count: 1)
+    expect(page.evaluate_script("$('#plugin_tags').val()")).to eq('Ruby')
+    expect(page.evaluate_script('window.savedTags')).to eq([])
+  end
 end

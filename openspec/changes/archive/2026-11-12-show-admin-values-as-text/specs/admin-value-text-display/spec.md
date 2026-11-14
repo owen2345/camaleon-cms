@@ -27,7 +27,8 @@ delimiter, SHALL replace its tag. The editor SHALL give a tag name as text to th
 callback, and its `removeTag` method SHALL take a name as text. For an open tag, the callback SHALL
 get the name that the tag had when the admin opened it. The editor SHALL NOT call the callback for a
 new tag, which has no such name. A right click SHALL delete an open tag with no text, and MUST NOT
-throw an error.
+throw an error. A right click on an open tag SHALL delete only that tag, and MUST NOT call the
+`beforeTagSave` callback.
 
 The editor SHALL give the name that a tag had to the `old_tag` argument of the `beforeTagSave`
 callback, as text.
@@ -87,6 +88,14 @@ callback, as text.
   whose text the admin removed
 - **AND** a right click deletes that tag
 - **THEN** the editor removes the tag and throws no error
+
+#### Scenario: A right click deletes an open tag with typed text
+
+- **WHEN** a tag editor with the `clickDelete` option holds two tags
+- **AND** the admin opens one tag, types the name of the other tag and deletes the open tag with a
+  right click
+- **THEN** the editor removes only the open tag
+- **AND** the `beforeTagSave` callback gets no call
 
 #### Scenario: The code of a plugin reads the old name of a tag
 

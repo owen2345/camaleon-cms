@@ -126,11 +126,17 @@ shows the slug as the post stores it.
 - *Alternative: remove `?` from the slug that the form makes.* Rejected: a stored slug with `?` or
   `#` keeps its wrong links.
 
-**D13. The right-click delete removes a tag that the blur handler removed.** Chrome fires blur on
-the text input of an open tag when the tag leaves the page. The blur handler removes a tag with no
-text itself, so the removal of the right-click delete then threw `NotFoundError`. The delete now
-catches that error, as the blur handler of the library does for its own removal. Only an editor
-with the `clickDelete` option has this delete, and the post form does not set that option.
+**D13. The blur handler leaves a tag that the right-click delete removes.** Chrome fires blur on the
+text input of an open tag when the tag leaves the page. The blur handler then read the input as a
+new tag. It removed a tag with no text again, so the removal of the right-click delete threw
+`NotFoundError`. For typed text, it called `beforeTagSave` and removed a closed tag with that name.
+
+The right-click delete marks its tag before the removal, and the blur handler now returns for such
+a tag. Only an editor with the `clickDelete` option has this delete, and the post form does not set
+that option.
+
+- *Alternative: catch the error of the second removal.* Rejected: the blur handler still saves the
+  typed text of the tag that the admin deletes.
 
 **D14. The list of the media manager writes the data of a file with the HTML escape.** The view
 wrote the JSON of each file into a hidden `textarea` with `raw`. Rails writes `<` and `&` of JSON as

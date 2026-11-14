@@ -161,10 +161,7 @@
                         // it, as the blur handler does. A new tag has no such name, and gets no call.
                         var name = tag.hasClass('active') ? tag.find('input').data('old_tag') : tag.text();
                         if (name && o.beforeTagDelete(el, ed, tag_list, name) === false) return false;
-                        // Camaleon CMS change: Chrome fires blur on the input of an open tag when the tag
-                        // leaves the page, and the blur handler removes a tag with no text itself. The
-                        // removal here then throws, as the removal in the blur handler can.
-                        tag.addClass('deleted').animate({width: 0}, o.animateDelete, function(){ try { li.remove(); } catch(e){} set_placeholder(); });
+                        tag.addClass('deleted').animate({width: 0}, o.animateDelete, function(){ li.remove(); set_placeholder(); });
                         update_globals();
                         return false;
                     }
@@ -222,6 +219,9 @@
 
             ed.on('blur', 'input', function(e){
                 e.stopPropagation();
+                // Camaleon CMS change: Chrome fires blur on the input of an open tag when the tag leaves the
+                // page. The right-click delete marks its tag first, and this handler leaves such a tag.
+                if ($(this).parent().hasClass('deleted')) return;
                 var input = $(this), old_tag = input.data('old_tag'), tag = $.trim(input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]));
                 if (!tag) {
                     if (old_tag && o.beforeTagDelete(el, ed, tag_list, old_tag) === false) {

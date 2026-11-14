@@ -20,7 +20,8 @@
 - [x] 1.6 Add an example to `spec/features/admin/post_tag_markup_spec.rb`. A right click must delete
   a new tag with no text, and an open tag whose text the admin removed, with no error. Make sure
   that the example fails before the fix.
-- [x] 1.7 Catch the error of the second removal in the right-click delete of the tag editor (D13).
+- [x] 1.7 Leave a tag that the right-click delete removes in the blur handler of the tag editor
+  (D13).
 - [x] 1.8 Add an example to `spec/features/admin/post_tag_markup_spec.rb`. The `beforeTagSave`
   callback must get the old name of a tag as text. Make sure that the example fails when `old_tag`
   comes from `.html()`.
@@ -28,6 +29,9 @@
   editor. `split_cleanup` and the blur handler call it.
 - [x] 1.10 Start the `beforeTagDelete` example on the list of posts. It needs only the tag editor
   plugin, which the admin layout loads.
+- [x] 1.11 Add an example to `spec/features/admin/post_tag_markup_spec.rb`. A right click on an open
+  tag with the name of another tag as its text must delete only the open tag. The `beforeTagSave`
+  callback must get no call. Make sure that the example fails before the fix.
 
 ## 2. The permalink line
 
