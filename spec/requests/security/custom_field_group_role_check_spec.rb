@@ -29,21 +29,21 @@ RSpec.describe 'the role check of the custom field group pages', type: :request 
     it 'refuses a new order of the field groups' do
       post "#{paths}/reorder", params: { values: [second_group.id, first_group.id] }
 
-      expect(response).to redirect_to('/admin/dashboard')
+      expect(response).to redirect_to(cama_admin_dashboard_path)
       expect(group_order).to eq([0, 1])
     end
 
     {
-      'the list of the field groups' => ->(_group) { get paths },
-      'the form of a new field group' => ->(_group) { get "#{paths}/new" },
-      'the form of a field group' => ->(group) { get "#{paths}/#{group.id}/edit" },
-      'the page of a field group' => ->(group) { get "#{paths}/#{group.id}" },
-      'the settings of a field kind' => ->(_group) { post "#{paths}/get_items/text_box" }
-    }.each do |page, request|
-      it "refuses #{page}" do
-        instance_exec(first_group, &request)
+      'the list of the field groups' => -> { get paths },
+      'the form of a new field group' => -> { get "#{paths}/new" },
+      'the form of a field group' => -> { get "#{paths}/#{first_group.id}/edit" },
+      'the page of a field group' => -> { get "#{paths}/#{first_group.id}" },
+      'the settings of a field kind' => -> { post "#{paths}/get_items/text_box" }
+    }.each do |name, send_request|
+      it "refuses #{name}" do
+        instance_exec(&send_request)
 
-        expect(response).to redirect_to('/admin/dashboard')
+        expect(response).to redirect_to(cama_admin_dashboard_path)
       end
     end
 
@@ -77,7 +77,7 @@ RSpec.describe 'the role check of the custom field group pages', type: :request 
       get "#{paths}/#{first_group.id}/edit"
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('_role-check-first').or include('First')
+      expect(response.body).to include('value="First"')
     end
   end
 
