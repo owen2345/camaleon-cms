@@ -87,7 +87,6 @@ tag and an `img` tag. The list added an `img` element from that path.
   handler as attribute values.
 - The form of a custom field group shows the help of a placement as text. Each placement option with
   a name gives that name with one escape.
-- The form of a custom field group shows the name of a field as text in the title of its panel.
 - The list of the media manager writes the JSON data of a file with the HTML escape.
 - The `I18n` function of the admin JavaScript puts each value into a translation as text.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
@@ -120,7 +119,6 @@ None.
   `spec/features/admin/media_manager_file_markup_spec.rb`,
   `spec/features/admin/post_featured_image_markup_spec.rb`,
   `spec/features/admin/custom_field_group_help_markup_spec.rb`,
-  `spec/features/admin/custom_field_group_field_name_markup_spec.rb`,
   `spec/features/admin/js_translation_value_spec.rb`,
   `spec/requests/security/media_list_file_data_markup_spec.rb` and
   `spec/requests/admin/title_escaping_spec.rb`

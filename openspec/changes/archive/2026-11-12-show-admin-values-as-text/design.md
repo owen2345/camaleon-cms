@@ -169,6 +169,7 @@ of D5 stays, because the message is HTML and the URL is text.
 A translation that is not a String has no placeholder. The function returns it as it is, as the old
 code did for a call with no values.
 
-**D17. The custom field group form sets the name of a field as text.** The form wrote the value of
-the name input of a field into the HTML of the title of its panel. A role with the `custom_fields`
-permission can store a field name with markup. So the form now sets the name as text.
+**D17. The custom field group form keeps the name of a field as HTML in the title of its panel.**
+The form writes the value of the name input of a field into that title. Only a role with the
+`custom_fields` permission stores the name of a field, and that role is trusted
+(`docs/security/permissions.md`, "The gating rule"). So the line stays as it is.

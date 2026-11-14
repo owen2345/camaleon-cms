@@ -9,8 +9,8 @@ places, markup in such a value adds no element to the admin page.
 
 The Upload Image link of the Featured Image panel gives the image options of the post type to its
 handler as attribute values. A quote in such an option runs no script. The form of a custom field
-group shows the help of a placement, and the name of a field, as text. The list of the media manager
-gives the data of each file to its script as text.
+group shows the help of a placement as text. The list of the media manager gives the data of each
+file to its script as text.
 
 The `I18n` function of the admin JavaScript reads each value of a translation as text.
 
@@ -318,18 +318,6 @@ SHALL show no help.
 - **AND** an admin opens the form of a new custom field group
 - **THEN** the `data-help` attribute of each option of that post type, and of that post, reads the
   name literally
-
-### Requirement: The custom field group form shows the name of a field as text
-
-The form of a custom field group SHALL show the name of a field as text in the title of the panel
-of that field. A name with markup MUST NOT add an element to the form.
-
-#### Scenario: The admin changes a field name with markup
-
-- **WHEN** an admin opens the edit form of a custom field group that has a field with an `img` tag
-  in its name
-- **AND** the admin types in the name input of that field
-- **THEN** the title of the panel shows the whole name as text and adds no `img` element
 
 ### Requirement: The I18n function of the admin JavaScript reads a value as text
 
