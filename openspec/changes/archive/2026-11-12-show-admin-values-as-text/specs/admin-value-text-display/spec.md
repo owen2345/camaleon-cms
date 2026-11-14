@@ -356,6 +356,12 @@ MUST NOT add an element to the page.
 - **WHEN** an admin selects a file whose name holds `img` markup in the media manager
 - **THEN** the status bar shows the whole name as text and adds no `img` element
 
+#### Scenario: The admin selects a file in a plugin that sends a form
+
+- **WHEN** code starts the plugin with the `serialize` option off
+- **AND** an admin selects a file whose name holds `img` markup
+- **THEN** the status bar shows the whole name as text and adds no `img` element
+
 #### Scenario: The plugin refuses a file with markup in its name
 
 - **WHEN** code starts the plugin with an option that refuses such a file
