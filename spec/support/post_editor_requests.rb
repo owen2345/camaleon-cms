@@ -30,4 +30,10 @@ RSpec.shared_context 'with the post editor' do
   def stored_post
     CamaleonCms::Post.find(published_post.id)
   end
+
+  # Adds a text field, `note`, to the default field group of the post type. `kind` names the forms
+  # that show the group: `Post` for the posts, `Category` for the categories.
+  def add_note_field(kind)
+    post_type.add_field({ 'name' => 'Note', 'slug' => 'note' }, { 'field_key' => 'text_box' }, kind)
+  end
 end

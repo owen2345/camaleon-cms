@@ -18,6 +18,19 @@ Every permission on this page is an instance of one rule, and a new security-sen
 2. **For every other role, an action that presents a security threat is allowed only through a dedicated permission that is off by default.** The permission is never seeded onto a non-admin role, so an existing install reads it as not-granted with no migration; and the check **fails closed** — with no `CurrentRequest` user or site (a background job, a rake task, the console), the caller is treated as untrusted.
 3. **A gate is the last resort, not the first.** Where the threat is *content* and that content can be judged, the save-time scan judges it (see the remedy rule below) — a blanket refusal by file type, format or category is wrong there. A dedicated permission is the remedy only where no scan can reach a verdict at all. Uploaded JavaScript is the worked example: it has no safe subset and every dangerous capability is reachable through dynamic construction (`window['fet'+'ch']`, `[]['constructor']['constructor']`), so no static rule decides it and the check fails closed. Uploaded markup is the counter-example: it has a finite grammar, so the parse-based scan decides it and `.html` is deliberately *not* gated by type.
 
+**A signed-in role is trusted for the actions that its permissions allow.** Camaleon guards the admin panel against a visitor, and against a value
+that a link brings into a page. It does not guard an admin page against a value that a role stores through an action that the role is allowed to
+do. Examples are a tag name or a slug of a Contributor, and a category name of an Editor. A folder name of a role with the `media` permission is
+one more. Such a value gets no gate, and a page that shows it as markup is no vulnerability.
+
+This trust ends at the gates of this page, which say what a role is not allowed to do. A role with no `post_content_unfiltered_html` permission
+still cannot store script in the content of a post. A role with the `custom_fields` permission still needs `select_eval` for a field that runs
+Ruby code.
+
+**The `settings` and `custom_fields` permissions give a role the trust of an administrator.** A role with one of these two permissions changes the
+configuration of the site, or the fields of each admin form. Examples of its values are the language codes of a site, the image options of a post
+type and the name of a custom field. Grant these two permissions only to a user that you would make an administrator.
+
 Where an existing permission's holders already possess the capability, extend that permission rather than adding one — a new permission would *revoke* the capability from installs that already granted the old one. `media_unfiltered_upload` covers script uploads for exactly this reason: a holder already skips the scan and could already store them.
 
 The gate is an **authorization** decision, never a proxy for one. A filesystem path, an output filename, a client-supplied flag or a network location can each be walked through by the caller; [#1228](https://github.com/owen2345/camaleon-cms/pull/1228) replaced exactly such a path-based upload exemption with `media_unfiltered_upload` for that reason. Where content can be substituted after the check — a `before_upload` handler rewriting the scanned bytes — the substituted content is re-checked, not trusted because the handler ran. A check that fails *open* (allowing the action when it cannot evaluate the permission) is the bug this rule exists to prevent.
@@ -153,7 +166,7 @@ parameter before the target is resolved, so it discloses nothing about which use
 
 ## Manager permissions
 
-- `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission
+- `custom_fields` — Controls who can read, create, update, delete and reorder Custom Field Groups and Custom Fields. This is a manager-level permission
   and should be granted only to trusted users. The permission is checked at write-time by the admin controller so that only permitted roles can
   persist custom field definitions that may contain advanced behavior.
 - `contact_form_unfiltered_html` — Permits storing raw HTML anywhere in the bundled contact-form plugin. Without it, a save carrying such content is
@@ -164,8 +177,9 @@ parameter before the target is resolved, so it discloses nothing about which use
 
 Where enforcement happens
 - Write-time enforcement: `CamaleonCms::Admin::Settings::CustomFieldsController` uses CanCan (`authorize! :manage, :custom_fields`) to require the
-  `custom_fields` manager permission for create/update/destroy actions. This prevents users without the permission from saving Custom Field Groups
-  or fields.
+  `custom_fields` manager permission for each action except `list`. Users without the permission cannot read, save or reorder Custom Field
+  Groups or fields. The `list` action gives the fields of a post, or of a new post of a post type. It checks the right of the user on
+  that post or post type.
 - Render-time behavior: certain field types (notably the `select_eval` field) evaluate stored data when rendering. The project maintains render-time
   behavior for backward compatibility, but write-time restrictions are the primary control: only users with the `custom_fields` permission can create
   or modify fields that might include executable commands. If you need a more restrictive runtime policy, consider auditing/clearing any stored

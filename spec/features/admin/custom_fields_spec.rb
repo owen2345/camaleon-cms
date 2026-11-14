@@ -56,31 +56,11 @@ RSpec.describe 'the Custom Fields', :js do
     admin_sign_in(user.username, '12345678')
 
     visit "#{cama_root_relative_path}/admin/settings/custom_fields"
-    if page.has_link?('Add Field Group')
-      click_link 'Add Field Group'
 
-      within '#cama_custom_field_form' do
-        fill_in 'custom_field_group_name', with: 'Blocked Group'
-        fill_in 'custom_field_group_description', with: 'Blocked description'
-        post_type_id = @site.post_types.where(slug: :post).pick(:id)
-        script_string = "$(\"#select_assign_group\").val(\"PostType_Post,#{post_type_id}\")"
-        page.execute_script(script_string)
-
-        wait 2
-        all('#content-items-default a').each(&:click)
-        wait_for_ajax
-        first('button[type="submit"]').click
-      end
-
-      # should not succeed
-      expect(page).to have_no_css('.alert-success')
-      expect(page).to satisfy do |_|
-        page.has_css?('.alert-danger') || page.has_content?('You are not authorized')
-      end
-    else
-      # the UI may hide the 'Add Field Group' action for non-permitted roles
-      expect(page).to have_no_link('Add Field Group')
-    end
+    # Each custom field group page checks the custom_fields permission, so the role gets a redirect
+    # to the dashboard.
+    expect(page).to have_current_path(%r{/admin/dashboard}, ignore_query: true)
+    expect(page).to have_no_link('Add Field Group')
   end
 
   it 'allows users with the Custom Fields manager permission to manage Custom Fields' do

@@ -9,6 +9,10 @@
     // auto grow input (stackoverflow.com/questions/931207)
     $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.html(t.replace(/&/g,"&amp;").replace(/\s/g,"&nbsp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"));var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.bind("keyup keydown focus",s)};
 
+    // Camaleon CMS change: a tag name is text. The editor sets and reads the name of a tag with
+    // .text(), and it sets the input of an open tag with .val(). A name with markup then adds no
+    // element.
+
     // plugin with val as parameter for public methods
     $.fn.tagEditor = function(options, val, blur){
 
@@ -37,7 +41,7 @@
                     else $('.placeholder', ed).remove();
                 } else if (options == 'removeTag') {
                     // trigger delete on matching tag, then click editor to create a new tag
-                    $('.tag-editor-tag', ed).filter(function(){return $(this).html()==val;}).closest('li').find('.tag-editor-delete').click();
+                    $('.tag-editor-tag', ed).filter(function(){return $(this).text()==val;}).closest('li').find('.tag-editor-delete').click();
                     if (!blur) ed.click();
                 } else if (options == 'destroy') {
                     el.removeClass('tag-editor-hidden-src').removeData('options').off('focus.tag-editor').next('.tag-editor').remove();
@@ -56,7 +60,7 @@
                     var tags = [], splits = sel.toString().split(el.prev().data('options').dregex);
                     for (i=0; i<splits.length; i++){ var tag = $.trim(splits[i]); if (tag) tags.push(tag); }
                     $('.tag-editor-tag', el).each(function(){
-                        if (~$.inArray($(this).html(), tags)) $(this).closest('li').find('.tag-editor-delete').click();
+                        if (~$.inArray($(this).text(), tags)) $(this).closest('li').find('.tag-editor-delete').click();
                     });
                     return false;
                 }
@@ -142,7 +146,7 @@
                 if ($(this).prev().hasClass('active')) { $(this).closest('li').find('input').caret(-1); return false; }
 
                 var li = $(this).closest('li'), tag = li.find('.tag-editor-tag');
-                if (o.beforeTagDelete(el, ed, tag_list, tag.html()) === false) return false;
+                if (o.beforeTagDelete(el, ed, tag_list, tag.text()) === false) return false;
                 tag.addClass('deleted').animate({width: 0}, o.animateDelete, function(){ li.remove(); set_placeholder(); });
                 update_globals();
                 return false;
@@ -153,7 +157,10 @@
                 ed.on('mousedown', '.tag-editor-tag', function(e){
                     if (e.ctrlKey || e.which > 1) {
                         var li = $(this).closest('li'), tag = li.find('.tag-editor-tag');
-                        if (o.beforeTagDelete(el, ed, tag_list, tag.html()) === false) return false;
+                        // Camaleon CMS change: an open tag gives the name that it had when the admin opened
+                        // it, as the blur handler does. A new tag has no such name, and gets no call.
+                        var name = tag.hasClass('active') ? tag.find('input').data('old_tag') : tag.text();
+                        if (name && o.beforeTagDelete(el, ed, tag_list, name) === false) return false;
                         tag.addClass('deleted').animate({width: 0}, o.animateDelete, function(){ li.remove(); set_placeholder(); });
                         update_globals();
                         return false;
@@ -165,10 +172,10 @@
                 if (o.clickDelete && (e.ctrlKey || e.which > 1)) return false;
 
                 if (!$(this).hasClass('active')) {
-                    var tag = $(this).html();
+                    var tag = $(this).text();
                     // guess cursor position in text input
                     var left_percent = Math.abs(($(this).offset().left - e.pageX)/$(this).width()), caret_pos = parseInt(tag.length*left_percent),
-                        input = $(this).html('<input type="text" maxlength="'+o.maxLength+'" value="'+tag+'">').addClass('active').find('input');
+                        input = $(this).html('<input type="text" maxlength="'+o.maxLength+'">').addClass('active').find('input').val(tag);
                         input.data('old_tag', tag).tagEditorInput().focus().caret(caret_pos);
                     if (o.autocomplete) {
                         var aco = $.extend({}, o.autocomplete);
@@ -183,6 +190,12 @@
                 return false;
             });
 
+            // Camaleon CMS change: one function removes each closed tag with the given name. The open
+            // tag is no duplicate. Its text is the copy of its input that tagEditorInput keeps.
+            function remove_duplicates(tag){
+                $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).text() == tag) $(this).closest('li').remove(); });
+            }
+
             // helper: split into multiple tags, e.g. after paste
             function split_cleanup(input){
                 var li = input.closest('li'), sub_tags = input.val().replace(/ +/, ' ').split(o.dregex), old_tag = input.data('old_tag');
@@ -193,10 +206,9 @@
                         if (o.forceLowercase) tag = tag.toLowerCase();
                         tag = o.beforeTagSave(el, ed, old_tags, old_tag, tag) || tag;
                         // remove duplicates
-                        if (o.removeDuplicates && ~$.inArray(tag, old_tags))
-                            $('.tag-editor-tag', ed).each(function(){ if ($(this).html() == tag) $(this).closest('li').remove(); });
+                        if (o.removeDuplicates && ~$.inArray(tag, old_tags)) remove_duplicates(tag);
                         old_tags.push(tag);
-                        li.before('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+tag+'</div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>');
+                        li.before($(new_tag).find('.tag-editor-tag').text(tag).end());
                     }
                     if (o.maxTags && old_tags.length >= o.maxTags) { exceeded = true; break; }
                 }
@@ -207,6 +219,9 @@
 
             ed.on('blur', 'input', function(e){
                 e.stopPropagation();
+                // Camaleon CMS change: Chrome fires blur on the input of an open tag when the tag leaves the
+                // page. The right-click delete marks its tag first, and this handler leaves such a tag.
+                if ($(this).parent().hasClass('deleted')) return;
                 var input = $(this), old_tag = input.data('old_tag'), tag = $.trim(input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]));
                 if (!tag) {
                     if (old_tag && o.beforeTagDelete(el, ed, tag_list, old_tag) === false) {
@@ -223,10 +238,9 @@
                     if (o.forceLowercase) tag = tag.toLowerCase();
                     tag = o.beforeTagSave(el, ed, tag_list, old_tag, tag) || tag;
                     // remove duplicates
-                    if (o.removeDuplicates)
-                        $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).html() == tag) $(this).closest('li').remove(); });
+                    if (o.removeDuplicates) remove_duplicates(tag);
                 }
-                input.parent().html(tag).removeClass('active');
+                input.parent().text(tag).removeClass('active');
                 if (tag != old_tag) update_globals();
                 set_placeholder();
             });
@@ -318,7 +332,7 @@
                 if (tag) {
                     if (o.forceLowercase) tag = tag.toLowerCase();
                     tag_list.push(tag);
-                    ed.append('<li><div class="tag-editor-spacer">&nbsp;'+o.delimiter[0]+'</div><div class="tag-editor-tag">'+tag+'</div><div class="tag-editor-delete"><i class="fa fa-times"></i></div></li>');
+                    ed.append($(new_tag).find('.tag-editor-tag').text(tag).end());
                 }
             }
             update_globals(true); // true -> no onChange callback

@@ -154,11 +154,8 @@ module CamaleonCms
           url: cama_admin_settings_post_types_path,
           datas: "data-intro='#{t('camaleon_cms.admin.intro.post_type')}' data-position='right'"
         }
-        items << {
-          icon: 'cog', title: t('camaleon_cms.admin.sidebar.custom_fields'),
-          url: cama_admin_settings_custom_fields_path,
-          datas: "data-intro='#{t('camaleon_cms.admin.intro.custom_fields')}' data-position='right'"
-        }
+        # Each page of this item checks the custom_fields permission, so the item needs it too.
+        items << custom_fields_menu_item if can? :manage, :custom_fields
         items << {
           icon: 'language', title: t('camaleon_cms.admin.sidebar.languages'),
           url: cama_admin_settings_languages_path,
@@ -231,6 +228,16 @@ module CamaleonCms
       comment_data[:approved] = 'approved'
       comment_data[:agent] = request.user_agent.force_encoding('ISO-8859-1').encode('UTF-8')
       comment_data
+    end
+
+    private
+
+    def custom_fields_menu_item
+      {
+        icon: 'cog', title: t('camaleon_cms.admin.sidebar.custom_fields'),
+        url: cama_admin_settings_custom_fields_path,
+        datas: "data-intro='#{t('camaleon_cms.admin.intro.custom_fields')}' data-position='right'"
+      }
     end
   end
 end

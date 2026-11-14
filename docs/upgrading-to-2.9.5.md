@@ -39,6 +39,9 @@ what theme/plugin developers should know.
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
+| Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
+| Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
+| Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
 
 ---
 
@@ -749,6 +752,79 @@ This applies to every meta, option and custom-field writer, for example `set_met
 `set_options`, `save_field_value` and `update_field_value`. A read that parses such a value now finds a Hash where it found a String.
 
 Values stored before the upgrade do not change.
+
+### A GET request shows the values of the record in the custom-field form
+
+Before, the custom-fields partial of an admin form showed the `field_options` values of a GET request
+too. So a link could put values into the form of the admin who opened it. Now a GET request shows the
+values of the record. A request that is not a GET, for example a failed save, shows the submitted
+values as before. The `cama_form_field_values` helper gives these values to the partial.
+
+The image preview now sets its URL as the `href` of its link and the `src` of its image. A stored URL
+gives the same preview as before, unless the old preview read it as HTML and changed it. For
+example, the old preview could change a URL with a double quote, `/>` or a character reference such
+as `&amp;`. A new URL now replaces the preview of the old one. Before, each new URL added one more
+preview.
+
+**Who must act:** plugin or theme code that links to an admin form with `field_options` values in the
+query, to fill the form. Store the values on the record first, then link to its form. For the form of
+a new record, create the record with the values first, for example as a draft post. Then link to its
+edit form.
+
+### The admin JavaScript shows a value as text
+
+The tag editor of the post form now shows a tag name as text. Before, it read the name as HTML, so a
+name with markup added an element to the form. The permalink line of the post form now shows the slug
+as text too. The media manager shows the `folder` param and the `dimension` param of its page as text.
+The media manager also shows the name and the URL of a file as text. The Featured Image panel of the
+post form shows the name of a picked file as text.
+
+The Preview link and the View link of the permalink line now hold the slug in its percent-encoded
+form. A slug with `?` or `#` no longer ends the path of such a link.
+
+The CORS message of the image editor (`msg.cors_error`) now gets an empty element for its
+`%{url_img}` placeholder. The media manager then sets the URL of the image as the text of that
+element. A translation of this message must keep the placeholder in the text of the message, not in
+an attribute such as `href`.
+
+The Upload Image link of the Featured Image panel now holds the image options of the post type as
+`data-` attributes. Its handler reads them from there. Copy the new link into a view that overrides
+`camaleon_cms/admin/posts/_sidebar.html.erb`.
+
+The form of a custom field group now shows the help of a placement as text. The `data-help`
+attribute of a placement option now holds the name of a post type or of a post with one escape.
+
+The list of the media manager now writes the JSON data of each file with the HTML escape. Copy the
+new line into a view that overrides `camaleon_cms/admin/media/_render_file_item.html.erb`.
+
+The `I18n` function of the admin JavaScript now puts each value of its third argument into the
+translation as text. A pattern such as `$&` in a value stays as it is. The function now replaces
+each occurrence of a placeholder. Before, it replaced only the first.
+
+**Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
+text, and compare a name from the editor as text.
+
+- The editor reads each name that it gets as text, not as HTML. Examples are its input,
+  `initialTags`, `addTag` and the return value of `beforeTagSave`.
+- The `beforeTagDelete` callback, the `old_tag` argument of `beforeTagSave` and the `removeTag`
+  method use the text of a name, not its HTML form. For the tag `a&b`, the text is `a&b` and the
+  HTML form is `a&amp;b`.
+
+### The custom field group pages check the `custom_fields` permission
+
+Before, the custom fields controller checked the `custom_fields` permission only for the create,
+the update and the delete of a field group. A signed-in user with no such permission could change
+the order of the field groups. That user could also read each group in the list and in the form.
+Now each action of the controller checks the permission, except the `list` action. The `list`
+action gives the fields of a post, or of a new post of a post type. It checks the right of the user
+on that post or post type.
+
+The Settings menu now shows its Custom Fields item only to a role with the `custom_fields`
+permission. Before, each role with the `settings` permission got the item.
+
+**Who must act:** a site whose role opens the custom field group pages with no `custom_fields`
+permission. Give that role the permission. Without it, each of these pages redirects to the
+dashboard.
 
 ---
 

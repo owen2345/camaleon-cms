@@ -70,8 +70,10 @@ Capybara::Screenshot.register_driver(:selenium_chrome_headless125) do |driver, p
 end
 
 # define screenshot errors name
+# The name comes from the description of the example. The upload step of the CI artifact refuses a
+# file name with one of the characters " : < > | * ? in it. So each of them becomes a dash.
 Capybara::Screenshot.register_filename_prefix_formatter(:rspec) do |example|
-  "screenshot_#{example.description.tr(' ', '-').gsub(%r{^.*/spec/}, '')}"
+  "screenshot_#{example.description.gsub(/[\s"?:<>|*\\]/, '-').gsub(%r{^.*/spec/}, '')}"
 end
 Capybara::Screenshot.prune_strategy = :keep_last_run
 

@@ -110,6 +110,7 @@
                         var $panel = $( "#panel-field<%= @index %>" );
                         var $sortable = $( "#sortable<%= @index %>" );
                         var option_default_html = $('#clone<%= @index %>').html();
+                        // The options are raw JSON (intended): only a role with the custom_fields permission stores them.
                         var option_default_values = <%= raw(@item_options_value[:multiple_options].present? ? @item_options_value[:multiple_options].to_json : '[]') %>
                         function add_option_default(values){
                             if(!values) values = {}

@@ -56,11 +56,8 @@
                     <% end %>
                 </div>
                 <%
-                  field_options_json = if params[:field_options].present?
-                                         cama_submitted_field_values(params[:field_options]).to_json
-                                       else
-                                         record.get_fields_grouped(fields.pluck(:slug).uniq).to_json
-                                       end
+                  # The helper gives the submitted values of a failed save, or the values of the record.
+                  field_options_json = cama_form_field_values(record, group_field_data.keys).to_json
                 %>
                 <script>
                     jQuery(function () {

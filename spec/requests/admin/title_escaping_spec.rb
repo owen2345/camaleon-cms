@@ -101,6 +101,46 @@ RSpec.describe 'Admin heading title escaping', type: :request do
     end
   end
 
+  # The custom field group form shows the `data-help` of an option as text, so the attribute must hold
+  # the name with one escape.
+  describe 'the custom fields placement select' do
+    let(:path) { '/admin/settings/custom_fields/new' }
+
+    %w[PostType_Post PostType_Category PostType_PostTag].each do |placement|
+      it "reads the post type name literally in the help attribute of the #{placement} option" do
+        post_type.object.update!(name: name)
+        get path
+
+        option = doc.at_css("#select_assign_group option[value='#{placement},#{post_type.id}']")
+        expect(option['data-help']).to include(name)
+      end
+    end
+
+    # The t helper of a view gives an html_safe span for a key with no translation. The option must
+    # hold that span as text in its help attribute.
+    it 'keeps the help attribute whole for a help with no translation' do
+      allow_any_instance_of(ActionView::Base).to receive(:t).and_wrap_original do |original, key, **options|
+        key = 'camaleon_cms.admin.no_such_key' if key.to_s.end_with?('.add_custom_field_posts')
+        original.call(key, **options)
+      end
+      post_type.object.update!(name: name)
+      get path
+
+      option = doc.at_css("#select_assign_group option[value='PostType_Post,#{post_type.id}']")
+      expect(option.attribute_nodes.map(&:name)).to eq(%w[value data-help])
+      expect(option['data-help']).to end_with(name)
+    end
+
+    it 'reads the post title literally in the help attribute of the post option' do
+      target_post = current_site.the_post('sample-post')
+      target_post.update!(title: name)
+      get path
+
+      option = doc.at_css("#select_post_simple option[value='Post,#{target_post.id}']")
+      expect(option['data-help']).to include(name)
+    end
+  end
+
   # `posts/index.html.erb:54` passes the SafeBuffer to `link_to` as an argument instead of
   # interpolating it, so it renders correctly today. It is pinned so the fix does not regress it.
   describe 'the posts index title cell' do
