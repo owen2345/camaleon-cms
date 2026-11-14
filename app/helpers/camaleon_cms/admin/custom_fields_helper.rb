@@ -123,13 +123,16 @@ module CamaleonCms
       # values of the record, so a link cannot put values into the form. The helper reads the request
       # method itself, and no save action passes the values, because plugin forms render the partial
       # too.
+      # Each group of the form counts its instances from 0, so one index of the param can hold the
+      # fields of two groups. The group gets only the entries that hold one of its fields, as with the
+      # values of the record. Else a repeat group shows one instance for each instance of another group.
       # record: the record of the form
       # slugs: the slugs of the fields of the group
       # field_name: the param that holds the values, the fields_name local of the partial
       def cama_form_field_values(record, slugs, field_name = :field_options)
         return record.get_fields_grouped(slugs) unless cama_form_submitted_values?(field_name)
 
-        cama_submitted_field_values(params[field_name])
+        cama_submitted_field_values(params[field_name]).filter_map { |values| values.slice(*slugs).presence }
       end
 
       # Whether the custom-fields partial shows the submitted values: a request that is not a GET and

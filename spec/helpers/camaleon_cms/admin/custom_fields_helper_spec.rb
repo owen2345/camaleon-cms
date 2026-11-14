@@ -119,6 +119,20 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     it 'gives the submitted values under the field name that it gets' do
       expect(values_for('POST', { theme_fields: submitted }, :theme_fields)).to eq([{ 'note' => ['typed'] }])
     end
+
+    # Each group of the form counts its instances from 0, so one index can hold the fields of two groups.
+    it 'gives only the submitted entries that hold a field of the group' do
+      two_groups = { '0' => { 'note' => { 'values' => ['typed'] }, 'color' => { 'values' => ['red'] } },
+                     '1' => { 'color' => { 'values' => ['blue'] } } }
+
+      expect(values_for('POST', field_options: two_groups)).to eq([{ 'note' => ['typed'] }])
+    end
+
+    it 'keeps an entry of a field of the group that submits no value' do
+      no_value = { '0' => { 'note' => { 'id' => '12' } }, '1' => { 'color' => { 'values' => ['blue'] } } }
+
+      expect(values_for('POST', field_options: no_value)).to eq([{ 'note' => nil }])
+    end
   end
 
   describe '#cama_form_submitted_values?' do
