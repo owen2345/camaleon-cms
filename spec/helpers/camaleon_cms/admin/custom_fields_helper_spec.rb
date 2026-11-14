@@ -95,10 +95,11 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     # The record gives its values only for the slugs of the group.
     before { allow(record).to receive(:get_fields_grouped).with(['note']).and_return([{ 'note' => ['stored'] }]) }
 
-    def values_for(verb, params = {})
+    # With no field_name, the helper reads its default param.
+    def values_for(verb, params = {}, *field_name)
       helper.request.request_method = verb
       controller.params = ActionController::Parameters.new(params)
-      helper.cama_form_field_values(record, ['note'])
+      helper.cama_form_field_values(record, ['note'], *field_name)
     end
 
     it 'gives the values of the record for a GET request with field values' do
@@ -114,13 +115,18 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     it 'gives the values of the record for a POST request with no field values' do
       expect(values_for('POST')).to eq([{ 'note' => ['stored'] }])
     end
+
+    it 'gives the submitted values under the field name that it gets' do
+      expect(values_for('POST', { theme_fields: submitted }, :theme_fields)).to eq([{ 'note' => ['typed'] }])
+    end
   end
 
   describe '#cama_form_submitted_values?' do
-    def submitted_for(verb, params = {})
+    # With no field_name, the helper reads its default param.
+    def submitted_for(verb, params = {}, *field_name)
       helper.request.request_method = verb
       controller.params = ActionController::Parameters.new(params)
-      helper.cama_form_submitted_values?
+      helper.cama_form_submitted_values?(*field_name)
     end
 
     let(:submitted) { { '0' => { 'note' => { 'values' => ['typed'] } } } }
@@ -138,13 +144,8 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     end
 
     it 'reads the values under the field name that it gets' do
-      helper.request.request_method = 'POST'
-      controller.params = ActionController::Parameters.new(theme_fields: submitted)
-
-      expect(helper.cama_form_submitted_values?).to be(false)
-      expect(helper.cama_form_submitted_values?(:theme_fields)).to be(true)
-      expect(helper.cama_form_field_values(instance_double(CamaleonCms::Post), ['note'], :theme_fields))
-        .to eq([{ 'note' => ['typed'] }])
+      expect(submitted_for('POST', theme_fields: submitted)).to be(false)
+      expect(submitted_for('POST', { theme_fields: submitted }, :theme_fields)).to be(true)
     end
   end
 
