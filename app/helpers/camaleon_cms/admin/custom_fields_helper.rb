@@ -146,6 +146,7 @@ module CamaleonCms
       # Whether the custom-fields partial shows the submitted values: a request that is not a GET and
       # that holds field values in the param field_name. The partial then shows no default option,
       # because the submitted values hold the choice of the admin.
+      # field_name: the param that holds the values, the fields_name local of the partial
       def cama_form_submitted_values?(field_name = :field_options)
         !request.get? && params[field_name].present?
       end
