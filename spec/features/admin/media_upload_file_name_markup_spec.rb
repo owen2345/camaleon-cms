@@ -21,11 +21,11 @@ RSpec.describe 'the name of a selected file in the upload plugin of the media ma
   after { FileUtils.rm_rf(folder) }
 
   # The helper starts an upload plugin of its own with the given options. It sends no file.
-  def start_uploader(id, options)
+  def start_uploader(options)
     page.execute_script(<<~JS)
-      var target = $('<div><div class="target"></div></div>').attr('id', #{id.to_json}).appendTo('body');
-      window[#{id.to_json}] = target.find('.target').uploadFile(
-        $.extend({ url: '/', fileName: #{id.to_json}, autoSubmit: false }, #{options.to_json})
+      var target = $('<div id="own"><div class="target"></div></div>').appendTo('body');
+      window.own = target.find('.target').uploadFile(
+        $.extend({ url: '/', fileName: 'own', autoSubmit: false }, #{options.to_json})
       );
     JS
   end
@@ -45,18 +45,18 @@ RSpec.describe 'the name of a selected file in the upload plugin of the media ma
     'a file above the size limit' => { maxFileSize: 1 },
     'a file above the count limit' => { maxFileCount: 0 },
     'a file above the count limit of a plugin that sends a form' => { maxFileCount: 0, serialize: false }
-  }.each_with_index do |(flow, options), index|
+  }.each do |flow, options|
     it "shows the name as text in the message for #{flow}" do
-      start_uploader("own#{index}", options)
-      attach_file("own#{index}[]", file, make_visible: true)
+      start_uploader(options)
+      attach_file('own[]', file, make_visible: true)
 
-      expect(page).to have_css("#own#{index} .ajax-file-upload-error b", text: name)
-      expect(page).to have_no_css("#own#{index} img[onerror]", visible: :all)
+      expect(page).to have_css('#own .ajax-file-upload-error b', text: name)
+      expect(page).to have_no_css('#own img[onerror]', visible: :all)
     end
   end
 
   it 'shows the name as text in the message for a file that the plugin holds already' do
-    start_uploader('own', allowDuplicates: false)
+    start_uploader(allowDuplicates: false)
     attach_file('own[]', file, make_visible: true)
     expect(page).to have_css('#own .ajax-file-upload-filename', text: name)
     attach_file('own[]', file, make_visible: true)
@@ -66,7 +66,7 @@ RSpec.describe 'the name of a selected file in the upload plugin of the media ma
   end
 
   it 'shows the name as text in the status bar of a plugin that sends a form' do
-    start_uploader('own', serialize: false)
+    start_uploader(serialize: false)
     attach_file('own[]', file, make_visible: true)
 
     expect(page).to have_css('#own .ajax-file-upload-filename', text: name)
@@ -74,7 +74,7 @@ RSpec.describe 'the name of a selected file in the upload plugin of the media ma
   end
 
   it 'shows the name as text in the status bar that createProgress adds' do
-    start_uploader('own', {})
+    start_uploader({})
     page.execute_script("window.own.createProgress(#{name.to_json}, '', 1)")
 
     expect(page).to have_css('#own .ajax-file-upload-filename', text: name)
