@@ -123,6 +123,11 @@
 - [x] 6.3 Set the help of the selected option as text in `custom_fields_form.js` (D8).
 - [x] 6.4 Give the name with one escape in the four `data-help` attributes of `form.html.erb` (D8).
 - [x] 6.5 Give the form in `docs/upgrading-to-2.9.5.md`.
+- [x] 6.6 Add `spec/features/admin/custom_field_group_field_name_markup_spec.rb`. The title of a
+  field panel must show a field name with `img` markup as text after a change of the name input.
+  Make sure that the example fails before the fix.
+- [x] 6.7 Set the name of a field as text in the title of its panel in `custom_fields_form.js`
+  (D17). Give the title in `docs/upgrading-to-2.9.5.md`.
 
 ## 7. The label of an option group
 

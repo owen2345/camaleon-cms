@@ -86,7 +86,8 @@ jQuery(function($){
       var $label = $parent.find('.span-title');
       $(this).slugify($parent.find('.text-title'), {
           slugFunc: function(str, originalFunc) {
-            $label.html(str);
+            // The name of a field is text. A name with a tag adds no element to the form.
+            $label.text(str);
             return originalFunc(str);
           }
         }

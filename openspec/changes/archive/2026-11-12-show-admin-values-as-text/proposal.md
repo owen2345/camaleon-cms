@@ -103,6 +103,7 @@ tag and an `img` tag. The list added an `img` element from that path.
   handler as attribute values.
 - The form of a custom field group shows the help of a placement as text. Each placement option with
   a name gives that name with one escape.
+- The form of a custom field group shows the name of a field as text in the title of its panel.
 - The bundled bootstrap-select library shows the label of an option group as text.
 - The bundled upload plugin of the media manager shows the name of a selected file as text.
 - The list of the media manager writes the JSON data of a file with the HTML escape.
