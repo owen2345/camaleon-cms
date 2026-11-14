@@ -201,7 +201,7 @@ window.cama_init_media = function(mediaPanel) {
   })
   mediaPanel.bind('update_breadcrumb', function() {
     let folderItems
-    const folder = mediaPanel.attr('data-folder').replace('//', '/')
+    const folder = mediaPanel.attr('data-folder').replace(/\/{2,}/g, '/')
     const folderPrefix = []
     if ((folder === '/') || (folder === ''))
       folderItems = ['/']

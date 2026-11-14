@@ -97,6 +97,10 @@
 - [x] 3.13 Write the JSON of a file with the HTML escape in `media/_render_file_item.html.erb`
   (D14).
 - [x] 3.14 Give the list in `docs/upgrading-to-2.9.5.md`.
+- [x] 3.15 Add an example to `spec/features/admin/media_manager_param_markup_spec.rb`. A folder param
+  with two slashes in a row at two places must give one item for each folder in the breadcrumb.
+  Make sure that the example fails before the fix.
+- [x] 3.16 Join each run of slashes of the folder in the breadcrumb of `_media_manager.js`.
 
 ## 4. The Featured Image panel
 

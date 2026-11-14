@@ -36,6 +36,15 @@ RSpec.describe 'the params of the media manager page', :js do
     expect(page).to have_css('.media_folder_breadcrumb li span', exact_text: '2026')
   end
 
+  # The breadcrumb joined only the first two slashes in a row, so a second pair gave an empty folder.
+  it 'shows one item for each folder of a path with two slashes in a row at two places' do
+    visit "#{media_path}?#{{ folder: '/photos//2026//may' }.to_query}"
+
+    expect(page).to have_css(".media_folder_breadcrumb li a[data-path='/photos/2026']", exact_text: '2026')
+    expect(page).to have_css('.media_folder_breadcrumb li span', exact_text: 'may')
+    expect(page).to have_css('.media_folder_breadcrumb li', count: 4)
+  end
+
   # The uploader puts an image into the list of the media manager, and the helper removes its file.
   def with_image_in_the_list
     uploader = CamaleonCmsLocalUploader.new(current_site: @site)
