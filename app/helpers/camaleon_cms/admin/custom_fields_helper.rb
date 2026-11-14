@@ -118,6 +118,19 @@ module CamaleonCms
         f_args[:models]
       end
 
+      # The field values that the custom-fields partial shows for one field group of a record. A form
+      # that renders again after a failed save shows the submitted values. A GET request shows the
+      # values of the record, so a link cannot put values into the form. The helper reads the request
+      # method itself, and no save action passes the values, because plugin forms render the partial
+      # too.
+      # record: the record of the form
+      # slugs: the slugs of the fields of the group
+      def cama_form_field_values(record, slugs)
+        return record.get_fields_grouped(slugs) if request.get? || params[:field_options].blank?
+
+        cama_submitted_field_values(params[:field_options])
+      end
+
       # The values that a request submits for the field groups of a record, in the shape that
       # build_custom_field_group reads: one Hash per group, from the slug of a field to its values. The
       # custom-fields partial shows them again when an admin save renders its form again. A param that

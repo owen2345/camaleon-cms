@@ -39,6 +39,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
+| Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
 
 ---
 
@@ -749,6 +750,24 @@ This applies to every meta, option and custom-field writer, for example `set_met
 `set_options`, `save_field_value` and `update_field_value`. A read that parses such a value now finds a Hash where it found a String.
 
 Values stored before the upgrade do not change.
+
+### A GET request shows the values of the record in the custom-field form
+
+Before, the custom-fields partial of an admin form showed the `field_options` values of a GET request
+too. So a link could put values into the form of the admin who opened it. Now a GET request shows the
+values of the record. A request that is not a GET, for example a failed save, shows the submitted
+values as before. The `cama_form_field_values` helper gives these values to the partial.
+
+The image preview now sets its URL as the `href` of its link and the `src` of its image. A stored URL
+gives the same preview as before, unless the old preview read it as HTML and changed it. For
+example, the old preview could change a URL with a double quote, `/>` or a character reference such
+as `&amp;`. A new URL now replaces the preview of the old one. Before, each new URL added one more
+preview.
+
+**Who must act:** plugin or theme code that links to an admin form with `field_options` values in the
+query, to fill the form. Store the values on the record first, then link to its form. For the form of
+a new record, create the record with the values first, for example as a draft post. Then link to its
+edit form.
 
 ---
 
