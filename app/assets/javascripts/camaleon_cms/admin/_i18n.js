@@ -13,6 +13,10 @@ var I18n = function(key, default_val, data){
     try { res = eval("I18n_data." + key); }catch(e){}
     if (!res) res = default_val ? default_val : ("" + key.split(".").pop()).titleize();
 
+    // A translation that is not a String, such as a list, has no placeholder. The caller gets it as
+    // it is.
+    if (typeof res !== 'string') return res;
+
     // replacements
     // One pass gives each placeholder its value as text. So a pattern such as $& in a value has no
     // meaning, and a placeholder that a value holds stays as it is.

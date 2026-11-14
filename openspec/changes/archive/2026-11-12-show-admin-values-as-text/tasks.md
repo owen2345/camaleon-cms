@@ -148,6 +148,10 @@
 - [x] 9.2 Replace the placeholders in one pass in `_i18n.js`, with a function that returns the
   value (D16).
 - [x] 9.3 Give the function in `docs/upgrading-to-2.9.5.md`.
+- [x] 9.4 Add two examples to `spec/features/admin/js_translation_value_spec.rb`. A translation that
+  is not a String must come back as it is. A placeholder that a translation holds twice must get
+  its value at both places. Make sure that the first example fails before the fix.
+- [x] 9.5 Return a translation that is not a String as it is in `_i18n.js` (D16).
 
 ## 10. Verification and shipping
 

@@ -36,4 +36,17 @@ RSpec.describe 'the values of a translation in the admin JavaScript', :js do
 
     expect(translation(template, { width: 3 })).to eq("3 of #{placeholder(:total)}")
   end
+
+  it 'gives its value to each occurrence of a placeholder' do
+    template = "#{placeholder(:x)} and #{placeholder(:x)}"
+
+    expect(translation(template, { x: 'X' })).to eq('X and X')
+  end
+
+  it 'returns a translation or a default value that is not a String as it is' do
+    page.execute_script("I18n_data.months = ['Jan', 'Feb']")
+
+    expect(page.evaluate_script("I18n('months')")).to eq(%w[Jan Feb])
+    expect(page.evaluate_script("I18n('no.such.key', 5)")).to eq(5)
+  end
 end

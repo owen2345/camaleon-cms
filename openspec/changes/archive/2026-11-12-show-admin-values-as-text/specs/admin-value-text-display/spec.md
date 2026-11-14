@@ -337,7 +337,8 @@ MUST NOT add an element to the page.
 The `I18n` function SHALL put each value of its third argument into the translation as text. A
 replacement pattern of JavaScript in a value, such as `$&`, MUST NOT change the result. A value
 that holds a placeholder SHALL stay as it is. The function SHALL replace each occurrence of a
-placeholder, and SHALL keep a placeholder with no value.
+placeholder, and SHALL keep a placeholder with no value. The function SHALL return a translation
+that is not a String as it is.
 
 #### Scenario: A value with a replacement pattern
 
@@ -353,3 +354,14 @@ placeholder, and SHALL keep a placeholder with no value.
 
 - **WHEN** code calls `I18n` with a number for one placeholder and no value for a second placeholder
 - **THEN** the result holds the number, and keeps the second placeholder
+
+#### Scenario: A placeholder that the translation holds twice
+
+- **WHEN** code calls `I18n` for a translation that holds one placeholder twice
+- **THEN** the result holds the value at both places
+
+#### Scenario: A translation that is not a String
+
+- **WHEN** code calls `I18n` for a key whose translation is a list, or with a number as the default
+  value
+- **THEN** the function returns that value as it is

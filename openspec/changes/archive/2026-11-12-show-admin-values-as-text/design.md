@@ -148,3 +148,6 @@ the form threw. The form now shows the slug alone, and removes the Preview link 
 It now replaces the placeholders in one pass, with a function that returns the value. So it also
 replaces each occurrence of a placeholder, where the old code replaced only the first. The element
 of D5 stays, because the message is HTML and the URL is text.
+
+A translation that is not a String has no placeholder. The function returns it as it is, as the old
+code did for a call with no values.
