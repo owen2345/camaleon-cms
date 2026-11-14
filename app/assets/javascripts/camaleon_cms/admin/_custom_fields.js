@@ -276,14 +276,22 @@ function load_upload_image_field($input) {
 }
 
 // permit to show preview image of image custom fields
+// The URL goes into attribute values, never into the HTML of the preview. In the HTML of the
+// preview, a value with a quote and a tag adds that tag to the form.
 function cama_custom_field_image_changed(field){
-    if(field.val()) field.closest('.input-group').append('<span class="input-group-addon custom_field_image_preview"><a href="'+field.val()+'" target="_blank"><img src="'+field.val()+'" style="width: 50px; height: 20px;"></a></span>')
-    else field.closest('.input-group').find('.custom_field_image_preview').remove();
+    var url = field.val();
+    var $group = field.closest('.input-group');
+    $group.find('.custom_field_image_preview').remove();
+    if(url && $group.length){
+        var $image = $('<img style="width: 50px; height: 20px;">').attr('src', url);
+        var $link = $('<a target="_blank"></a>').attr('href', url).append($image);
+        $group.append($('<span class="input-group-addon custom_field_image_preview"></span>').append($link));
+    }
 }
 
 function cama_custom_field_image_remove(field){
-    field.val('')
-    field.closest('.input-group').find('.custom_field_image_preview').remove();
+    field.val('');
+    cama_custom_field_image_changed(field);
 }
 
 function load_upload_video_field(thiss) {

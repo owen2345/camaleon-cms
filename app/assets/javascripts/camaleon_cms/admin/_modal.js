@@ -39,6 +39,10 @@ jQuery(function(){
 });
 
 
+// Encodes text for the content of an HTML element, for example for the title of open_modal. The
+// result keeps each quote, so it is not for an attribute value.
+function cama_escape_html(text) { return $('<div>').text(text).html(); }
+
 /*********** METHOD FOR OPEN A MODAL WITH CONTENT OR FETCH FROM A URL ***********/
 /*
  * open a bootstrap modal for ajax or inline contents

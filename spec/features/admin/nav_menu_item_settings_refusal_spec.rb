@@ -28,11 +28,14 @@ RSpec.describe 'the nav menu item settings modal', :js do
     wait_for_visible_modal
   end
 
+  # In some CI jobs, the mouse click on Submit did not reach the button, and the server got no
+  # request. The cause is not known. So the helper presses the button in the page, as the image
+  # preview spec does for its remove button.
   def save_attribute(value)
     within '#ow_inline_modal' do
       find('.input-attr').set('data-note')
       find('.input-value').set(value)
-      click_button 'Submit'
+      find_button('Submit').execute_script('this.click()')
     end
   end
 

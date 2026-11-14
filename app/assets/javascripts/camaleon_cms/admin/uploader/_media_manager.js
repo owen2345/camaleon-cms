@@ -31,10 +31,10 @@ window.cama_init_media = function(mediaPanel) {
     mediaInfoTabInfo.click()
     let tpl =
       "<div class='p_thumb'></div>" +
-        "<div class='p_label'><b>" + I18n('button.name') + ': </b><br> <span>' + data.name + '</span></div>' +
+        "<div class='p_label'><b>" + I18n('button.name') + ': </b><br> <span></span></div>' +
         "<div class='p_body'>" +
         "<div style='overflow: auto'><b>" +
-        I18n('button.url') + ":</b><br> <a target='_blank' href='" + data.url + "'>" + data.url + '</a></div>' +
+        I18n('button.url') + ":</b><br> <a target='_blank'></a></div>" +
         '<div><b>' + I18n('button.size') + ':</b> <span>' +
         window.camaHumanFileSize(parseFloat(data.file_size)) + '</span></div>' +
         '</div>'
@@ -55,6 +55,9 @@ window.cama_init_media = function(mediaPanel) {
     }
 
     mediaInfo.html(tpl)
+    // The name and the URL of a file are text. The URL holds the names of the folders of the file.
+    mediaInfo.find('.p_label span').text(data.name)
+    mediaInfo.find('.p_body a').attr('href', data.url).text(data.url)
     mediaInfo.find('.p_thumb').html(item.find('.thumb').html())
     if (data.file_type === 'image') {
       let editImg
@@ -78,7 +81,7 @@ window.cama_init_media = function(mediaPanel) {
           const _ww = parseInt(mediaPanel.attr('data-dimension').split('x')[0]) || ww
           const _hh = parseInt(mediaPanel.attr('data-dimension').split('x')[1]) || hh
           mediaInfo.find('.cdimension')
-            .append("<span style='color: black'> ==> " + mediaPanel.attr('data-dimension') + '</span>')
+            .append($("<span style='color: black'></span>").text(' ==> ' + mediaPanel.attr('data-dimension')))
 
           if ((_ww === ww) && (_hh === hh))
             return btn.prop('disabled', false)
@@ -198,7 +201,7 @@ window.cama_init_media = function(mediaPanel) {
   })
   mediaPanel.bind('update_breadcrumb', function() {
     let folderItems
-    const folder = mediaPanel.attr('data-folder').replace('//', '/')
+    const folder = mediaPanel.attr('data-folder').replace(/\/{2,}/g, '/')
     const folderPrefix = []
     if ((folder === '/') || (folder === ''))
       folderItems = ['/']
@@ -212,16 +215,17 @@ window.cama_init_media = function(mediaPanel) {
       if ((value === '/') || (value === ''))
         name = I18n('button.root')
 
+      // A folder name is text, and its path is an attribute value. A name with a tag adds no element
+      // to the page.
       if (index === (folderItems.length - 1))
-        breadrumb.push('<li><span>' + name + '</span></li>')
+        breadrumb.push($('<li></li>').append($('<span></span>').text(name)))
       else {
         folderPrefix.push(value)
-        breadrumb.push(
-          "<li><a data-path='" + (folderPrefix.join('/') || '/').replace(/\/{2,}/g, '/') + "' href='#'>" + name + '</a></li>'
-        )
+        const path = (folderPrefix.join('/') || '/').replace(/\/{2,}/g, '/')
+        breadrumb.push($('<li></li>').append($("<a href='#'></a>").attr('data-path', path).text(name)))
       }
     }
-    return mediaPanel.find('.media_folder_breadcrumb').html(breadrumb.join(''))
+    return mediaPanel.find('.media_folder_breadcrumb').empty().append(breadrumb)
   }).trigger('update_breadcrumb')
   // # end folders
 
@@ -458,6 +462,7 @@ window.cama_init_media = function(mediaPanel) {
       })
 
       // show cropper image
+      // The URL of the image is an attribute value. The code sets it after it binds the load handler.
       showLoading()
       return modal.find('img.editable').load(() => setTimeout(function() {
         const label = modal.find('.label_dimension')
@@ -476,21 +481,26 @@ window.cama_init_media = function(mediaPanel) {
           built() {
             return $.get(data.url)
               .error(
+                // The message is HTML, and the URL of the image is text. So I18n gets an empty element for
+                // the URL, and the code then sets the URL as the text of that element.
                 () => modal.find('.modal-body')
                   .html(
                     '<div class="alert alert-danger">' +
                       I18n(
                         'msg.cors_error',
-                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: data.url, url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
+                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: '<span class="url_img"></span>', url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
                       ) +
                       '</div>'
                   )
+                  .find('.url_img').text(data.url)
               )
           }
         }
 
         if (mediaPanel.attr('data-dimension')) { // TODO: control dimensions
-          const dim = mediaPanel.attr('data-dimension').split('x')
+          // The editor reads a number from each part of the dimension. A part with no digit gives no
+          // number, so it sets no limit.
+          const dim = mediaPanel.attr('data-dimension').split('x').map((part) => (/\d/.test(part) ? part : ''))
           if (dim[0]) {
             cropperData.data.width = parseFloat(dim[0].match(/\d+/)[0])
             fieldWidth.val(cropperData.data.width)
@@ -514,15 +524,15 @@ window.cama_init_media = function(mediaPanel) {
         cropper = modal.find('img.editable').cropper(cropperData)
         return hideLoading()
       }
-      , 300))
+      , 300)).attr('src', data.url)
     }
     open_modal({
       zindex: 999991,
       id: 'media_panel_editor_image',
-      title: I18n('button.edit_image', 'Edit Image') + ' - ' + data.name + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + mediaPanel.attr('data-dimension') + ')</i></small>' : ''),
+      title: I18n('button.edit_image', 'Edit Image') + ' - ' + cama_escape_html(data.name) + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + cama_escape_html(mediaPanel.attr('data-dimension')) + ')</i></small>' : ''),
       content: '<div>' +
                 '<div class="editable_wrapper">' +
-                  '<img style="max-width: 100%" class="editable" id="media_editable_image" crossorigin src="' + data.url + '">' +
+                  '<img style="max-width: 100%" class="editable" id="media_editable_image" crossorigin>' +
                 '</div>' +
                 '<div class="row" style="margin-top: 5px">' +
                   '<div class="col-md-8">' +

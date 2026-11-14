@@ -145,7 +145,9 @@
                         <input data-error-place='#feature-image ~ .validation-errors:first' class="<%= 'required' if @post.is_required_picture? %>" name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
                     <!-- posts_thumb_versions ==> '200x200,400x450', posts_thumb_size ==> '100x100', posts_image_dimension ==> '1200x1200'-->
-                    <a href="#" class="btn btn-default" onclick="cama_upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
+                    <%# The options of the post type are attribute values, and the handler reads them from there.
+                        In the JavaScript of the handler, a quote in an option ends the String. %>
+                    <a href="#" class="btn btn-default" data-versions="<%= @post_type.get_option('posts_thumb_versions') %>" data-thumb_size="<%= @post_type.get_option('posts_thumb_size') %>" data-dimension="<%= @post_type.get_option('posts_image_dimension') %>" onclick="cama_upload_feature_image({versions: $(this).attr('data-versions'), thumb_size: $(this).attr('data-thumb_size'), dimension: $(this).attr('data-dimension')}); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
                     <div class="validation-errors"></div>
                 </div>
             </div>

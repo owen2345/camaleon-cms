@@ -88,6 +88,34 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     end
   end
 
+  describe '#cama_form_field_values' do
+    let(:record) { instance_double(CamaleonCms::Post) }
+    let(:submitted) { { '0' => { 'note' => { 'values' => ['typed'] } } } }
+
+    # The record gives its values only for the slugs of the group.
+    before { allow(record).to receive(:get_fields_grouped).with(['note']).and_return([{ 'note' => ['stored'] }]) }
+
+    def values_for(verb, params = {})
+      helper.request.request_method = verb
+      controller.params = ActionController::Parameters.new(params)
+      helper.cama_form_field_values(record, ['note'])
+    end
+
+    it 'gives the values of the record for a GET request with field values' do
+      expect(values_for('GET', field_options: submitted)).to eq([{ 'note' => ['stored'] }])
+    end
+
+    %w[POST PATCH PUT].each do |verb|
+      it "gives the submitted values for a #{verb} request with field values" do
+        expect(values_for(verb, field_options: submitted)).to eq([{ 'note' => ['typed'] }])
+      end
+    end
+
+    it 'gives the values of the record for a POST request with no field values' do
+      expect(values_for('POST')).to eq([{ 'note' => ['stored'] }])
+    end
+  end
+
   describe '#cf_extra_models_for_fields (regression M18)' do
     it 'returns models registered through cf_add_model so they reach the placement dropdown' do
       helper.cf_add_model(CamaleonCms::Post)

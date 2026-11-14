@@ -98,7 +98,7 @@ GitHub reads these bracket markers anywhere in the message:
 
 GitHub also reads a `skip-checks: true` trailer, with or without the space, as the last line after two empty lines, which only `git commit --cleanup=verbatim` keeps. A commit message that only names a bracket marker skips CI too. Write "skip-ci directive" instead, unless you want to skip CI.
 
-A commit is **docs-only** when it touches only documentation (`.md` files, `README.md`, `docs/`), `CHANGELOG.md`, `openspec/`, comments, or config with no code path.
+A commit is **docs-only** when it touches only documentation (`.md` files, `README.md`, `docs/`), `CHANGELOG.md`, `openspec/`, comments, or config with no code path. A magic comment is code.
 
 1. **The entire PR is docs-only** (every commit on the branch): mark **every** commit, including the first, so the PR runs no CI at all — this overrides rule 2. Earlier unmarked commits do not change this: mark the next commit, and leave the pushed messages as they are. `master` carries no branch protection, so a PR with zero runs still merges; if a required-status-check rule is ever added this carve-out must go (check with `gh api repos/owen2345/camaleon-cms/branches/master --jq '.protected'`).
 2. **The PR contains a code change somewhere.** For each push ask: *has this PR already had a full check run on an earlier push?*
