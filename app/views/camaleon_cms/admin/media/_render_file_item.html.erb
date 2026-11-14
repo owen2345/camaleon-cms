@@ -37,7 +37,7 @@
           <div class="label_thumb">
               <%= file["name"] %>
           </div>
-          <textarea class="hidden data_value"><%= raw file.to_json %></textarea>
+          <textarea class="hidden data_value"><%= file.to_json %></textarea>
           <div class="actions">
               <% if file['file_type'] == 'image' && File.extname(file['name']).downcase != '.gif' %>
                 <% args = {res: true, file: file}; hooks_run('file_manager_edit_file', args) %>  

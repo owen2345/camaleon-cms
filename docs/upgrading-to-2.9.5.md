@@ -40,6 +40,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
+| Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 
 ---
 
@@ -768,6 +769,45 @@ preview.
 query, to fill the form. Store the values on the record first, then link to its form. For the form of
 a new record, create the record with the values first, for example as a draft post. Then link to its
 edit form.
+
+### The admin JavaScript shows a value as text
+
+The tag editor of the post form now shows a tag name as text. Before, it read the name as HTML, so a
+name with markup added an element to the form. The permalink line of the post form now shows the slug
+as text too. The media manager shows the `folder` param and the `dimension` param of its page as text.
+The media manager also shows the name and the URL of a file as text. The Featured Image panel of the
+post form shows the name of a picked file as text.
+
+The Preview link and the View link of the permalink line now hold the slug in its percent-encoded
+form. A slug with `?` or `#` no longer ends the path of such a link.
+
+The CORS message of the image editor (`msg.cors_error`) now gets an empty element for its
+`%{url_img}` placeholder. The media manager then sets the URL of the image as the text of that
+element. A translation of this message must keep the placeholder in the text of the message, not in
+an attribute such as `href`.
+
+The Upload Image link of the Featured Image panel now holds the image options of the post type as
+`data-` attributes. Its handler reads them from there. Copy the new link into a view that overrides
+`camaleon_cms/admin/posts/_sidebar.html.erb`.
+
+The form of a custom field group now shows the help of a placement as text. The `data-help`
+attribute of a placement option now holds the name of a post type or of a post with one escape.
+
+The list of the media manager now writes the JSON data of each file with the HTML escape. Copy the
+new line into a view that overrides `camaleon_cms/admin/media/_render_file_item.html.erb`.
+
+The `I18n` function of the admin JavaScript now puts each value of its third argument into the
+translation as text. A pattern such as `$&` in a value stays as it is. The function now replaces
+each occurrence of a placeholder. Before, it replaced only the first.
+
+**Who must act:** plugin or theme code that calls `tagEditor`. Give each tag name to the editor as
+text, and compare a name from the editor as text.
+
+- The editor reads each name that it gets as text, not as HTML. Examples are its input,
+  `initialTags`, `addTag` and the return value of `beforeTagSave`.
+- The `beforeTagDelete` callback, the `old_tag` argument of `beforeTagSave` and the `removeTag`
+  method use the text of a name, not its HTML form. For the tag `a&b`, the text is `a&b` and the
+  HTML form is `a&amp;b`.
 
 ---
 

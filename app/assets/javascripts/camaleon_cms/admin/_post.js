@@ -174,7 +174,7 @@ function cama_init_post(obj) {
         // handler would have done. The timer sends nothing until the form changes; re-sent, it would be
         // refused again.
         function refused(refusal) {
-            show_error(escape_html(refusal));
+            show_error(cama_escape_html(refusal));
             var validator = held_form && $(held_form).data('validator');
             if (validator) validator.cancelSubmit = false;
             drop_hold();
@@ -317,14 +317,11 @@ function cama_init_post(obj) {
         var left = form_left(), overlay_up = overlay_element().length > 0, owner = overlay_owner();
         if (left) {
             var title = $(post_form).find('.title-post' + class_translate).filter(function () { return this.value.trim(); }).first().val();
-            if (title) text = escape_html(title) + ': ' + text;
+            if (title) text = cama_escape_html(title) + ': ' + text;
         }
         $.fn.alert({type: 'error', title: text, icon: "times"});
         if (left && overlay_up && owner !== post_form) put_overlay_up(owner);
     }
-
-    // Text for the alert, which puts its title into HTML.
-    function escape_html(text) { return $('<div>').text(text).html(); }
 
     function drop_hold() {
         held_form = null;
@@ -332,9 +329,13 @@ function cama_init_post(obj) {
         clearTimeout(submit_wait_timer);
     }
 
+    // A draft save writes the id of the draft into the draft_id param of each Preview link. The slug
+    // of a link can hold the same text, so the code changes the last draft_id param of the href. A
+    // link with no slug yet has the href #, and it stays as it is.
     function set_preview_draft_id() {
         $(post_form).find('.sl-slug-edit .btn-preview').each(function () {
-            $(this).attr('href', $(this).attr('href').replace(/draft_id=[^&]*/, 'draft_id=' + post_draft_id));
+            var href = $(this).attr('href').replace(/^([\s\S]*[?&]draft_id=)[^&#]*/, function (match, start) { return start + post_draft_id; });
+            $(this).attr('href', href);
         });
     }
 
@@ -443,9 +444,32 @@ function cama_init_post(obj) {
             $this.addClass('sluged');
             $this.after($link)
 
+            // The server gives the URL of the post with the placeholder __-__ at the place of the slug.
+            // The form joins the text before the placeholder, a slug and the text after it. A URL with
+            // no placeholder has no place for a slug, so the line and the links hold that URL as it is.
+            // With no URL for the language of the form, the line shows the slug alone, and has no
+            // Preview link and no View link.
+            if (post_path == null) {
+                post_path = '__-__';
+                $link.find('.btn-preview, .btn-view').remove();
+            }
+            var url_parts = String(post_path).split('__-__'), with_slug = url_parts.length > 1;
+            var url_start = url_parts[0], url_end = url_parts.slice(1).join('__-__');
+            // The line shows no slug for a URL with no placeholder, so it has no Edit link.
+            if (!with_slug) $link.find('.btn-edit').remove();
+            // A link holds the slug as one segment of the path. So a slug with ? or # keeps the path
+            // and the draft id of the link. The characters $ & + , ; = : @ stay as they are, as Rails
+            // writes them in a segment of a path.
+            function post_url(slug) {
+                if (!with_slug) return url_start;
+                return url_start + encodeURIComponent(slug).replace(/%(?:24|26|2B|2C|3B|3D|3A|40)/g, decodeURIComponent) + url_end;
+            }
+
+            // The slug and the URL around it are text. A slug with a tag adds no element to the form.
             function set_slug(slug) {
-                $link.show().find('.sl-link').html(post_path.replace('__-__', '<span class="sl-url">' + slug + '</span>'))
-                $link.find('.btn-preview').attr('href', post_path.replace('__-__', slug) + '?draft_id=' + post_draft_id)
+                var line = $link.show().find('.sl-link').empty().append(document.createTextNode(url_start));
+                if (with_slug) line.append($('<span class="sl-url"></span>').text(slug), document.createTextNode(url_end));
+                $link.find('.btn-preview').attr('href', post_url(slug) + '?draft_id=' + post_draft_id)
                 $input_slug.trigger('change_in');
                 set_meta_slug();
             }
@@ -490,7 +514,7 @@ function cama_init_post(obj) {
             });
             if ($input_slug.val()) {
                 set_slug($input_slug.val());
-                if (post_status == "published") $link.find('.btn-view').show().attr('href', post_path.replace('__-__', $input_slug.val()))
+                if (post_status == "published") $link.find('.btn-view').show().attr('href', post_url($input_slug.val()))
             }
             $link.find('.btn-preview').click(function (e) { // preview button
                 // Prevented first: if the save throws, the link (naming no draft yet) must not open in a tab.
@@ -785,7 +809,8 @@ function cama_upload_feature_image(data) {
             var image_url = image.url;
             $('#feature-image img').attr('src', image_url);
             $('#feature-image input').val(image_url);
-            $('#feature-image .meta strong').html(image.name);
+            // The name of a file is text. A name with a tag adds no element to the form.
+            $('#feature-image .meta strong').text(image.name);
             $('#feature-image').show();
         }
     }, data));
