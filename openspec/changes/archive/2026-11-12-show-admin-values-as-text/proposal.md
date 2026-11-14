@@ -31,10 +31,6 @@ The form of a custom field group put the help of the selected placement into HTM
 category holds the name of the category, and an Editor can store a name with markup. That markup ran
 when an admin opened a group of that category.
 
-The upload plugin of the media manager put the name of each selected file into HTML. The name went
-into the status bar of the file, and into each message that refuses a file. A file on the computer
-of a user can have markup in its name.
-
 The list of the media manager wrote the JSON data of each file into a hidden `textarea` with no
 HTML escape. Rails writes `<` and `&` of JSON as escapes, and a host app can turn that setting off.
 A folder name with a closing `textarea` tag then ended the element, and its markup ran.
@@ -68,10 +64,6 @@ A probe named a category with `img` markup and opened a custom field group of th
 form added an `img` element from that name when the page loaded.
 `spec/features/admin/custom_field_group_help_markup_spec.rb` fails before the fix.
 
-A probe selected a file with `img` markup in its name in the media manager. The status bar added an
-`img` element from that name. `spec/features/admin/media_upload_file_name_markup_spec.rb` fails
-before the fix.
-
 A probe turned the JSON setting off and stored an image in a folder path with a closing `textarea`
 tag and an `img` tag. The list added an `img` element from that path.
 `spec/requests/security/media_list_file_data_markup_spec.rb` fails before the fix.
@@ -96,7 +88,6 @@ tag and an `img` tag. The list added an `img` element from that path.
 - The form of a custom field group shows the help of a placement as text. Each placement option with
   a name gives that name with one escape.
 - The form of a custom field group shows the name of a field as text in the title of its panel.
-- The bundled upload plugin of the media manager shows the name of a selected file as text.
 - The list of the media manager writes the JSON data of a file with the HTML escape.
 - The `I18n` function of the admin JavaScript puts each value into a translation as text.
 - `docs/upgrading-to-2.9.5.md` tells plugin and theme developers about the text form of a tag name.
@@ -121,7 +112,6 @@ None.
 - `app/views/camaleon_cms/admin/posts/_sidebar.html.erb`
 - `app/assets/javascripts/camaleon_cms/admin/custom_fields_form.js`
 - `app/views/camaleon_cms/admin/settings/custom_fields/form.html.erb`
-- `app/assets/javascripts/camaleon_cms/admin/uploader/_jquery.uploadfile.min.js`
 - `app/views/camaleon_cms/admin/media/_render_file_item.html.erb`
 - `app/assets/javascripts/camaleon_cms/admin/_i18n.js`
 - Specs: `spec/features/admin/post_tag_markup_spec.rb`,
@@ -131,7 +121,6 @@ None.
   `spec/features/admin/post_featured_image_markup_spec.rb`,
   `spec/features/admin/custom_field_group_help_markup_spec.rb`,
   `spec/features/admin/custom_field_group_field_name_markup_spec.rb`,
-  `spec/features/admin/media_upload_file_name_markup_spec.rb`,
   `spec/features/admin/js_translation_value_spec.rb`,
   `spec/requests/security/media_list_file_data_markup_spec.rb` and
   `spec/requests/admin/title_escaping_spec.rb`

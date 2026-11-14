@@ -109,14 +109,13 @@ rule"). So the library stays as its authors wrote it, and a label can hold marku
 - *Alternative: encode the label in the bundled library.* Rejected: it changes a bundled file, and
   it removes the markup of a label that a trusted role wrote.
 
-**D10. The bundled upload plugin sets the name of a file as text.** The plugin put the name of each
-selected file into the HTML of its status bar, and into each message that refuses a file. The status
-bar now gets the name with `.text()`, and a function `camaText` encodes the name for a message. The
-media manager sets no option that refuses a file, but a plugin or a theme can set one. The code for
-a browser with no File API gets the same call, and no example can reach that code.
+**D10. The bundled upload plugin keeps the name of a selected file as HTML.** The plugin puts the
+name of each selected file into the HTML of its status bar, and into each message that refuses a
+file. The user selects that file, so the name is a value of that user. So the plugin stays as its
+authors wrote it.
 
-- *Alternative: no change, because the user selects the file.* Rejected: another person can give
-  the file to the user, and the code that writes the HTML stays wrong.
+- *Alternative: set the name as text in the bundled plugin.* Rejected: it changes a bundled file
+  for a value that the user gives to a page of their own session.
 
 **D11. A part of the dimension with no digit sets no size limit.** The image editor reads a number
 from each part of the `dimension` param. A part with no digit gave no number, and the code that

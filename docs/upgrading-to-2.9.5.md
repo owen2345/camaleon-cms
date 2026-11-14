@@ -795,10 +795,6 @@ The form of a custom field group now shows the help of a placement as text. The 
 attribute of a placement option now holds the name of a post type or of a post with one escape.
 The form also shows the name of a field as text in the title of its panel.
 
-The bundled upload plugin of the media manager now shows the name of a selected file as text. This
-applies to its status bar and to each message that refuses a file. The `createProgress` method also
-reads its first argument, the name of a file, as text.
-
 The list of the media manager now writes the JSON data of each file with the HTML escape. Copy the
 new line into a view that overrides `camaleon_cms/admin/media/_render_file_item.html.erb`.
 
