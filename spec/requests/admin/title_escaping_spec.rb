@@ -105,15 +105,10 @@ RSpec.describe 'Admin heading title escaping', type: :request do
   # the name with one escape.
   describe 'the custom fields placement select' do
     let(:path) { '/admin/settings/custom_fields/new' }
-    let(:target_post) { current_site.the_post('sample-post') }
-
-    before do
-      post_type.object.update!(name: name)
-      target_post.update!(title: name)
-    end
 
     %w[PostType_Post PostType_Category PostType_PostTag].each do |placement|
       it "reads the post type name literally in the help attribute of the #{placement} option" do
+        post_type.object.update!(name: name)
         get path
 
         option = doc.at_css("#select_assign_group option[value='#{placement},#{post_type.id}']")
@@ -122,6 +117,8 @@ RSpec.describe 'Admin heading title escaping', type: :request do
     end
 
     it 'reads the post title literally in the help attribute of the post option' do
+      target_post = current_site.the_post('sample-post')
+      target_post.update!(title: name)
       get path
 
       option = doc.at_css("#select_post_simple option[value='Post,#{target_post.id}']")

@@ -14,7 +14,7 @@ RSpec.describe 'the role check of the custom field group pages', type: :request 
     current_site.custom_field_groups.create!(name: 'First', slug: '_role-check-first', object_class: 'Site',
                                              objectid: current_site.id, field_order: 0)
   end
-  let!(:second_group) do
+  let(:second_group) do
     current_site.custom_field_groups.create!(name: 'Second', slug: '_role-check-second', object_class: 'Site',
                                              objectid: current_site.id, field_order: 1)
   end
