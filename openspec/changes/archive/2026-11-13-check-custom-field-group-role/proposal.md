@@ -7,13 +7,14 @@ The custom fields controller named three actions for its role check: `create`, `
 So the other actions had no role check.
 
 A signed-in user with no `custom_fields` permission could change the order of the field groups
-through the `reorder` action. The same user could read each field group in the list, in the form and
-on the page of a group.
+through the `reorder` action. The same user could read each field group in the list and in the
+form.
 
 ### Triage verdict: legit
 
 `spec/requests/security/custom_field_group_role_check_spec.rb` signs in a Contributor. Before the
-fix, the `reorder` request stored a new order, and five read requests gave their page.
+fix, the `reorder` request stored a new order, and four read requests gave their page. The request
+for the page of a group raised an error, because the `show` action has no template.
 
 ## What Changes
 
