@@ -182,11 +182,12 @@ module CamaleonCms
       end
 
       # The group number of one submitted instance: the group_number of its first field entry. As in
-      # set_field_values, nil and '' mean 0. An invalid group number gives nil.
+      # set_field_values, nil and '' mean 0, and an empty UTF-16 String is invalid. An invalid group
+      # number gives nil.
       def cama_submitted_group_number(group)
         entry = group.each_value.find { |value| value.is_a?(Hash) }
         number = entry && entry['group_number']
-        return 0 if number.nil? || number == ''
+        return 0 if number.nil? || (number == '' && number.encoding.ascii_compatible?)
 
         number.to_i if CamaleonCms::CustomFieldsRelationship.valid_group_number?(number)
       end

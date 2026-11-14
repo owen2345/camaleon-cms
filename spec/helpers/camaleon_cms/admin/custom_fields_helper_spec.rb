@@ -151,6 +151,21 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
 
       expect(values_for('POST', field_options: invalid)).to eq([{ 'note' => ['valid'] }, { 'note' => ['invalid'] }])
     end
+
+    it 'gives a submitted instance with an empty group number the group number 0' do
+      empty = { '0' => { 'note' => { 'group_number' => '1', 'values' => ['second'] } },
+                '1' => { 'note' => { 'group_number' => '', 'values' => ['first'] } } }
+
+      expect(values_for('POST', field_options: empty)).to eq([{ 'note' => ['first'] }, { 'note' => ['second'] }])
+    end
+
+    # The save refuses an empty UTF-16 group number, but Ruby says that it equals ''.
+    it 'gives a submitted instance with an empty UTF-16 group number after the other instances' do
+      utf16 = { '0' => { 'note' => { 'group_number' => ''.encode('UTF-16LE'), 'values' => ['invalid'] } },
+                '1' => { 'note' => { 'group_number' => '1', 'values' => ['valid'] } } }
+
+      expect(values_for('POST', field_options: utf16)).to eq([{ 'note' => ['valid'] }, { 'note' => ['invalid'] }])
+    end
   end
 
   describe '#cama_form_submitted_values?' do
