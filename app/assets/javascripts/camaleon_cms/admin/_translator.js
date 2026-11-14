@@ -73,6 +73,8 @@ jQuery(function($){
             for(var ii in languages){
                 var l = languages[ii];
                 var key = "translation-"+l+"-"+TRANSLATOR_counter;
+                // The tabs take each language code as HTML (intended). Only a role with the settings
+                // permission stores the codes, and Camaleon trusts that role.
                 tabs_title.push('<li role="presentation" class="pull-right '+(ii==0?"active":"")+'"><a href="#pane-'+key+'" role="tab" data-toggle="tab">'+ l.titleize()+'</a></li>');
                 var clone = ele.clone(true).attr({id: key, name: key, "data-name": key, 'data-translation_l': l, 'data-translation': "translation-"+l}).addClass("translate-item").val(get_translation(translations, l));
                 if(ii > 0 && !clone.hasClass('required_all_langs')) clone.removeClass('required'); // to permit enter empty values for secondary languages

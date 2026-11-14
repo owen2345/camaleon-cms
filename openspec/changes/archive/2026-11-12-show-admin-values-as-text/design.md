@@ -23,6 +23,12 @@ use it as markup.
 - A check of an image option of a post type at save. A stored option stays as it is.
 - A scan of a category name at save. The stored name stays as the author wrote it.
 - A scan of a post type name at save. The stored name stays as the author wrote it.
+- The language codes of a site in the tabs of a translatable field. Only a role with the `settings`
+  permission stores them, and that role is trusted (`docs/security/permissions.md`, "The gating
+  rule").
+- The JSON that the admin layout, `_get_items`, `_meta_data` and the post form write into a `script`
+  element. Rails escapes `<` in JSON by default. Camaleon renders three of these views, and their
+  values come from a role with the `settings` or the `custom_fields` permission.
 
 ## Decisions
 
