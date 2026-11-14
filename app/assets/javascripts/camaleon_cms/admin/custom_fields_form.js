@@ -83,6 +83,8 @@ jQuery(function($){
       var $label = $parent.find('.span-title');
       $(this).slugify($parent.find('.text-title'), {
           slugFunc: function(str, originalFunc) {
+            // The title takes the name of a field as HTML (intended). Only a role with the custom_fields
+            // permission stores the name, and Camaleon trusts that role.
             $label.html(str);
             return originalFunc(str);
           }
