@@ -14,6 +14,9 @@
   sure that the first example fails before the fix.
 - [x] 1.5 Add the Custom Fields item only for a role with the `custom_fields` permission in the two
   menu builders (D3). Give the change in `docs/upgrading-to-2.9.5.md`.
+- [x] 1.6 Add an example to the spec. A role that can create posts of a post type, with no
+  `custom_fields` permission, must get the fields of a new post from `list`. Make sure that the
+  example fails without `except: :list`.
 
 ## 2. Verification and shipping
 

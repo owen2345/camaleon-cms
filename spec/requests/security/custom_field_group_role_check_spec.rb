@@ -46,6 +46,17 @@ RSpec.describe 'the role check of the custom field group pages', type: :request 
         expect(response).to redirect_to('/admin/dashboard')
       end
     end
+
+    # The list action has no role check. It checks the right of the user on the post type itself.
+    it 'gives the fields of a new post to a role that can create posts of the post type' do
+      post_type = current_site.post_types.find_by(slug: 'post')
+      current_site.user_roles.find_by(slug: 'contributor')
+                  .set_meta("_post_type_#{current_site.id}", { 'edit' => [post_type.id.to_s] })
+
+      get "#{paths}/list", params: { post_type: post_type.id }
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   context 'with a role that has the custom_fields permission' do

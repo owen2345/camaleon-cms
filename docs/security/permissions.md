@@ -165,7 +165,8 @@ parameter before the target is resolved, so it discloses nothing about which use
 Where enforcement happens
 - Write-time enforcement: `CamaleonCms::Admin::Settings::CustomFieldsController` uses CanCan (`authorize! :manage, :custom_fields`) to require the
   `custom_fields` manager permission for each action except `list`. This prevents users without the permission from reading, saving or reordering
-  Custom Field Groups or fields. The `list` action gives the fields of a post to the post form, and it checks the right of the user on that post.
+  Custom Field Groups or fields. The `list` action gives the fields of a post, or of a new post of a post type. It checks the right of the user on
+  that post or post type.
 - Render-time behavior: certain field types (notably the `select_eval` field) evaluate stored data when rendering. The project maintains render-time
   behavior for backward compatibility, but write-time restrictions are the primary control: only users with the `custom_fields` permission can create
   or modify fields that might include executable commands. If you need a more restrictive runtime policy, consider auditing/clearing any stored

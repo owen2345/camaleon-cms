@@ -5,8 +5,8 @@ module CamaleonCms
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.custom_fields'), :cama_admin_settings_custom_fields_path
 
         # This line replaces the role check of the settings controller. It names the one action with no
-        # role check, so a new action gets the check. The list action checks the right of the user on
-        # its post, because the post form of a role with no custom_fields permission calls it.
+        # role check, so a new action gets the check. The list action gives the fields of a post, or of a
+        # new post of a post type. It checks the right of the user on that post or post type itself.
         before_action :validate_role, except: :list
         before_action :set_custom_field_group, only: %i[show edit update destroy]
         before_action :set_post_data, only: %i[create update]

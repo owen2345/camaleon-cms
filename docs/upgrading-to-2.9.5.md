@@ -823,7 +823,8 @@ Before, the custom fields controller checked the `custom_fields` permission only
 the update and the delete of a field group. A signed-in user with no such permission could change
 the order of the field groups. That user could also read each group in the list and in the form.
 Now each action of the controller checks the permission, except the `list` action. The `list`
-action gives the fields of a post to the post form, and checks the right of the user on that post.
+action gives the fields of a post, or of a new post of a post type. It checks the right of the user
+on that post or post type.
 
 The Settings menu now shows its Custom Fields item only to a role with the `custom_fields`
 permission. Before, each role with the `settings` permission got the item.

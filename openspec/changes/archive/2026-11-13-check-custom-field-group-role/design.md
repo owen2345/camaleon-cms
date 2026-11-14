@@ -13,8 +13,10 @@ See `proposal.md`, "Why".
 
 **Non-Goals:**
 
-- A change of the `list` action. The post form of each role calls it, and it checks the right of
-  the user on the post.
+- A change of the `list` action. It gives the fields of a post, or of a new post of a post type. It
+  checks the right of the user on that post or post type. The category panel of the post form holds
+  the URL of the action. Camaleon has the script that reads this URL in a comment, and a plugin or a
+  theme can call the action.
 - A change of the pages that show the fields of a record, such as the post form.
 
 ## Decisions
@@ -25,7 +27,8 @@ See `proposal.md`, "Why".
 - *Alternative: add `reorder` to the list of checked actions.* Rejected: the read actions stay open,
   and a new action gets no check.
 - *Alternative: remove the line.* Rejected: the role check of the settings controller then covers
-  `list`, and the post form of a role with no `custom_fields` permission loses its fields.
+  `list`, and the action refuses a user who can edit the post and has no `custom_fields` permission.
+  That is a change of the `list` action (Non-Goals).
 
 **D2. A refused request gets the answer of each refused admin request.** `AdminController` rescues
 `CanCan::AccessDenied` and redirects to the dashboard with an error message.
