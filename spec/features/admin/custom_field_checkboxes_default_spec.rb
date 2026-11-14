@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 # The form of a new record checks the default options of a checkboxes custom field. A failed save
-# renders the form again with the submitted values. These examples use a new category with the slug
-# of an existing category, so the save fails on the server.
+# renders the form again with the submitted values. The failed-save example submits a new category
+# with the slug of an existing category, so the save fails on the server.
 RSpec.describe 'the default options of a checkboxes custom field', :js do
   init_site
 
