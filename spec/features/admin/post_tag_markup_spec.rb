@@ -142,7 +142,6 @@ RSpec.describe 'the tag editor of the post form', :js do
         initialTags: ['R&D'], forceLowercase: false,
         beforeTagSave: function (field, editor, tags, oldTag, newTag) { window.savedTags.push([oldTag, newTag]); }
       });
-      window.savedTags.length = 0;
       var tag = $('#plugin_tags').next().find('.tag-editor-tag').first();
       tag.trigger('click').find('input').val('A<B').trigger('keyup')[0].blur();
     JS
