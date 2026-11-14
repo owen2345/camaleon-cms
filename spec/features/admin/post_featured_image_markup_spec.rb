@@ -46,14 +46,18 @@ RSpec.describe 'the Featured Image panel of the post form', :js do
     expect(page).to have_no_css('#feature-image .meta img', visible: :all)
   end
 
-  it 'gives an option of the post type with a quote to the file picker as text' do
-    option = "x'});window.optionRan=1;({a:'"
-    @post.post_type.set_option('posts_thumb_versions', option)
+  it 'gives each image option of the post type to the file picker as text, also one with a quote' do
+    options = { 'versions' => "x'});window.optionRan=1;({a:'", 'thumb_size' => '100x90', 'dimension' => '1200x800' }
+    @post.post_type.set_options('posts_thumb_versions' => options['versions'],
+                                'posts_thumb_size' => options['thumb_size'],
+                                'posts_image_dimension' => options['dimension'])
     visit edit_path
 
     page.execute_script("$('#feature-image ~ a').trigger('click')")
     expect(page).to have_css('#cama_modal_file_uploader #cama_media_gallery', wait: 10)
-    expect(page.evaluate_script("#{picker}.attr('data-versions')")).to eq(option)
+    options.each do |option, value|
+      expect(page.evaluate_script("#{picker}.attr('data-#{option}')")).to eq(value)
+    end
     expect(page.evaluate_script('window.optionRan')).to be_nil
   end
 end
