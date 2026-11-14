@@ -55,6 +55,9 @@ the server refuses only `..` and `://` in it. So the URL is a value of a request
 param is. An upload cleans the name of a file, but a file that reaches the storage another way keeps
 its name.
 
+The creation of a folder also cleans the last segment of its path. So a new folder keeps markup only
+in the names of its parent folders.
+
 - *Alternative: refuse a folder name with markup.* Rejected: a stored folder with such a name keeps
   its files, and the code that writes the HTML stays wrong.
 
