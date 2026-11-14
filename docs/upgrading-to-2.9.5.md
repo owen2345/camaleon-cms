@@ -797,7 +797,8 @@ The form also shows the name of a field as text in the title of its panel.
 
 The bundled bootstrap-select library now shows the label of an option group as text. Before, markup
 in the `label` attribute of an `optgroup` element added an element to the list. For an icon or a
-second text in a group header, use the `data-icon` or the `data-subtext` attribute of the group.
+second text in a group header, set `data-icon` or `data-subtext` on the group. The library does not
+encode these two attributes, so give them no value that a user stores.
 
 The bundled upload plugin of the media manager now shows the name of a selected file as text. This
 applies to its status bar and to each message that refuses a file. The `createProgress` method also
