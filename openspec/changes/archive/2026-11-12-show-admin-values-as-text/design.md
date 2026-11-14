@@ -152,6 +152,9 @@ placeholder `__-__`, and joined the slug to the end of a URL with no placeholder
 links now hold such a URL as it is. With no URL for the language of the form, the code that starts
 the form threw. The form now shows the slug alone, and removes the Preview link and the View link.
 
+The line shows no slug for a URL with no placeholder, so its Edit link opened no input. The form now
+removes that link.
+
 **D16. `I18n` puts each value into a translation as text.** The function gave each value to
 `String.prototype.replace` as a replacement String, and replaced one placeholder after the other.
 It now replaces the placeholders in one pass, with a function that returns the value. So it also

@@ -60,6 +60,9 @@
 - [x] 2.11 Add an example to `spec/features/admin/post_slug_markup_spec.rb`. After Edit and Cancel,
   the line must show the same URL. After Edit and Accept, the line must show one URL with the new
   slug. Make sure that the example fails when `set_slug` does not empty the line.
+- [x] 2.12 Remove the Edit link of the permalink line for a URL with no placeholder in `_post.js`
+  (D15). Add its expectation to the example of that URL. Make sure that the example fails before
+  the fix.
 
 ## 3. The media manager
 

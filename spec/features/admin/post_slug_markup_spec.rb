@@ -123,10 +123,12 @@ RSpec.describe 'the permalink line of the post form', :js do
         .to receive(:the_urls).and_return(@site.get_languages.index_with { |_language| url })
     end
 
-    it 'shows the URL as it is, and gives it to the Preview link and the View link' do
+    # The line shows no slug for such a URL, so the Edit link has no slug to open.
+    it 'shows the URL as it is with no Edit link, and gives it to the Preview link and the View link' do
       visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
 
       expect(page).to have_css('.sl-slug-edit .sl-link', exact_text: url, wait: 10)
+      expect(page).to have_no_css('.sl-slug-edit .btn-edit', visible: :all)
       expect(page.evaluate_script("$('.sl-slug-edit .btn-preview').attr('href')")).to start_with("#{url}?draft_id=")
       expect(page.evaluate_script("$('.sl-slug-edit .btn-view').attr('href')")).to eq(url)
     end
