@@ -98,6 +98,7 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
     it 'shows the submitted values and no default option after a failed save' do
       render_fields({ item_fields: { '0' => { 'colors' => { 'id' => '12', 'values' => ['2'] } } } })
 
+      expect(rendered).to have_field('item_fields[colors][values][]', count: 2, unchecked: true)
       expect(rendered).to have_no_css("input[name='item_fields[colors][values][]'][checked]")
       expect(rendered).to include('[{"colors":["2"]}]')
     end
