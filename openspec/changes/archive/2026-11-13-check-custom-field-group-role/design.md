@@ -29,3 +29,8 @@ See `proposal.md`, "Why".
 
 **D2. A refused request gets the answer of each refused admin request.** `AdminController` rescues
 `CanCan::AccessDenied` and redirects to the dashboard with an error message.
+
+**D3. The Custom Fields item of the Settings menu needs the permission of its pages.** The menu gave
+the item to each role with the `settings` permission. After D1, a click on the item redirected such
+a role with no `custom_fields` permission to the dashboard. The two menu builders now add the item
+only for a role that also has the `custom_fields` permission.

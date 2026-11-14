@@ -69,4 +69,33 @@ RSpec.describe 'the role check of the custom field group pages', type: :request 
       expect(response.body).to include('_role-check-first').or include('First')
     end
   end
+
+  # The Settings menu gave its Custom Fields item to each role with the settings permission. The pages
+  # of the item now need the custom_fields permission, so the item must need it too.
+  describe 'the Custom Fields item of the Settings menu' do
+    def sign_in_with(permissions)
+      role = current_site.user_roles.create!(name: 'Site manager', slug: 'site-manager')
+      role.set_meta("_manager_#{current_site.id}", permissions)
+      sign_in_as(create(:user, role: role.slug, site: current_site), site: current_site)
+    end
+
+    def menu_link(path)
+      %(<a href="#{path}">)
+    end
+
+    it 'does not show for a role with the settings permission and no custom_fields permission' do
+      sign_in_with('settings' => 1)
+      get cama_admin_dashboard_path
+
+      expect(response.body).to include(menu_link(cama_admin_settings_post_types_path))
+      expect(response.body).not_to include(menu_link(cama_admin_settings_custom_fields_path))
+    end
+
+    it 'shows for a role with the settings permission and the custom_fields permission' do
+      sign_in_with('settings' => 1, 'custom_fields' => 1)
+      get cama_admin_dashboard_path
+
+      expect(response.body).to include(menu_link(cama_admin_settings_custom_fields_path))
+    end
+  end
 end

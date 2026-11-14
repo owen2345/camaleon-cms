@@ -825,6 +825,9 @@ the order of the field groups. That user could also read each group in the list 
 Now each action of the controller checks the permission, except the `list` action. The `list`
 action gives the fields of a post to the post form, and checks the right of the user on that post.
 
+The Settings menu now shows its Custom Fields item only to a role with the `custom_fields`
+permission. Before, each role with the `settings` permission got the item.
+
 **Who must act:** a site whose role opens the custom field group pages with no `custom_fields`
 permission. Give that role the permission. Without it, each of these pages redirects to the
 dashboard.

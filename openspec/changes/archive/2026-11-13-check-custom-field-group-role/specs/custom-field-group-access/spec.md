@@ -35,3 +35,19 @@ its own check of the right of the user on the post or on the post type.
 
 - **WHEN** a user with the `custom_fields` permission requests the form of a field group
 - **THEN** the response is the form
+
+### Requirement: The Settings menu shows the Custom Fields item to a user with the custom_fields permission
+
+The Settings menu of the admin panel SHALL show its Custom Fields item only to a user with the
+`custom_fields` permission.
+
+#### Scenario: A user with the settings permission and no custom_fields permission
+
+- **WHEN** a user with the `settings` permission and no `custom_fields` permission opens an admin page
+- **THEN** the Settings menu holds no Custom Fields item
+
+#### Scenario: A user with the settings permission and the custom_fields permission
+
+- **WHEN** a user with the `settings` permission and the `custom_fields` permission opens an admin
+  page
+- **THEN** the Settings menu holds the Custom Fields item

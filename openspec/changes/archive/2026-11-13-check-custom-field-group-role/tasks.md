@@ -9,6 +9,11 @@
   the Contributor fail before the fix.
 - [x] 1.2 Check the role for each action except `list` in `custom_fields_controller.rb` (D1).
 - [x] 1.3 Give the change in `docs/upgrading-to-2.9.5.md` and in `docs/security/permissions.md`.
+- [x] 1.4 Add two examples to the spec. The Settings menu must show its Custom Fields item to a role
+  with the `settings` permission only when the role also has the `custom_fields` permission. Make
+  sure that the first example fails before the fix.
+- [x] 1.5 Add the Custom Fields item only for a role with the `custom_fields` permission in the two
+  menu builders (D3). Give the change in `docs/upgrading-to-2.9.5.md`.
 
 ## 2. Verification and shipping
 
