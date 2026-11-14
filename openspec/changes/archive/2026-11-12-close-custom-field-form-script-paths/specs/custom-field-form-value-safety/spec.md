@@ -24,6 +24,12 @@ field value from the params of a GET request.
   `field_options` values
 - **THEN** the form shows the stored value and no value of the query
 
+#### Scenario: A link with field values opens the field list of a post type
+
+- **WHEN** an admin requests the field list of a post type through a GET request with `field_options`
+  values in its query
+- **THEN** the field values of the list hold no value of the query
+
 #### Scenario: A failed save shows the submitted values
 
 - **WHEN** the create of a category fails its validation and the request holds `field_options` values
