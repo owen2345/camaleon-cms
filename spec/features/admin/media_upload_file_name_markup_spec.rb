@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# The upload plugin of the media manager put the name of each selected file into HTML: into its
-# status bar, and into each message that refuses a file. A file on the computer of a user can have
+# The upload plugin of the media manager put the name of each selected file into HTML. It did so in
+# its status bar, and in each message that refuses a file. A file on the computer of a user can have
 # markup in its name. That markup then ran its event handler in the session of the user who selected
 # the file. The plugin must show the name as text.
 RSpec.describe 'the name of a selected file in the upload plugin of the media manager', :js do

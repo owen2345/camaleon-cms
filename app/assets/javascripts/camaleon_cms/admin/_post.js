@@ -457,7 +457,7 @@ function cama_init_post(obj) {
             var url_start = url_parts[0], url_end = url_parts.slice(1).join('__-__');
             // The line shows no slug for a URL with no placeholder, so it has no Edit link.
             if (!with_slug) $link.find('.btn-edit').remove();
-            // A link holds the slug as one segment of the path, so a slug with ? or # keeps the path
+            // A link holds the slug as one segment of the path. So a slug with ? or # keeps the path
             // and the draft id of the link. The characters $ & + , ; = : @ stay as they are, as Rails
             // writes them in a segment of a path.
             function post_url(slug) {

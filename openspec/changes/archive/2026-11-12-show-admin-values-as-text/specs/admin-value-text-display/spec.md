@@ -23,12 +23,13 @@ The `I18n` function of the admin JavaScript reads each value of a translation as
 The tag editor of the post form SHALL show each tag name as text. A name with markup MUST NOT add
 an element to the form. A click on a tag opens it: the editor puts the name into a text input, and
 that input SHALL hold the whole name. A name that the admin types again, alone or in a list with a
-delimiter, SHALL replace its tag. The editor SHALL give a tag name as text to the `beforeTagDelete`
-callback, and its `removeTag` method SHALL take a name as text. For an open tag, the callback SHALL
-get the name that the tag had when the admin opened it. The editor SHALL NOT call the callback for a
-new tag, which has no such name. A right click SHALL delete an open tag with no text, and MUST NOT
-throw an error. A right click on an open tag SHALL delete only that tag, and MUST NOT call the
-`beforeTagSave` callback.
+delimiter, SHALL replace its tag.
+
+The editor SHALL give a tag name as text to the `beforeTagDelete` callback, and its `removeTag`
+method SHALL take a name as text. For an open tag, the callback SHALL get the name that the tag had
+when the admin opened it. The editor SHALL NOT call the callback for a new tag, which has no such
+name. A right click SHALL delete an open tag with no text, and MUST NOT throw an error. A right
+click on an open tag SHALL delete only that tag, and MUST NOT call the `beforeTagSave` callback.
 
 The editor SHALL give the name that a tag had to the `old_tag` argument of the `beforeTagSave`
 callback, as text.

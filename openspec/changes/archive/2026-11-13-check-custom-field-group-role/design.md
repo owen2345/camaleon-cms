@@ -27,7 +27,7 @@ See `proposal.md`, "Why".
 - *Alternative: add `reorder` to the list of checked actions.* Rejected: the read actions stay open,
   and a new action gets no check.
 - *Alternative: remove the line.* Rejected: the role check of the settings controller then covers
-  `list`, and the action refuses a user who can edit the post and has no `custom_fields` permission.
+  `list`. The action then refuses a user who can edit the post and has no `custom_fields` permission.
   That is a change of the `list` action (Non-Goals).
 
 **D2. A refused request gets the answer of each refused admin request.** `AdminController` rescues

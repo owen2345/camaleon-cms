@@ -114,14 +114,8 @@ tag and an `img` tag. The list added an `img` element from that path.
 
 ### New Capabilities
 
-- `admin-value-text-display`: the admin JavaScript shows a tag name and a slug as text, not as HTML.
-  The media manager does the same for its `folder` and `dimension` params, and for the name and the
-  URL of a file. The Featured Image panel does the same for the name of a picked file. Its Upload
-  Image link gives the image options of the post type to its handler as attribute values. The form
-  of a custom field group shows the help of a placement as text. The bundled bootstrap-select
-  library shows the label of an option group as text. The bundled upload plugin shows the name of a
-  selected file as text. The list of the media manager gives the data of a file to its script as
-  text.
+- `admin-value-text-display`: the admin JavaScript shows a value as text, not as HTML, in each place
+  that the list above names.
 
 ### Modified Capabilities
 

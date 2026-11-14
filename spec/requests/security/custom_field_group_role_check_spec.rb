@@ -2,9 +2,9 @@
 
 # The custom fields controller named three actions for its role check: create, update and destroy.
 # That line replaced the role check of the settings controller, which covered each action. So a
-# signed-in user with no custom_fields permission could change the order of the field groups, and
-# could read each group in the list and in the form. Each action must check the role, except the
-# list action, which checks the right of the user on its post.
+# signed-in user with no custom_fields permission could change the order of the field groups. That
+# user could also read each group in the list and in the form. Each action must check the role,
+# except the list action, which checks the right of the user on its post.
 RSpec.describe 'the role check of the custom field group pages', type: :request do
   init_site
 
