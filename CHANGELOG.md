@@ -6,16 +6,17 @@
   - **Breaking change:** an admin form that opens through a GET request no longer shows the `field_options` values of its query.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form).
 
-- **Security fix:** The admin panel now shows a tag name, a slug, and the name and the URL of a file as text. The media manager shows its `folder` and `dimension` params as text. The field group form shows a category name as text, and a select shows an option group label as text. An image option of a post type no longer runs as script. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+- **Security fix:** The admin panel now shows a tag name, a slug, and the name and the URL of a file as text. The media manager shows its `folder` and `dimension` params as text. The field group form shows a category name and a field name as text, and a select shows an option group label as text. An image option of a post type no longer runs as script. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-admin-javascript-shows-a-value-as-text).
 
-- **Security fix:** Each page and each write of the custom field groups now checks the `custom_fields` permission, also the `reorder` action. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+- **Security fix:** Each page and each write of the custom field groups now checks the `custom_fields` permission, also the `reorder` action. The Settings menu shows its Custom Fields item only to a role with that permission. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
   - **Breaking change:** a role with no `custom_fields` permission now gets a redirect to the dashboard from these pages.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-custom-field-group-pages-check-the-custom_fields-permission).
 
-- **Tooling:** A failed spec job of CI now keeps the page captures of the failed examples and the test log as an artifact. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+- **Tooling:** A failed spec job of CI now keeps the page captures of the failed examples and the test log as an artifact. Development-only. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
 
 - **Bug fix:** The image editor of the media manager now starts for a `dimension` param with no digit. The Preview and View links of the post form now hold a slug with `?` or `#` in its percent-encoded form. A right click in the tag editor now deletes an open tag with no text. The media list now writes its file data with the HTML escape. The `I18n` function of the admin JavaScript now reads a value as text. [#1343](https://github.com/owen2345/camaleon-cms/pull/1343).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-admin-javascript-shows-a-value-as-text).
 
 - **Performance:** `set_field_value` and `set_field_values` no longer run `SELECT 1` in a transaction of the caller. [#1341](https://github.com/owen2345/camaleon-cms/pull/1341).
 
