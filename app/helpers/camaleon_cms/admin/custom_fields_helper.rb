@@ -136,9 +136,9 @@ module CamaleonCms
         return record.get_fields_grouped(slugs) unless cama_form_submitted_values?(field_name)
 
         instances = cama_submitted_groups(params[field_name]).filter_map do |group|
-          group = group.slice(*slugs)
-          values = cama_submitted_group_values(group).presence
-          [cama_submitted_group_number(group), values] if values
+          instance = group.slice(*slugs)
+          values = cama_submitted_group_values(instance).presence
+          [cama_submitted_group_number(instance), values] if values
         end
         instances.sort_by.with_index { |(number, _values), index| [number || Float::INFINITY, index] }.map(&:last)
       end
@@ -170,8 +170,8 @@ module CamaleonCms
         submitted.to_unsafe_h.values.grep(Hash)
       end
 
-      # The values of one submitted group, from the slug of a field to its values. A field entry that
-      # is not a set of attributes is left out.
+      # The values of one submitted group, from the slug of a field to its values. The helper leaves out
+      # a field entry that is not a set of attributes.
       def cama_submitted_group_values(group)
         group.each_with_object({}) do |(slug, entry), values|
           next unless entry.is_a?(Hash)
