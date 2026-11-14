@@ -133,6 +133,24 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
 
       expect(values_for('POST', field_options: no_value)).to eq([{ 'note' => nil }])
     end
+
+    # The admin dragged the instance of index 2 to the top, so the form gave it the group number 0.
+    it 'gives the submitted instances of a sorted repeat group in the order of their group numbers' do
+      sorted = { '0' => { 'color' => { 'group_number' => '0' },
+                          'note' => { 'group_number' => '1', 'values' => ['first'] } },
+                 '2' => { 'note' => { 'group_number' => '0', 'values' => ['third'] } },
+                 '1' => { 'note' => { 'group_number' => '2', 'values' => ['second'] } } }
+
+      expect(values_for('POST', field_options: sorted))
+        .to eq([{ 'note' => ['third'] }, { 'note' => ['first'] }, { 'note' => ['second'] }])
+    end
+
+    it 'gives a submitted instance with an invalid group number after the other instances' do
+      invalid = { '0' => { 'note' => { 'group_number' => 'x', 'values' => ['invalid'] } },
+                  '1' => { 'note' => { 'group_number' => '1', 'values' => ['valid'] } } }
+
+      expect(values_for('POST', field_options: invalid)).to eq([{ 'note' => ['valid'] }, { 'note' => ['invalid'] }])
+    end
   end
 
   describe '#cama_form_submitted_values?' do

@@ -124,15 +124,23 @@ module CamaleonCms
       # method itself, and no save action passes the values, because plugin forms render the partial
       # too.
       # Each group of the form counts its instances from 0, so one index of the param can hold the
-      # fields of two groups. The group gets only the entries that hold one of its fields, as with the
-      # values of the record. Else a repeat group shows one instance for each instance of another group.
+      # fields of two groups. The helper gives a group only the entries that hold one of its fields, as
+      # with the values of the record. A repeat group shows only its own instances.
+      # The admin can drag an instance of a repeat group to a new place. The JavaScript of the form keeps
+      # the index of the instance and writes the new place into its group number. The helper sorts the
+      # instances of the group by their group numbers, as get_fields_grouped sorts the stored values.
       # record: the record of the form
       # slugs: the slugs of the fields of the group
       # field_name: the param that holds the values, the fields_name local of the partial
       def cama_form_field_values(record, slugs, field_name = :field_options)
         return record.get_fields_grouped(slugs) unless cama_form_submitted_values?(field_name)
 
-        cama_submitted_field_values(params[field_name]).filter_map { |values| values.slice(*slugs).presence }
+        instances = cama_submitted_groups(params[field_name]).filter_map do |group|
+          group = group.slice(*slugs)
+          values = cama_submitted_group_values(group).presence
+          [cama_submitted_group_number(group), values] if values
+        end
+        instances.sort_by.with_index { |(number, _values), index| [number || Float::INFINITY, index] }.map(&:last)
       end
 
       # Whether the custom-fields partial shows the submitted values: a request that is not a GET and
@@ -149,21 +157,39 @@ module CamaleonCms
       # of attributes are left out. So a malformed param raises no 500, and the form shows only the
       # values of what is well formed.
       def cama_submitted_field_values(submitted)
-        return [] unless submitted.is_a?(ActionController::Parameters)
-
-        submitted.to_unsafe_h.values.filter_map do |group|
-          next unless group.is_a?(Hash)
-
-          group.each_with_object({}) do |(slug, entry), values|
-            next unless entry.is_a?(Hash)
-
-            submitted_values = entry['values']
-            values[slug] = submitted_values.is_a?(Hash) ? submitted_values.values : submitted_values
-          end
-        end
+        cama_submitted_groups(submitted).map { |group| cama_submitted_group_values(group) }
       end
 
       private
+
+      # The groups of a submitted param that are sets of fields. A param that is not a set of groups
+      # gives no group.
+      def cama_submitted_groups(submitted)
+        return [] unless submitted.is_a?(ActionController::Parameters)
+
+        submitted.to_unsafe_h.values.grep(Hash)
+      end
+
+      # The values of one submitted group, from the slug of a field to its values. A field entry that
+      # is not a set of attributes is left out.
+      def cama_submitted_group_values(group)
+        group.each_with_object({}) do |(slug, entry), values|
+          next unless entry.is_a?(Hash)
+
+          submitted_values = entry['values']
+          values[slug] = submitted_values.is_a?(Hash) ? submitted_values.values : submitted_values
+        end
+      end
+
+      # The group number of one submitted instance: the group_number of its first field entry. As in
+      # set_field_values, nil and '' mean 0. An invalid group number gives nil.
+      def cama_submitted_group_number(group)
+        entry = group.each_value.find { |value| value.is_a?(Hash) }
+        number = entry && entry['group_number']
+        return 0 if number.nil? || number == ''
+
+        number.to_i if CamaleonCms::CustomFieldsRelationship.valid_group_number?(number)
+      end
 
       # One field type of the table: its key, its label for the custom-fields editor, a deep copy of its
       # options and, when it has them, its extra fields. It is private because it is no public API.
