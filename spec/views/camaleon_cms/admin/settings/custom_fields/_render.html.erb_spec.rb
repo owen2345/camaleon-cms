@@ -102,10 +102,11 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
       expect(rendered).to include('[{"colors":["2"]}]')
     end
 
-    it 'checks the default options when a link puts field values into a GET request' do
+    it 'checks the default options and leaves out the values of a link in a GET request' do
       render_fields({ item_fields: { '0' => { 'colors' => { 'id' => '12', 'values' => ['2'] } } } }, verb: 'GET')
 
       expect(rendered).to have_css("input[name='item_fields[colors][values][]'][value='1'][checked]")
+      expect(rendered).not_to include('"colors":["2"]')
     end
   end
 
