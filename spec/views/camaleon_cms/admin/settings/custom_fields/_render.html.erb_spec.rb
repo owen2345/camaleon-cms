@@ -31,10 +31,6 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
       def decorate
         @fields
       end
-
-      def pluck(attribute)
-        @fields.map { |field| field.public_send(attribute) }
-      end
     end
   end
   let(:fields_relation) { fields_relation_class.new(fields) }
