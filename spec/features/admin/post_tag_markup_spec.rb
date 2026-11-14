@@ -150,8 +150,8 @@ RSpec.describe 'the tag editor of the post form', :js do
     expect(page.evaluate_script("$('#plugin_tags').val()")).to eq('A<B')
   end
 
-  # The tag list holds the name that an open tag had when the admin opened it, and the text input of
-  # the tag holds what the admin typed. A new tag has no name in the list yet.
+  # The tag list holds the name that an open tag had when the admin opened it. The text input of the
+  # tag holds what the admin typed. A new tag has no name in the list yet.
   it 'gives the stored name of an open tag to the beforeTagDelete callback, and no call for a new tag' do
     visit posts_path
 
