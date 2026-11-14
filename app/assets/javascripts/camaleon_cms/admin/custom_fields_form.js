@@ -54,9 +54,10 @@ jQuery(function($){
 
   // The help of an option is text: it can hold the name of a category, a post type or a post. A
   // name with a tag adds no element to the form. With no selected option, the help stays as it is.
+  // A selected option with no help removes the help of the option before it.
   function _show_help(option){
     var txt_help = option.data('help'), $help = $('#select_assign_group_help', panel);
-    if(txt_help === undefined) return;
+    if(!option.length) return;
     $help.empty();
     if(txt_help) $help.append($('<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; </div>').append(document.createTextNode(txt_help + ' ')));
   }

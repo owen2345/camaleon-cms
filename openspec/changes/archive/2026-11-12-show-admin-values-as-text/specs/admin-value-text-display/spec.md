@@ -285,7 +285,8 @@ MUST NOT run as script.
 The form of a custom field group SHALL show the help of the selected placement as text. The help can
 hold the name of a category, a post type or a post. A name with markup MUST NOT add an element to
 the form. The `data-help` attribute of an option with such a name SHALL hold the name with one
-escape. The form then shows the name as the author wrote it.
+escape. The form then shows the name as the author wrote it. A selected placement with no help
+SHALL show no help.
 
 #### Scenario: A group of a category with markup in its name
 
@@ -298,6 +299,18 @@ escape. The form then shows the name as the author wrote it.
 - **WHEN** an admin opens the edit form of a custom field group whose placement is the posts of a
   post type named `Ben & Jerry's <b>x</b>`
 - **THEN** the help shows the name as the author wrote it and adds no `b` element
+
+#### Scenario: A group of a post with markup in its title
+
+- **WHEN** an admin opens the edit form of a custom field group whose placement is a post with
+  `img` markup in its title
+- **THEN** the help shows the whole title as text and adds no `img` element
+
+#### Scenario: The admin selects a placement with no help
+
+- **WHEN** an admin opens the edit form of a custom field group whose placement has a help
+- **AND** the admin selects a placement with no help
+- **THEN** the form shows no help
 
 #### Scenario: The help attribute of a placement option
 

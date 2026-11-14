@@ -85,6 +85,9 @@ escape since 2.9.3, so a name with a tag added an element. The other options wit
 with two escapes, and the HTML write hid that. The form now sets the help as text, and each of these
 options gives its name with one escape.
 
+The form also kept the help of a placement when the admin selected a placement with no help. It
+now removes that help.
+
 - *Alternative: give the category name with two escapes again.* Rejected: the requirement of
   `escaped-title-composition` asks for the literal name in the attribute, and the code that writes
   the HTML stays wrong.

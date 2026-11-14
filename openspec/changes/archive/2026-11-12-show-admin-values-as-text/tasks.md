@@ -128,6 +128,10 @@
   Make sure that the example fails before the fix.
 - [x] 6.7 Set the name of a field as text in the title of its panel in `custom_fields_form.js`
   (D17). Give the title in `docs/upgrading-to-2.9.5.md`.
+- [x] 6.8 Add two examples to `spec/features/admin/custom_field_group_help_markup_spec.rb`. The help
+  of a post with `img` markup in its title must show as text. A placement with no help must remove
+  the help of the placement before it. Make sure that the second example fails before the fix.
+- [x] 6.9 Remove the help for a selected option with no help in `custom_fields_form.js` (D8).
 
 ## 7. The label of an option group
 

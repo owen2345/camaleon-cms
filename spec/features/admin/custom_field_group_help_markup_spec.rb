@@ -36,4 +36,24 @@ RSpec.describe 'the placement help of the custom field group form', :js do
     expect(page).to have_css(help, text: name)
     expect(page).to have_no_css("#{help} b", visible: :all)
   end
+
+  # A group of one post takes its help from another select of the form than a group of a category.
+  it 'shows a post title with markup as text' do
+    markup = '<img src=q onerror="return">'
+    @post.object.update!(title: markup)
+    open_group('Post', @post.id)
+
+    expect(page).to have_css(help, text: markup)
+    expect(page).to have_no_css("#{help} img", visible: :all)
+  end
+
+  # The placement of the settings of a post type has no help.
+  it 'removes the help when the admin selects a placement with no help' do
+    open_group('PostType_Post', post_type.id)
+    expect(page).to have_css("#{help} .alert")
+
+    find("#select_assign_group option[value='PostType,#{post_type.id}']").select_option
+
+    expect(page).to have_no_css("#{help} .alert")
+  end
 end
