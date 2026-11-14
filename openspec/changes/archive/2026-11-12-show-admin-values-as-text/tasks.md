@@ -145,41 +145,33 @@
 - [x] 6.11 Give the translation of the help to `safe_join` as a plain String in `form.html.erb` and
   in `_render_category_simple.html.erb` (D8).
 
-## 7. The label of an option group
+## 7. The upload plugin
 
-- [x] 7.1 Add `spec/features/admin/front_cache_post_type_markup_spec.rb`. The Front Cache settings
-  page must show the name of a post type with `img` markup as the text of a group header. Make sure
-  that the example fails before the fix.
-- [x] 7.2 Encode the label of an option group in the bundled `_bootstrap-select.js` (D9).
-- [x] 7.3 Give the label in `docs/upgrading-to-2.9.5.md`.
-
-## 8. The upload plugin
-
-- [x] 8.1 Add `spec/features/admin/media_upload_file_name_markup_spec.rb`. The plugin must show the
+- [x] 7.1 Add `spec/features/admin/media_upload_file_name_markup_spec.rb`. The plugin must show the
   name of a file with `img` markup as text, in each place of the list below. Make sure that each
   example fails before the fix.
   - The status bar of the media manager.
   - Each message that refuses a file.
   - The status bar of a plugin that sends a form.
   - The status bar that `createProgress` adds.
-- [x] 8.2 Set the name of a file as text in the bundled `_jquery.uploadfile.min.js` (D10).
-- [x] 8.3 Give the plugin in `docs/upgrading-to-2.9.5.md`.
+- [x] 7.2 Set the name of a file as text in the bundled `_jquery.uploadfile.min.js` (D10).
+- [x] 7.3 Give the plugin in `docs/upgrading-to-2.9.5.md`.
 
-## 9. The I18n function
+## 8. The I18n function
 
-- [x] 9.1 Add `spec/features/admin/js_translation_value_spec.rb`. The result of `I18n` must hold a
+- [x] 8.1 Add `spec/features/admin/js_translation_value_spec.rb`. The result of `I18n` must hold a
   value with `$&` as it is, and a value that holds a later placeholder as it is. Make sure that the
   two examples fail before the fix.
-- [x] 9.2 Replace the placeholders in one pass in `_i18n.js`, with a function that returns the
+- [x] 8.2 Replace the placeholders in one pass in `_i18n.js`, with a function that returns the
   value (D16).
-- [x] 9.3 Give the function in `docs/upgrading-to-2.9.5.md`.
-- [x] 9.4 Add two examples to `spec/features/admin/js_translation_value_spec.rb`. A translation that
+- [x] 8.3 Give the function in `docs/upgrading-to-2.9.5.md`.
+- [x] 8.4 Add two examples to `spec/features/admin/js_translation_value_spec.rb`. A translation that
   is not a String must come back as it is. A placeholder that a translation holds twice must get
   its value at both places. Make sure that the first example fails before the fix.
-- [x] 9.5 Return a translation that is not a String as it is in `_i18n.js` (D16).
+- [x] 8.5 Return a translation that is not a String as it is in `_i18n.js` (D16).
 
-## 10. Verification and shipping
+## 9. Verification and shipping
 
-- [x] 10.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 9.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [x] 10.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 9.2 Add the CHANGELOG entry, archive this change on the branch

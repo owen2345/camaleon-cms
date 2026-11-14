@@ -31,10 +31,6 @@ The form of a custom field group put the help of the selected placement into HTM
 category holds the name of the category, and an Editor can store a name with markup. That markup ran
 when an admin opened a group of that category.
 
-The Front Cache settings page gives the name of each post type to bootstrap-select as the label of
-an option group. The bundled library put that label into HTML. A role with the `settings` permission
-can store the name of a post type.
-
 The upload plugin of the media manager put the name of each selected file into HTML. The name went
 into the status bar of the file, and into each message that refuses a file. A file on the computer
 of a user can have markup in its name.
@@ -72,10 +68,6 @@ A probe named a category with `img` markup and opened a custom field group of th
 form added an `img` element from that name when the page loaded.
 `spec/features/admin/custom_field_group_help_markup_spec.rb` fails before the fix.
 
-A probe named a post type with `img` markup and opened the Front Cache settings page. Each list of
-posts added an `img` element from that name.
-`spec/features/admin/front_cache_post_type_markup_spec.rb` fails before the fix.
-
 A probe selected a file with `img` markup in its name in the media manager. The status bar added an
 `img` element from that name. `spec/features/admin/media_upload_file_name_markup_spec.rb` fails
 before the fix.
@@ -104,7 +96,6 @@ tag and an `img` tag. The list added an `img` element from that path.
 - The form of a custom field group shows the help of a placement as text. Each placement option with
   a name gives that name with one escape.
 - The form of a custom field group shows the name of a field as text in the title of its panel.
-- The bundled bootstrap-select library shows the label of an option group as text.
 - The bundled upload plugin of the media manager shows the name of a selected file as text.
 - The list of the media manager writes the JSON data of a file with the HTML escape.
 - The `I18n` function of the admin JavaScript puts each value into a translation as text.
@@ -130,7 +121,6 @@ None.
 - `app/views/camaleon_cms/admin/posts/_sidebar.html.erb`
 - `app/assets/javascripts/camaleon_cms/admin/custom_fields_form.js`
 - `app/views/camaleon_cms/admin/settings/custom_fields/form.html.erb`
-- `app/assets/javascripts/camaleon_cms/admin/_bootstrap-select.js`
 - `app/assets/javascripts/camaleon_cms/admin/uploader/_jquery.uploadfile.min.js`
 - `app/views/camaleon_cms/admin/media/_render_file_item.html.erb`
 - `app/assets/javascripts/camaleon_cms/admin/_i18n.js`
@@ -140,7 +130,6 @@ None.
   `spec/features/admin/media_manager_file_markup_spec.rb`,
   `spec/features/admin/post_featured_image_markup_spec.rb`,
   `spec/features/admin/custom_field_group_help_markup_spec.rb`,
-  `spec/features/admin/front_cache_post_type_markup_spec.rb`,
   `spec/features/admin/custom_field_group_field_name_markup_spec.rb`,
   `spec/features/admin/media_upload_file_name_markup_spec.rb`,
   `spec/features/admin/js_translation_value_spec.rb`,

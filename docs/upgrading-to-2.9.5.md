@@ -795,11 +795,6 @@ The form of a custom field group now shows the help of a placement as text. The 
 attribute of a placement option now holds the name of a post type or of a post with one escape.
 The form also shows the name of a field as text in the title of its panel.
 
-The bundled bootstrap-select library now shows the label of an option group as text. Before, markup
-in the `label` attribute of an `optgroup` element added an element to the list. For an icon or a
-second text in a group header, set `data-icon` or `data-subtext` on the group. The library does not
-encode these two attributes, so give them no value that a user stores.
-
 The bundled upload plugin of the media manager now shows the name of a selected file as text. This
 applies to its status bar and to each message that refuses a file. The `createProgress` method also
 reads its first argument, the name of a file, as text.

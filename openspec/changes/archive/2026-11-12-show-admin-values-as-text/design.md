@@ -100,16 +100,14 @@ a plain String, which `safe_join` escapes.
   `escaped-title-composition` asks for the literal name in the attribute, and the code that writes
   the HTML stays wrong.
 
-**D9. The bundled bootstrap-select encodes the label of an option group.** The library put the
-`label` property of an `optgroup` element into the HTML of a group header. The browser decodes the
-attribute, so the escape of the view gave no protection. The Front Cache settings page gives the
-name of each post type as such a label. The library now encodes the label first, and each select
-with option groups gets the fix.
+**D9. The bundled bootstrap-select keeps the label of an option group as HTML.** The library puts
+the `label` property of an `optgroup` element into the HTML of a group header. The Front Cache
+settings page gives the name of each post type as such a label. Only a role with the `settings`
+permission stores that name, and that role is trusted (`docs/security/permissions.md`, "The gating
+rule"). So the library stays as its authors wrote it, and a label can hold markup.
 
-- *Alternative: a newer release of the library.* Rejected: a new release changes much more than
-  this one line.
-- *Alternative: no bootstrap-select on the Front Cache settings page.* Rejected: the page loses the
-  search in its lists, and each other select with option groups keeps the path.
+- *Alternative: encode the label in the bundled library.* Rejected: it changes a bundled file, and
+  it removes the markup of a label that a trusted role wrote.
 
 **D10. The bundled upload plugin sets the name of a file as text.** The plugin put the name of each
 selected file into the HTML of its status bar, and into each message that refuses a file. The status

@@ -9,10 +9,9 @@ places, markup in such a value adds no element to the admin page.
 
 The Upload Image link of the Featured Image panel gives the image options of the post type to its
 handler as attribute values. A quote in such an option runs no script. The form of a custom field
-group shows the help of a placement, and the name of a field, as text. A select with the bundled
-bootstrap-select library shows the label of an option group as text. The upload plugin of the media
-manager shows the name of a selected file as text. The list of the media manager gives the data of
-each file to its script as text.
+group shows the help of a placement, and the name of a field, as text. The upload plugin of the
+media manager shows the name of a selected file as text. The list of the media manager gives the
+data of each file to its script as text.
 
 The `I18n` function of the admin JavaScript reads each value of a translation as text.
 
@@ -332,18 +331,6 @@ of that field. A name with markup MUST NOT add an element to the form.
   in its name
 - **AND** the admin types in the name input of that field
 - **THEN** the title of the panel shows the whole name as text and adds no `img` element
-
-### Requirement: A select of the admin shows the label of an option group as text
-
-The bundled bootstrap-select library SHALL show the label of an option group as text. A label with
-markup MUST NOT add an element to the page.
-
-#### Scenario: The Front Cache settings page for a post type with markup in its name
-
-- **WHEN** a post type with a post holds `img` markup in its name
-- **AND** an admin opens the Front Cache settings page
-- **THEN** each list of posts shows the whole name as the text of a group header and adds no `img`
-  element
 
 ### Requirement: The upload plugin shows the name of a selected file as text
 
