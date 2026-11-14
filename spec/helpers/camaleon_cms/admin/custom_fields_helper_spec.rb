@@ -152,7 +152,7 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
       expect(values_for('POST', field_options: invalid)).to eq([{ 'note' => ['valid'] }, { 'note' => ['invalid'] }])
     end
 
-    it 'gives a submitted instance with an empty group number the group number 0' do
+    it 'sorts a submitted instance with an empty group number as the group number 0' do
       empty = { '0' => { 'note' => { 'group_number' => '1', 'values' => ['second'] } },
                 '1' => { 'note' => { 'group_number' => '', 'values' => ['first'] } } }
 
