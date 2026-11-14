@@ -88,6 +88,10 @@ options gives its name with one escape.
 The form also kept the help of a placement when the admin selected a placement with no help. It
 now removes that help.
 
+For a key with no translation, the view helper `t` gives an html_safe span, and `safe_join` kept
+that span as markup in the `data-help` attribute. Each of these options now gives its translation as
+a plain String, which `safe_join` escapes.
+
 - *Alternative: give the category name with two escapes again.* Rejected: the requirement of
   `escaped-title-composition` asks for the literal name in the attribute, and the code that writes
   the HTML stays wrong.

@@ -116,6 +116,21 @@ RSpec.describe 'Admin heading title escaping', type: :request do
       end
     end
 
+    # The t helper of a view gives an html_safe span for a key with no translation. The option must
+    # hold that span as text in its help attribute.
+    it 'keeps the help attribute whole for a help with no translation' do
+      allow_any_instance_of(ActionView::Base).to receive(:t).and_wrap_original do |original, key, **options|
+        key = 'camaleon_cms.admin.no_such_key' if key.to_s.end_with?('.add_custom_field_posts')
+        original.call(key, **options)
+      end
+      post_type.object.update!(name: name)
+      get path
+
+      option = doc.at_css("#select_assign_group option[value='PostType_Post,#{post_type.id}']")
+      expect(option.attribute_nodes.map(&:name)).to eq(%w[value data-help])
+      expect(option['data-help']).to end_with(name)
+    end
+
     it 'reads the post title literally in the help attribute of the post option' do
       target_post = current_site.the_post('sample-post')
       target_post.update!(title: name)

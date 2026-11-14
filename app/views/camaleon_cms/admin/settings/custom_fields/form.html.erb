@@ -41,16 +41,18 @@
                                   <% end  %>
                                 </optgroup>
 
+                                <%# For a key with no translation, t gives an html_safe span. to_str makes safe_join escape
+                                    that span in the data-help attribute, as it escapes each other translation. %>
                                 <optgroup label="<%= t('camaleon_cms.admin.settings.posts_in') %>">
                                     <% current_site.post_types.each do |pt| pt = pt.decorate; value = "PostType_Post,#{pt.id}" %>
-                                        <option value="<%= value %>" data-help="<%= safe_join([t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts'), pt.the_title]) %>"><%= pt.the_title %></option>
+                                        <option value="<%= value %>" data-help="<%= safe_join([t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts').to_str, pt.the_title]) %>"><%= pt.the_title %></option>
                                     <% end  %>
                                 </optgroup>
 
                                 <optgroup label="<%= t('camaleon_cms.admin.settings.categories_in') %>">
                                     <% current_site.post_types.each do |pt| pt = pt.decorate; value = "PostType_Category,#{pt.id}" %>
                                         <% if pt.manage_categories? %>
-                                            <option value="<%= value %>" data-help="<%= safe_join([t('camaleon_cms.admin.settings.tooltip.add_custom_field_categories'), pt.the_title]) %>"><%= pt.the_title %></option>
+                                            <option value="<%= value %>" data-help="<%= safe_join([t('camaleon_cms.admin.settings.tooltip.add_custom_field_categories').to_str, pt.the_title]) %>"><%= pt.the_title %></option>
                                         <% end %>
                                     <% end  %>
                                 </optgroup>
@@ -100,7 +102,7 @@
                                 <% current_site.post_types.each do |pt| pt = pt.decorate %>
                                     <optgroup label="<%= pt.the_title %>">
                                         <% pt.posts.visible_frontend.each do |post| value = "#{post.class.name},#{post.id}".parseCamaClass; post = post.decorate %>
-                                            <option value="<%= value %>" data-help="<%= safe_join([t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts'), post.the_title]) %>"><%= post.the_title %></option>
+                                            <option value="<%= value %>" data-help="<%= safe_join([t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts').to_str, post.the_title]) %>"><%= post.the_title %></option>
                                         <% end %>
                                     </optgroup>
                                 <% end %>

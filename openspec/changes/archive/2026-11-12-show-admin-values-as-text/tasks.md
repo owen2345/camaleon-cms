@@ -139,6 +139,11 @@
   of a post with `img` markup in its title must show as text. A placement with no help must remove
   the help of the placement before it. Make sure that the second example fails before the fix.
 - [x] 6.9 Remove the help for a selected option with no help in `custom_fields_form.js` (D8).
+- [x] 6.10 Add an example to `spec/requests/admin/title_escaping_spec.rb`. For a help with no
+  translation, the option must keep its two attributes. Make sure that the example fails before the
+  fix.
+- [x] 6.11 Give the translation of the help to `safe_join` as a plain String in `form.html.erb` and
+  in `_render_category_simple.html.erb` (D8).
 
 ## 7. The label of an option group
 
