@@ -4,7 +4,10 @@ module CamaleonCms
       class CustomFieldsController < CamaleonCms::Admin::SettingsController
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.custom_fields'), :cama_admin_settings_custom_fields_path
 
-        before_action :validate_role, only: %i[create update destroy]
+        # This line replaces the role check of the settings controller. It names the one action with no
+        # role check, so a new action gets the check. The list action gives the fields of a post, or of a
+        # new post of a post type. It checks the right of the user on that post or post type itself.
+        before_action :validate_role, except: :list
         before_action :set_custom_field_group, only: %i[show edit update destroy]
         before_action :set_post_data, only: %i[create update]
 
@@ -72,7 +75,7 @@ module CamaleonCms
           p = params.permit(:post_type, :post_id)
           cat_ids = current_site.full_categories.where(id: params[:categories]).pluck(:id)
           if p[:post_id].present? && (post = current_site.the_post(p[:post_id].to_i)).present?
-            # The action carries no before_action, so authorize against the resolved post: a caller who
+            # The action carries no role before_action, so authorize against the resolved post: a caller who
             # cannot update it may neither read its custom-field values (GET) nor rewrite its categories
             # (POST). This scopes an otherwise any-signed-in-user endpoint to the post's own editors.
             authorize! :update, post
