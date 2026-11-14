@@ -91,7 +91,7 @@
   digit. Make sure that the examples fail before the fix.
 - [x] 3.11 Read a part of the dimension with no digit as an empty part in `_media_manager.js`
   (D11).
-- [x] 3.12 Add `spec/features/admin/media_list_file_data_markup_spec.rb`. With
+- [x] 3.12 Add `spec/requests/security/media_list_file_data_markup_spec.rb`. With
   `escape_html_entities_in_json` off, a folder path with a closing `textarea` tag and an `img` tag
   must add no element to the list. Make sure that the example fails before the fix.
 - [x] 3.13 Write the JSON of a file with the HTML escape in `media/_render_file_item.html.erb`

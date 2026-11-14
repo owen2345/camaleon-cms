@@ -82,7 +82,7 @@ before the fix.
 
 A probe turned the JSON setting off and stored an image in a folder path with a closing `textarea`
 tag and an `img` tag. The list added an `img` element from that path.
-`spec/features/admin/media_list_file_data_markup_spec.rb` fails before the fix.
+`spec/requests/security/media_list_file_data_markup_spec.rb` fails before the fix.
 
 ## What Changes
 
@@ -147,9 +147,10 @@ None.
   `spec/features/admin/post_featured_image_markup_spec.rb`,
   `spec/features/admin/custom_field_group_help_markup_spec.rb`,
   `spec/features/admin/front_cache_post_type_markup_spec.rb`,
+  `spec/features/admin/custom_field_group_field_name_markup_spec.rb`,
   `spec/features/admin/media_upload_file_name_markup_spec.rb`,
-  `spec/features/admin/media_list_file_data_markup_spec.rb`,
-  `spec/features/admin/js_translation_value_spec.rb` and
+  `spec/features/admin/js_translation_value_spec.rb`,
+  `spec/requests/security/media_list_file_data_markup_spec.rb` and
   `spec/requests/admin/title_escaping_spec.rb`
 - `docs/upgrading-to-2.9.5.md`
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of `tagEditor`, and no sibling checkout of a
