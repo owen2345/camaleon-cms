@@ -2,8 +2,9 @@
 
 ## Why
 
-A row of `Meta`, `CustomField`, `CustomFieldGroup` or `CustomFieldsRelationship` stores the short
-name of its owner class in `object_class`, such as `Post`. `CamaleonRecord.polymorphic_class_for`
+A row of `Meta`, `CustomFieldGroup` or `CustomFieldsRelationship` stores the short name of its
+owner class in `object_class`, such as `Post`. A `CustomFieldGroup` row can also store a placement
+name, such as `PostType_Post`. `CamaleonRecord.polymorphic_class_for`
 gave this name to Rails first, and Rails finds it as a top-level constant. In a host app with its
 own `Post` model, the `owner` of a meta of a Camaleon post was then a record of the host. The same
 applies to `Site`, `Theme`, `Category`, `PostTag`, `PostType`, `NavMenuItem` and each other model

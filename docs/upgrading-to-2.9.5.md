@@ -847,8 +847,9 @@ dashboard.
 
 ### A short owner name resolves to the Camaleon class
 
-A meta row, a custom field, a field group and a custom-field value store the short name of their
-owner class in `object_class`, such as `Post`. Before, Rails read this name as a top-level class
+A meta row, a field group and a custom-field value store the short name of their owner class in
+`object_class`, such as `Post`. A field group can also store a placement name, such as
+`PostType_Post`. Before, Rails read this name as a top-level class
 first. In a host app with its own `Post` model, the `owner` of a meta of a Camaleon post was then
 a record of the host. Now `owner` tries the Camaleon class first: the configured user class for
 `User`, the `CamaleonCms::Widget` class for `Main`, `Sidebar` and `Assigned`, else the
