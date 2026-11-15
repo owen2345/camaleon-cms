@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** The `owner` of a meta or custom-field row is now the Camaleon record also when the host app has a top-level model of the same name, such as `Post`, `Category` or `User`. A name with `::`, or with no Camaleon model, does not change. [#1346](https://github.com/owen2345/camaleon-cms/pull/1346).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-short-owner-name-resolves-to-the-camaleon-class).
+
 - **Bug fix:** A reload of the routes, for example after the save of a post type, now waits until the requests that run are done. Before, a request on another thread could get a 500. [#1347](https://github.com/owen2345/camaleon-cms/pull/1347).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-reload-of-the-routes-waits-for-the-requests).
 
