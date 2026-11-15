@@ -11,7 +11,7 @@ The requirement "Untrusted input is rejected, never transformed" of `security-ca
 **Goals:**
 
 - One dispatch, in `gate_rejection_reason`, for the validation and for the audit task, as today.
-- The trust of a non-admin follows the permission that allows the save of the owner.
+- The trust of a non-admin follows the trust rule of `docs/security/permissions.md` (D5). The permission of another save, such as `nav_menu` or `widgets`, gives no trust.
 
 **Non-Goals:**
 
