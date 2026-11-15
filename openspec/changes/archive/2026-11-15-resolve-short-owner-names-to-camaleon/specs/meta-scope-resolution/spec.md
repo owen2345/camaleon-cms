@@ -9,8 +9,9 @@ that name before it tries a top-level constant. `User` SHALL resolve to the conf
 `Main`, `Sidebar` and `Assigned` to their `CamaleonCms::Widget` classes, and another name to
 the `CamaleonCms` Active Record model of that name. A name with `::`, and a short name with no
 `CamaleonCms` Active Record model, MUST resolve as Rails resolves it. When Rails finds no class, the
-legacy fallback MUST resolve it: `PostType_Post` to
-`CamaleonCms::PostType`, and a marker such as `_fields` to nil.
+legacy fallback MUST try it: it resolves `PostType_Post` to
+`CamaleonCms::PostType`, and a marker such as `_fields` to nil. A name that the fallback does not
+find either, such as `NoSuchOwner`, MUST raise `NameError`.
 
 #### Scenario: A host model has the name of a Camaleon model
 

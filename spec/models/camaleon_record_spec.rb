@@ -16,6 +16,10 @@ RSpec.describe CamaleonRecord, type: :model do
       expect(described_class.polymorphic_class_for('_fields')).to be_nil
     end
 
+    it 'raises NameError for a name that neither Rails nor the legacy fallback finds' do
+      expect { described_class.polymorphic_class_for('NoSuchOwner') }.to raise_error(NameError)
+    end
+
     context 'when the host app defines a top-level class with the name of a Camaleon model' do
       %w[Post Site Theme Category PostTag PostType NavMenuItem NavMenu CustomField CustomFieldGroup].each do |name|
         it "resolves '#{name}' to CamaleonCms::#{name}" do
