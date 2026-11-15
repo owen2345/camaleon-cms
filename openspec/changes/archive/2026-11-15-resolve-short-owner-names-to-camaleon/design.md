@@ -45,7 +45,20 @@ nested model that the map does not list thus fails in CI.
   without eager loading, a class that has not loaded is not in the registry, so the result
   depends on the load order.
 
+**D5. Each subclass of `CamaleonRecord` gets the lookup.** `polymorphic_name` writes the short name
+of a Camaleon record in each table, also in the table of a plugin model. The lookup reads these
+names back in each table too. A plugin model that points at Camaleon posts gets the Camaleon post,
+also when the host app has a top-level `Post`.
+
+- *Alternative: the lookup only in `Meta`, `CustomField` and `CustomFieldsRelationship`.* Rejected:
+  a plugin model that points at Camaleon records then gets the host class of the same name.
+
 ## Risks / Trade-offs
+
+- A plugin model can point a polymorphic association at a top-level host class with the short name
+  of a Camaleon model. An example is a host `User` that is not the configured user class. That
+  association now gives the Camaleon record. No known plugin has a polymorphic association. Such a
+  plugin model defines its own `polymorphic_class_for`, and the upgrade note gives it.
 
 - A host model that is not a Camaleon model and stores Camaleon metas under a short name of a
   Camaleon model now reads the Camaleon record as the owner. A check of the known plugins, themes

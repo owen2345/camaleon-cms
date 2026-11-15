@@ -45,6 +45,7 @@ what theme/plugin developers should know.
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
 | Has a top-level model, other than the configured user class, with the short name of a Camaleon model, such as `Post`, `Category`, `Site`, `User` or `Main` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value whose `owner` is a record of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
+| Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 
 ---
 
@@ -870,6 +871,17 @@ association, not through `owner`.
 
 Also check each `after_touch` callback of a plugin or host model with custom-field values. The
 callback now runs after each save of a value whose `owner` is a record of that model.
+
+Each subclass of `CamaleonRecord` gets this lookup, also a plugin model. In a plugin model, a
+polymorphic association to a top-level host model with a Camaleon model name now gives the Camaleon
+record. An example is a host `User` that is not the configured user class. To keep the host
+record, define this method in the plugin model:
+
+```ruby
+def self.polymorphic_class_for(name)
+  name.constantize
+end
+```
 
 ---
 

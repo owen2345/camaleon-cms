@@ -66,6 +66,11 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   # name as a top-level constant first, so a host model of the same name would become the owner. This
   # method tries the Camaleon class first. A name with '::', or with no Camaleon model, such as the class
   # of a plugin, resolves as Rails resolves it. A name that Rails does not find goes to the legacy fallback.
+  # Each subclass of CamaleonRecord gets this lookup, also a plugin model (intended): polymorphic_name
+  # writes the short Camaleon names in each table. In a polymorphic association of a plugin model, a stored
+  # 'User' gives the configured user class, also when the host app has a top-level User. A plugin model
+  # whose association points at a top-level host class defines its own polymorphic_class_for that returns
+  # name.constantize.
   def self.polymorphic_class_for(name)
     camaleon_polymorphic_class(name) || super
   rescue NameError

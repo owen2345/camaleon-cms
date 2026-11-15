@@ -14,6 +14,8 @@ legacy fallback MUST try it: it resolves `PostType_Post` to
 find either, such as `NoSuchOwner`, MUST raise `NameError`.
 When the configured user class does not exist, `User` resolves as Rails resolves it, and then
 through the legacy fallback.
+The lookup SHALL apply to each subclass of `CamaleonRecord`, also to a plugin model, because
+`polymorphic_name` writes the short Camaleon names in each table.
 
 #### Scenario: A host model has the name of a Camaleon model
 
@@ -53,6 +55,13 @@ through the legacy fallback.
 
 - **WHEN** a name has `::`, such as `Plugins::Shop::Post`
 - **THEN** it resolves to the class of that name
+
+#### Scenario: A polymorphic association of a plugin model
+
+- **WHEN** a plugin model that inherits `CamaleonRecord` has a polymorphic association, and a row
+  stores the type `User`
+- **THEN** it resolves to the configured user class, also when the host app defines a top-level
+  `User` class
 
 ### Requirement: The save of a custom-field value touches its owner
 
