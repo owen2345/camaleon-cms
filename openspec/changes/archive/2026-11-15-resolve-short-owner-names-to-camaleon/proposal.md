@@ -38,8 +38,8 @@ _None._
 - `app/models/camaleon_record.rb`, `spec/models/camaleon_record_spec.rb`.
 - `app/models/camaleon_cms/custom_fields_relationship.rb`,
   `spec/models/custom_field_value_owner_touch_spec.rb`.
-- A widget, a plugin model or a host model now gets a touch after each save of its custom-field
-  values, and runs its `after_touch` callbacks.
+- A widget, a plugin record or a host record that `owner` gives now gets a touch after each save
+  of its custom-field values. Each touch runs the `after_touch` callbacks of the record.
 - A host app with a top-level class of the same name as a Camaleon model. Such a host model that
   stores Camaleon metas under its own short name now reads the Camaleon record as their owner. No
   known plugin or theme does this.
