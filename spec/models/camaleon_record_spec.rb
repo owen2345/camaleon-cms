@@ -39,6 +39,13 @@ RSpec.describe CamaleonRecord, type: :model do
         expect(described_class.polymorphic_class_for('User')).to eq(HostAdmin)
       end
 
+      it "resolves 'User' to the host User when the configured user class does not exist" do
+        stub_const('User', Class.new)
+        allow(CamaManager).to receive(:get_user_class_name).and_return('MissingHostAdmin')
+
+        expect(described_class.polymorphic_class_for('User')).to eq(User)
+      end
+
       it 'gives the Camaleon post as the owner of a meta of that post' do
         post = create(:post)
         post.set_meta('host_owner_check', 'value')
@@ -53,6 +60,12 @@ RSpec.describe CamaleonRecord, type: :model do
         expect(meta.owner).to eq(post)
         expect(CamaleonCms::Meta.includes(:owner).find(meta.id).owner).to eq(post)
       end
+    end
+
+    it "resolves 'User' to CamaleonCms::User when the configured user class does not exist" do
+      allow(CamaManager).to receive(:get_user_class_name).and_return('MissingHostAdmin')
+
+      expect(described_class.polymorphic_class_for('User')).to eq(CamaleonCms::User)
     end
 
     it "resolves the widget scope 'Main' to CamaleonCms::Widget::Main" do
