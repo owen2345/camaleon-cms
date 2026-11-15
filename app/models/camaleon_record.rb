@@ -22,6 +22,11 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   TRANSLATION_TAG_RESTORE_REGEX =
     Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
 
+  # The short owner name of each Camaleon model in a nested namespace (polymorphic_name), with its class.
+  # 'CamaleonCms::Main' does not exist, so the name alone does not find the class. Add a nested model
+  # here when it stores metas or custom fields.
+  NESTED_POLYMORPHIC_CLASSES = { 'Main' => 'CamaleonCms::Widget::Main' }.freeze
+
   self.abstract_class = true
 
   # What a record memoized before its first save was read before the INSERT stored it, so the save drops it,
@@ -182,11 +187,12 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     nil
   end
 
-  # The Camaleon class of a short owner name: the user class for 'User', else the CamaleonCms model of
-  # that name. Nil for another name.
+  # The Camaleon class of a short owner name: the user class for 'User', the nested model of a name in
+  # NESTED_POLYMORPHIC_CLASSES, else the CamaleonCms model of that name. Nil for another name.
   private_class_method def self.camaleon_polymorphic_class(name)
     class_name = name.to_s
     return CamaManager.get_user_class_name.to_s.safe_constantize if class_name == 'User'
+    return NESTED_POLYMORPHIC_CLASSES[class_name].safe_constantize if NESTED_POLYMORPHIC_CLASSES.key?(class_name)
     return unless class_name.match?(/\A[A-Z]\w*\z/)
 
     klass = "CamaleonCms::#{class_name}".safe_constantize

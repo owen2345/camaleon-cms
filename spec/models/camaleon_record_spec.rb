@@ -55,6 +55,25 @@ RSpec.describe CamaleonRecord, type: :model do
       end
     end
 
+    it "resolves the widget scope 'Main' to CamaleonCms::Widget::Main" do
+      expect(described_class.polymorphic_class_for('Main')).to eq(CamaleonCms::Widget::Main)
+    end
+
+    it "resolves 'Main' to the widget class also when the host app defines a top-level Main" do
+      stub_const('Main', Class.new)
+
+      expect(described_class.polymorphic_class_for('Main')).to eq(CamaleonCms::Widget::Main)
+    end
+
+    it 'gives the widget as the owner of a meta of that widget' do
+      widget = create(:site).widgets.create!(name: 'Owner widget', slug: 'owner-widget')
+      widget.set_meta('widget_owner_check', 'value')
+
+      meta = CamaleonCms::Meta.find_by!(object_class: 'Main', objectid: widget.id, key: 'widget_owner_check')
+
+      expect(meta.owner).to eq(widget)
+    end
+
     it 'resolves a short name with no Camaleon model to the top-level class' do
       stub_const('HostDownload', Class.new)
 

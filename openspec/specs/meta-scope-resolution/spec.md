@@ -113,8 +113,9 @@ the re-keyed count, or the no-op, on standard output.
 ### Requirement: A short scope name resolves to the Camaleon owner class
 
 `CamaleonRecord.polymorphic_class_for` SHALL resolve a short scope name to the Camaleon class of
-that name before it tries a top-level constant: `User` to the configured user class, and another
-name to the `CamaleonCms` Active Record model of that name. A name with `::`, and a short name with
+that name before it tries a top-level constant. `User` SHALL resolve to the configured user class,
+`Main` to `CamaleonCms::Widget::Main`, and another name to the `CamaleonCms` Active Record model of
+that name. A name with `::`, and a short name with
 no `CamaleonCms` Active Record model, MUST resolve as Rails resolves it.
 
 #### Scenario: A host model has the name of a Camaleon model
@@ -128,6 +129,12 @@ no `CamaleonCms` Active Record model, MUST resolve as Rails resolves it.
 - **WHEN** the host app defines a top-level `User` class, and the configured user class is another
   class
 - **THEN** `User` resolves to the configured user class
+
+#### Scenario: The widget scope name
+
+- **WHEN** a meta row of a widget has the `object_class` `Main`, also when the host app defines a
+  top-level `Main` class
+- **THEN** the `owner` of that row is the widget
 
 #### Scenario: A short name with no Camaleon model
 

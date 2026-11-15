@@ -851,7 +851,8 @@ A meta row, a custom field, a field group and a custom-field value store the sho
 owner class in `object_class`, such as `Post`. Before, Rails read this name as a top-level class
 first. In a host app with its own `Post` model, the `owner` of a meta of a Camaleon post was then
 a record of the host. Now `owner` tries the Camaleon class first: the configured user class for
-`User`, else the `CamaleonCms` model of that name. A name with `::`, and a short name with no
+`User`, `CamaleonCms::Widget::Main` for `Main`, else the `CamaleonCms` model of that name. Before,
+the `owner` of a widget meta raised `NameError`. A name with `::`, and a short name with no
 `CamaleonCms` model, such as `Ability`, resolve as before.
 
 **Who must act:** a host app with a model that is not a Camaleon model, has the short name of a
