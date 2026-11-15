@@ -110,5 +110,19 @@ RSpec.describe CamaleonRecord, type: :model do
       expect(described_class.polymorphic_class_for('Plugins::HostShop::Post')).to eq(Plugins::HostShop::Post)
       expect(described_class.polymorphic_class_for('CamaleonCms::Post')).to eq(CamaleonCms::Post)
     end
+
+    # A nested model with metas that NESTED_POLYMORPHIC_CLASSES does not list makes this example fail with
+    # a NameError for its scope name.
+    it 'resolves the scope name of each Camaleon model with metas to that model' do
+      Rails.autoloaders.main.eager_load_namespace(CamaleonCms)
+      models = described_class.descendants.select do |model|
+        model.name.to_s.start_with?('CamaleonCms::') && model.reflect_on_association(:metas)
+      end
+
+      expect(models).to include(CamaleonCms::Post, CamaleonCms::Widget::Main, CamaleonCms::Widget::Assigned)
+      models.each do |model|
+        expect(described_class.polymorphic_class_for(model.name.demodulize)).to eq(model), model.name
+      end
+    end
   end
 end
