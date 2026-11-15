@@ -41,6 +41,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
+| Has editors or contributors who store markup in a plain custom field (`text_box`, `text_area`), or a role with `settings` or `theme_settings` | Such an author is now refused markup outside the content allowlist in a field of any kind. A role with `settings` or `theme_settings` can store any markup in the site or theme fields. Run the scan task ([details](#a-custom-field-value-of-every-kind-is-scanned-at-save)) |
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
 | Has authors who saw a server error on a save of deeply nested content, or of an element with many attributes | Nothing. The save is now refused with the message for disallowed markup ([details](#content-past-the-limits-of-the-markup-parser-is-refused)) |
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
@@ -217,6 +218,23 @@ This release stores the checked options.
 **Action:** this release does not restore the options that those saves removed. Review the records
 with a checkboxes field that a user saved through an admin form on 2.9.2 to 2.9.4. Check their options
 again. Code that calls `set_field_value` or `save_field_value` stored its values correctly.
+
+---
+
+## A custom field value of every kind is scanned at save
+
+Before, the save scanned only the values of the `editor`, `field_attrs` and URL kinds. So a `text_box` value, or a value of another kind, could hold a `<script>`. The `data` shortcode puts such a value into a page as markup, and the script ran there.
+
+Now the save scans the value of every kind for an author who is not trusted. A value with markup outside the post-content allowlist is refused, and the author sees an error that names the field. Plain text and allowed formatting, such as `a < b & c` or `<b>bold</b>`, are stored as written. A value such as `Fish & Chips <today>` is refused.
+
+These authors are trusted:
+
+- An administrator, for each value.
+- A role with `post_content_unfiltered_html` for a post type, for the fields of its posts.
+- A role with `settings`, for the fields of the site. This is new.
+- A role with `theme_settings`, for the fields of a theme. This is new.
+
+**Action:** run `bundle exec rake camaleon_cms:security:scan_content`. It now lists a stored value of any kind that the scan refuses. Stored values do not change. A plugin that saves such a value from a job or a rake task sets the request context first. [Background jobs and console usage](security/permissions.md#background-jobs-and-console-usage) shows how.
 
 ---
 

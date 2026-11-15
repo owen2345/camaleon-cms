@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-# Security (audit 2026-08-11 M17, scan-and-reject policy): the frontend renders an `editor`
-# custom-field value verbatim and URI-type values into href/src, so a value an untrusted author may
-# not write is refused on save -- never rewritten. Trusted authors (admins, or a role holding
-# post_content_unfiltered_html for the post type) store exactly what they wrote. Field types that
-# render through escaping ERB as element content carry no gate.
+# The frontend renders an `editor` custom-field value verbatim, and URI-type values into href and
+# src. The data shortcode puts a value of any kind into the page as markup. So the save refuses a
+# value that an untrusted author may not write, for every kind, and never rewrites it. Trusted
+# authors (admins, or a role holding post_content_unfiltered_html for the post type) store exactly
+# what they wrote.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   let(:post_type) { installed_post_type }
   let(:site) { post_type.site }
@@ -97,6 +97,14 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /script-capable URL/)
     end
 
+    it 'refuses markup in a URL from an untrusted author' do
+      as_user(contributor)
+
+      expect { post.set_field_value('link', 'https://example.com/"><script>alert(1)</script>') }
+        .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(post.get_field_value('link')).to be_blank
+    end
+
     it 'stores an ordinary URL' do
       as_user(contributor)
 
@@ -106,13 +114,22 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  describe 'escaped element-content positions' do
-    it 'carries no gate for values the renderer escapes' do
+  describe 'text_box values (shown as markup by the data shortcode)' do
+    it 'refuses a script value from an untrusted author and stores nothing' do
       as_user(contributor)
 
-      post.set_field_value('note', script)
+      expect { post.set_field_value('note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(post.get_field_value('note')).to be_blank
+    end
 
-      expect(post.get_field_value('note')).to eq(script)
+    it 'stores plain text and allowed markup from an untrusted author unchanged' do
+      as_user(contributor)
+
+      ['a < b & c', '<b>bold</b>'].each do |value|
+        post.set_field_value('note', value)
+
+        expect(post.get_field_value('note')).to eq(value)
+      end
     end
   end
 
@@ -297,18 +314,96 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # Audit: set_field_values took custom_field_id straight from the client-supplied values[:id]. A
-  # forged non-gated id on a gated slug made the gate read the wrong field_key and skip the scan, so
-  # markup reached a verbatim-rendered slug. The id is now resolved from the trusted slug instead.
+  # A holder of `settings` is trusted for the fields of the site, and a holder of `theme_settings` for
+  # the fields of a theme. These are the permissions of the saves that write the values. For every
+  # other owner that is not a post, only an admin is trusted.
+  describe 'trust for the fields of the site and of a theme' do
+    let(:manager_role) { site.user_roles.create!(name: 'Manager', slug: 'field_mgr') }
+    let(:manager) { create(:user, role: manager_role.slug, site: site) }
+    let(:theme) { site.decorate.get_theme }
+
+    before do
+      site.custom_field_groups.create!(name: 'Site', slug: '_site-extra', object_class: 'Site', objectid: site.id)
+          .add_manual_field({ name: 'Site note', slug: 'site_note' }, { field_key: 'text_box' })
+      theme.add_field_group({ name: 'Theme', slug: '_theme-extra' })
+           .add_manual_field({ name: 'Theme note', slug: 'theme_note' }, { field_key: 'text_box' })
+    end
+
+    def grant(*permissions)
+      manager_role.set_meta("_manager_#{site.id}", permissions.index_with(1))
+      as_user(manager)
+    end
+
+    it 'refuses a script theme field value for a holder of settings without theme_settings' do
+      grant('settings')
+
+      expect { theme.set_field_value('theme_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(theme.get_field_value('theme_note')).to be_blank
+    end
+
+    it 'refuses a script category field value for a holder of settings and theme_settings' do
+      post_type.add_custom_field_group({ name: 'Cat', slug: 'cat-extra' }, 'Category')
+               .add_manual_field({ name: 'Cat note', slug: 'cat_note' }, { field_key: 'text_box' })
+      category = post_type.categories.create!(name: 'Cat', slug: 'cat-trust')
+      grant('settings', 'theme_settings')
+
+      expect { category.set_field_value('cat_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(category.get_field_value('cat_note')).to be_blank
+    end
+
+    it 'refuses a script field value of another site for a holder of settings' do
+      other = CamaleonCms::Site.create!(name: 'Other', slug: 'other-trust', taxonomy: 'site')
+      other.custom_field_groups.create!(name: 'Other', slug: '_other-extra', object_class: 'Site', objectid: other.id)
+           .add_manual_field({ name: 'Other note', slug: 'other_note' }, { field_key: 'text_box' })
+      grant('settings')
+
+      expect { other.set_field_value('other_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+    end
+
+    it 'refuses a script site or theme field value without a request context' do
+      expect { site.set_field_value('site_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect { theme.set_field_value('theme_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+    end
+
+    it 'stores a script site field value for a holder of settings' do
+      grant('settings')
+
+      site.set_field_value('site_note', script)
+
+      expect(site.get_field_value('site_note')).to eq(script)
+    end
+
+    it 'stores a script theme field value for a holder of theme_settings' do
+      grant('theme_settings')
+
+      theme.set_field_value('theme_note', script)
+
+      expect(theme.get_field_value('theme_note')).to eq(script)
+    end
+  end
+
+  # set_field_values took custom_field_id straight from the client-supplied values[:id]. A forged id
+  # of another kind made the gate read the wrong field_key and use the wrong rules. The id is now
+  # resolved from the trusted slug instead.
   describe 'forged custom_field_id' do
-    it 'still gates a markup slug when the client forges a non-gated custom_field_id' do
+    it 'still gates a markup slug when the client forges the custom_field_id of a text_box' do
       as_user(contributor)
-      forged_id = post.get_field_object('note').id # a non-gated text_box field
+      forged_id = post.get_field_object('note').id
 
       datas = { '0' => { 'body' => { id: forged_id, values: { '0' => script } } } }
 
       expect { post.set_field_values(datas) }.to raise_error(ActiveRecord::RecordInvalid)
       expect(post.custom_field_values.where(custom_field_slug: 'body')).not_to exist
+    end
+
+    it 'keeps the URL rule of a url slug when the client forges the custom_field_id of a text_box' do
+      as_user(contributor)
+      forged_id = post.get_field_object('note').id
+
+      datas = { '0' => { 'link' => { id: forged_id, values: { '0' => 'javascript:alert(1)' } } } }
+
+      expect { post.set_field_values(datas) }.to raise_error(ActiveRecord::RecordInvalid, /script-capable URL/)
+      expect(post.custom_field_values.where(custom_field_slug: 'link')).not_to exist
     end
 
     it 'records the value against the field the slug names, ignoring the forged id' do

@@ -70,7 +70,7 @@ namespace :camaleon_cms do
         report.call "✗ Post id=#{post.id} (#{post.post_class}): could not be scanned (#{e.class}); review its metas"
       end
 
-      # Reuse the model's own gate dispatch (which covers editor, field_attrs and URI field types),
+      # Reuse the model's own gate dispatch (which covers every field kind),
       # so the scan can never diverge from what the save-time validation would refuse.
       CamaleonCms::CustomFieldsRelationship.unscoped.where.not(value: [nil, ''])
                                            .includes(:custom_field).find_each do |row|

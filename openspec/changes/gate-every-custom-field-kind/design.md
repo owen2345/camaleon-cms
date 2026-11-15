@@ -1,0 +1,54 @@
+## Context
+
+See `proposal.md`, "Why". `CustomFieldsRelationship#reject_untrusted_dangerous_value` returns early for a kind that is not in `GATED_FIELD_KEYS`. The class method `gate_rejection_reason` picks the rule by kind, and the `scan_content` rake task calls the same method. `author_trusted_for_unfiltered_value?` trusts an admin, and a holder of `post_content_unfiltered_html` for the fields of a post. For every other owner it trusts only an admin.
+
+The path of the defect is `cama_shortcode_data`. It returns `the_field` or `the_fields`, which give a plain `String`. `do_shortcode` puts that `String` into the content, and the theme prints the content with `raw`. The `render_field` branch of the shortcode is safe: it renders a template that escapes the value. Themes outside Camaleon also print a field value with `raw`, for example `raw(post.the_field("map"))` in the `cv` theme of camaleon_website.
+
+The requirement "Untrusted input is rejected, never transformed" of `security-capability-gating` stays as it is. A value that only reaches escaped positions still needs no gate. A custom field value is not such a value, because the `data` shortcode can put it into a raw position.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- One dispatch, in `gate_rejection_reason`, for the validation and for the audit task, as today.
+- The trust of a non-admin follows the permission that allows the save of the owner.
+
+**Non-Goals:**
+
+- A per-kind rule set for kinds that are not markup.
+- A change of the shortcode, the custom field templates or a theme.
+
+## Decisions
+
+**D1. The markup rule for every kind except `field_attrs`.** The rule is the one that `editor` uses today: `UnsafeMarkup.unsafe_html?` with the post-content allowlist. The same untrusted author is held to the same rule for the post content, so the rule is not new to that author.
+
+A probe in the dummy app gave these verdicts. Pass: `a < b & c`, `x > y`, `5 <3 you`, `<b>bold</b>`, `https://x.test/p?a=1&b=2`, `#ff0000`, `2026-11-15`. Refuse: `Fish & Chips <today>`, `<iframe src=x></iframe>`.
+
+- Alternative: a narrow rule for kinds that are not markup (script elements, event handlers, script URLs). The contact-form gate uses such a rule for a visitor. It refuses less plain text, but it lets an `<iframe>` or a `<form>` into the page through the shortcode. A second rule is also a second thing to keep in parity. Rejected.
+
+**D2. A URL kind gets the markup rule and the URL rule.** `[data field='link']` puts a URL value into the content as markup, so `https://x.test/"><script>…` must be refused. The URL rule stays for the `href` and `src` positions of the templates. An ordinary URL passes the markup rule (D1 probe).
+
+**D3. `field_attrs` keeps its member scan.** The stored JSON escapes `<` as a Unicode escape, which a browser shows as text. Each decoded member is already held to the markup rule.
+
+**D4. `GATED_FIELD_KEYS` and `gated_field_key?` go away.** Every kind is gated, so the early return in the validation goes too. `MARKUP_FIELD_KEYS` goes as well, since the markup rule is the default. `URI_FIELD_KEYS` and `JSON_MARKUP_FIELD_KEYS` stay.
+
+A search of the sibling plugin and theme checkouts finds no caller of the removed constants or of `gated_field_key?`. The constants are not a documented API (`docs/ai/ecosystem.md`).
+
+**D5. Trust by owner.** The maintainer chose to align the check with the trust rule of `docs/security/permissions.md` (2026-11-15).
+
+- A `CamaleonCms::Site` owner: `can?(:manage, :settings)`. `Admin::SettingsController#site_saved` writes these values, and `validate_role` authorizes it on `settings`.
+- A `CamaleonCms::Theme` owner: `can?(:manage, :theme_settings)`. `save_theme` writes these values, and `validate_role_theme` authorizes it on `theme_settings`. A `settings` holder without `theme_settings` cannot reach that save, so `settings` does not trust a theme field.
+- Every other owner that is not a post: admin only, as today. The maintainer was asked only about the site and theme fields. Category, post tag, user, nav menu item and post type fields stay with an administrator.
+- The check asks `CamaleonCms::Ability` for the site in `CurrentRequest`, and it fails closed as the post branch does. The permission holds for that site only, so the site or the theme must belong to it.
+
+**D6. The error message stays `value_rejected_html`.** It names the field and the remedy, and it already fits a value of any kind.
+
+## Risks / Trade-offs
+
+- [An untrusted author who stored `Fish & Chips <today>` in a `text_box` gets a refusal at the next change of that value.] → An unchanged value is not checked again on an unrelated edit (the requirement "An unchanged pre-gate value does not block an unrelated edit"). The changelog names the change. `scan_content` lists the stored values that the scan now refuses.
+- [A plugin that writes a value of any kind from a job, with no request context, now gets the scan.] → The value passes when it holds no unsafe markup. A plugin calls `unfiltered_value!` to skip the scan, as it does today for `editor`.
+- [`scan_content` lists more rows on an install with markup in plain fields.] → The task is read-only. The upgrade note says so.
+
+## Migration Plan
+
+No data migration. Stored values do not change. An operator runs `rake camaleon_cms:security:scan_content` to list the values that the scan now refuses.

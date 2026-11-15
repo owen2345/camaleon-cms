@@ -15,15 +15,12 @@ module CamaleonCms
     # validates :objectid, :custom_field_id, presence: true
     validates :custom_field_id, presence: true # error on clone model
 
-    # Rendered positions that need a save-time gate (audit M17, scan-and-reject policy). An
-    # `editor` value is emitted as markup (`raw`); a `field_attrs` value is a JSON pair whose
-    # members are emitted as markup; the URI field types are emitted into href/src. Every other
-    # field type's value renders through escaping ERB as element content, where markup cannot
-    # execute, so it needs no gate.
-    MARKUP_FIELD_KEYS = %w[editor].freeze
+    # The save scans the value of every field kind (scan-and-reject policy). The data shortcode puts
+    # a value of any kind into the page as markup, so each value is held to the post-content
+    # allowlist. A `field_attrs` value is JSON, so the scan reads its decoded members. A URI kind
+    # also goes into href and src, so it is held to the URI rule too.
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
-    GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
     # An author can add a repeatable field group (is_repeat) to a post several times. For example, a
     # "Slide" group holds an image and a caption, and the author adds it one time for each slide.
     # group_number is the index of the slide that a value belongs to: 0 for the first slide, 1 for
@@ -131,8 +128,7 @@ module CamaleonCms
     before_save :raise_group_number_refusal, if: :group_number_unreadable?
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
     # and friends), regardless of field type, so gate a shortcode in ANY value behind
-    # content_shortcodes -- broader than the HTML gate above, which only covers markup/URI field
-    # types.
+    # content_shortcodes.
     gate_content_shortcodes :value
 
     after_save :set_parent_slug
@@ -202,27 +198,21 @@ module CamaleonCms
         valid_group_number?(given)
       end
 
-      # Whether this field type's value is emitted into a markup or URL position (so it is gated).
-      def gated_field_key?(field_key)
-        GATED_FIELD_KEYS.include?(field_key.to_s)
-      end
-
       # Why the save-time gate would refuse this value for the field type, or nil if it passes:
       # :too_large (over the parse ceiling), :html (disallowed markup), :uri (script-capable URL).
       # Ignores author trust, so the validation (trust-gated) and the scan_content rake task (which
       # reports every stored row) share one dispatch and cannot drift.
       def gate_rejection_reason(field_key, value)
         return if value.blank?
+        return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
 
         key = field_key.to_s
-        if MARKUP_FIELD_KEYS.include?(key)
-          markup_rejection_reason(value)
-        elsif JSON_MARKUP_FIELD_KEYS.include?(key)
-          return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
-
+        if JSON_MARKUP_FIELD_KEYS.include?(key)
           :html if json_member_values(value).any? { |member| markup_unsafe?(member) }
-        elsif URI_FIELD_KEYS.include?(key)
-          :uri if CamaleonCms::UnsafeMarkup.dangerous_uri?(value)
+        elsif URI_FIELD_KEYS.include?(key) && CamaleonCms::UnsafeMarkup.dangerous_uri?(value)
+          :uri
+        elsif markup_unsafe?(value)
+          :html
         end
       end
 
@@ -237,12 +227,6 @@ module CamaleonCms
         return false if GroupNumberType.unreadable?(given)
 
         given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
-      end
-
-      def markup_rejection_reason(value)
-        return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
-
-        :html if markup_unsafe?(value)
       end
 
       def markup_unsafe?(value)
@@ -274,17 +258,14 @@ module CamaleonCms
 
     private
 
-    # Security (audit M17): the frontend renders an `editor`/`field_attrs` value verbatim and
-    # URI-type values into URL positions, so a value an untrusted author may not write is refused --
-    # never rewritten. Stored values therefore always equal authored values. The scan/dispatch lives
-    # in the class-level gate_rejection_reason so the scan_content rake task reuses it verbatim.
+    # A value that an untrusted author may not write is refused, never rewritten. So a stored value
+    # always equals the authored value. The dispatch is the class-level gate_rejection_reason, which
+    # the scan_content rake task calls too.
     def reject_untrusted_dangerous_value
       return if value.blank? || unfiltered_value || previously_stored
-
-      field_key = custom_field&.options&.[](:field_key).to_s
-      return unless self.class.gated_field_key?(field_key)
       return if author_trusted_for_unfiltered_value?
 
+      field_key = custom_field&.options&.[](:field_key).to_s
       reason = self.class.gate_rejection_reason(field_key, value)
       return unless reason
 
@@ -354,19 +335,34 @@ module CamaleonCms
       slug.b.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
     end
 
-    # Trust follows the post-content model: an admin may write anything; a post's field values may
-    # skip the gate when the saver holds post_content_unfiltered_html for the post type. Fails
-    # closed (the gate applies) without a request context — benign values still pass the scan.
+    # An admin can write anything. Another role is trusted through the permission that allows the
+    # save of the owner (owner_trust_ability). Fails closed (the gate applies) without a request
+    # context — benign values still pass the scan.
     def author_trusted_for_unfiltered_value?
       user = CurrentRequest.user
       site = CurrentRequest.site
       return false if user.blank? || site.blank?
       return true if user.admin?
 
-      parent = owner
-      return false unless parent.is_a?(CamaleonCms::Post) && parent.post_type.present?
+      ability = owner_trust_ability(site)
+      ability.present? && CamaleonCms::Ability.new(user, site).can?(*ability)
+    end
 
-      CamaleonCms::Ability.new(user, site).can?(:post_content_unfiltered_html, parent.post_type)
+    # The ability that trusts a role for the values of the owner, or nil when only an admin is
+    # trusted:
+    # - a post: post_content_unfiltered_html for its post type, the permission of the post body.
+    # - the current site: settings, the permission of the site settings save.
+    # - a theme of the current site: theme_settings, the permission of the theme settings save.
+    def owner_trust_ability(site)
+      parent = owner
+      case parent
+      when CamaleonCms::Post
+        [:post_content_unfiltered_html, parent.post_type] if parent.post_type.present?
+      when CamaleonCms::Site
+        %i[manage settings] if parent.id == site.id
+      when CamaleonCms::Theme
+        %i[manage theme_settings] if parent.parent_id == site.id
+      end
     end
 
     def set_parent_slug

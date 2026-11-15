@@ -95,9 +95,16 @@ The pieces that implement the rule:
   value rolls the whole save back rather than leaving a half-applied post. Positions the platform
   escapes by default (plain `<%= %>` output of non-markup values) carry no gate — that is the
   platform's normal output encoding, not a remedy.
+- **Every custom field kind is scanned.** A custom field value is not such a position. The `data` shortcode
+  (`[data field='note']`) puts a stored value of any kind into the content. The theme shows that
+  content with `raw`. So the save holds the value of every kind to the post-content allowlist. A URL
+  kind also gets the URL rule, and a `field_attrs` value is scanned by its decoded members.
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its
-  gated field values); no request context means the gate applies. Trusted server-side pipelines
+  field values); no request context means the gate applies. A holder of `settings` also passes for the custom
+  field values of the current site. A holder of `theme_settings` passes for those of a theme of the
+  current site. These are the permissions of the saves that write the values. For every other
+  owner, only an admin passes. Trusted server-side pipelines
   opt out explicitly per record (`Post#unfiltered_content!`,
   `CustomFieldsRelationship#unfiltered_value!` — bang enablers with no writers, unreachable by
   mass assignment).
