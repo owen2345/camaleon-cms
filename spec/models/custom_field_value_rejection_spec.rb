@@ -386,6 +386,33 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
+    # A row names its owner class by a short name, such as 'Post'. Rails finds that class as a top-level
+    # constant first, so a host app with its own Post model gave the trust check a host record.
+    context 'when the host app has a top-level Post model' do
+      before do
+        host_post = Class.new(ActiveRecord::Base) # rubocop:disable Rails/ApplicationRecord
+        host_post.table_name = CamaleonCms::Post.table_name
+        stub_const('Post', host_post)
+      end
+
+      it 'refuses a script post field value for a holder of settings' do
+        grant('settings')
+
+        expect { post.set_field_value('note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+        expect(post.get_field_value('note')).to be_blank
+      end
+
+      it 'stores a script post field value for a holder of post_content_unfiltered_html' do
+        manager_role.set_meta("_post_type_#{site.id}", edit: [post_type.id],
+                                                       post_content_unfiltered_html: [post_type.id])
+        as_user(manager)
+
+        post.set_field_value('note', script)
+
+        expect(post.get_field_value('note')).to eq(script)
+      end
+    end
+
     it 'stores a script theme field value for a holder of theme_settings' do
       grant('theme_settings')
 

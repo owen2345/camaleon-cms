@@ -24,6 +24,9 @@ of the value:
 - For the fields of another site or of its theme, only an admin SHALL bypass the gate. The same
   applies to a value with no owner.
 
+The trust check SHALL find the owner of a value by its Camaleon class. This SHALL hold also when the
+host app has a top-level class of the same name, such as `Post`.
+
 When no request context exists, the gate SHALL apply (fail closed). A trusted server-side pipeline
 opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang enabler with no writer.
 
@@ -72,6 +75,13 @@ opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang 
 
 - **WHEN** a non-admin role that holds only `theme_settings` saves a site or a category field value
   that holds a `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: A top-level Post model of the host app does not change the trust
+
+- **WHEN** the host app has a top-level `Post` model
+- **AND** a non-admin role that holds `settings`, but not `post_content_unfiltered_html`, saves a post
+  field value that holds a `<script>` element
 - **THEN** the save is refused, and no value row is stored
 
 #### Scenario: Missing request context fails closed

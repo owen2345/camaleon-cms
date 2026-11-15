@@ -52,6 +52,12 @@ A search of the sibling plugin and theme checkouts finds no caller of the remove
 
 - Alternative: one `Ability` for each request on `CurrentRequest`. It saves more queries, but `Ability#initialize` loads the role again on purpose, so a cache can read a changed role. Rejected for this change.
 
+**D8. The trust check finds the owner by its Camaleon class.** A row stores the short name of its owner class, such as `Post`. `CamaleonRecord.polymorphic_class_for` tries the top-level constant first. In a host app with its own `Post` model, the trust check then got a host record and used the rule of other owners.
+
+`trust_owner` tries `CamaleonCms::<name>` first, and keeps `owner` for any other name, such as the class of a plugin. The maintainer chose this on 2026-11-15.
+
+- Alternative: try the Camaleon class first in `polymorphic_class_for`, for every model. That also fixes the owner of a meta and of a field group. But a plugin that stores its own top-level class under a name of Camaleon, such as `Category`, then gets the Camaleon class. That needs a check of the plugins first. Rejected for this change.
+
 ## Risks / Trade-offs
 
 - [An untrusted author who stored `Fish & Chips <today>` in a `text_box` gets a refusal at the next change of that value.] → An unchanged value is not checked again on an unrelated edit (the requirement "An unchanged pre-gate value does not block an unrelated edit"). The changelog names the change. `scan_content` lists the stored values that the scan now refuses.

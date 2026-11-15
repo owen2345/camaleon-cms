@@ -13,6 +13,7 @@
 - [x] 2.2 Add model examples to `spec/models/custom_field_value_rejection_spec.rb`. A role with `settings` and no `theme_settings` is refused a script theme field value. The authorization of the theme save stops such a role before the scan, so only a model example reaches the check. A role with `settings` and `theme_settings` is refused a script category field value. With no request context, a script site or theme field value is refused.
 - [x] 2.3 Extend `author_trusted_for_unfiltered_value?` for a `CamaleonCms::Site` and a `CamaleonCms::Theme` owner (D5). Verify that the specs of 2.1 and 2.2 pass.
 - [x] 2.4 Trust a holder of `settings` or `custom_fields` for the fields of each owner that is not a post (D5). Change the model examples of 2.2: such a role stores a script theme and category field value, and is refused a script post field value. A role with only `theme_settings` is refused a script site or category field value.
+- [x] 2.5 Find the owner by its Camaleon class in the trust check (D8). Add model examples for a host app with a top-level `Post` model. A role with `settings` is refused a script post field value, and a role with `post_content_unfiltered_html` stores one. Make sure that the two examples fail before the fix.
 
 ## 3. Docs
 
