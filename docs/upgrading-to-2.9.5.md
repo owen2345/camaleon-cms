@@ -225,14 +225,14 @@ again. Code that calls `set_field_value` or `save_field_value` stored its values
 
 Before, the save scanned only the values of the `editor`, `field_attrs` and URL kinds. So a `text_box` value, or a value of another kind, could hold a `<script>`. The `data` shortcode puts such a value into a page as markup, and the script ran there.
 
-Now the save scans the value of every kind for an author who is not trusted. A value with markup outside the post-content allowlist is refused, and the author sees an error that names the field. Plain text and allowed formatting, such as `a < b & c` or `<b>bold</b>`, are stored as written. A value such as `Fish & Chips <today>` is refused.
+Now the save scans the value of every kind for an author who is not trusted. A value with markup outside the post-content allowlist is refused, and the author sees an error that names the field. A `<` before a letter starts a tag. So `x<y`, `John <john@example.com>` and `Fish & Chips <today>` are refused, because their tags are outside the allowlist. A `<` that starts no tag, as in `a < b & c`, and allowed formatting, such as `<b>bold</b>`, are stored as written.
 
 These authors are trusted:
 
 - An administrator, for each value.
 - A role with `post_content_unfiltered_html` for a post type, for the fields of its posts.
-- A role with `settings` or `custom_fields`, for the fields of each owner that is not a post. Examples are the site, a theme and a category. This is new.
-- A role with `theme_settings`, for the fields of a theme. This is new.
+- A role with `settings` or `custom_fields`, for the fields of each owner that is not a post, except another site and its themes. Examples are the current site, its theme and a category. This is new.
+- A role with `theme_settings`, for the fields of a theme of the current site. This is new.
 
 **Action:** run `bundle exec rake camaleon_cms:security:scan_content`. It now lists a stored value of any kind that the scan refuses. Stored values do not change. A plugin that saves such a value from a job or a rake task sets the request context first. [Background jobs and console usage](security/permissions.md#background-jobs-and-console-usage) shows how.
 
