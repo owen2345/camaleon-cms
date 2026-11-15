@@ -50,8 +50,12 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     name.demodulize
   end
 
+  # A row stores the short name of a Camaleon owner, such as 'Post' (polymorphic_name). Rails finds that
+  # name as a top-level constant first, so a host model of the same name would become the owner. This
+  # method tries the Camaleon class first. A name with '::', or with no Camaleon model, such as the class
+  # of a plugin, resolves as Rails resolves it.
   def self.polymorphic_class_for(name)
-    super
+    camaleon_polymorphic_class(name) || super
   rescue NameError
     legacy_class = legacy_camaleon_polymorphic_class(name)
     return legacy_class if legacy_class
@@ -179,6 +183,17 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
     nil
   end
+  # The Camaleon class of a short owner name: the user class for 'User', else the CamaleonCms model of
+  # that name. Nil for another name.
+  private_class_method def self.camaleon_polymorphic_class(name)
+    class_name = name.to_s
+    return CamaManager.get_user_class_name.to_s.safe_constantize if class_name == 'User'
+    return unless class_name.match?(/\A[A-Z]\w*\z/)
+
+    klass = "CamaleonCms::#{class_name}".safe_constantize
+    klass if klass.is_a?(Class) && klass < ActiveRecord::Base
+  end
+
   private_class_method def self.legacy_polymorphic_marker?(name)
     name.to_s.start_with?('_')
   end

@@ -15,5 +15,55 @@ RSpec.describe CamaleonRecord, type: :model do
     it 'ignores internal marker polymorphic names' do
       expect(described_class.polymorphic_class_for('_fields')).to be_nil
     end
+
+    context 'when the host app defines a top-level class with the name of a Camaleon model' do
+      %w[Post Site Theme Category PostTag PostType NavMenuItem NavMenu CustomField CustomFieldGroup].each do |name|
+        it "resolves '#{name}' to CamaleonCms::#{name}" do
+          stub_const(name, Class.new)
+
+          expect(described_class.polymorphic_class_for(name)).to eq("CamaleonCms::#{name}".constantize)
+        end
+      end
+
+      it "resolves 'User' to the user class of Camaleon" do
+        stub_const('User', Class.new)
+
+        expect(described_class.polymorphic_class_for('User')).to eq(CamaManager.get_user_class_name.to_s.constantize)
+      end
+
+      it 'gives the Camaleon post as the owner of a meta of that post' do
+        post = create(:post)
+        post.set_meta('host_owner_check', 'value')
+        # A host model. The dummy app has no ApplicationRecord.
+        stub_const('Post', Class.new(ActiveRecord::Base) do # rubocop:disable Rails/ApplicationRecord
+          self.table_name = CamaleonCms::Post.table_name
+          self.inheritance_column = nil
+        end)
+
+        meta = CamaleonCms::Meta.find_by!(object_class: 'Post', objectid: post.id, key: 'host_owner_check')
+
+        expect(meta.owner).to eq(post)
+        expect(CamaleonCms::Meta.includes(:owner).find(meta.id).owner).to eq(post)
+      end
+    end
+
+    it 'resolves a short name with no Camaleon model to the top-level class' do
+      stub_const('HostDownload', Class.new)
+
+      expect(described_class.polymorphic_class_for('HostDownload')).to eq(HostDownload)
+    end
+
+    it "resolves 'Ability' to the top-level class, as CamaleonCms::Ability is no model" do
+      stub_const('Ability', Class.new)
+
+      expect(described_class.polymorphic_class_for('Ability')).to eq(Ability)
+    end
+
+    it 'resolves a name with :: to the class of that name' do
+      stub_const('Plugins::HostShop::Post', Class.new)
+
+      expect(described_class.polymorphic_class_for('Plugins::HostShop::Post')).to eq(Plugins::HostShop::Post)
+      expect(described_class.polymorphic_class_for('CamaleonCms::Post')).to eq(CamaleonCms::Post)
+    end
   end
 end
