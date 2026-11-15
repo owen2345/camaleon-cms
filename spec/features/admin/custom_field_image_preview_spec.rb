@@ -3,8 +3,8 @@
 # The image field of the custom-field form shows a preview of its URL. The preview code put the URL
 # into the HTML of the preview. So a value with a quote and a tag added that tag to the admin form,
 # and its event handler ran. The save of an untrusted author now refuses such a value. A value stored
-# before that scan, or by an administrator, still reaches the form. The preview must set the URL as
-# attribute values.
+# before that scan, or by a trusted author, still reaches the form. An example is a role with
+# post_content_unfiltered_html. The preview must set the URL as attribute values.
 RSpec.describe 'the image preview of a custom field', :js do
   init_site
 
