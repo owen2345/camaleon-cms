@@ -33,8 +33,11 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   end
 
   it 'saves a value whose owner does not resolve, with no touch' do
+    widget.update_column(:updated_at, 2.days.ago) # rubocop:disable Rails/SkipsModelValidations
+
     value = save_value(widget, 'NoSuchOwner')
 
     expect(value.reload.object_class).to eq('NoSuchOwner')
+    expect(widget.reload.updated_at).to be < 1.day.ago
   end
 end
