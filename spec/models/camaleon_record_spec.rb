@@ -31,6 +31,14 @@ RSpec.describe CamaleonRecord, type: :model do
         expect(described_class.polymorphic_class_for('User')).to eq(CamaManager.get_user_class_name.to_s.constantize)
       end
 
+      it "resolves 'User' to a configured user class of the host app" do
+        stub_const('User', Class.new)
+        stub_const('HostAdmin', Class.new)
+        allow(CamaManager).to receive(:get_user_class_name).and_return('HostAdmin')
+
+        expect(described_class.polymorphic_class_for('User')).to eq(HostAdmin)
+      end
+
       it 'gives the Camaleon post as the owner of a meta of that post' do
         post = create(:post)
         post.set_meta('host_owner_check', 'value')

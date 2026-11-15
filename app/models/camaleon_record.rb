@@ -168,8 +168,6 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
         base_name = class_name.split('_').first
         candidates << "CamaleonCms::#{base_name}" if base_name.present?
       end
-
-      candidates << CamaManager.get_user_class_name.to_s if class_name == 'User'
     end
 
     candidates << "CamaleonCms::#{class_name}" if class_name.include?('::') && !class_name.start_with?('CamaleonCms::')
@@ -183,6 +181,7 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
     nil
   end
+
   # The Camaleon class of a short owner name: the user class for 'User', else the CamaleonCms model of
   # that name. Nil for another name.
   private_class_method def self.camaleon_polymorphic_class(name)
