@@ -25,12 +25,13 @@ RSpec.describe 'Security: XSS Vulnerabilities Fixes', type: :request do
               )
       group.add_field({ name: malicious_payload, slug: 'test-field' }, { field_key: 'text_box' })
 
-      # The form shows submitted field values only for a request that is not a GET.
+      # The form shows submitted field values only for a request that is not a GET, and a group shows
+      # only the values of its own fields.
       post '/admin/settings/custom_fields/list', params: {
         post_type: post_type.id,
         field_options: {
           '0' => {
-            'helper' => { 'values' => { '0' => malicious_payload } }
+            'test-field' => { 'values' => { '0' => malicious_payload } }
           }
         }
       }

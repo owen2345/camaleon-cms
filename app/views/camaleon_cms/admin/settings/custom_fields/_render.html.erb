@@ -1,4 +1,5 @@
-<% default_use = record.new_record?; field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym; obj_class = record.class.name.parseCamaClass.downcase %>
+<%# A new record shows the default options of its fields. A form that renders again from the submitted values shows those values. %>
+<% field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym; default_use = record.new_record? && !cama_form_submitted_values?(field_name); obj_class = record.class.name.parseCamaClass.downcase %>
 <% field_groups.each do |group| fields = group.fields.where.not(slug: record.get_option("skip_fields", [])).eager_load(:metas); next if fields.size == 0; group_field_data = {} %>
     <div class="panel panel-default panel-lite c-field-group" id="custom_field_group_<%= group.id %>">
         <div class="panel-heading <%= 'hidden' if defined?(skip_panel) || group.slug == "_default" %>">
@@ -57,7 +58,7 @@
                 </div>
                 <%
                   # The helper gives the submitted values of a failed save, or the values of the record.
-                  field_options_json = cama_form_field_values(record, group_field_data.keys).to_json
+                  field_options_json = cama_form_field_values(record, group_field_data.keys, field_name).to_json
                 %>
                 <script>
                     jQuery(function () {

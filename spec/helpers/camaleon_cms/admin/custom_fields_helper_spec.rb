@@ -95,10 +95,11 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     # The record gives its values only for the slugs of the group.
     before { allow(record).to receive(:get_fields_grouped).with(['note']).and_return([{ 'note' => ['stored'] }]) }
 
-    def values_for(verb, params = {})
+    # With no field_name, the helper reads its default param.
+    def values_for(verb, params = {}, *field_name)
       helper.request.request_method = verb
       controller.params = ActionController::Parameters.new(params)
-      helper.cama_form_field_values(record, ['note'])
+      helper.cama_form_field_values(record, ['note'], *field_name)
     end
 
     it 'gives the values of the record for a GET request with field values' do
@@ -113,6 +114,85 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
 
     it 'gives the values of the record for a POST request with no field values' do
       expect(values_for('POST')).to eq([{ 'note' => ['stored'] }])
+    end
+
+    it 'gives the submitted values under the field name that it gets' do
+      expect(values_for('POST', { theme_fields: submitted }, :theme_fields)).to eq([{ 'note' => ['typed'] }])
+    end
+
+    # Each group of the form counts its instances from 0, so one index can hold the fields of two groups.
+    it 'gives only the submitted entries that hold a field of the group' do
+      two_groups = { '0' => { 'note' => { 'values' => ['typed'] }, 'color' => { 'values' => ['red'] } },
+                     '1' => { 'color' => { 'values' => ['blue'] } } }
+
+      expect(values_for('POST', field_options: two_groups)).to eq([{ 'note' => ['typed'] }])
+    end
+
+    it 'keeps an entry of a field of the group that submits no value' do
+      no_value = { '0' => { 'note' => { 'id' => '12' } }, '1' => { 'color' => { 'values' => ['blue'] } } }
+
+      expect(values_for('POST', field_options: no_value)).to eq([{ 'note' => nil }])
+    end
+
+    # The admin dragged the instance of index 2 to the top, so the form gave it the group number 0.
+    it 'gives the submitted instances of a sorted repeat group in the order of their group numbers' do
+      sorted = { '0' => { 'color' => { 'group_number' => '0' },
+                          'note' => { 'group_number' => '1', 'values' => ['first'] } },
+                 '2' => { 'note' => { 'group_number' => '0', 'values' => ['third'] } },
+                 '1' => { 'note' => { 'group_number' => '2', 'values' => ['second'] } } }
+
+      expect(values_for('POST', field_options: sorted))
+        .to eq([{ 'note' => ['third'] }, { 'note' => ['first'] }, { 'note' => ['second'] }])
+    end
+
+    it 'gives a submitted instance with an invalid group number after the other instances' do
+      invalid = { '0' => { 'note' => { 'group_number' => 'x', 'values' => ['invalid'] } },
+                  '1' => { 'note' => { 'group_number' => '1', 'values' => ['valid'] } } }
+
+      expect(values_for('POST', field_options: invalid)).to eq([{ 'note' => ['valid'] }, { 'note' => ['invalid'] }])
+    end
+
+    it 'sorts a submitted instance with an empty group number as the group number 0' do
+      empty = { '0' => { 'note' => { 'group_number' => '1', 'values' => ['second'] } },
+                '1' => { 'note' => { 'group_number' => '', 'values' => ['first'] } } }
+
+      expect(values_for('POST', field_options: empty)).to eq([{ 'note' => ['first'] }, { 'note' => ['second'] }])
+    end
+
+    # The save refuses an empty UTF-16 group number, but Ruby says that it equals ''.
+    it 'gives a submitted instance with an empty UTF-16 group number after the other instances' do
+      utf16 = { '0' => { 'note' => { 'group_number' => ''.encode('UTF-16LE'), 'values' => ['invalid'] } },
+                '1' => { 'note' => { 'group_number' => '1', 'values' => ['valid'] } } }
+
+      expect(values_for('POST', field_options: utf16)).to eq([{ 'note' => ['valid'] }, { 'note' => ['invalid'] }])
+    end
+  end
+
+  describe '#cama_form_submitted_values?' do
+    # With no field_name, the helper reads its default param.
+    def submitted_for(verb, params = {}, *field_name)
+      helper.request.request_method = verb
+      controller.params = ActionController::Parameters.new(params)
+      helper.cama_form_submitted_values?(*field_name)
+    end
+
+    let(:submitted) { { '0' => { 'note' => { 'values' => ['typed'] } } } }
+
+    it 'is false for a GET request with field values' do
+      expect(submitted_for('GET', field_options: submitted)).to be(false)
+    end
+
+    it 'is true for a POST request with field values' do
+      expect(submitted_for('POST', field_options: submitted)).to be(true)
+    end
+
+    it 'is false for a POST request with no field values' do
+      expect(submitted_for('POST')).to be(false)
+    end
+
+    it 'reads the values under the field name that it gets' do
+      expect(submitted_for('POST', theme_fields: submitted)).to be(false)
+      expect(submitted_for('POST', { theme_fields: submitted }, :theme_fields)).to be(true)
     end
   end
 
