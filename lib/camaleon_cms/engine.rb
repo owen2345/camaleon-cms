@@ -89,6 +89,9 @@ module CamaleonCms
       # Rack::MethodOverride, and an insert before it stops the boot of that host.
       app.middleware.insert_after ::ActionDispatch::Executor, CamaleonCms::MultipartEncodingGuard
 
+      # A reload of the routes waits until the requests that run are done (RouteReloadLock).
+      app.middleware.insert_after CamaleonCms::MultipartEncodingGuard, CamaleonCms::RouteReloadLock
+
       # Static files
       app.middleware.use ::ActionDispatch::Static, "#{root}/public"
 

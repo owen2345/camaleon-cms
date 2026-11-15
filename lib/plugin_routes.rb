@@ -162,13 +162,16 @@ class PluginRoutes
       res
     end
 
-    # reload routes (thread-safe)
+    # Reloads the routes. The reload waits until the other requests are done, and new requests wait
+    # until it is done (CamaleonCms::RouteReloadLock).
     def reload
-      reload_monitor.synchronize do
-        @all_sites = nil
-        cache.clear
-        Rails.application.reload_routes!
-        after_reload_callbacks.uniq.each(&:call)
+      CamaleonCms::RouteReloadLock.exclusive do
+        reload_monitor.synchronize do
+          @all_sites = nil
+          cache.clear
+          Rails.application.reload_routes!
+          after_reload_callbacks.uniq.each(&:call)
+        end
       end
     end
 

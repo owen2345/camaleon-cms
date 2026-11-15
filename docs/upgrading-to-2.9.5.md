@@ -42,6 +42,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
+| Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
 
 ---
 
@@ -265,6 +266,23 @@ middleware that must run before Rack parses the body of a multipart request. Exa
 Rack now parses that body in the guard, before each middleware that comes after the guard. Before,
 `Rack::MethodOverride` parsed the body of a POST, and Rails parsed the body of each other method
 later. An API-only app has no `Rack::MethodOverride`, so there Rails parsed the body of a POST too.
+
+---
+
+## A reload of the routes waits for the requests
+
+Camaleon reloads the routes when an admin saves a post type or a site. A change of a plugin, a theme
+or the languages of a site reloads them too. Before, a request that ran during the reload on another thread could
+get a 500 (`NameError` for `cama_root_url`, or `ActionController::UrlGenerationError`). Now the reload
+waits until the requests that run are done, and new requests wait until the reload is done.
+
+The reload waits for 10 seconds at most. Then it reloads the routes while the requests run, as before,
+and it writes a warning to the log: `Camaleon CMS: the routes reload while N requests still run`.
+
+Camaleon adds the Rack middleware `CamaleonCms::RouteReloadLock` to the host app, directly after
+`CamaleonCms::MultipartEncodingGuard`.
+
+**Who must act.** Nobody. A job or a thread outside a request that uses a route helper is not covered.
 
 ---
 
