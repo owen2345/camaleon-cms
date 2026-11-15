@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Security fix:** The save of a custom field value now scans every field kind for an author without `post_content_unfiltered_html`. A role with `settings` or `theme_settings` is now trusted for the site or theme fields. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
+- **Security fix:** The save of a custom field value now scans every field kind for an author who is not trusted. A role with `settings` or `theme_settings` is now trusted for the site or theme fields. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
   - **Breaking change:** such an author is refused markup outside the content allowlist in a field of any kind.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-custom-field-value-of-every-kind-is-scanned-at-save).
 
