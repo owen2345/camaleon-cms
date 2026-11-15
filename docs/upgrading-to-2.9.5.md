@@ -873,15 +873,18 @@ Also check each `after_touch` callback of a plugin or host model with custom-fie
 callback now runs after each save of a value whose `owner` is a record of that model.
 
 Each subclass of `CamaleonRecord` gets this lookup, also a plugin model. In a plugin model, a
-polymorphic association to a top-level host model with a Camaleon model name now gives the Camaleon
-record. An example is a host `User` that is not the configured user class. To keep the host
-record, define this method in the plugin model:
+polymorphic association to a top-level host model with the short name of a Camaleon model now
+gives the Camaleon record. An example is a host `User` that is not the configured user class. To
+keep the host record, define this method in the plugin model:
 
 ```ruby
 def self.polymorphic_class_for(name)
-  name.constantize
+  name.safe_constantize || super
 end
 ```
+
+The method tries the top-level class first. A name with no top-level class, such as `Main`, then
+resolves through the Camaleon lookup, so the association still gives its Camaleon records.
 
 ---
 

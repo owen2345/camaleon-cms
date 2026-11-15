@@ -108,6 +108,33 @@ RSpec.describe CamaleonRecord, type: :model do
       expect(described_class.polymorphic_class_for('Ability')).to eq(Ability)
     end
 
+    context 'when a plugin model inherits CamaleonRecord' do
+      let(:plugin_model) { Class.new(described_class) { self.abstract_class = true } }
+
+      it "resolves 'User' to the configured user class, also when the host app defines a top-level User" do
+        stub_const('User', Class.new)
+
+        expect(plugin_model.polymorphic_class_for('User')).to eq(CamaManager.get_user_class_name.to_s.constantize)
+      end
+
+      it 'keeps the host class and the Camaleon names with the override of the upgrade note' do
+        # The method that docs/upgrading-to-2.9.5.md gives a plugin model.
+        override_model = Class.new(described_class) do
+          self.abstract_class = true
+
+          def self.polymorphic_class_for(name)
+            name.safe_constantize || super
+          end
+        end
+        stub_const('User', Class.new)
+
+        expect(override_model.polymorphic_class_for('User')).to eq(User)
+        expect(override_model.polymorphic_class_for('Post')).to eq(CamaleonCms::Post)
+        expect(override_model.polymorphic_class_for('Main')).to eq(CamaleonCms::Widget::Main)
+        expect(override_model.polymorphic_class_for('PostType_Post')).to eq(CamaleonCms::PostType)
+      end
+    end
+
     it 'resolves a name with :: to the class of that name' do
       stub_const('Plugins::HostShop::Post', Class.new)
 
