@@ -43,7 +43,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
-| Has a top-level model with the name of a Camaleon model, such as `Post`, `Category`, `Site` or `User` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
+| Has a top-level model, other than the configured user class, with the name of a Camaleon model, such as `Post`, `Category`, `Site` or `User` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 
 ---
 
