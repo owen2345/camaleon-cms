@@ -8,6 +8,10 @@
   a meta of a post must be that post. Make sure that these examples fail before the fix.
 - [x] 1.2 Try the Camaleon class first in `CamaleonRecord.polymorphic_class_for` (D1 to D3).
 - [x] 1.3 Give the change in `docs/upgrading-to-2.9.5.md`.
+- [x] 1.4 Touch the record that `owner` gives in
+  `CamaleonCms::CustomFieldsRelationship#update_model_owner`. Add
+  `spec/models/custom_field_value_owner_touch_spec.rb` for a widget value, a post value and a value
+  whose owner does not resolve.
 
 ## 2. Verification and shipping
 

@@ -18,6 +18,9 @@ of Camaleon. A host `User` model was the owner of the metas of `CamaleonCms::Use
   resolve as before.
 - A `CustomFieldGroup` row can also store a placement name, such as `PostType_Post`. This name
   also resolves as before.
+- `CamaleonCms::CustomFieldsRelationship#update_model_owner` touches the record that `owner`
+  gives. Before, it touched a record of the `CamaleonCms` model of that name, so a widget value
+  touched no record.
 
 ## Capabilities
 
@@ -28,11 +31,15 @@ _None._
 ### Modified Capabilities
 
 - `meta-scope-resolution`: a requirement for the read direction, from a stored scope name to the
-  owner class.
+  owner class, and a requirement for the touch of the owner after the save of a custom-field value.
 
 ## Impact
 
 - `app/models/camaleon_record.rb`, `spec/models/camaleon_record_spec.rb`.
+- `app/models/camaleon_cms/custom_fields_relationship.rb`,
+  `spec/models/custom_field_value_owner_touch_spec.rb`.
+- A widget, a plugin model or a host model now gets a touch after each save of its custom-field
+  values, and runs its `after_touch` callbacks.
 - A host app with a top-level class of the same name as a Camaleon model. Such a host model that
   stores Camaleon metas under its own short name now reads the Camaleon record as their owner. No
   known plugin or theme does this.
