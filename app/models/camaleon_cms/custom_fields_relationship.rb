@@ -349,14 +349,13 @@ module CamaleonCms
       slug.b.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
     end
 
-    # An admin can write anything. Another role is trusted through one of the abilities that
-    # owner_trust_abilities gives for the owner. Fails closed (the gate applies) without a request
-    # context — benign values still pass the scan.
+    # The trust of a non-admin: reject_untrusted_dangerous_value lets an admin pass before this check.
+    # A role is trusted through one of the abilities that owner_trust_abilities gives for the owner.
+    # Fails closed (the gate applies) without a request context — benign values still pass the scan.
     def author_trusted_for_unfiltered_value?
       user = CurrentRequest.user
       site = CurrentRequest.site
       return false if user.blank? || site.blank?
-      return true if user.admin?
 
       abilities = owner_trust_abilities(site)
       return false if abilities.empty?
