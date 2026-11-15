@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-# A role is trusted for the values that it saves through an action that its permissions allow
-# (docs/security/permissions.md). The site settings save needs the `settings` permission, and the
-# theme settings save needs the `theme_settings` permission. So the scan of a custom field value at
-# save trusts a holder of `settings` for the fields of the site, and a holder of `theme_settings`
-# for the fields of a theme. Such a role stores markup in those fields as written.
+# A role is trusted for the values that it saves through an action that its permissions allow. This
+# trust ends at the gates of docs/security/permissions.md, and the scan of a custom field value at
+# save is one of them. The scan trusts a holder of `settings` for the fields of the site, because
+# that permission gives the trust of an administrator. It trusts a holder of `theme_settings` for
+# the fields of a theme, because that permission allows the theme settings save. Such a role stores
+# markup in those fields as written.
 RSpec.describe 'Security: trust of site and theme field values', type: :request do
   init_site
 
