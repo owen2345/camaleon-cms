@@ -296,10 +296,10 @@ module CamaleonCms
             # forged custom_field_id points the row at a different field definition, and the
             # scan-and-reject gate picks its rules from custom_field.options[:field_key] -- so a forged
             # id of another kind would change those rules (a text_box id drops the URI rule of a url
-            # slug). Fall back
-            # to values[:id] only when the slug names no field here (trusted/internal callers that
-            # pass slugs outside this object's registered groups; a permitted browser payload's slug
-            # is in the groups its save resolves against, and its id is held to the slug's fields).
+            # slug). Fall back to values[:id] only when the slug names no field here (trusted/internal
+            # callers that pass slugs outside this object's registered groups; a permitted browser
+            # payload's slug is in the groups its save resolves against, and its id is held to the
+            # slug's fields).
             field_id = _cama_field_id_for(field_key, field_groups) || fallback_field_id_for(field_key) || values[:id]
             order_value = -1
             (
