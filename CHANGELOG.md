@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A reload of the routes, for example after the save of a post type, now waits until the requests that run are done. Before, a request on another thread could get a 500. [#1347](https://github.com/owen2345/camaleon-cms/pull/1347).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-reload-of-the-routes-waits-for-the-requests).
+
 - **Tooling:** The browser specs now run on the Chrome of the CI runner, not on Chrome for Testing 125. Development-only. [#1347](https://github.com/owen2345/camaleon-cms/pull/1347).
 
 - **Bug fix:** After a failed save, the admin form shows the custom-field values that the admin submitted. Before, the form of a new record checked each default checkbox option again, also one that the admin unchecked. A repeat group also showed one instance for each instance of another repeat group, and lost the order that the admin gave its instances. The next save stored these values. [#1342](https://github.com/owen2345/camaleon-cms/pull/1342).
