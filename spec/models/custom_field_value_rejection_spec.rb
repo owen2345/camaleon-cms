@@ -123,6 +123,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value('note')).to be_blank
     end
 
+    # The trust check loads the role and its metas. A value that passes the scan does not need it.
+    it 'checks no permission of a non-admin for a value that passes the scan' do
+      as_user(contributor)
+      post # The save of the post checks its own permission.
+      expect(CamaleonCms::Ability).not_to receive(:new)
+
+      post.set_field_value('note', 'plain')
+
+      expect(post.get_field_value('note')).to eq('plain')
+    end
+
     it 'stores plain text and allowed markup from an untrusted author unchanged' do
       as_user(contributor)
 

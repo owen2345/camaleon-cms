@@ -44,6 +44,14 @@ A search of the sibling plugin and theme checkouts finds no caller of the remove
 
 **D6. The error message stays `value_rejected_html`.** It names the field and the remedy, and it already fits a value of any kind.
 
+**D7. The scan comes before the trust check of a non-admin.** The trust check builds a `CamaleonCms::Ability`, which loads the role and two role metas. The maintainer chose this order on 2026-11-15.
+
+- The validation checks an admin first, at no cost. Then it scans, and it checks the trust only for a value that the scan refuses.
+- A trust check first would load the role for each value row, because every kind is scanned now.
+- A trusted non-admin gets a scan of each value, which reads no database row.
+
+- Alternative: one `Ability` for each request on `CurrentRequest`. It saves more queries, but `Ability#initialize` loads the role again on purpose, so a cache can read a changed role. Rejected for this change.
+
 ## Risks / Trade-offs
 
 - [An untrusted author who stored `Fish & Chips <today>` in a `text_box` gets a refusal at the next change of that value.] → An unchanged value is not checked again on an unrelated edit (the requirement "An unchanged pre-gate value does not block an unrelated edit"). The changelog names the change. `scan_content` lists the stored values that the scan now refuses.

@@ -265,13 +265,18 @@ module CamaleonCms
     # A value that an untrusted author may not write is refused, never rewritten. So a stored value
     # always equals the authored value. The dispatch is the class-level gate_rejection_reason, which
     # the scan_content rake task calls too.
+    #
+    # The scan comes before the trust check of a non-admin, because that check loads the role and
+    # its metas for each value. Most values pass the scan, so most saves load no role. An admin
+    # skips the scan, as before.
     def reject_untrusted_dangerous_value
       return if value.blank? || unfiltered_value || previously_stored
-      return if author_trusted_for_unfiltered_value?
+      return if request_admin?
 
       field_key = custom_field&.options&.[](:field_key).to_s
       reason = self.class.gate_rejection_reason(field_key, value)
       return unless reason
+      return if author_trusted_for_unfiltered_value?
 
       errors.add(:base, cama_rejection_message(rejection_message_key(reason)))
     end
@@ -279,6 +284,11 @@ module CamaleonCms
     # The content_shortcodes gate skips a value that set_field_values marks as already stored.
     def cama_gate_unchanged?(attr)
       attr == :value && previously_stored
+    end
+
+    # An admin in a request context. Without a user or a site, the gate applies to an admin too.
+    def request_admin?
+      CurrentRequest.site.present? && CurrentRequest.user.present? && CurrentRequest.user.admin?
     end
 
     def rejection_message_key(reason)
