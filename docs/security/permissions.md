@@ -98,7 +98,7 @@ The pieces that implement the rule:
 - **Every custom field kind is scanned.** A custom field value is not such a position. The `data` shortcode
   (`[data field='note']`) puts a stored value of any kind into the content. The theme shows that
   content with `raw`. So the save holds the value of every kind to the post-content allowlist. A URL
-  kind also gets the URL rule, and a `field_attrs` value is scanned by its decoded members.
+  kind also gets the URL rule, and a `field_attrs` value is scanned by its decoded members and keys.
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its
   field values); no request context means the gate applies. A holder of `settings` or `custom_fields` also

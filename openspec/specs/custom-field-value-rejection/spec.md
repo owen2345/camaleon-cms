@@ -117,7 +117,7 @@ the field, as a refused admin save answers (the requirement "A refused admin sav
 
 For `field_attrs` values — stored as JSON whose string members the frontend emits as markup — the
 system SHALL parse the stored JSON and apply the markup gate to each **decoded** member of any JSON
-shape (object, array, or nested), so that
+shape (object, array, or nested), and to each key of an object, so that
 markup hidden by JSON unicode-escaping (\u003c stored instead of a literal `<`) is refused exactly like literal markup;
 a value that does not parse SHALL be scanned as stored. Trust, fail-closed and opt-out semantics
 SHALL be those of the custom-field gate. When the stored JSON is an object the renderer SHALL emit
@@ -613,7 +613,8 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   markup: tags that the parser drops or that stay open, and translation markers inside tags.
 - For a URI-type value (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
   (`javascript:`, `vbscript:`, non-raster `data:`) SHALL also be refused.
-- For a `field_attrs` value, each decoded member SHALL be held to the post-content allowlist.
+- For a `field_attrs` value, each decoded member and each key of an object SHALL be held to the
+  post-content allowlist.
 - A value beyond the parse size bound SHALL be refused for every kind.
 
 The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or

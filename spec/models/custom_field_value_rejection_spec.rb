@@ -190,6 +190,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
     end
 
+    # The data shortcode puts the stored JSON into the page as markup, so the keys of an object are
+    # scanned as the members are.
+    it 'refuses a script in a key of the JSON object' do
+      as_user(contributor)
+      keyed = JSON.generate(script => 'x')
+
+      expect { post.set_field_value('specs', keyed) }
+        .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+    end
+
     it 'stores a benign JSON-array value unchanged' do
       as_user(contributor)
       arr = [{ attr: 'a', value: 'plain' }, { attr: 'b', value: 'Deep <em>red</em>' }].to_json

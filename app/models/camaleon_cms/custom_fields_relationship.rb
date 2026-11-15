@@ -17,7 +17,7 @@ module CamaleonCms
 
     # The save scans the value of every field kind (scan-and-reject policy). The data shortcode puts
     # a value of any kind into the page as markup, so each value is held to the post-content
-    # allowlist. A `field_attrs` value is JSON, so the scan reads its decoded members. A URI kind
+    # allowlist. A `field_attrs` value is JSON, so the scan reads its decoded members and keys. A URI kind
     # also goes into href and src, so it is held to the URI rule too.
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
@@ -241,7 +241,7 @@ module CamaleonCms
       end
 
       # A field_attrs value stores JSON whose string members render verbatim. Scan every DECODED
-      # member (Hash, Array or nested), not the stored bytes: the Rails JSON encoder unicode-escapes
+      # member and key (Hash, Array or nested), not the stored bytes: the Rails JSON encoder unicode-escapes
       # angle brackets (storing the escape instead of a literal bracket), so a byte-level scan of the
       # stored string would pass markup that JSON.parse restores at render. Unparseable values are
       # scanned as-is (fail closed on whatever the renderer would fall back to).
@@ -253,7 +253,7 @@ module CamaleonCms
 
       def flatten_json_strings(node)
         case node
-        when Hash then node.values.flat_map { |member| flatten_json_strings(member) }
+        when Hash then node.flat_map { |key, member| [key.to_s, *flatten_json_strings(member)] }
         when Array then node.flat_map { |member| flatten_json_strings(member) }
         else [node.to_s]
         end
