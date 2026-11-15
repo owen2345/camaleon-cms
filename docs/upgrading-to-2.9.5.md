@@ -44,6 +44,7 @@ what theme/plugin developers should know.
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
 | Has a top-level model, other than the configured user class, with the short name of a Camaleon model, such as `Post`, `Category`, `Site`, `User` or `Main` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
+| Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 
 ---
 
@@ -857,10 +858,17 @@ name with `::`, and a short name with no `CamaleonCms` model, such as `Ability`,
 before. A field group can also store a placement name, such as `PostType_Post`. This name also
 resolves as before.
 
+The save of a custom-field value now touches the record that `owner` gives, and runs its
+`after_touch` callbacks. Before, the save touched only a record of the `CamaleonCms` model of that
+name. The save of a value of a widget, of a plugin model or of a host model touched no record.
+
 **Who must act:** a host app with a model that is not a Camaleon model, has the short name of a
 Camaleon model, and stores Camaleon metas or custom fields under that name. The `owner` of these
 rows is now the Camaleon record of the same id. Read the rows of that model through its own
 association, not through `owner`.
+
+Also check each `after_touch` callback of a plugin or host model with custom-field values. The
+callback now runs after each save of a value.
 
 ---
 
