@@ -23,9 +23,13 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
 
   # The short owner name of each Camaleon model in a nested namespace (polymorphic_name), with its class.
-  # 'CamaleonCms::Main' does not exist, so the name alone does not find the class. Add a nested model
-  # here when it stores metas or custom fields.
-  NESTED_POLYMORPHIC_CLASSES = { 'Main' => 'CamaleonCms::Widget::Main' }.freeze
+  # 'CamaleonCms::Main' does not exist, so the name alone does not find the class. Each of these models
+  # gets metas from CommonRelationships. Add a new nested model here.
+  NESTED_POLYMORPHIC_CLASSES = {
+    'Main' => 'CamaleonCms::Widget::Main',
+    'Sidebar' => 'CamaleonCms::Widget::Sidebar',
+    'Assigned' => 'CamaleonCms::Widget::Assigned'
+  }.freeze
 
   self.abstract_class = true
 

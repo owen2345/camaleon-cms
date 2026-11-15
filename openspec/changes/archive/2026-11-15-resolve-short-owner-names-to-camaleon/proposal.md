@@ -12,8 +12,8 @@ of Camaleon. A host `User` model was the owner of the metas of `CamaleonCms::Use
 ## What Changes
 
 - `CamaleonRecord.polymorphic_class_for` tries the Camaleon class of a short name first: the
-  configured user class for `User`, the widget class for `Main`, else the `CamaleonCms` model of
-  that name.
+  configured user class for `User`, the widget class for `Main`, `Sidebar` and `Assigned`, else
+  the `CamaleonCms` model of that name.
 - A name with `::`, and a short name with no `CamaleonCms` model, such as the class of a plugin,
   resolve as before.
 

@@ -65,6 +65,11 @@ RSpec.describe CamaleonRecord, type: :model do
       expect(described_class.polymorphic_class_for('Main')).to eq(CamaleonCms::Widget::Main)
     end
 
+    it "resolves the widget scopes 'Sidebar' and 'Assigned' to their widget classes" do
+      expect(described_class.polymorphic_class_for('Sidebar')).to eq(CamaleonCms::Widget::Sidebar)
+      expect(described_class.polymorphic_class_for('Assigned')).to eq(CamaleonCms::Widget::Assigned)
+    end
+
     it 'gives the widget as the owner of a meta of that widget' do
       widget = create(:site).widgets.create!(name: 'Owner widget', slug: 'owner-widget')
       widget.set_meta('widget_owner_check', 'value')

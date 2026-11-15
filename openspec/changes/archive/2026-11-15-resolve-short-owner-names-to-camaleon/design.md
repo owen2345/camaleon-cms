@@ -36,7 +36,8 @@ owner also when Camaleon used `CamaleonCms::User`.
 
 **D4. A nested model gets its class from a map.** `CamaleonCms::Widget::Main` writes the scope
 name `Main`, and `CamaleonCms::Main` does not exist. `CamaleonRecord::NESTED_POLYMORPHIC_CLASSES`
-gives `Main` its class. It is the only nested model that stores metas or custom fields.
+gives `Main` its class, and the same for `Sidebar` and `Assigned`. These three widget
+models are the nested models, and each gets metas from `CommonRelationships`.
 
 - *Alternative: a registry that each subclass of `CamaleonRecord` fills when it loads.* Rejected:
   without eager loading, a class that has not loaded is not in the registry, so the result

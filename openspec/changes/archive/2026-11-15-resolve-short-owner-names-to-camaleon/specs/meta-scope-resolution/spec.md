@@ -6,9 +6,9 @@
 
 `CamaleonRecord.polymorphic_class_for` SHALL resolve a short scope name to the Camaleon class of
 that name before it tries a top-level constant. `User` SHALL resolve to the configured user class,
-`Main` to `CamaleonCms::Widget::Main`, and another name to the `CamaleonCms` Active Record model of
-that name. A name with `::`, and a short name with
-no `CamaleonCms` Active Record model, MUST resolve as Rails resolves it.
+`Main`, `Sidebar` and `Assigned` to their `CamaleonCms::Widget` classes, and another name to
+the `CamaleonCms` Active Record model of that name. A name with `::`, and a short name with no
+`CamaleonCms` Active Record model, MUST resolve as Rails resolves it.
 
 #### Scenario: A host model has the name of a Camaleon model
 
