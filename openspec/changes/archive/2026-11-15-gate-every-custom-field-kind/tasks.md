@@ -21,4 +21,4 @@
 ## 4. Verification and shipping
 
 - [x] 4.1 `bin/rubocop -A`, then `bin/rspec` with the specs of this change and the adjacent specs (`docs/ai/testing.md`, "Which specs to run"), `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`, `openspec validate --all --strict`.
-- [ ] 4.2 Add the CHANGELOG entry after the PR exists, and archive this change on the branch.
+- [x] 4.2 Add the CHANGELOG entry after the PR exists, and archive this change on the branch.
