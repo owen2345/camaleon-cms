@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** A host model named like a Camaleon model, such as `Post`, is no longer the `owner` of a Camaleon meta or custom-field row. The `owner` of a widget meta no longer raises `NameError`. A name with `::`, or with no Camaleon model, does not change. [#1346](https://github.com/owen2345/camaleon-cms/pull/1346).
+- **Bug fix:** A host model named like a Camaleon model, such as `Post`, is no longer the `owner` of a Camaleon meta or custom-field row. The `owner` of a widget meta no longer raises `NameError`, and the save of a widget custom-field value now touches the widget. A name with `::`, or with no Camaleon model, does not change. [#1346](https://github.com/owen2345/camaleon-cms/pull/1346).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-short-owner-name-resolves-to-the-camaleon-class).
 
 - **Bug fix:** A reload of the routes, for example after the save of a post type, now waits until the requests that run are done. Before, a request on another thread could get a 500. [#1347](https://github.com/owen2345/camaleon-cms/pull/1347).

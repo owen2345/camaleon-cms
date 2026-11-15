@@ -352,9 +352,9 @@ module CamaleonCms
       # self.update_column('custom_field_slug', self.custom_fields.slug)
     end
 
-    # touch owner model
+    # Touch the owner. owner resolves the scope name, so a widget value touches its widget.
     def update_model_owner
-      "CamaleonCms::#{object_class}".constantize.find(objectid).touch # rubocop:disable Rails/SkipsModelValidations
+      owner&.touch # rubocop:disable Rails/SkipsModelValidations
     rescue StandardError
       nil
     end
