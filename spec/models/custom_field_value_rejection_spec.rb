@@ -145,6 +145,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # The scan refuses a value of any kind that is larger than the parse limit, not only an editor value.
+  describe 'the size limit of the scan' do
+    it 'refuses a text_box or url value over the limit from an untrusted author' do
+      as_user(contributor)
+      value = 'a' * (CamaleonCms::UnsafeMarkup::MAX_GATED_VALUE_BYTES + 1)
+
+      %w[note link].each do |slug|
+        expect { post.set_field_value(slug, value) }.to raise_error(ActiveRecord::RecordInvalid, /too large/)
+        expect(post.get_field_value(slug)).to be_blank
+      end
+    end
+  end
+
   describe 'field_attrs values (verbatim JSON markup position)' do
     it 'refuses a script hidden in the pair for an untrusted author' do
       as_user(contributor)
