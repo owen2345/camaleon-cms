@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The browser specs now run on the Chrome of the CI runner, not on Chrome for Testing 125. Development-only. [#1347](https://github.com/owen2345/camaleon-cms/pull/1347).
+
 - **Bug fix:** After a failed save, the admin form shows the custom-field values that the admin submitted. Before, the form of a new record checked each default checkbox option again, also one that the admin unchecked. A repeat group also showed one instance for each instance of another repeat group, and lost the order that the admin gave its instances. The next save stored these values. [#1342](https://github.com/owen2345/camaleon-cms/pull/1342).
 
 - **Security fix:** The development lockfile moves puma to 8.1.1, which the Audit job of CI refused at 8.0.2 for advisories. The gemspec does not change, so a host app updates puma in its own bundle. Development-only. [#1344](https://github.com/owen2345/camaleon-cms/pull/1344).
