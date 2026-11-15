@@ -3,8 +3,9 @@
 # The frontend renders an `editor` custom-field value verbatim, and URI-type values into href and
 # src. The data shortcode puts a value of any kind into the page as markup. So the save refuses a
 # value that an untrusted author may not write, for every kind, and never rewrites it. Trusted
-# authors (admins, or a role holding post_content_unfiltered_html for the post type) store exactly
-# what they wrote.
+# authors store exactly what they wrote: admins, a role holding post_content_unfiltered_html for the
+# fields of a post of the post type, and a role holding settings or theme_settings for the fields of
+# the site or of a theme.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   let(:post_type) { installed_post_type }
   let(:site) { post_type.site }
