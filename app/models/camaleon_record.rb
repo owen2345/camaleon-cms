@@ -31,6 +31,9 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     'Assigned' => 'CamaleonCms::Widget::Assigned'
   }.freeze
 
+  # A constant name with one segment, such as 'Post'. It has no '::'.
+  SHORT_CONSTANT_NAME_REGEX = /\A[A-Z]\w*\z/
+
   self.abstract_class = true
 
   # What a record memoized before its first save was read before the INSERT stored it, so the save drops it,
@@ -196,8 +199,10 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   private_class_method def self.camaleon_polymorphic_class(name)
     class_name = name.to_s
     return CamaManager.get_user_class_name.to_s.safe_constantize if class_name == 'User'
-    return NESTED_POLYMORPHIC_CLASSES[class_name].safe_constantize if NESTED_POLYMORPHIC_CLASSES.key?(class_name)
-    return unless class_name.match?(/\A[A-Z]\w*\z/)
+
+    nested = NESTED_POLYMORPHIC_CLASSES[class_name]
+    return nested.safe_constantize if nested
+    return unless class_name.match?(SHORT_CONSTANT_NAME_REGEX)
 
     klass = "CamaleonCms::#{class_name}".safe_constantize
     klass if klass.is_a?(Class) && klass < ActiveRecord::Base
