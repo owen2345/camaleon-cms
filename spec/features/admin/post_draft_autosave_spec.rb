@@ -1782,7 +1782,7 @@ RSpec.describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
 
-    within_frame('post_content_ifr') { find('body').send_keys('Typed in the editor') }
+    within_frame('post_content_ifr') { type_in_editor_frame('Typed in the editor') }
 
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
     init_late_editor
@@ -1802,7 +1802,7 @@ RSpec.describe 'Post editor draft autosave', :js do
     wait_for_leave_prompt
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
 
-    within_frame('post_content_ifr') { find('body').send_keys('Typed, then left') }
+    within_frame('post_content_ifr') { type_in_editor_frame('Typed, then left') }
     find_by_id('post_title').click
 
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')

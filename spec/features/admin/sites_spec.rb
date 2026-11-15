@@ -13,6 +13,8 @@ def create_site
     fill_in 'site_name', with: 'Owen sub site'
     click_button 'Submit'
   end
+  # The next step can visit another page. The visit must wait until the save is done.
+  expect(page).to have_css('.alert-success')
 end
 
 RSpec.describe 'the Sites', :js do

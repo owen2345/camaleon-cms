@@ -26,7 +26,8 @@ RSpec.describe 'the Site Settings SideBar options', :js do
         fill_in 'site_slug', with: new_site_domain
         click_button 'Submit'
       end
-      expect(URI.parse(current_url).host).to eql(new_site_domain.downcase)
+      # The matcher waits for the redirect that the save starts.
+      expect(page).to have_current_path(%r{\Ahttps?://#{new_site_domain.downcase}[:/]}, url: true)
     end
   end
 
@@ -44,7 +45,7 @@ RSpec.describe 'the Site Settings SideBar options', :js do
           within_frame do
             editor = page.find_by_id('tinymce')
             expect(editor.text).to eql('Copyright © 2015 - Camaleon CMS. All rights reservated.')
-            editor.native.send_keys(added_text)
+            type_in_editor_frame(added_text)
           end
         end
 
