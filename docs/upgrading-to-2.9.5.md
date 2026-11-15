@@ -883,8 +883,9 @@ def self.polymorphic_class_for(name)
 end
 ```
 
-The method tries the top-level class first. A name with no top-level class, such as `Main`, then
-resolves through the Camaleon lookup, so the association still gives its Camaleon records.
+The method tries the top-level class first, so a name with a top-level class, such as `User`,
+gives the host record. A name with no top-level class, such as `Main`, resolves through the
+Camaleon lookup.
 
 ---
 
