@@ -5,7 +5,9 @@ Define how a model's `object_class` scope name — the key under which its metas
 field groups, and stored values are read and written — is derived from its class name, and keep
 the widget admin surfaces agreeing with it, so refactors cannot silently strand existing rows or
 reopen the write/read mismatch that broke widget custom fields.
+
 ## Requirements
+
 ### Requirement: Scopes are the demodulized class name
 
 Every model carrying the common relationships SHALL scope its meta and custom-field rows under
@@ -108,3 +110,31 @@ the re-keyed count, or the no-op, on standard output.
 - **WHEN** no namespaced user model is configured and the repair task runs
 - **THEN** no rows change
 
+### Requirement: A short scope name resolves to the Camaleon owner class
+
+`CamaleonRecord.polymorphic_class_for` SHALL resolve a short scope name to the Camaleon class of
+that name before it tries a top-level constant: `User` to the configured user class, and another
+name to the `CamaleonCms` Active Record model of that name. A name with `::`, and a short name with
+no `CamaleonCms` Active Record model, MUST resolve as Rails resolves it.
+
+#### Scenario: A host model has the name of a Camaleon model
+
+- **WHEN** the host app defines a top-level `Post` class, and a meta row of a Camaleon post has the
+  `object_class` `Post`
+- **THEN** the `owner` of that row is the Camaleon post
+
+#### Scenario: A host model is named User
+
+- **WHEN** the host app defines a top-level `User` class, and the configured user class is another
+  class
+- **THEN** `User` resolves to the configured user class
+
+#### Scenario: A short name with no Camaleon model
+
+- **WHEN** a short name has no `CamaleonCms` Active Record model, such as `Ability`
+- **THEN** it resolves to the top-level class of that name
+
+#### Scenario: A name with a namespace
+
+- **WHEN** a name has `::`, such as `Plugins::Shop::Post`
+- **THEN** it resolves to the class of that name
