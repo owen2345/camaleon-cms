@@ -116,7 +116,9 @@ the re-keyed count, or the no-op, on standard output.
 that name before it tries a top-level constant. `User` SHALL resolve to the configured user class,
 `Main`, `Sidebar` and `Assigned` to their `CamaleonCms::Widget` classes, and another name to
 the `CamaleonCms` Active Record model of that name. A name with `::`, and a short name with no
-`CamaleonCms` Active Record model, MUST resolve as Rails resolves it.
+`CamaleonCms` Active Record model, MUST resolve as Rails resolves it. When Rails finds no class, the
+legacy fallback MUST resolve it as before: `PostType_Post` to
+`CamaleonCms::PostType`, and a marker such as `_fields` to nil.
 
 #### Scenario: A host model has the name of a Camaleon model
 
@@ -138,8 +140,14 @@ the `CamaleonCms` Active Record model of that name. A name with `::`, and a shor
 
 #### Scenario: A short name with no Camaleon model
 
-- **WHEN** a short name has no `CamaleonCms` Active Record model, such as `Ability`
+- **WHEN** a short name has no `CamaleonCms` Active Record model, such as `Ability`, and the host
+  app defines a top-level class of that name
 - **THEN** it resolves to the top-level class of that name
+
+#### Scenario: A name that Rails does not find
+
+- **WHEN** a field group row has the `object_class` `PostType_Post`
+- **THEN** it resolves to `CamaleonCms::PostType`
 
 #### Scenario: A name with a namespace
 

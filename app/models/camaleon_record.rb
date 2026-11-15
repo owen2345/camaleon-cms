@@ -62,7 +62,7 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   # A row stores the short name of a Camaleon owner, such as 'Post' (polymorphic_name). Rails finds that
   # name as a top-level constant first, so a host model of the same name would become the owner. This
   # method tries the Camaleon class first. A name with '::', or with no Camaleon model, such as the class
-  # of a plugin, resolves as Rails resolves it.
+  # of a plugin, resolves as Rails resolves it. A name that Rails does not find goes to the legacy fallback.
   def self.polymorphic_class_for(name)
     camaleon_polymorphic_class(name) || super
   rescue NameError
