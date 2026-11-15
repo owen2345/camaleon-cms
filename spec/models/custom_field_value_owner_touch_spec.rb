@@ -31,4 +31,10 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
     expect(post.reload.updated_at).to be > 1.hour.ago
   end
+
+  it 'saves a value whose owner does not resolve, with no touch' do
+    value = save_value(widget, 'NoSuchOwner')
+
+    expect(value.reload.object_class).to eq('NoSuchOwner')
+  end
 end
