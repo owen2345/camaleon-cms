@@ -117,7 +117,7 @@ that name before it tries a top-level constant. `User` SHALL resolve to the conf
 `Main`, `Sidebar` and `Assigned` to their `CamaleonCms::Widget` classes, and another name to
 the `CamaleonCms` Active Record model of that name. A name with `::`, and a short name with no
 `CamaleonCms` Active Record model, MUST resolve as Rails resolves it. When Rails finds no class, the
-legacy fallback MUST resolve it as before: `PostType_Post` to
+legacy fallback MUST resolve it: `PostType_Post` to
 `CamaleonCms::PostType`, and a marker such as `_fields` to nil.
 
 #### Scenario: A host model has the name of a Camaleon model
@@ -153,3 +153,13 @@ legacy fallback MUST resolve it as before: `PostType_Post` to
 
 - **WHEN** a name has `::`, such as `Plugins::Shop::Post`
 - **THEN** it resolves to the class of that name
+
+### Requirement: The save of a custom-field value touches its owner
+
+`CamaleonCms::CustomFieldsRelationship` SHALL touch the record that `owner` gives after each save
+of a value. A value whose owner does not resolve SHALL save with no touch.
+
+#### Scenario: A widget value
+
+- **WHEN** a custom-field value with the `object_class` `Main` is saved
+- **THEN** the `updated_at` of the widget changes
