@@ -50,8 +50,9 @@ of a Camaleon record in each table, also in the table of a plugin model. The loo
 names back in each table too. A plugin model that points at Camaleon posts gets the Camaleon post,
 also when the host app has a top-level `Post`.
 
-- *Alternative: the lookup only in `Meta`, `CustomField` and `CustomFieldsRelationship`.* Rejected:
-  a plugin model that points at Camaleon records then gets the host class of the same name.
+- *Alternative: the lookup only in `Meta`, `CustomField`, `CustomFieldGroup` and
+  `CustomFieldsRelationship`.* Rejected: a plugin model that points at Camaleon records then gets
+  the host class of the same name.
 
 ## Risks / Trade-offs
 
