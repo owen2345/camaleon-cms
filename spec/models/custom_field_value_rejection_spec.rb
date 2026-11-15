@@ -4,8 +4,8 @@
 # src. The data shortcode puts a value of any kind into the page as markup. So the save refuses a
 # value that an untrusted author may not write, for every kind, and never rewrites it. Trusted
 # authors store exactly what they wrote: admins, a role holding post_content_unfiltered_html for the
-# fields of a post of the post type, and a role holding settings or theme_settings for the fields of
-# the site or of a theme.
+# fields of a post of the post type, a role holding settings or custom_fields for the fields of an
+# owner that is not a post, and a role holding theme_settings for the fields of a theme.
 RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   let(:post_type) { installed_post_type }
   let(:site) { post_type.site }
@@ -315,13 +315,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
-  # A holder of `settings` is trusted for the fields of the site, and a holder of `theme_settings` for
-  # the fields of a theme. These are the permissions of the saves that write the values. For every
-  # other owner that is not a post, only an admin is trusted.
-  describe 'trust for the fields of the site and of a theme' do
+  # The settings and custom_fields permissions give a role the trust of an administrator. So a holder
+  # of one of them is trusted for the fields of each owner that is not a post, in the current site. A
+  # holder of `theme_settings` is trusted for the fields of a theme, the permission of the theme
+  # settings save. The fields of a post follow the permission of the post body.
+  describe 'trust for the fields of owners that are not a post' do
     let(:manager_role) { site.user_roles.create!(name: 'Manager', slug: 'field_mgr') }
     let(:manager) { create(:user, role: manager_role.slug, site: site) }
     let(:theme) { site.decorate.get_theme }
+    let(:category) do
+      post_type.add_custom_field_group({ name: 'Cat', slug: 'cat-extra' }, 'Category')
+               .add_manual_field({ name: 'Cat note', slug: 'cat_note' }, { field_key: 'text_box' })
+      post_type.categories.create!(name: 'Cat', slug: 'cat-trust')
+    end
 
     before do
       site.custom_field_groups.create!(name: 'Site', slug: '_site-extra', object_class: 'Site', objectid: site.id)
@@ -335,19 +341,39 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       as_user(manager)
     end
 
-    it 'refuses a script theme field value for a holder of settings without theme_settings' do
-      grant('settings')
+    %w[settings custom_fields].each do |permission|
+      it "stores a script site, theme and category field value for a holder of #{permission}" do
+        grant(permission)
 
-      expect { theme.set_field_value('theme_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
-      expect(theme.get_field_value('theme_note')).to be_blank
+        site.set_field_value('site_note', script)
+        theme.set_field_value('theme_note', script)
+        category.set_field_value('cat_note', script)
+
+        expect(site.get_field_value('site_note')).to eq(script)
+        expect(theme.get_field_value('theme_note')).to eq(script)
+        expect(category.get_field_value('cat_note')).to eq(script)
+      end
+
+      it "refuses a script post field value for a holder of #{permission}" do
+        grant(permission)
+
+        expect { post.set_field_value('note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+        expect(post.get_field_value('note')).to be_blank
+      end
     end
 
-    it 'refuses a script category field value for a holder of settings and theme_settings' do
-      post_type.add_custom_field_group({ name: 'Cat', slug: 'cat-extra' }, 'Category')
-               .add_manual_field({ name: 'Cat note', slug: 'cat_note' }, { field_key: 'text_box' })
-      category = post_type.categories.create!(name: 'Cat', slug: 'cat-trust')
-      grant('settings', 'theme_settings')
+    it 'stores a script theme field value for a holder of theme_settings' do
+      grant('theme_settings')
 
+      theme.set_field_value('theme_note', script)
+
+      expect(theme.get_field_value('theme_note')).to eq(script)
+    end
+
+    it 'refuses a script site or category field value for a holder of theme_settings' do
+      grant('theme_settings')
+
+      expect { site.set_field_value('site_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
       expect { category.set_field_value('cat_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
       expect(category.get_field_value('cat_note')).to be_blank
     end
@@ -364,22 +390,6 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     it 'refuses a script site or theme field value without a request context' do
       expect { site.set_field_value('site_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
       expect { theme.set_field_value('theme_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
-    end
-
-    it 'stores a script site field value for a holder of settings' do
-      grant('settings')
-
-      site.set_field_value('site_note', script)
-
-      expect(site.get_field_value('site_note')).to eq(script)
-    end
-
-    it 'stores a script theme field value for a holder of theme_settings' do
-      grant('theme_settings')
-
-      theme.set_field_value('theme_note', script)
-
-      expect(theme.get_field_value('theme_note')).to eq(script)
     end
   end
 

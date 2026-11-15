@@ -6,14 +6,14 @@ The save of a custom field value scans only the `editor`, `field_attrs` and URL 
 
 - The save of a custom field value scans the value of every field kind for an untrusted author. A kind that is not `editor`, `field_attrs` or a URL kind gets the markup rule of `editor`.
 - A URL kind (`url`, `image`, `audio`, `video`, `file`) gets the markup rule as well as the URL rule. The `data` shortcode puts a URL value into the content as markup too.
-- A holder of the `settings` permission is trusted for the field values of the site. A holder of the `theme_settings` permission is trusted for the field values of a theme. This follows the trust rule of `docs/security/permissions.md`: these roles save these values through an action that their permission allows.
+- A holder of the `settings` or the `custom_fields` permission is trusted for the field values of each owner that is not a post. `docs/security/permissions.md` gives these two permissions the trust of an administrator. A holder of the `theme_settings` permission is trusted for the field values of a theme, which it saves through the theme settings.
 - `rake camaleon_cms:security:scan_content` lists a stored value of every kind that the scan refuses, because it uses the same dispatch.
 - **BREAKING**: an untrusted author can no longer store markup outside the content allowlist in a field of any kind, `text_box` and `text_area` included. An example is `Fish & Chips <today>`. The save fails with an error that names the field. Stored values do not change.
 
 Non-goals:
 
 - No escape or other change of a value at render. The remedy rule of `docs/security/permissions.md` forbids it.
-- No new trust for the other owners of a field value (a category, a post tag, a user, a nav menu item, a post type). An administrator stays the only trusted author for them.
+- No new trust through the permission of another save, such as `categories`, `post_tags`, `nav_menu`, `widgets` or `users`. A role with only such a permission stays scanned.
 - No change to the `post_content_unfiltered_html` gate on the fields of a post.
 
 ## Capabilities
@@ -24,7 +24,7 @@ None.
 
 ### Modified Capabilities
 
-- `custom-field-value-rejection`: the scan covers every field kind, and the site and theme field values trust the holders of `settings` and `theme_settings`.
+- `custom-field-value-rejection`: the scan covers every field kind. The holders of `settings` and `custom_fields` are trusted for the fields of each owner that is not a post. The holders of `theme_settings` are trusted for the fields of a theme.
 
 ## Impact
 

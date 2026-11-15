@@ -21,6 +21,10 @@ module CamaleonCms
     # also goes into href and src, so it is held to the URI rule too.
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
+    # The settings and custom_fields permissions give a role the trust of an administrator
+    # (docs/security/permissions.md). So a holder of one of them is trusted for the values of an
+    # owner that is not a post (owner_trust_abilities).
+    ADMIN_TRUST_ABILITIES = [%i[manage settings], %i[manage custom_fields]].freeze
     # An author can add a repeatable field group (is_repeat) to a post several times. For example, a
     # "Slide" group holds an image and a caption, and the author adds it one time for each slide.
     # group_number is the index of the slide that a value belongs to: 0 for the first slide, 1 for
@@ -335,8 +339,8 @@ module CamaleonCms
       slug.b.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
     end
 
-    # An admin can write anything. Another role is trusted through the permission that allows the
-    # save of the owner (owner_trust_ability). Fails closed (the gate applies) without a request
+    # An admin can write anything. Another role is trusted through one of the abilities that
+    # owner_trust_abilities gives for the owner. Fails closed (the gate applies) without a request
     # context — benign values still pass the scan.
     def author_trusted_for_unfiltered_value?
       user = CurrentRequest.user
@@ -344,24 +348,32 @@ module CamaleonCms
       return false if user.blank? || site.blank?
       return true if user.admin?
 
-      ability = owner_trust_ability(site)
-      ability.present? && CamaleonCms::Ability.new(user, site).can?(*ability)
+      abilities = owner_trust_abilities(site)
+      return false if abilities.empty?
+
+      ability = CamaleonCms::Ability.new(user, site)
+      abilities.any? { |args| ability.can?(*args) }
     end
 
-    # The ability that trusts a role for the values of the owner, or nil when only an admin is
-    # trusted:
+    # The abilities that trust a role for the values of the owner. An empty list means that only an
+    # admin is trusted:
     # - a post: post_content_unfiltered_html for its post type, the permission of the post body.
-    # - the current site: settings, the permission of the site settings save.
-    # - a theme of the current site: theme_settings, the permission of the theme settings save.
-    def owner_trust_ability(site)
+    # - the current site: the abilities of ADMIN_TRUST_ABILITIES.
+    # - a theme of the current site: those abilities and theme_settings, the permission of the
+    #   theme settings save.
+    # - a site or a theme of another site, and a row with no owner: none.
+    # - each other owner, such as a category or a post type: the abilities of ADMIN_TRUST_ABILITIES.
+    def owner_trust_abilities(site)
       parent = owner
       case parent
+      when nil then []
       when CamaleonCms::Post
-        [:post_content_unfiltered_html, parent.post_type] if parent.post_type.present?
+        parent.post_type.present? ? [[:post_content_unfiltered_html, parent.post_type]] : []
       when CamaleonCms::Site
-        %i[manage settings] if parent.id == site.id
+        parent.id == site.id ? ADMIN_TRUST_ABILITIES : []
       when CamaleonCms::Theme
-        %i[manage theme_settings] if parent.parent_id == site.id
+        parent.parent_id == site.id ? ADMIN_TRUST_ABILITIES + [%i[manage theme_settings]] : []
+      else ADMIN_TRUST_ABILITIES
       end
     end
 

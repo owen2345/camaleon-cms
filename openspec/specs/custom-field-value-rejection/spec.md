@@ -16,12 +16,13 @@ of the value:
 
 - For the fields of a post, a saver that holds `post_content_unfiltered_html` for the post type SHALL
   bypass the gate. The permission that governs the post body governs the fields of the post.
-- For the fields of the current site, a saver that holds the `settings` permission SHALL bypass the gate.
-  That permission allows the save of the site settings, which holds these fields.
+- For the fields of an owner that is not a post, a saver that holds `settings` or `custom_fields`
+  SHALL bypass the gate. These two permissions give a role the trust of an administrator. Examples
+  are the current site, a theme, a category, a post tag, a user, a nav menu item and a post type.
 - For the fields of a theme of the current site, a saver that holds `theme_settings` SHALL bypass
-  the gate. That permission allows the save of the theme settings, which holds these fields.
-- For the fields of every other owner, only an admin SHALL bypass the gate. Examples are a category,
-  a post tag, a user, a nav menu item and a post type.
+  the gate too. That permission allows the save of the theme settings, which holds these fields.
+- For the fields of another site or of its theme, only an admin SHALL bypass the gate. The same
+  applies to a value with no owner.
 
 When no request context exists, the gate SHALL apply (fail closed). A trusted server-side pipeline
 opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang enabler with no writer.
@@ -49,10 +50,16 @@ opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang 
   theme field value that holds a `<script>` element
 - **THEN** the value is stored exactly as written
 
-#### Scenario: A settings holder is not trusted for the fields of a theme
+#### Scenario: A settings or custom_fields holder is trusted for the fields of other owners
 
-- **WHEN** a non-admin role that holds `settings` but not `theme_settings` saves a theme field value
-  that holds a `<script>` element
+- **WHEN** a non-admin role that holds `settings` or `custom_fields` saves a theme field value and a
+  category field value that hold a `<script>` element
+- **THEN** each value is stored exactly as written
+
+#### Scenario: A settings or custom_fields holder is not trusted for the fields of a post
+
+- **WHEN** a non-admin role that holds `settings` or `custom_fields`, but not
+  `post_content_unfiltered_html`, saves a post field value that holds a `<script>` element
 - **THEN** the save is refused, and no value row is stored
 
 #### Scenario: A settings holder is not trusted for the fields of another site
@@ -61,9 +68,9 @@ opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang 
   `<script>` element
 - **THEN** the save is refused, and no value row is stored
 
-#### Scenario: A non-admin is not trusted for the fields of another owner
+#### Scenario: A theme_settings holder is not trusted for the fields of another owner
 
-- **WHEN** a non-admin role that holds `settings` and `theme_settings` saves a category field value
+- **WHEN** a non-admin role that holds only `theme_settings` saves a site or a category field value
   that holds a `<script>` element
 - **THEN** the save is refused, and no value row is stored
 

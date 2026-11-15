@@ -37,9 +37,10 @@ A search of the sibling plugin and theme checkouts finds no caller of the remove
 **D5. Trust by owner.** The maintainer chose to align the check with the trust rule of `docs/security/permissions.md` (2026-11-15).
 
 - A `CamaleonCms::Site` owner: `can?(:manage, :settings)`. `Admin::SettingsController#site_saved` writes these values, and `validate_role` authorizes it on `settings`.
-- A `CamaleonCms::Theme` owner: `can?(:manage, :theme_settings)`. `save_theme` writes these values, and `validate_role_theme` authorizes it on `theme_settings`. A `settings` holder without `theme_settings` cannot reach that save, so `settings` does not trust a theme field.
-- Every other owner that is not a post: admin only, as today. The maintainer was asked only about the site and theme fields. Category, post tag, user, nav menu item and post type fields stay with an administrator.
-- The check asks `CamaleonCms::Ability` for the site in `CurrentRequest`, and it fails closed as the post branch does. The permission holds for that site only, so the site or the theme must belong to it.
+- A `CamaleonCms::Theme` owner: `can?(:manage, :theme_settings)` too. `save_theme` writes these values, and `validate_role_theme` authorizes it on `theme_settings`.
+- Every owner that is not a post: `can?(:manage, :settings)` or `can?(:manage, :custom_fields)`. `docs/security/permissions.md` says that these two permissions give a role the trust of an administrator. The maintainer chose this on 2026-11-15, after a review found that the doc and the check disagreed. An example is the post type fields: `Settings::PostTypesController` writes them, and it authorizes the save on `settings`. The fields of a post stay with `post_content_unfiltered_html`, the permission of the post body, which these two permissions do not give.
+- A value with no owner: admin only.
+- The check asks `CamaleonCms::Ability` for the site in `CurrentRequest`, and it fails closed as the post branch does. The permission holds for that site only, so a site or a theme owner must belong to it. For the other owners, the check reads no site: the permission of the current site decides.
 
 **D6. The error message stays `value_rejected_html`.** It names the field and the remedy, and it already fits a value of any kind.
 

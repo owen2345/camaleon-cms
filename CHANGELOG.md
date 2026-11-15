@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- **Security fix:** The save of a custom field value now scans every field kind for an author who is not trusted. A role with `settings` or `theme_settings` is now trusted for the site or theme fields. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
-  - **Breaking change:** such an author is refused markup outside the content allowlist in a field of any kind.
+- **Security fix:** The save of a custom field value now scans every field kind for an untrusted author. `settings` and `custom_fields` now trust a role for the fields outside posts, and `theme_settings` for theme fields. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
+  - **Breaking change:** an untrusted author is refused markup outside the content allowlist in any field.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-custom-field-value-of-every-kind-is-scanned-at-save).
 
 - **Bug fix:** A role without `content_shortcodes` can save a post or another owner whose field value holds a shortcode of an administrator. This holds while the role leaves that value unchanged. A changed value is still checked. [#1351](https://github.com/owen2345/camaleon-cms/pull/1351).
