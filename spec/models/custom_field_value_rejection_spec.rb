@@ -296,6 +296,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value('specs')).to be_blank
     end
 
+    # Code that saves a pair as a Hash stores it with generate_json, which keeps `<` and writes each
+    # quote of an attribute as `\"`. The data shortcode shows that text, so the scan refuses the tag
+    # (intended). The to_json form escapes `<`, as the admin form does.
+    it 'refuses a Hash pair with a quoted attribute, and stores its to_json form' do
+      as_user(contributor)
+      pair = { attr: 'Link', value: '<a href="https://example.com/">Shop</a>' }
+
+      expect { post.set_field_value('specs', pair) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      post.set_field_value('specs', pair.to_json)
+
+      expect(post.get_field_value('specs')).to eq(pair.to_json)
+    end
+
     it 'stores a benign translated pair and a pair with a quoted attribute unchanged' do
       as_user(contributor)
       translated = { en: { attr: 'Color', value: 'Red' }.to_json, es: { attr: 'Color', value: 'Rojo' }.to_json }

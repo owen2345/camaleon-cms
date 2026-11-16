@@ -132,7 +132,8 @@ value that is not an object (array or scalar) SHALL render nothing rather than r
 
 #### Scenario: Benign pairs are stored and rendered byte-for-byte
 
-- **WHEN** an untrusted author saves a pair whose members stay within the markup allowlist
+- **WHEN** an untrusted author saves a pair whose members and stored JSON stay within the markup
+  allowlist
 - **THEN** the pair is stored exactly as written and the frontend renders the attribute name and
   the value verbatim
 
@@ -623,7 +624,9 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   because the `data` shortcode shows it as stored. Each key and decoded member of the parse SHALL be
   held to it too, also in each translation of the value. The template of the field translates the
   value before it parses it. This SHALL include each member of a key that occurs twice in an object.
-  The parse keeps only the last of them, but the stored JSON keeps each one.
+  The parse keeps only the last of them, but the stored JSON keeps each one. A pair that code stores
+  as a Hash keeps `<` and writes each attribute quote as `\"`. So a tag with an attribute in such a
+  pair SHALL be refused (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
 - A value beyond the parse size bound SHALL be refused for every kind.
 
 The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or
@@ -707,6 +710,14 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 
 - **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"a","value":"<img src=x title=\"a onerror=alert(1);//\">"}`
 - **THEN** the save is refused, and no value row is stored
+
+#### Scenario: A pair that code stores as a Hash with a quoted attribute is refused
+
+- **WHEN** code saves the pair `{ attr: 'Link', value: '<a href="https://example.com/">Shop</a>' }`
+  as a Hash for an untrusted author
+- **THEN** the save is refused, because the stored JSON writes each quote of the attribute as `\"`
+- **AND WHEN** the code saves the `to_json` form of the pair, which escapes `<`
+- **THEN** the pair is stored exactly as written
 
 #### Scenario: An escaped script member after a quote in a comment is refused
 

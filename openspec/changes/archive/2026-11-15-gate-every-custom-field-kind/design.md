@@ -36,6 +36,11 @@ A review on 2026-11-16 found three gaps, and the scan reads the value as each re
 - A quote in a comment shifts the string literals. So the scan also reads the keys and members of the parse.
 - The template of the field translates the value before it parses the JSON. So the scan parses each translation.
 
+The scan of the stored text refuses a tag with an attribute in a pair that code stores as a Hash. `generate_json` keeps `<` and writes each quote as `\"`, so the page shows that tag broken anyway. The maintainer chose to keep this scan on 2026-11-16 (intended). Code passes `pair.to_json`, which escapes `<` as the admin form does.
+
+- Alternative: a narrower check of the stored text, for event handlers and script URLs only. It is a second rule, which D1 rejects, and it misses an attribute such as a `style` overlay. Rejected.
+- Alternative: store a Hash pair with `<` escaped. It changes the stored text of each Hash meta, or it needs a special case for one field kind. It also reverses the `generate_json` choice of PR #1339. Rejected.
+
 **D4. `GATED_FIELD_KEYS` and `gated_field_key?` go away.** Every kind is gated, so the early return in the validation goes too. `MARKUP_FIELD_KEYS` goes as well, since the markup rule is the default. `URI_FIELD_KEYS` and `JSON_MARKUP_FIELD_KEYS` stay.
 
 A search of the sibling plugin and theme checkouts finds no caller of the removed constants or of `gated_field_key?`. The constants are not a documented API (`docs/ai/ecosystem.md`).
