@@ -54,7 +54,7 @@ module CamaleonCms
     # rejection message names.
     OPEN_ATTR_NAME = /\A(?:data|aria)-[a-zA-Z][-a-zA-Z0-9_.]*\z/
 
-    # A character that ends an HTML attribute value. A valid URL encodes each of them (%22 for `"`).
+    # A character that ends an HTML attribute value. A URL can encode each of them (%22 for `"`, %27 for `'`).
     URL_ATTRIBUTE_END = /["'<>`]/
     # The whitespace that ends an attribute value with no quotes, as the HTML parser reads it.
     HTML_WHITESPACE = /[\t\n\f\r ]/

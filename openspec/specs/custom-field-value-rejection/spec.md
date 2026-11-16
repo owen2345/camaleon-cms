@@ -615,7 +615,7 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   (`javascript:`, `vbscript:`, non-raster `data:`) SHALL also be refused.
 - For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace before
   another character SHALL also be refused. A `data` shortcode inside a tag puts the value into an
-  attribute, and each of these characters ends the attribute. A valid URL encodes them. Whitespace
+  attribute, and each of these characters ends the attribute. A URL can encode them, such as `%27` for `'`. Whitespace
   at the end of the value SHALL pass: no character of the value follows it.
 - For a `field_attrs` value, each decoded member and each key of an object SHALL be held to the
   post-content allowlist. This SHALL include each member of a key that occurs twice in an object.

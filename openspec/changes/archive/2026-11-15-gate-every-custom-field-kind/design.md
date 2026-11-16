@@ -60,7 +60,7 @@ The trust check reads `owner`. PR #1346 merged first, and it makes `polymorphic_
 
 **D9. A URI kind refuses each character that ends an attribute.** `do_shortcode` replaces a shortcode also inside a tag, and `the_field` gives the raw value. So `<img src="[data field='photo']">` puts an image value into an attribute. The value `x" onerror="alert(1)` has no `<`, so the markup rule passes it, and the page runs the handler.
 
-A URI kind now also refuses `"`, `'`, `<`, `>`, a backtick and whitespace before another character. A valid URL encodes each of them, and the media library gives no URL with one of them. The maintainer chose this on 2026-11-16, after a review found the gap.
+A URI kind now also refuses `"`, `'`, `<`, `>`, a backtick and whitespace before another character. A URL can encode each of them, and the media library gives no URL with one of them. The maintainer chose this on 2026-11-16, after a review found the gap.
 
 - A value of another kind inside a tag gets no rule (intended). Only an admin or a holder of `content_shortcodes` can place a shortcode, and that role chooses the position. A rule for a `text_box` value refuses a quote in ordinary prose.
 - Whitespace at the end of a URL passes. No character of the value follows it, so it adds no attribute, and a URL that an author copies often has it.
