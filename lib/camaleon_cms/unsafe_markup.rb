@@ -121,15 +121,17 @@ module CamaleonCms
           string.dup.translations_array.any? { |url| url.rstrip.match?(HTML_WHITESPACE) }
       end
 
-      # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding makes
+      # The gate only reads, never stores. A value in another encoding, or with invalid bytes, makes
       # a `match?` of the scan raise ArgumentError -- a 500 on save and an abort of the scan task --
-      # so scan a scrubbed UTF-8 copy instead. The stored bytes are never touched (reject, don't
-      # transform), and invalid byte sequences cannot spell markup anyway.
+      # so the scan reads a UTF-8 copy. A database stores a valid String in another encoding, such
+      # as UTF-16, as UTF-8 text, so the copy converts it. Any other value is read as scrubbed bytes:
+      # invalid byte sequences cannot spell markup. The stored bytes are never touched (reject, don't
+      # transform).
       def scannable_string(value)
         string = value.to_s
         return string if string.encoding == Encoding::UTF_8 && string.valid_encoding?
 
-        string.b.force_encoding(Encoding::UTF_8).scrub
+        utf8_copy(string) || string.b.force_encoding(Encoding::UTF_8).scrub
       end
 
       private
@@ -175,6 +177,16 @@ module CamaleonCms
           Loofah.fragment(string)
         end
       rescue ArgumentError
+        nil
+      end
+
+      # The UTF-8 copy of a valid String in another encoding, or nil when Ruby cannot convert it
+      # (UTF-7). A binary String keeps its bytes, which are often UTF-8 already.
+      def utf8_copy(string)
+        return if string.encoding == Encoding::BINARY || !string.valid_encoding?
+
+        string.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+      rescue EncodingError
         nil
       end
 

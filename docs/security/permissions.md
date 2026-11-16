@@ -78,11 +78,13 @@ The pieces that implement the rule:
   a translation marker inside a tag, and markup smuggled through an attribute value (a value that
   entity-decodes to a tag-open, which a client-side `data-html` sink would inject). It bounds value
   size (an over-size value is refused, and callers report it with a size-specific message) and yields
-  a verdict for mis-encoded input rather than raising. A value that the parser cannot read (more than
-  400 nested elements, or more than 400 attributes on one element) is refused too. The checks read
-  the elements from one walk of the tree. Never search the parsed fragment with `css`: its cost
-  grows with the square of the number of top-level nodes. The cama_contact_form plugin calls this
-  detector for its authored markup, so a change here applies there too. Scan the content **the renderer will emit**, not the stored encoding:
+  a verdict for mis-encoded input rather than raising. It reads a valid String in another encoding,
+  such as UTF-16, as UTF-8, because a database stores it as UTF-8 text. A value that the parser
+  cannot read (more than 400 nested elements, or more than 400 attributes on one element) is
+  refused too. The checks read the elements from one walk of the tree. Never search the parsed
+  fragment with `css`: its cost grows with the square of the number of top-level nodes. The
+  cama_contact_form plugin calls this detector for its authored markup, so a change here applies
+  there too. Scan the content **the renderer will emit**, not the stored encoding:
   `CustomFieldsRelationship.gate_rejection_reason` decodes every member of a `field_attrs` value's
   JSON (any shape — object, array, nested) before scanning, because the JSON encoder hides `<` behind
   unicode escapes. It also scans each member of a key that occurs twice, which the parse drops. It parses each translation of the value, as the template of the field does. It also scans the value as stored, which the `data` shortcode shows. And the same class-level dispatch backs the `scan_content` audit task so the two

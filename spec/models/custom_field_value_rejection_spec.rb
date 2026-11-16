@@ -201,6 +201,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # SQLite and PostgreSQL store a String in UTF-16 as UTF-8 text, so the scan reads it as UTF-8. A
+  # save of such a value raises an encoding error in the shortcode gate first, so the example calls
+  # the scan itself.
+  describe 'a value in UTF-16' do
+    it 'is scanned as UTF-8, also by the decoded members of a field_attrs value' do
+      tag = '<script>alert(1)</script>'
+      escaped = { attr: 'Color', value: tag }.to_json.encode('UTF-16LE')
+
+      expect(described_class.gate_rejection_reason('text_box', tag.encode('UTF-16LE'))).to eq(:html)
+      expect(described_class.gate_rejection_reason('field_attrs', escaped)).to eq(:html)
+    end
+  end
+
   describe 'field_attrs values (verbatim JSON markup position)' do
     it 'refuses a script hidden in the pair for an untrusted author' do
       as_user(contributor)

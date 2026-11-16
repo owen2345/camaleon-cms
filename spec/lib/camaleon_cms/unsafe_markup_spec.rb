@@ -121,6 +121,19 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
+  # SQLite and PostgreSQL store a String in another encoding, such as UTF-16, as UTF-8 text, so the
+  # page shows its tags. The scan reads such a String as UTF-8.
+  describe '.unsafe_html? with a String in another encoding' do
+    it 'reads a UTF-16 String as UTF-8' do
+      expect(unsafe?('<script>alert(1)</script>'.encode('UTF-16LE'))).to be true
+      expect(unsafe?('<b>bold</b>'.encode('UTF-16BE'))).to be false
+    end
+
+    it 'reads a String that Ruby cannot convert as its bytes, with no error' do
+      expect(unsafe?((+'a+ADw-b').force_encoding('UTF-7'))).to be false
+    end
+  end
+
   describe '.too_large? (M16)' do
     it 'is true above the ceiling and false below it' do
       expect(described_class.too_large?('a' * (described_class::MAX_GATED_VALUE_BYTES + 1))).to be true
