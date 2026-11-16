@@ -478,6 +478,18 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect { other.set_field_value('other_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
     end
 
+    it 'refuses a script theme field value of another site for a holder of settings and theme_settings' do
+      other = CamaleonCms::Site.create!(name: 'Other', slug: 'other-theme-trust', taxonomy: 'site')
+      other_theme = other.get_theme
+      other_theme.add_field_group({ name: 'Other theme', slug: '_other-theme-extra' })
+                 .add_manual_field({ name: 'Other theme note', slug: 'other_theme_note' }, { field_key: 'text_box' })
+      grant('settings', 'theme_settings')
+
+      expect { other_theme.set_field_value('other_theme_note', script) }
+        .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(other_theme.get_field_value('other_theme_note')).to be_blank
+    end
+
     it 'refuses a script site or theme field value without a request context' do
       expect { site.set_field_value('site_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
       expect { theme.set_field_value('theme_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
