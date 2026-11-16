@@ -30,6 +30,12 @@ A probe in the dummy app gave these verdicts. Pass: `a < b & c`, `x > y`, `5 <3 
 
 **D3. `field_attrs` keeps its member scan.** The stored JSON escapes `<` as a Unicode escape, which a browser shows as text. Each decoded member is already held to the markup rule.
 
+A review on 2026-11-16 found three gaps, and the scan reads the value as each renderer shows it:
+
+- The `data` shortcode shows the value as stored. There a `\"` in a string does not escape the quote, so the quote can end an attribute. So the scan reads the value as stored.
+- A quote in a comment shifts the string literals. So the scan also reads the keys and members of the parse.
+- The template of the field translates the value before it parses the JSON. So the scan parses each translation.
+
 **D4. `GATED_FIELD_KEYS` and `gated_field_key?` go away.** Every kind is gated, so the early return in the validation goes too. `MARKUP_FIELD_KEYS` goes as well, since the markup rule is the default. `URI_FIELD_KEYS` and `JSON_MARKUP_FIELD_KEYS` stay.
 
 A search of the sibling plugin and theme checkouts finds no caller of the removed constants or of `gated_field_key?`. The constants are not a documented API (`docs/ai/ecosystem.md`).

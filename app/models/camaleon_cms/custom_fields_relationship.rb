@@ -17,7 +17,7 @@ module CamaleonCms
 
     # The save scans the value of every field kind (scan-and-reject policy). The data shortcode puts
     # a value of any kind into the page as markup, so each value is held to the post-content
-    # allowlist. A `field_attrs` value is JSON, so the scan reads its decoded members and keys. A URI kind
+    # allowlist. A `field_attrs` value is JSON, so the scan also reads its decoded members and keys. A URI kind
     # also goes into href and src, so it is held to the URI rule too. A shortcode inside a tag puts a
     # URI value into an attribute, so the scan also refuses a character that ends the attribute. The
     # role that puts a shortcode of another kind inside a tag chooses that position (intended).
@@ -40,9 +40,6 @@ module CamaleonCms
 
     # A JSON string literal: a key or a String member of a field_attrs value, with its escapes.
     JSON_STRING_LITERAL = /"(?:[^"\\]|\\.)*"/m
-    # The text of JSON outside its string literals: brackets, colons, commas, whitespace, numbers,
-    # true, false and null.
-    JSON_STRUCTURE = /\A[\s\[\]{}:,\w.+-]*\z/
 
     # The Rails integer type with one change. The integer cast of Rails raises ArgumentError for a
     # String in an invalid encoding. For a String in an encoding such as UTF-16, a lookup raises an
@@ -251,22 +248,43 @@ module CamaleonCms
         )
       end
 
-      # A field_attrs value stores JSON whose string members render verbatim. Scan every DECODED
-      # key and String member (Hash, Array or nested), not the stored bytes: the Rails JSON encoder
-      # unicode-escapes angle brackets, so a byte-level scan of the stored string would pass markup that
-      # JSON.parse restores at render. The scan decodes each string literal of the stored text, not the
-      # parsed tree. The parse keeps only the last member of a key that occurs twice, but the stored text,
-      # which the data shortcode shows, keeps each one. The parse also accepts a comment, which the page
-      # shows. So when the text outside the literals holds more than the JSON structure, the scan also
-      # reads the value as stored. A value that does not parse, or whose encoding the scan cannot read,
-      # is scanned as stored (fail closed).
+      # A field_attrs value stores JSON. The scan reads it as each renderer shows it:
+      # - The data shortcode shows the value as stored, where `\"` does not escape a quote. So the
+      #   scan reads the value as stored.
+      # - The template of the field translates the value, parses the JSON and shows its keys and
+      #   members. The Rails JSON encoder escapes `<`, so only the decoded strings show such markup.
+      #   So the scan reads each key and String member of the parse of each translation.
+      # - The parse keeps only the last member of a key that occurs twice, but the stored value keeps
+      #   each one. So the scan also decodes each string literal of each translation.
       def json_member_values(value)
         source = value.to_s
-        JSON.parse(source)
-        members = JSON.parse("[#{source.scan(JSON_STRING_LITERAL).join(',')}]")
-        source.gsub(JSON_STRING_LITERAL, '').match?(JSON_STRUCTURE) ? members : [source, *members]
-      rescue JSON::ParserError, EncodingError
-        [source]
+        texts = CamaleonCms::UnsafeMarkup.scannable_string(source).dup.translations_array
+        [source, *texts.flat_map { |text| json_strings(text) }]
+      end
+
+      # The keys and String members of the parse of a JSON text, and its decoded string literals. A
+      # text that does not parse adds none.
+      def json_strings(text)
+        json_tree_strings(JSON.parse(text)) + json_literal_strings(text)
+      rescue JSON::ParserError
+        []
+      end
+
+      def json_tree_strings(node)
+        case node
+        when Hash then node.flat_map { |key, member| [key, *json_tree_strings(member)] }
+        when Array then node.flat_map { |member| json_tree_strings(member) }
+        when String then [node]
+        else []
+        end
+      end
+
+      # A quote in a comment, which the parse skips, shifts the literals. When they then do not parse,
+      # they add no string: the parse and the stored value cover such a text.
+      def json_literal_strings(text)
+        JSON.parse("[#{text.scan(JSON_STRING_LITERAL).join(',')}]")
+      rescue JSON::ParserError
+        []
       end
     end
 

@@ -117,6 +117,17 @@ module CamaleonCms
         string.match?(URL_ATTRIBUTE_END) || string.rstrip.match?(HTML_WHITESPACE)
       end
 
+      # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding makes
+      # a `match?` of the scan raise ArgumentError -- a 500 on save and an abort of the scan task --
+      # so scan a scrubbed UTF-8 copy instead. The stored bytes are never touched (reject, don't
+      # transform), and invalid byte sequences cannot spell markup anyway.
+      def scannable_string(value)
+        string = value.to_s
+        return string if string.encoding == Encoding::UTF_8 && string.valid_encoding?
+
+        string.b.force_encoding(Encoding::UTF_8).scrub
+      end
+
       private
 
       # The checks of unsafe_html? for one text: the stored value or one translation of it.
@@ -161,17 +172,6 @@ module CamaleonCms
         end
       rescue ArgumentError
         nil
-      end
-
-      # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding would
-      # make the `match?` below raise ArgumentError -- a 500 on save and an abort of the scan task --
-      # so scan a scrubbed UTF-8 copy instead. The stored bytes are never touched (reject, don't
-      # transform), and invalid byte sequences cannot spell markup anyway.
-      def scannable_string(value)
-        string = value.to_s
-        return string if string.encoding == Encoding::UTF_8 && string.valid_encoding?
-
-        string.b.force_encoding(Encoding::UTF_8).scrub
       end
 
       def scrubber_for(tags, attributes)

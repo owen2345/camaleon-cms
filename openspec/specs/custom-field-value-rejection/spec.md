@@ -617,10 +617,11 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   another character SHALL also be refused. A `data` shortcode inside a tag puts the value into an
   attribute, and each of these characters ends the attribute. A URL can encode them, such as `%27` for `'`. Whitespace
   at the end of the value SHALL pass: no character of the value follows it.
-- For a `field_attrs` value, each decoded member and each key of an object SHALL be held to the
-  post-content allowlist. This SHALL include each member of a key that occurs twice in an object.
-  The parse keeps only the last of them, but the stored JSON keeps each one. The text outside the
-  strings, such as a comment that the parse accepts, SHALL be held to the allowlist too.
+- For a `field_attrs` value, the value as stored SHALL be held to the post-content allowlist,
+  because the `data` shortcode shows it as stored. Each key and decoded member of the parse SHALL be
+  held to it too, also in each translation of the value. The template of the field translates the
+  value before it parses it. This SHALL include each member of a key that occurs twice in an object.
+  The parse keeps only the last of them, but the stored JSON keeps each one.
 - A value beyond the parse size bound SHALL be refused for every kind.
 
 The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or
@@ -692,6 +693,21 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 #### Scenario: A script in a JSON comment is refused
 
 - **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"Color"} /* <script>alert(1)</script> */`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: An escaped quote that ends an attribute in the stored JSON is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"a","value":"<img src=x title=\"a onerror=alert(1);//\">"}`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: An escaped script member after a quote in a comment is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{/* " */"value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: An escaped script in a translation of the JSON is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `<!--:en-->{"attr":"a","value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}<!--:-->`
 - **THEN** the save is refused, and no value row is stored
 
 #### Scenario: Script in a text_box value is refused

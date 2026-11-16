@@ -129,6 +129,23 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(scripts_on_page(stored_post)).to be_empty
   end
 
+  # The shortcode puts the stored JSON into the page. There `\"` does not escape the quote, so the
+  # quote ends the attribute, and the text after it becomes an event handler.
+  it 'refuses an escaped quote that ends an attribute in a JSON value, and the shortcode adds no event handler' do
+    specs = post_type.add_field({ 'name' => 'Specs', 'slug' => 'specs' }, { 'field_key' => 'field_attrs' }, 'Post')
+    place_shortcode(published_post, "[data field='specs']")
+    sign_in_as(editor, site: current_site)
+
+    save_note(stored_post, %({"attr":"a","value":"<img src=x title=\\"a onerror=alert(1);//\\">"}), field: specs)
+
+    expect(flash[:error]).to include(
+      I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_html', slug: 'specs')
+    )
+    expect(stored_post.get_field_value('specs')).to be_blank
+    get "/#{stored_post.slug}"
+    expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
+  end
+
   it 'keeps a plain value of the field on the page' do
     place_shortcode(published_post, "[data field='note']")
     sign_in_as(editor, site: current_site)

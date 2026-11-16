@@ -254,6 +254,49 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
+    # JSON.parse skips a comment, but the string-literal scan reads a quote in it, and its literals
+    # shift. The template of the field shows the members of the parse, so the scan reads them too.
+    it 'refuses an escaped script member after a quote in a comment' do
+      as_user(contributor)
+      member = { value: script }.to_json[1...-1]
+
+      [%({/* " */#{member}}), %({"attr":"a", // "\n#{member}}), %({/* "\\x */#{member}})].each do |hidden|
+        expect { post.set_field_value('specs', hidden) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+        expect(post.get_field_value('specs')).to be_blank
+      end
+    end
+
+    # The data shortcode shows the stored JSON, where `\"` does not escape the quote. So the quote
+    # ends the attribute there, and the text after it becomes an event handler.
+    it 'refuses a stored JSON string whose escaped quote ends an attribute' do
+      as_user(contributor)
+      quoted = %({"attr":"a","value":"<img src=x title=\\"a onerror=alert(1);//\\">"})
+
+      expect { post.set_field_value('specs', quoted) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(post.get_field_value('specs')).to be_blank
+    end
+
+    # The template of the field translates the value before it parses the JSON.
+    it 'refuses an escaped script in a translation of the JSON' do
+      as_user(contributor)
+      translated = "<!--:en-->#{{ attr: 'Color', value: script }.to_json}<!--:-->"
+
+      expect { post.set_field_value('specs', translated) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(post.get_field_value('specs')).to be_blank
+    end
+
+    it 'stores a benign translated pair and a pair with a quoted attribute unchanged' do
+      as_user(contributor)
+      translated = { en: { attr: 'Color', value: 'Red' }.to_json, es: { attr: 'Color', value: 'Rojo' }.to_json }
+
+      [translated.to_translate,
+       { attr: 'Link', value: '<a href="https://example.com/">Shop</a>' }.to_json].each do |value|
+        post.set_field_value('specs', value)
+
+        expect(post.get_field_value('specs')).to eq(value)
+      end
+    end
+
     it 'stores a benign JSON-array value unchanged' do
       as_user(contributor)
       arr = [{ attr: 'a', value: 'plain' }, { attr: 'b', value: 'Deep <em>red</em>' }].to_json
