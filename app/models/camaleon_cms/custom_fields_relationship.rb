@@ -373,7 +373,7 @@ module CamaleonCms
     # - a site or a theme of another site, and a row with no owner: none.
     # - each other owner, such as a category or a post type: the abilities of ADMIN_TRUST_ABILITIES.
     def owner_trust_abilities(site)
-      parent = trust_owner
+      parent = owner
       case parent
       when nil then []
       when CamaleonCms::Post
@@ -384,18 +384,6 @@ module CamaleonCms
         parent.parent_id == site.id ? ADMIN_TRUST_ABILITIES + [%i[manage theme_settings]] : []
       else ADMIN_TRUST_ABILITIES
       end
-    end
-
-    # The owner as Camaleon names it. A row stores the short name of its owner class, such as 'Post'.
-    # Rails finds that name as a top-level constant first, so in a host app with its own Post model,
-    # `owner` is a record of the host. This method tries the Camaleon class of that name first. A name
-    # with no Camaleon model, such as the class of a plugin, keeps the owner that Rails finds.
-    def trust_owner
-      name = object_class.to_s
-      klass = "CamaleonCms::#{name}".safe_constantize if name.match?(/\A[A-Z]\w*\z/)
-      return owner unless klass.is_a?(Class) && klass < ActiveRecord::Base
-
-      klass.find_by(id: objectid)
     end
 
     def set_parent_slug

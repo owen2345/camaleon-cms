@@ -396,8 +396,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
-    # A row names its owner class by a short name, such as 'Post'. Rails finds that class as a top-level
-    # constant first, so a host app with its own Post model gave the trust check a host record.
+    # A row names its owner class by a short name, such as 'Post'. The trust check must read the Camaleon
+    # post, also when the host app has its own Post model.
     context 'when the host app has a top-level Post model' do
       before do
         host_post = Class.new(ActiveRecord::Base) # rubocop:disable Rails/ApplicationRecord

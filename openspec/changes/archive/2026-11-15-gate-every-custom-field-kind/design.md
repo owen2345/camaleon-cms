@@ -52,11 +52,11 @@ A search of the sibling plugin and theme checkouts finds no caller of the remove
 
 - Alternative: one `Ability` for each request on `CurrentRequest`. It saves more queries, but `Ability#initialize` loads the role again on purpose, so a cache can read a changed role. Rejected for this change.
 
-**D8. The trust check finds the owner by its Camaleon class.** A row stores the short name of its owner class, such as `Post`. `CamaleonRecord.polymorphic_class_for` tries the top-level constant first. In a host app with its own `Post` model, the trust check then got a host record and used the rule of other owners.
+**D8. The trust check finds the owner by its Camaleon class.** A row stores the short name of its owner class, such as `Post`. Before PR #1346, `CamaleonRecord.polymorphic_class_for` tried the top-level constant first. In a host app with its own `Post` model, the trust check then got a host record and used the rule of other owners.
 
-`trust_owner` tries `CamaleonCms::<name>` first, and keeps `owner` for any other name, such as the class of a plugin. The maintainer chose this on 2026-11-15.
+The trust check reads `owner`. PR #1346 merged first, and it makes `polymorphic_class_for` try the Camaleon class first for each model.
 
-- Alternative: try the Camaleon class first in `polymorphic_class_for`, for every model. That also fixes the owner of a meta and of a field group. But a plugin that stores its own top-level class under a name of Camaleon, such as `Category`, then gets the Camaleon class. That needs a check of the plugins first. Rejected for this change.
+- Alternative: a lookup of the Camaleon class in the trust check only (`trust_owner`). This change had it until PR #1346 merged. Removed: it repeated the lookup of `owner`, and it gave `CamaleonCms::User` for `User` also when the configured user class is a host class.
 
 ## Risks / Trade-offs
 
