@@ -252,7 +252,8 @@ module CamaleonCms
       # A field_attrs value stores JSON. The scan reads it as each renderer shows it:
       # - The data shortcode shows the value as stored, where `\"` does not escape a quote. So the
       #   scan reads the value as stored. A pair that code stores as a Hash keeps `<` and `\"`, so
-      #   a tag with an attribute in it is refused (intended). Its to_json form escapes `<`.
+      #   a tag with an attribute in it, such as a link, can be refused (intended). Its to_json form
+      #   escapes `<`.
       # - The template of the field translates the value, parses the JSON and shows its keys and
       #   members. The Rails JSON encoder escapes `<`, so only the decoded strings show such markup.
       #   So the scan reads each key and String member of the parse of each translation.

@@ -626,7 +626,8 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   value before it parses it. This SHALL include each member of a key that occurs twice in an object.
   The parse keeps only the last of them, but the stored JSON keeps each one. A pair that code stores
   as a Hash keeps `<` and writes each attribute quote as `\"`. So a tag with an attribute in such a
-  pair SHALL be refused (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
+  pair, such as a link, can be refused (intended). The `to_json` form of the pair, which escapes `<`,
+  SHALL pass.
   The template of the field and `the_json_field` show a member of the object with `to_s`. So a
   member that is an object or an array SHALL also be held to it as its Ruby text. That text writes
   each quote of a String in the member as `\"`.
