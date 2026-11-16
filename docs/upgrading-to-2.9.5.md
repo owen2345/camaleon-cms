@@ -230,7 +230,7 @@ Now the save scans the value of every kind for an author who is not trusted. A v
 
 A value of a URL kind (`url`, `image`, `audio`, `video`, `file`) is also refused when it holds a quote, an angle bracket or a backtick. Whitespace at the start or inside the value is refused too, but whitespace at its end passes. Encode such a character, for example `%20` for a space. In a translated value, the translation markers pass, and the whitespace rule reads each translation.
 
-A `field_attrs` value is also scanned as stored, because the `data` shortcode shows the stored JSON. Code that saves a pair as a Hash stores `<` as it is and writes each quote of an attribute as `\"`. So a tag with an attribute in such a pair is refused. Pass `pair.to_json` instead, which escapes `<` as the admin form does.
+A `field_attrs` value is also scanned as stored, because the `data` shortcode shows the stored JSON. Code that saves a pair as a Hash stores `<` as it is and writes each quote of an attribute as `\"`. So a tag with an attribute in such a pair is refused. Pass `pair.to_json` instead, which escapes `<` as the admin form does. The template of the field shows a member that is an object or an array as Ruby text, which also writes each quote as `\"`. So a tag with an attribute in such a member is refused, also in the `to_json` form.
 
 These authors are trusted:
 

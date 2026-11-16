@@ -132,8 +132,8 @@ value that is not an object (array or scalar) SHALL render nothing rather than r
 
 #### Scenario: Benign pairs are stored and rendered byte-for-byte
 
-- **WHEN** an untrusted author saves a pair whose members and stored JSON stay within the markup
-  allowlist
+- **WHEN** an untrusted author saves a pair whose members, stored JSON and Ruby text of each object
+  or array member stay in the markup allowlist
 - **THEN** the pair is stored exactly as written and the frontend renders the attribute name and
   the value verbatim
 
