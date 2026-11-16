@@ -22,6 +22,18 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   TRANSLATION_TAG_RESTORE_REGEX =
     Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
 
+  # The short owner name of each Camaleon model in a nested namespace (polymorphic_name), with its class.
+  # 'CamaleonCms::Main' does not exist, so the name alone does not find the class. Each of these models
+  # gets metas from CommonRelationships. Add a new nested model here.
+  NESTED_POLYMORPHIC_CLASSES = {
+    'Main' => 'CamaleonCms::Widget::Main',
+    'Sidebar' => 'CamaleonCms::Widget::Sidebar',
+    'Assigned' => 'CamaleonCms::Widget::Assigned'
+  }.freeze
+
+  # A constant name with one segment, such as 'Post'. It has no '::'.
+  SHORT_CONSTANT_NAME_REGEX = /\A[A-Z]\w*\z/
+
   self.abstract_class = true
 
   # What a record memoized before its first save was read before the INSERT stored it, so the save drops it,
@@ -50,8 +62,15 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     name.demodulize
   end
 
+  # A row stores the short name of a Camaleon owner, such as 'Post' (polymorphic_name). Rails finds that
+  # name as a top-level constant first, so a host model of the same name would become the owner. This
+  # method tries the Camaleon class first. A name with '::', or with no Camaleon model, such as the class
+  # of a plugin, resolves as Rails resolves it. A name that Rails does not find goes to the legacy fallback.
+  # Each subclass of CamaleonRecord gets this lookup, also a plugin model (intended): polymorphic_name
+  # writes the short Camaleon names in each table. docs/upgrading-to-2.9.5.md gives the override for a
+  # plugin model whose association points at a top-level host class.
   def self.polymorphic_class_for(name)
-    super
+    camaleon_polymorphic_class(name) || super
   rescue NameError
     legacy_class = legacy_camaleon_polymorphic_class(name)
     return legacy_class if legacy_class
@@ -164,8 +183,6 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
         base_name = class_name.split('_').first
         candidates << "CamaleonCms::#{base_name}" if base_name.present?
       end
-
-      candidates << CamaManager.get_user_class_name.to_s if class_name == 'User'
     end
 
     candidates << "CamaleonCms::#{class_name}" if class_name.include?('::') && !class_name.start_with?('CamaleonCms::')
@@ -179,6 +196,21 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
     nil
   end
+
+  # The Camaleon class of a short owner name: the user class for 'User', the nested model of a name in
+  # NESTED_POLYMORPHIC_CLASSES, else the CamaleonCms model of that name. Nil for another name.
+  private_class_method def self.camaleon_polymorphic_class(name)
+    class_name = name.to_s
+    return CamaManager.get_user_class_name.to_s.safe_constantize if class_name == 'User'
+
+    nested = NESTED_POLYMORPHIC_CLASSES[class_name]
+    return nested.safe_constantize if nested
+    return unless class_name.match?(SHORT_CONSTANT_NAME_REGEX)
+
+    klass = "CamaleonCms::#{class_name}".safe_constantize
+    klass if klass.is_a?(Class) && klass < ActiveRecord::Base
+  end
+
   private_class_method def self.legacy_polymorphic_marker?(name)
     name.to_s.start_with?('_')
   end

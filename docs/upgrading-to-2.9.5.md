@@ -43,6 +43,9 @@ what theme/plugin developers should know.
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
+| Has a top-level model, other than the configured user class, with the short name of a Camaleon model, such as `Post`, `Category`, `Site`, `User` or `Main` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
+| Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value whose `owner` is a record of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
+| Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 
 ---
 
@@ -843,6 +846,46 @@ permission. Before, each role with the `settings` permission got the item.
 **Who must act:** a site whose role opens the custom field group pages with no `custom_fields`
 permission. Give that role the permission. Without it, each of these pages redirects to the
 dashboard.
+
+### A short owner name resolves to the Camaleon class
+
+A meta row, a field group and a custom-field value store the short name of their owner class in
+`object_class`, such as `Post`. Before, Rails read this name as a top-level class
+first. In a host app with its own `Post` model, the `owner` of a meta of a Camaleon post was then
+a record of the host. Now `owner` tries the Camaleon class first: the configured user class for
+`User`, the `CamaleonCms::Widget` classes for `Main`, `Sidebar` and `Assigned`, else the
+`CamaleonCms` model of that name. Before, the `owner` of a widget meta raised `NameError`. A
+name with `::`, and a short name with no `CamaleonCms` model, such as `Ability`, resolve as
+before. A field group can also store a placement name, such as `PostType_Post`. This name also
+resolves as before.
+
+The save of a custom-field value now touches the record that `owner` gives, and runs its
+`after_touch` callbacks. Before, the save touched only a record of the `CamaleonCms` model of that
+name. The save of a value of a widget, of a plugin model or of a host model touched no record of
+that model.
+
+**Who must act:** a host app with a model that is not a Camaleon model, has the short name of a
+Camaleon model, and stores Camaleon metas or custom fields under that name. The `owner` of these
+rows is now the Camaleon record of the same id. Read the rows of that model through its own
+association, not through `owner`.
+
+Also check each `after_touch` callback of a plugin or host model with custom-field values. The
+callback now runs after each save of a value whose `owner` is a record of that model.
+
+Each subclass of `CamaleonRecord` gets this lookup, also a plugin model. In a plugin model, a
+polymorphic association to a top-level host model with the short name of a Camaleon model now
+gives the Camaleon record. An example is a host `User` that is not the configured user class. To
+keep the host record, define this method in the plugin model:
+
+```ruby
+def self.polymorphic_class_for(name)
+  name.safe_constantize || super
+end
+```
+
+The method tries the top-level class first, so a name with a top-level class, such as `User`,
+gives the host record. A name with no top-level class, such as `Main`, resolves through the
+Camaleon lookup.
 
 ---
 
