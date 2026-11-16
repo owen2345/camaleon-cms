@@ -111,10 +111,14 @@ module CamaleonCms
       # <img src=https://cdn.test/[data field='photo']>, whitespace ends the value, and the characters
       # after it become a new attribute. So leading whitespace is refused too. Whitespace at the end
       # passes: no character of the value follows it.
+      # A translated value holds the translation markers that the admin form writes. The data shortcode
+      # shows one translation, with no marker. So the markers pass, and the whitespace rule reads each
+      # translation.
       # The check reads the value as unsafe_html? does, so a value in another encoding gets a verdict.
       def attribute_ending_url?(value)
         string = scannable_string(value)
-        string.match?(URL_ATTRIBUTE_END) || string.rstrip.match?(HTML_WHITESPACE)
+        string.gsub(TRANSLATION_MARKER, '').match?(URL_ATTRIBUTE_END) ||
+          string.dup.translations_array.any? { |url| url.rstrip.match?(HTML_WHITESPACE) }
       end
 
       # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding makes

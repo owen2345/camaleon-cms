@@ -616,7 +616,9 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
 - For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace before
   another character SHALL also be refused. A `data` shortcode inside a tag puts the value into an
   attribute, and each of these characters ends the attribute. A URL can encode them, such as `%27` for `'`. Whitespace
-  at the end of the value SHALL pass: no character of the value follows it.
+  at the end of the value SHALL pass: no character of the value follows it. The translation markers
+  of a translated value SHALL pass, and the whitespace rule SHALL read each translation. The
+  shortcode shows one translation, with no marker.
 - For a `field_attrs` value, the value as stored SHALL be held to the post-content allowlist,
   because the `data` shortcode shows it as stored. Each key and decoded member of the parse SHALL be
   held to it too, also in each translation of the value. The template of the field translates the
@@ -673,6 +675,12 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 
 - **WHEN** an untrusted author saves a `url`-type value of `https://example.com/page` followed by a
   space or a line break
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A translated URL value is stored unchanged
+
+- **WHEN** an untrusted author saves the translated `url`-type value
+  `<!--:en-->https://example.com/en<!--:--><!--:es-->https://example.com/es<!--:-->`
 - **THEN** the value is stored byte-for-byte as written
 
 #### Scenario: An encoded URL is stored unchanged

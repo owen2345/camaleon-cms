@@ -114,6 +114,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value('link')).to eq('https://example.com/page')
     end
 
+    # A url field can be translated. The admin form then stores the translations in markers, and the
+    # data shortcode shows one translation, with no marker.
+    it 'stores a translated URL unchanged' do
+      as_user(contributor)
+      translated = { en: 'https://example.com/en', es: 'https://example.com/es' }.to_translate
+
+      post.set_field_value('link', translated)
+
+      expect(post.get_field_value('link')).to eq(translated)
+    end
+
     # A data shortcode inside a tag puts the value into an attribute, as in
     # <img src="[data field='photo']">. A quote, a space or a backtick ends that attribute. Without
     # quotes, a leading space ends the text before the shortcode, as in

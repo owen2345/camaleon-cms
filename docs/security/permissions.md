@@ -104,7 +104,8 @@ The pieces that implement the rule:
   quote, an angle bracket, a backtick and whitespace before another character. A URL can encode
   each of them, such as `%27` for `'`. Without quotes, as in `<img src=https://cdn.test/[data field='photo']>`, a leading
   space ends the attribute too. Whitespace at the end passes, because no character of the value
-  follows it. A value of another kind inside a tag gets no such rule: the role that places the shortcode
+  follows it. The translation markers of a translated value pass, because the shortcode shows one
+  translation, with no marker. A value of another kind inside a tag gets no such rule: the role that places the shortcode
   chooses that position.
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its

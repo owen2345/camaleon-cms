@@ -91,6 +91,24 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
+  # The data shortcode shows one translation of a translated value, with no translation marker. So
+  # the markers pass, and the whitespace rule reads each translation.
+  describe '.attribute_ending_url? and translations' do
+    it 'passes the markers of a translated URL' do
+      translated = { en: 'https://x.test/en ', es: 'https://x.test/es' }.to_translate
+
+      expect(described_class.attribute_ending_url?(translated)).to be false
+    end
+
+    it 'refuses a character that ends an attribute in a translation or after the markers' do
+      [{ en: 'https://x.test/a b' }.to_translate, { en: 'x" onerror="alert(1)' }.to_translate,
+       { en: 'https://x.test/<b>' }.to_translate, "#{{ en: 'https://x.test/' }.to_translate}\" onerror=\"alert(1)",
+       "  #{{ en: 'https://x.test/' }.to_translate}"].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(true), value.inspect
+      end
+    end
+  end
+
   # The scan of a URL value reads the value as the other checks do, also in invalid UTF-8 or in UTF-16.
   describe '.attribute_ending_url? with mis-encoded input' do
     it 'returns a verdict instead of raising on invalid UTF-8' do
