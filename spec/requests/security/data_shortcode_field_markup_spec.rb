@@ -15,8 +15,8 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_html', slug: 'note')
   end
 
-  # The content that an administrator saves. The update skips the validations of the post, as the
-  # trusted save of the administrator does.
+  # The content that an administrator saves. The save of an administrator passes the content checks,
+  # so the example writes the column directly.
   def place_shortcode(post, shortcode)
     post.update_column(:content, "<p>Before</p>#{shortcode}<p>After</p>") # rubocop:disable Rails/SkipsModelValidations
   end
