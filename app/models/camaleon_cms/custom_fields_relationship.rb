@@ -255,6 +255,9 @@ module CamaleonCms
       # - The template of the field translates the value, parses the JSON and shows its keys and
       #   members. The Rails JSON encoder escapes `<`, so only the decoded strings show such markup.
       #   So the scan reads each key and String member of the parse of each translation.
+      # - The template of the field and the_json_field show a member of the object with to_s. A
+      #   member that is an object or an array then shows as Ruby text, which writes each quote of a
+      #   String in it as `\"`. So the scan also reads that text.
       # - The parse keeps only the last member of a key that occurs twice, but the stored value keeps
       #   each one. So the scan also decodes each string literal of each translation.
       def json_member_values(value)
@@ -263,12 +266,20 @@ module CamaleonCms
         [source, *texts.flat_map { |text| json_strings(text) }]
       end
 
-      # The keys and String members of the parse of a JSON text, and its decoded string literals. A
-      # text that does not parse adds none.
+      # The keys and String members of the parse of a JSON text, the Ruby text of each member of the
+      # object that is an object or an array, and the decoded string literals. A text that does not
+      # parse adds none.
       def json_strings(text)
-        json_tree_strings(JSON.parse(text)) + json_literal_strings(text)
+        tree = JSON.parse(text)
+        json_tree_strings(tree) + json_member_texts(tree) + json_literal_strings(text)
       rescue JSON::ParserError
         []
+      end
+
+      def json_member_texts(tree)
+        return [] unless tree.is_a?(Hash)
+
+        tree.values.select { |member| member.is_a?(Hash) || member.is_a?(Array) }.map(&:to_s)
       end
 
       def json_tree_strings(node)

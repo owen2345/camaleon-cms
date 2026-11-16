@@ -300,6 +300,29 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value('specs')).to be_blank
     end
 
+    # The template of the field and the_json_field show a member that is an object or an array as
+    # Ruby text, which writes each quote of a String in it as `\"`. There the quote ends the
+    # attribute, as in the stored JSON. The stored JSON escapes `<`, so only the Ruby text shows the tag.
+    it 'refuses an object or an array member whose Ruby text ends an attribute' do
+      as_user(contributor)
+      tag = '<img src=x title="a onerror=alert(1);//">'
+
+      [{ attr: 'a', value: { x: tag } }.to_json, { attr: 'a', value: [tag] }.to_json].each do |nested|
+        expect(nested).not_to include('<')
+        expect { post.set_field_value('specs', nested) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+        expect(post.get_field_value('specs')).to be_blank
+      end
+    end
+
+    it 'stores an object member with allowed markup unchanged' do
+      as_user(contributor)
+      nested = { attr: 'Color', value: { shade: 'Deep <em>red</em>' } }.to_json
+
+      post.set_field_value('specs', nested)
+
+      expect(post.get_field_value('specs')).to eq(nested)
+    end
+
     # The template of the field translates the value before it parses the JSON.
     it 'refuses an escaped script in a translation of the JSON' do
       as_user(contributor)

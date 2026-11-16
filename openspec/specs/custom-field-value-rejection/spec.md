@@ -627,6 +627,9 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   The parse keeps only the last of them, but the stored JSON keeps each one. A pair that code stores
   as a Hash keeps `<` and writes each attribute quote as `\"`. So a tag with an attribute in such a
   pair SHALL be refused (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
+  The template of the field and `the_json_field` show a member of the object with `to_s`. So a
+  member that is an object or an array SHALL also be held to it as its Ruby text. That text writes
+  each quote of a String in the member as `\"`.
 - A value beyond the parse size bound SHALL be refused for every kind.
 
 The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or
@@ -710,6 +713,13 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 
 - **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"a","value":"<img src=x title=\"a onerror=alert(1);//\">"}`
 - **THEN** the save is refused, and no value row is stored
+
+#### Scenario: An object member whose Ruby text ends an attribute is refused
+
+- **WHEN** an untrusted author saves the `to_json` form of
+  `{ attr: 'a', value: { x: '<img src=x title="a onerror=alert(1);//">' } }` as a `field_attrs` value
+- **THEN** the save is refused, because the template of the field shows the member as
+  `{"x" => "<img src=x title=\"a onerror=alert(1);//\">"}`, and no value row is stored
 
 #### Scenario: A pair that code stores as a Hash with a quoted attribute is refused
 

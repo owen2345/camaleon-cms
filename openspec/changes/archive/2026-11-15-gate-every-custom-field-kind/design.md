@@ -36,6 +36,8 @@ A review on 2026-11-16 found three gaps, and the scan reads the value as each re
 - A quote in a comment shifts the string literals. So the scan also reads the keys and members of the parse.
 - The template of the field translates the value before it parses the JSON. So the scan parses each translation.
 
+A review on 2026-11-17 found one more renderer. The template of the field and `the_json_field` show a member of the object with `to_s`. A member that is an object or an array then shows as Ruby text, which writes each quote of a String as `\"`. So the scan also reads that text.
+
 The scan of the stored text refuses a tag with an attribute in a pair that code stores as a Hash. `generate_json` keeps `<` and writes each quote as `\"`, so the page shows that tag broken anyway. The maintainer chose to keep this scan on 2026-11-16 (intended). Code passes `pair.to_json`, which escapes `<` as the admin form does.
 
 - Alternative: a narrower check of the stored text, for event handlers and script URLs only. It is a second rule, which D1 rejects, and it misses an attribute such as a `style` overlay. Rejected.
