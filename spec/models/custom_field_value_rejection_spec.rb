@@ -242,6 +242,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
+    # JSON.parse accepts a comment, and the stored JSON keeps it. A quote in a comment must not hide
+    # a member from the scan either.
+    it 'refuses a script in a JSON comment, and a script member after a quote in a comment' do
+      as_user(contributor)
+
+      [%({"a":1 /* #{script} */}), %({"a":1} // #{script}), %({/* " */"a":"#{script}"})].each do |hidden|
+        expect { post.set_field_value('specs', hidden) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+        expect(post.get_field_value('specs')).to be_blank
+      end
+    end
+
     it 'stores a benign JSON-array value unchanged' do
       as_user(contributor)
       arr = [{ attr: 'a', value: 'plain' }, { attr: 'b', value: 'Deep <em>red</em>' }].to_json

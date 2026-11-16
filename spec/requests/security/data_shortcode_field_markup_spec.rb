@@ -114,6 +114,21 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(scripts_on_page(stored_post)).to be_empty
   end
 
+  # JSON.parse accepts a comment, and the shortcode puts the stored JSON with the comment into the page.
+  it 'refuses a script in a JSON comment, and the shortcode shows none' do
+    specs = post_type.add_field({ 'name' => 'Specs', 'slug' => 'specs' }, { 'field_key' => 'field_attrs' }, 'Post')
+    place_shortcode(published_post, "[data field='specs']")
+    sign_in_as(editor, site: current_site)
+
+    save_note(stored_post, %({"attr":"Color"} /* #{script} */), field: specs)
+
+    expect(flash[:error]).to include(
+      I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_html', slug: 'specs')
+    )
+    expect(stored_post.get_field_value('specs')).to be_blank
+    expect(scripts_on_page(stored_post)).to be_empty
+  end
+
   it 'keeps a plain value of the field on the page' do
     place_shortcode(published_post, "[data field='note']")
     sign_in_as(editor, site: current_site)

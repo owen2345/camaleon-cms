@@ -253,12 +253,14 @@ module CamaleonCms
       # unicode-escapes angle brackets, so a byte-level scan of the stored string would pass markup that
       # JSON.parse restores at render. The scan decodes each string literal of the stored text, not the
       # parsed tree. The parse keeps only the last member of a key that occurs twice, but the stored text,
-      # which the data shortcode shows, keeps each one. A value that does not parse, or whose encoding
-      # the scan cannot read, is scanned as stored (fail closed).
+      # which the data shortcode shows, keeps each one. The text outside the literals is scanned too,
+      # with each literal replaced by "": the parse accepts a comment, which the page shows. A quote in
+      # a comment then also puts the text after it outside the literals. A value that does not parse,
+      # or whose encoding the scan cannot read, is scanned as stored (fail closed).
       def json_member_values(value)
         source = value.to_s
         JSON.parse(source)
-        JSON.parse("[#{source.scan(JSON_STRING_LITERAL).join(',')}]")
+        [source.gsub(JSON_STRING_LITERAL, '""'), *JSON.parse("[#{source.scan(JSON_STRING_LITERAL).join(',')}]")]
       rescue JSON::ParserError, EncodingError
         [source]
       end
