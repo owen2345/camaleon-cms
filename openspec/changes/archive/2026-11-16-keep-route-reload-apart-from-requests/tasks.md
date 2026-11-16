@@ -11,6 +11,6 @@
 
 ## 2. Verification and shipping
 
-- [ ] 2.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
+- [x] 2.1 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 2.2 Add the CHANGELOG entry, archive this change on the branch
+- [x] 2.2 Add the CHANGELOG entry, archive this change on the branch
