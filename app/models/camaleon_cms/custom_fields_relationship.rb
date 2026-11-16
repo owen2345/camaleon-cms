@@ -38,6 +38,9 @@ module CamaleonCms
     # another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
+    # A JSON string literal: a key or a String member of a field_attrs value, with its escapes.
+    JSON_STRING_LITERAL = /"(?:[^"\\]|\\.)*"/m
+
     # The Rails integer type with one change. The integer cast of Rails raises ArgumentError for a
     # String in an invalid encoding. For a String in an encoding such as UTF-16, a lookup raises an
     # encoding error. This type returns nil for such a String.
@@ -246,22 +249,18 @@ module CamaleonCms
       end
 
       # A field_attrs value stores JSON whose string members render verbatim. Scan every DECODED
-      # member and key (Hash, Array or nested), not the stored bytes: the Rails JSON encoder unicode-escapes
-      # angle brackets (storing the escape instead of a literal bracket), so a byte-level scan of the
-      # stored string would pass markup that JSON.parse restores at render. Unparseable values are
-      # scanned as-is (fail closed on whatever the renderer would fall back to).
+      # key and String member (Hash, Array or nested), not the stored bytes: the Rails JSON encoder
+      # unicode-escapes angle brackets, so a byte-level scan of the stored string would pass markup that
+      # JSON.parse restores at render. The scan decodes each string literal of the stored text, not the
+      # parsed tree. The parse keeps only the last member of a key that occurs twice, but the stored text,
+      # which the data shortcode shows, keeps each one. A value that does not parse, or whose encoding
+      # the scan cannot read, is scanned as stored (fail closed).
       def json_member_values(value)
-        flatten_json_strings(JSON.parse(value))
-      rescue JSON::ParserError
-        [value.to_s]
-      end
-
-      def flatten_json_strings(node)
-        case node
-        when Hash then node.flat_map { |key, member| [key.to_s, *flatten_json_strings(member)] }
-        when Array then node.flat_map { |member| flatten_json_strings(member) }
-        else [node.to_s]
-        end
+        source = value.to_s
+        JSON.parse(source)
+        JSON.parse("[#{source.scan(JSON_STRING_LITERAL).join(',')}]")
+      rescue JSON::ParserError, EncodingError
+        [source]
       end
     end
 

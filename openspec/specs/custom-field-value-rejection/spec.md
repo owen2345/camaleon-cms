@@ -618,7 +618,8 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   attribute, and each of these characters ends the attribute. A valid URL encodes them. Whitespace
   at the end of the value SHALL pass: no character of the value follows it.
 - For a `field_attrs` value, each decoded member and each key of an object SHALL be held to the
-  post-content allowlist.
+  post-content allowlist. This SHALL include each member of a key that occurs twice in an object.
+  The parse keeps only the last of them, but the stored JSON keeps each one.
 - A value beyond the parse size bound SHALL be refused for every kind.
 
 The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or
@@ -681,6 +682,11 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 
 - **WHEN** an untrusted author saves a `text_box` value such as `She said "don't" twice`
 - **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A member that a duplicate key hides is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"<script>alert(1)</script>","attr":"Color"}`
+- **THEN** the save is refused, and no value row is stored
 
 #### Scenario: Script in a text_box value is refused
 

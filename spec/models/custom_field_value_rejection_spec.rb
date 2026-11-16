@@ -232,6 +232,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
     end
 
+    # JSON.parse keeps only the last member of a duplicate key, but the stored JSON keeps each member.
+    it 'refuses a script in a member that a duplicate key hides, also in a nested object' do
+      as_user(contributor)
+
+      [%({"value":"#{script}","value":"x"}), %([{"a":{"b":"#{script}","b":1}}])].each do |hidden|
+        expect { post.set_field_value('specs', hidden) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+        expect(post.get_field_value('specs')).to be_blank
+      end
+    end
+
     it 'stores a benign JSON-array value unchanged' do
       as_user(contributor)
       arr = [{ attr: 'a', value: 'plain' }, { attr: 'b', value: 'Deep <em>red</em>' }].to_json

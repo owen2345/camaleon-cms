@@ -85,7 +85,7 @@ The pieces that implement the rule:
   detector for its authored markup, so a change here applies there too. Scan the content **the renderer will emit**, not the stored encoding:
   `CustomFieldsRelationship.gate_rejection_reason` decodes every member of a `field_attrs` value's
   JSON (any shape — object, array, nested) before scanning, because the JSON encoder hides `<` behind
-  unicode escapes, and the same class-level dispatch backs the `scan_content` audit task so the two
+  unicode escapes. It also scans each member of a key that occurs twice, which the parse drops. And the same class-level dispatch backs the `scan_content` audit task so the two
   cannot drift. The scan reads the stored text and each translation of it, because `String#translate`
   removes the first marker of the locale on each line. So a translation can join a `<` and the text
   after a marker into a tag.

@@ -97,6 +97,23 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
   end
 
+  # JSON.parse keeps only the last member of a key that occurs twice. The shortcode puts the stored
+  # JSON into the page, with each member. So the scan reads each member, also one that a later
+  # member of the same key replaces.
+  it 'refuses a script in a member that a duplicate JSON key hides, and the shortcode shows none' do
+    specs = post_type.add_field({ 'name' => 'Specs', 'slug' => 'specs' }, { 'field_key' => 'field_attrs' }, 'Post')
+    place_shortcode(published_post, "[data field='specs']")
+    sign_in_as(editor, site: current_site)
+
+    save_note(stored_post, %({"attr":"#{script.gsub('"', '\"')}","attr":"Color"}), field: specs)
+
+    expect(flash[:error]).to include(
+      I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_html', slug: 'specs')
+    )
+    expect(stored_post.get_field_value('specs')).to be_blank
+    expect(scripts_on_page(stored_post)).to be_empty
+  end
+
   it 'keeps a plain value of the field on the page' do
     place_shortcode(published_post, "[data field='note']")
     sign_in_as(editor, site: current_site)
