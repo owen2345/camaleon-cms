@@ -40,6 +40,9 @@ module CamaleonCms
 
     # A JSON string literal: a key or a String member of a field_attrs value, with its escapes.
     JSON_STRING_LITERAL = /"(?:[^"\\]|\\.)*"/m
+    # The text of JSON outside its string literals: brackets, colons, commas, whitespace, numbers,
+    # true, false and null.
+    JSON_STRUCTURE = /\A[\s\[\]{}:,\w.+-]*\z/
 
     # The Rails integer type with one change. The integer cast of Rails raises ArgumentError for a
     # String in an invalid encoding. For a String in an encoding such as UTF-16, a lookup raises an
@@ -253,14 +256,15 @@ module CamaleonCms
       # unicode-escapes angle brackets, so a byte-level scan of the stored string would pass markup that
       # JSON.parse restores at render. The scan decodes each string literal of the stored text, not the
       # parsed tree. The parse keeps only the last member of a key that occurs twice, but the stored text,
-      # which the data shortcode shows, keeps each one. The text outside the literals is scanned too,
-      # with each literal replaced by "": the parse accepts a comment, which the page shows. A quote in
-      # a comment then also puts the text after it outside the literals. A value that does not parse,
-      # or whose encoding the scan cannot read, is scanned as stored (fail closed).
+      # which the data shortcode shows, keeps each one. The parse also accepts a comment, which the page
+      # shows. So when the text outside the literals holds more than the JSON structure, the scan also
+      # reads the value as stored. A value that does not parse, or whose encoding the scan cannot read,
+      # is scanned as stored (fail closed).
       def json_member_values(value)
         source = value.to_s
         JSON.parse(source)
-        [source.gsub(JSON_STRING_LITERAL, '""'), *JSON.parse("[#{source.scan(JSON_STRING_LITERAL).join(',')}]")]
+        members = JSON.parse("[#{source.scan(JSON_STRING_LITERAL).join(',')}]")
+        source.gsub(JSON_STRING_LITERAL, '').match?(JSON_STRUCTURE) ? members : [source, *members]
       rescue JSON::ParserError, EncodingError
         [source]
       end

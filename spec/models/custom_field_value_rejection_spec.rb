@@ -247,7 +247,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     it 'refuses a script in a JSON comment, and a script member after a quote in a comment' do
       as_user(contributor)
 
-      [%({"a":1 /* #{script} */}), %({"a":1} // #{script}), %({/* " */"a":"#{script}"})].each do |hidden|
+      [%({"a":1 /* #{script} */}), %({"a":1} // #{script}), %({/* " */"a":"#{script}"}),
+       %({"a":1 /* <a href="javascript:alert(1)">x</a> */})].each do |hidden|
         expect { post.set_field_value('specs', hidden) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
         expect(post.get_field_value('specs')).to be_blank
       end
