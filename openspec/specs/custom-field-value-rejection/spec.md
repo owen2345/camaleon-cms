@@ -734,6 +734,12 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 - **WHEN** an untrusted author saves the `field_attrs` value `{/* " */"value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}`
 - **THEN** the save is refused, and no value row is stored
 
+#### Scenario: A member that a duplicate key hides after a quote in a comment is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{/* " */"value":S,"value":"x"}`, where
+  `S` is the `to_json` form of a String that holds a `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
 #### Scenario: An escaped script in a translation of the JSON is refused
 
 - **WHEN** an untrusted author saves the `field_attrs` value `<!--:en-->{"attr":"a","value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}<!--:-->`

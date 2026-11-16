@@ -290,6 +290,19 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       end
     end
 
+    # The parse keeps only the last member of a duplicate key. A comment can hold a quote or a literal
+    # that does not parse. The scan of the literals skips each comment, as the parse does.
+    it 'refuses an escaped script member that a duplicate key hides, with a quote in a comment' do
+      as_user(contributor)
+      member = { value: script }.to_json[1...-1]
+
+      [%({#{member},"value":"x" /* "\\x" */}), %({/* " */#{member},"value":"x"}),
+       %({#{member}, // "\n"value":"x"})].each do |hidden|
+        expect { post.set_field_value('specs', hidden) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+        expect(post.get_field_value('specs')).to be_blank
+      end
+    end
+
     # The data shortcode shows the stored JSON, where `\"` does not escape the quote. So the quote
     # ends the attribute there, and the text after it becomes an event handler.
     it 'refuses a stored JSON string whose escaped quote ends an attribute' do

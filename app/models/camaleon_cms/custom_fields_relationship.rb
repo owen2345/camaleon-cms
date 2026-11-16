@@ -38,8 +38,9 @@ module CamaleonCms
     # another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
-    # A JSON string literal: a key or a String member of a field_attrs value, with its escapes.
-    JSON_STRING_LITERAL = /"(?:[^"\\]|\\.)*"/m
+    # A JSON string literal (a key or a String member of a field_attrs value, with its escapes), or a
+    # comment, which the parse skips.
+    JSON_LITERAL_OR_COMMENT = %r{"(?:[^"\\]|\\.)*"|/\*.*?\*/|//[^\n]*}m
 
     # The Rails integer type with one change. The integer cast of Rails raises ArgumentError for a
     # String in an invalid encoding. For a String in an encoding such as UTF-16, a lookup raises an
@@ -291,10 +292,11 @@ module CamaleonCms
         end
       end
 
-      # A quote in a comment, which the parse skips, shifts the literals. When they then do not parse,
-      # they add no string: the parse and the stored value cover such a text.
+      # The decoded string literals of a text that parses. The scan skips each comment, as the parse
+      # does, so a quote or a literal in a comment does not change the literals.
       def json_literal_strings(text)
-        JSON.parse("[#{text.scan(JSON_STRING_LITERAL).join(',')}]")
+        literals = text.scan(JSON_LITERAL_OR_COMMENT).select { |token| token.start_with?('"') }
+        JSON.parse("[#{literals.join(',')}]")
       rescue JSON::ParserError
         []
       end
