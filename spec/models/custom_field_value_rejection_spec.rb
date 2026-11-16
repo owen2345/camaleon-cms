@@ -466,6 +466,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect { site.set_field_value('site_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
       expect { category.set_field_value('cat_note', script) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(site.get_field_value('site_note')).to be_blank
       expect(category.get_field_value('cat_note')).to be_blank
     end
 
