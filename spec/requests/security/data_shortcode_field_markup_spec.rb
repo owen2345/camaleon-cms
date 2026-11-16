@@ -79,6 +79,24 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
   end
 
+  # Without quotes, the attribute value ends at whitespace. When the shortcode follows other characters
+  # of the value, a leading space in the image value ends the attribute, and the rest of the value
+  # becomes a new attribute.
+  it 'refuses a leading space in an image value, and the shortcode with no quotes adds no event handler' do
+    photo = post_type.add_field({ 'name' => 'Photo', 'slug' => 'photo' }, { 'field_key' => 'image' }, 'Post')
+    place_shortcode(published_post, "<img src=https://cdn.example.test/[data field='photo'] alt=Photo>")
+    sign_in_as(editor, site: current_site)
+
+    save_note(stored_post, ' onerror=alert(1)', field: photo)
+
+    expect(flash[:error]).to include(
+      I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_url_characters', slug: 'photo')
+    )
+    expect(stored_post.get_field_value('photo')).to be_blank
+    get "/#{stored_post.slug}"
+    expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
+  end
+
   it 'keeps a plain value of the field on the page' do
     place_shortcode(published_post, "[data field='note']")
     sign_in_as(editor, site: current_site)

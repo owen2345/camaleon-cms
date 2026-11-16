@@ -75,6 +75,22 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
+  # Without quotes, whitespace ends an attribute value. Whitespace at the end of the URL value is
+  # followed by no character of the value, so it passes. Whitespace before a character is refused.
+  describe '.attribute_ending_url? and whitespace' do
+    it 'refuses whitespace at the start or inside the value' do
+      [' onerror=alert(1)', "\tx", "\fx", "\rx", 'a b', "a\nb"].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(true), value.inspect
+      end
+    end
+
+    it 'passes whitespace at the end of the value' do
+      ['https://x.test/a ', "https://x.test/a\n", "https://x.test/a\t\r\n"].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(false), value.inspect
+      end
+    end
+  end
+
   # The scan of a URL value reads the value as the other checks do, also in invalid UTF-8 or in UTF-16.
   describe '.attribute_ending_url? with mis-encoded input' do
     it 'returns a verdict instead of raising on invalid UTF-8' do

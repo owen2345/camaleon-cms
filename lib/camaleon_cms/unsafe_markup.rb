@@ -106,12 +106,15 @@ module CamaleonCms
       end
 
       # True when a URL value holds a character that ends an HTML attribute: a quote, an angle
-      # bracket, a backtick, or whitespace between other characters. A page can put the value
-      # inside a tag, as in <img src="[data field='photo']">. Whitespace at the ends ends no value.
+      # bracket, a backtick, or whitespace before another character. A page can put the value
+      # inside a tag, as in <img src="[data field='photo']">. Without quotes, as in
+      # <img src=https://cdn.test/[data field='photo']>, whitespace ends the value, and the characters
+      # after it become a new attribute. So leading whitespace is refused too. Whitespace at the end
+      # passes: no character of the value follows it.
       # The check reads the value as unsafe_html? does, so a value in another encoding gets a verdict.
       def attribute_ending_url?(value)
         string = scannable_string(value)
-        string.match?(URL_ATTRIBUTE_END) || string.strip.match?(HTML_WHITESPACE)
+        string.match?(URL_ATTRIBUTE_END) || string.rstrip.match?(HTML_WHITESPACE)
       end
 
       private

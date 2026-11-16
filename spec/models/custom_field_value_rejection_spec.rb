@@ -115,21 +115,23 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
 
     # A data shortcode inside a tag puts the value into an attribute, as in
-    # <img src="[data field='photo']">. A quote, a space or a backtick ends that attribute.
+    # <img src="[data field='photo']">. A quote, a space or a backtick ends that attribute. Without
+    # quotes, a leading space ends the text before the shortcode, as in
+    # <img src=https://cdn.test/[data field='photo']>.
     it 'refuses a URL with a character that ends an attribute from an untrusted author' do
       as_user(contributor)
 
       ['x" onerror="alert(1)', "x' onerror='alert(1)", 'x onerror=alert(1)', "x\tonerror=alert(1)",
-       'x`y'].each do |value|
+       'x`y', ' onerror=alert(1)', "\nhttps://example.com/page"].each do |value|
         expect { post.set_field_value('link', value) }.to raise_error(ActiveRecord::RecordInvalid, /must encode/)
         expect(post.get_field_value('link')).to be_blank
       end
     end
 
-    it 'stores an encoded URL and a URL with spaces only at its ends' do
+    it 'stores an encoded URL and a URL with whitespace only at its end' do
       as_user(contributor)
 
-      ['https://example.com/a%20b?q=%22x%22', ' https://example.com/page '].each do |value|
+      ['https://example.com/a%20b?q=%22x%22', "https://example.com/page \n"].each do |value|
         post.set_field_value('link', value)
 
         expect(post.get_field_value('link')).to eq(value)

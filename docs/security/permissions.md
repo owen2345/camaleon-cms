@@ -101,8 +101,10 @@ The pieces that implement the rule:
   kind also gets the URL rule, and a `field_attrs` value is scanned by its decoded members and keys.
 - **A URL value cannot end an attribute.** A `data` shortcode inside a tag, as in
   `<img src="[data field='photo']">`, puts the value into an attribute. So a URL kind also refuses a
-  quote, an angle bracket, a backtick and whitespace inside the value. A valid URL encodes each of
-  them. A value of another kind inside a tag gets no such rule: the role that places the shortcode
+  quote, an angle bracket, a backtick and whitespace before another character. A valid URL encodes
+  each of them. Without quotes, as in `<img src=https://cdn.test/[data field='photo']>`, a leading
+  space ends the attribute too. Whitespace at the end passes, because no character of the value
+  follows it. A value of another kind inside a tag gets no such rule: the role that places the shortcode
   chooses that position.
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its

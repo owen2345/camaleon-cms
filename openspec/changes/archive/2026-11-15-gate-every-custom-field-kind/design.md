@@ -60,10 +60,12 @@ The trust check reads `owner`. PR #1346 merged first, and it makes `polymorphic_
 
 **D9. A URI kind refuses each character that ends an attribute.** `do_shortcode` replaces a shortcode also inside a tag, and `the_field` gives the raw value. So `<img src="[data field='photo']">` puts an image value into an attribute. The value `x" onerror="alert(1)` has no `<`, so the markup rule passes it, and the page runs the handler.
 
-A URI kind now also refuses `"`, `'`, `<`, `>`, a backtick and whitespace between other characters. A valid URL encodes each of them, and the media library gives no URL with one of them. The maintainer chose this on 2026-11-16, after a review found the gap.
+A URI kind now also refuses `"`, `'`, `<`, `>`, a backtick and whitespace before another character. A valid URL encodes each of them, and the media library gives no URL with one of them. The maintainer chose this on 2026-11-16, after a review found the gap.
 
 - A value of another kind inside a tag gets no rule (intended). Only an admin or a holder of `content_shortcodes` can place a shortcode, and that role chooses the position. A rule for a `text_box` value refuses a quote in ordinary prose.
-- Whitespace at the ends of a URL passes. It ends no attribute value, and a URL that an author copies often has it.
+- Whitespace at the end of a URL passes. No character of the value follows it, so it adds no attribute, and a URL that an author copies often has it.
+- Leading whitespace is refused. In an attribute with no quotes, whitespace ends the value. The parser skips whitespace before a value, so a shortcode at the start of the value is safe. But a shortcode after other characters, as in `<img src=https://cdn.test/[data field='photo']>`, gives `src="https://cdn.test/"`, and the value ` onerror=alert(1)` adds an event handler. The first rule of D9 let whitespace at both ends pass. The maintainer chose to refuse leading whitespace on 2026-11-16, after a review found this gap.
+  - Alternative: refuse whitespace at the end too. The rule is simpler, but it refuses a URL with a trailing space or line break, which is safe. Rejected.
 - `'` is refused, although a URL can hold it. A single-quoted attribute ends at it, and `%27` encodes it.
 - The rule comes after the markup rule, so `https://x.test/"><script>…` still gets the markup message.
 - Alternative: refuse a `data` shortcode inside a tag at the save of the content, for everyone, as the contact-form template rule does for a placeholder. It covers every kind, but it removes the main use of an image field in a shortcode, and it limits an admin. Rejected.
@@ -74,7 +76,7 @@ A URI kind now also refuses `"`, `'`, `<`, `>`, a backtick and whitespace betwee
 
 - [An untrusted author who stored `Fish & Chips <today>` in a `text_box` gets a refusal at the next change of that value.] → An unchanged value is not checked again on an unrelated edit (the requirement "An unchanged pre-gate value does not block an unrelated edit"). The changelog names the change. `scan_content` lists the stored values that the scan now refuses.
 - [A plugin that writes a value of any kind from a job, with no request context, now gets the scan.] → The value passes when it holds no unsafe markup. A plugin calls `unfiltered_value!` to skip the scan, as it does today for `editor`.
-- [A stored URL value with a quote or a space inside it is refused at the next change of that value (D9).] → An unchanged value is not checked again, and `scan_content` lists the value.
+- [A stored URL value with a quote, or with a space before another character, is refused at the next change of that value (D9).] → An unchanged value is not checked again, and `scan_content` lists the value.
 - [`scan_content` lists more rows on an install with markup in plain fields.] → The task is read-only. The upgrade note says so.
 
 ## Migration Plan

@@ -613,9 +613,10 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   markup: tags that the parser drops or that stay open, and translation markers inside tags.
 - For a URI-type value (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
   (`javascript:`, `vbscript:`, non-raster `data:`) SHALL also be refused.
-- For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace between
-  other characters SHALL also be refused. A `data` shortcode inside a tag puts the value into an
-  attribute, and each of these characters ends the attribute. A valid URL encodes them.
+- For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace before
+  another character SHALL also be refused. A `data` shortcode inside a tag puts the value into an
+  attribute, and each of these characters ends the attribute. A valid URL encodes them. Whitespace
+  at the end of the value SHALL pass: no character of the value follows it.
 - For a `field_attrs` value, each decoded member and each key of an object SHALL be held to the
   post-content allowlist.
 - A value beyond the parse size bound SHALL be refused for every kind.
@@ -656,6 +657,20 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 - **AND** an untrusted author saves the `image` value `x" onerror="alert(1)` in the field `photo` of
   that post
 - **THEN** the save is refused, and the page of the post holds no event handler of the author
+
+#### Scenario: A leading space in a URL value is refused
+
+- **WHEN** an administrator puts `<img src=https://cdn.example.test/[data field='photo']>`, with no
+  quotes, in the content of a post
+- **AND** an untrusted author saves the `image` value ` onerror=alert(1)` in the field `photo` of
+  that post
+- **THEN** the save is refused, and the page of the post holds no event handler of the author
+
+#### Scenario: A URL value with whitespace at its end is stored unchanged
+
+- **WHEN** an untrusted author saves a `url`-type value of `https://example.com/page` followed by a
+  space or a line break
+- **THEN** the value is stored byte-for-byte as written
 
 #### Scenario: An encoded URL is stored unchanged
 
