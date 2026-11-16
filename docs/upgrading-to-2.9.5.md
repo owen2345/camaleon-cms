@@ -227,6 +227,8 @@ Before, the save scanned only the values of the `editor`, `field_attrs` and URL 
 
 Now the save scans the value of every kind for an author who is not trusted. A value with markup outside the post-content allowlist is refused, and the author sees an error that names the field. A `<` before a letter starts a tag. So `x<y`, `John <john@example.com>` and `Fish & Chips <today>` are refused, because their tags are outside the allowlist. A `<` that starts no tag, as in `a < b & c`, and allowed formatting, such as `<b>bold</b>`, are stored as written.
 
+A value of a URL kind (`url`, `image`, `audio`, `video`, `file`) is also refused when it holds a quote, an angle bracket or a backtick. Whitespace inside the value is refused too, but whitespace at its ends passes. Encode such a character, for example `%20` for a space.
+
 These authors are trusted:
 
 - An administrator, for each value.

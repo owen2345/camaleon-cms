@@ -99,6 +99,11 @@ The pieces that implement the rule:
   (`[data field='note']`) puts a stored value of any kind into the content. The theme shows that
   content with `raw`. So the save holds the value of every kind to the post-content allowlist. A URL
   kind also gets the URL rule, and a `field_attrs` value is scanned by its decoded members and keys.
+- **A URL value cannot end an attribute.** A `data` shortcode inside a tag, as in
+  `<img src="[data field='photo']">`, puts the value into an attribute. So a URL kind also refuses a
+  quote, an angle bracket, a backtick and whitespace inside the value. A valid URL encodes each of
+  them. A value of another kind inside a tag gets no such rule: the role that places the shortcode
+  chooses that position.
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its
   field values); no request context means the gate applies. A holder of `settings` or `custom_fields` also

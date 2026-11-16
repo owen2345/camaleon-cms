@@ -21,10 +21,10 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     post.update_column(:content, "<p>Before</p>#{shortcode}<p>After</p>") # rubocop:disable Rails/SkipsModelValidations
   end
 
-  def save_note(post, value)
+  def save_note(post, value, field: note_field)
     patch "/admin/post_type/#{post_type.id}/posts/#{post.id}", params: {
       post: { title: post.title, content: post.content, status: post.status },
-      field_options: { '0' => { 'note' => { 'id' => note_field.id.to_s, 'values' => { '0' => value } } } }
+      field_options: { '0' => { field.slug => { 'id' => field.id.to_s, 'values' => { '0' => value } } } }
     }
   end
 
@@ -60,6 +60,23 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(own_post.reload.get_field_value('note')).to be_blank
     own_post.update_column(:status, 'published') # rubocop:disable Rails/SkipsModelValidations
     expect(scripts_on_page(stored_post)).to be_empty
+  end
+
+  # A shortcode inside a tag puts the value into an attribute. The value `x" onerror="alert(1)` has no
+  # `<`, so the markup rule passes it. A URL kind also refuses each character that ends an attribute.
+  it 'refuses a quote in an image value, and the shortcode inside a tag adds no event handler' do
+    photo = post_type.add_field({ 'name' => 'Photo', 'slug' => 'photo' }, { 'field_key' => 'image' }, 'Post')
+    place_shortcode(published_post, %(<img src="[data field='photo']" alt="Photo">))
+    sign_in_as(editor, site: current_site)
+
+    save_note(stored_post, 'x" onerror="alert(1)', field: photo)
+
+    expect(flash[:error]).to include(
+      I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_url_characters', slug: 'photo')
+    )
+    expect(stored_post.get_field_value('photo')).to be_blank
+    get "/#{stored_post.slug}"
+    expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
   end
 
   it 'keeps a plain value of the field on the page' do

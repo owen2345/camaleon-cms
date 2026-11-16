@@ -113,6 +113,36 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
       expect(post.get_field_value('link')).to eq('https://example.com/page')
     end
+
+    # A data shortcode inside a tag puts the value into an attribute, as in
+    # <img src="[data field='photo']">. A quote, a space or a backtick ends that attribute.
+    it 'refuses a URL with a character that ends an attribute from an untrusted author' do
+      as_user(contributor)
+
+      ['x" onerror="alert(1)', "x' onerror='alert(1)", 'x onerror=alert(1)', "x\tonerror=alert(1)",
+       'x`y'].each do |value|
+        expect { post.set_field_value('link', value) }.to raise_error(ActiveRecord::RecordInvalid, /must encode/)
+        expect(post.get_field_value('link')).to be_blank
+      end
+    end
+
+    it 'stores an encoded URL and a URL with spaces only at its ends' do
+      as_user(contributor)
+
+      ['https://example.com/a%20b?q=%22x%22', ' https://example.com/page '].each do |value|
+        post.set_field_value('link', value)
+
+        expect(post.get_field_value('link')).to eq(value)
+      end
+    end
+
+    it 'stores a quote in a text_box value, which the URL rule does not read' do
+      as_user(contributor)
+
+      post.set_field_value('note', %(She said "don't" twice))
+
+      expect(post.get_field_value('note')).to eq(%(She said "don't" twice))
+    end
   end
 
   describe 'text_box values (shown as markup by the data shortcode)' do

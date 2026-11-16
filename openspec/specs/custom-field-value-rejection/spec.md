@@ -613,6 +613,9 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   markup: tags that the parser drops or that stay open, and translation markers inside tags.
 - For a URI-type value (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
   (`javascript:`, `vbscript:`, non-raster `data:`) SHALL also be refused.
+- For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace between
+  other characters SHALL also be refused. A `data` shortcode inside a tag puts the value into an
+  attribute, and each of these characters ends the attribute. A valid URL encodes them.
 - For a `field_attrs` value, each decoded member and each key of an object SHALL be held to the
   post-content allowlist.
 - A value beyond the parse size bound SHALL be refused for every kind.
@@ -621,6 +624,9 @@ The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored 
 not stored at all. The gate SHALL apply on every value-write path (including `update_field_value`),
 not only the admin form. The same dispatch SHALL back the `scan_content` audit task, so it reports
 exactly the stored values of every kind that the gate refuses.
+
+A value of another kind gets no rule for a position inside a tag. Only an admin or a holder of
+`content_shortcodes` can place a shortcode, and that role chooses the position (intended).
 
 #### Scenario: Untrusted author's script editor value is refused
 
@@ -643,6 +649,23 @@ exactly the stored values of every kind that the gate refuses.
 
 - **WHEN** an untrusted author saves a `url`-type field value of `https://example.com/"><script>alert(1)</script>`
 - **THEN** the save is refused and no value row is stored
+
+#### Scenario: A quote in a URL value is refused
+
+- **WHEN** an administrator puts `<img src="[data field='photo']">` in the content of a post
+- **AND** an untrusted author saves the `image` value `x" onerror="alert(1)` in the field `photo` of
+  that post
+- **THEN** the save is refused, and the page of the post holds no event handler of the author
+
+#### Scenario: An encoded URL is stored unchanged
+
+- **WHEN** an untrusted author saves a `url`-type value of `https://example.com/a%20b?q=%22x%22`
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A quote in a text_box value is stored unchanged
+
+- **WHEN** an untrusted author saves a `text_box` value such as `She said "don't" twice`
+- **THEN** the value is stored byte-for-byte as written
 
 #### Scenario: Script in a text_box value is refused
 

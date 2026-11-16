@@ -18,7 +18,9 @@ module CamaleonCms
     # The save scans the value of every field kind (scan-and-reject policy). The data shortcode puts
     # a value of any kind into the page as markup, so each value is held to the post-content
     # allowlist. A `field_attrs` value is JSON, so the scan reads its decoded members and keys. A URI kind
-    # also goes into href and src, so it is held to the URI rule too.
+    # also goes into href and src, so it is held to the URI rule too. A shortcode inside a tag puts a
+    # URI value into an attribute, so the scan also refuses a character that ends the attribute. The
+    # role that puts a shortcode of another kind inside a tag chooses that position (intended).
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
     # The settings and custom_fields permissions give a role the trust of an administrator
@@ -203,7 +205,8 @@ module CamaleonCms
       end
 
       # Why the save-time gate would refuse this value for the field type, or nil if it passes:
-      # :too_large (over the parse ceiling), :html (disallowed markup), :uri (script-capable URL).
+      # :too_large (over the parse ceiling), :html (disallowed markup), :uri (script-capable URL),
+      # :url_characters (a URL with a character that ends an attribute).
       # Ignores author trust, so the validation (trust-gated) and the scan_content rake task (which
       # reports every stored row) share one dispatch and cannot drift.
       def gate_rejection_reason(field_key, value)
@@ -217,6 +220,8 @@ module CamaleonCms
           :uri
         elsif markup_unsafe?(value)
           :html
+        elsif URI_FIELD_KEYS.include?(key) && CamaleonCms::UnsafeMarkup.attribute_ending_url?(value)
+          :url_characters
         end
       end
 
@@ -295,6 +300,7 @@ module CamaleonCms
       case reason
       when :too_large then 'value_too_large'
       when :uri then 'value_rejected_uri'
+      when :url_characters then 'value_rejected_url_characters'
       else 'value_rejected_html'
       end
     end

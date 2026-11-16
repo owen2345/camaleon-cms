@@ -54,6 +54,11 @@ module CamaleonCms
     # rejection message names.
     OPEN_ATTR_NAME = /\A(?:data|aria)-[a-zA-Z][-a-zA-Z0-9_.]*\z/
 
+    # A character that ends an HTML attribute value. A valid URL encodes each of them (%22 for `"`).
+    URL_ATTRIBUTE_END = /["'<>`]/
+    # The whitespace that ends an attribute value with no quotes, as the HTML parser reads it.
+    HTML_WHITESPACE = /[\t\n\f\r ]/
+
     # rails-html-sanitizer >= 1.6 exposes the scrubber under Rails::HTML (all caps); older releases
     # (valid with Rails 6.1/7.0, which this gem supports) expose only Rails::Html. Resolve whichever
     # the host bundled so the engine loads across the whole supported range.
@@ -98,6 +103,14 @@ module CamaleonCms
       # strips. For values a renderer emits into a URL position (href/src).
       def dangerous_uri?(value)
         CamaleonCms::ContentSecurity.blocked_scheme?(value.to_s)
+      end
+
+      # True when a URL value holds a character that ends an HTML attribute: a quote, an angle
+      # bracket, a backtick, or whitespace between other characters. A page can put the value
+      # inside a tag, as in <img src="[data field='photo']">. Whitespace at the ends ends no value.
+      def attribute_ending_url?(value)
+        string = value.to_s
+        string.match?(URL_ATTRIBUTE_END) || string.strip.match?(HTML_WHITESPACE)
       end
 
       private
