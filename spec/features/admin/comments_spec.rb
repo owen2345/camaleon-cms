@@ -9,6 +9,8 @@ def add_new_comment
     fill_in 'comment_content', with: 'Test comment'
     click_button(type: 'submit')
   end
+  # The next step can visit another page. The visit must wait until the save is done.
+  expect(page).to have_css('.alert-success')
 end
 
 RSpec.describe 'the Comments', :js do

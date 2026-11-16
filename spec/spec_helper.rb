@@ -15,7 +15,7 @@ require 'capybara/rspec'
 require 'rack_session_access/capybara'
 require 'capybara-screenshot/rspec'
 
-Capybara.register_driver :selenium_chrome125 do |app|
+Capybara.register_driver :cama_chrome do |app|
   version = Capybara::Selenium::Driver.load_selenium
   options_key = Capybara::Selenium::Driver::CAPS_VERSION.satisfied_by?(version) ? :capabilities : :options
   browser_options = Selenium::WebDriver::Chrome::Options.new.tap do |opts|
@@ -25,13 +25,12 @@ Capybara.register_driver :selenium_chrome125 do |app|
     opts.add_argument("--user-data-dir=#{Rails.root.join('tmp')}")
   end
 
-  browser_options.add_option(:browser_version, '125')
   browser_options.add_option(:unhandled_prompt_behavior, 'ignore')
 
   Capybara::Selenium::Driver.new(app, **{ browser: :chrome, options_key => browser_options })
 end
 
-Capybara.register_driver :selenium_chrome_headless125 do |app|
+Capybara.register_driver :cama_chrome_headless do |app|
   version = Capybara::Selenium::Driver.load_selenium
   options_key = Capybara::Selenium::Driver::CAPS_VERSION.satisfied_by?(version) ? :capabilities : :options
   browser_options = Selenium::WebDriver::Chrome::Options.new.tap do |opts|
@@ -43,7 +42,6 @@ Capybara.register_driver :selenium_chrome_headless125 do |app|
     opts.add_argument("--user-data-dir=#{Rails.root.join('tmp')}")
   end
 
-  browser_options.add_option(:browser_version, '125')
   browser_options.add_option(:unhandled_prompt_behavior, 'ignore')
 
   Capybara::Selenium::Driver.new(app, **{ :browser => :chrome, options_key => browser_options })
@@ -52,8 +50,8 @@ end
 # Next 2 are Chrome drivers
 # Capybara.javascript_driver = :selenium_chrome
 # Capybara.javascript_driver = :selenium_chrome_headless
-# Capybara.javascript_driver = :selenium_chrome125
-Capybara.javascript_driver = :selenium_chrome_headless125
+# Capybara.javascript_driver = :cama_chrome
+Capybara.javascript_driver = :cama_chrome_headless
 
 # Selenium's native `element.clear` does not reliably empty a pre-filled input on macOS headless
 # Chrome, so `fill_in` types onto the existing value instead of replacing it (e.g. a site name saves
@@ -65,7 +63,7 @@ Capybara.default_set_options = { clear: :backspace }
 # Capybara.javascript_driver = :selenium
 # Capybara.javascript_driver = :selenium_headless
 
-Capybara::Screenshot.register_driver(:selenium_chrome_headless125) do |driver, path|
+Capybara::Screenshot.register_driver(:cama_chrome_headless) do |driver, path|
   driver.browser.save_screenshot(path)
 end
 
