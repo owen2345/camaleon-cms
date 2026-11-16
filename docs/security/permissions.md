@@ -474,10 +474,10 @@ As with `select_eval`, the Admin role's checkboxes may appear unchecked in the U
 
 ### Background jobs and console usage
 
-All three checks read the acting user and site from `CurrentRequest` and **fail closed**: when either is missing, the caller is treated as untrusted
-regardless of any role's permissions — a post-content save carrying disallowed markup is refused, a contact-form save is refused, and an
-upload is scanned. Saves and uploads from
-background jobs, rake tasks, or the console therefore get the untrusted treatment by default. To save raw HTML or upload an unscanned file from those
+All three checks, and the scan of a custom field value at save, read the acting user and site from `CurrentRequest`. Each of them **fails
+closed**: when the user or the site is missing, the caller is untrusted, whatever the permissions of its role. A post-content save with disallowed
+markup is refused, and so is a custom field value that the scan refuses. A contact-form save is refused, and an upload is scanned. Saves and
+uploads from background jobs, rake tasks, or the console therefore get the untrusted treatment by default. To save raw HTML or upload an unscanned file from those
 contexts, set the request context first, as shown in the `select_eval` section above:
 
 ```ruby
