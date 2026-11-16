@@ -75,6 +75,18 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
+  # The scan of a URL value reads the value as the other checks do, also in invalid UTF-8 or in UTF-16.
+  describe '.attribute_ending_url? with mis-encoded input' do
+    it 'returns a verdict instead of raising on invalid UTF-8' do
+      expect(described_class.attribute_ending_url?((+"https://x.test/\xFF").force_encoding('UTF-8'))).to be false
+      expect(described_class.attribute_ending_url?((+"https://x.test/\xFF\" y").force_encoding('UTF-8'))).to be true
+    end
+
+    it 'returns a verdict instead of raising on UTF-16' do
+      expect(described_class.attribute_ending_url?('https://x.test/a b'.encode('UTF-16LE'))).to be true
+    end
+  end
+
   describe '.too_large? (M16)' do
     it 'is true above the ceiling and false below it' do
       expect(described_class.too_large?('a' * (described_class::MAX_GATED_VALUE_BYTES + 1))).to be true
