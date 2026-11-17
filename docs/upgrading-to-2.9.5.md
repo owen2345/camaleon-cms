@@ -293,7 +293,8 @@ Camaleon adds the Rack middleware `CamaleonCms::RouteReloadLock` to the host app
 ## A site create draws the routes less often
 
 The create of a site in the admin panel reloaded the routes 8 times, and the delete of a site 3
-times. Now the create draws the routes 3 times, and the delete draws them one time.
+times. Now the create draws the routes 3 times, and the delete draws them one time. The create
+draws them one more time for each default plugin that no other site has.
 `PluginRoutes.reload` does not change: it draws the routes at once.
 
 Two new methods are there for code that makes more than one change:
