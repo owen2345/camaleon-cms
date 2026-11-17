@@ -37,11 +37,18 @@ module CamaleonCms
     # An attribute needs the gate only when it (a) changed on this save (or the record is new) -- so
     # a title-only edit never re-gates pre-existing shortcode content, mirroring
     # Post#reject_untrusted_dangerous_content -- and (b) actually contains a registered shortcode.
+    # A model that creates a row again for an unchanged value says so with cama_gate_unchanged?.
     def cama_shortcode_attr_gated?(attr)
       return false unless new_record? || cama_gate_attribute_changed?(attr)
+      return false if cama_gate_unchanged?(attr)
 
       value = self[attr]
       value.present? && CamaleonCms::ShortcodeRegistry.content_has_shortcode?(value.to_s)
+    end
+
+    # True when a new record holds a value that was already stored. False by default.
+    def cama_gate_unchanged?(_attr)
+      false
     end
 
     def cama_gate_attribute_changed?(attr)

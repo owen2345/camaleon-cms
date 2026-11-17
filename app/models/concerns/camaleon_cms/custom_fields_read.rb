@@ -276,8 +276,8 @@ module CamaleonCms
         # an unrelated edit (audit M8): the admin form round-trips every value and this method
         # delete/recreates them all, so without this skip a single pre-gate dangerous value would fail
         # the whole save and brick every later edit -- the trap Post#reject_untrusted_dangerous_content
-        # avoids via content_changed?. Snapshot the stored pairs before clearing; skip the gate for any
-        # recreated value that matches one.
+        # avoids via content_changed?. Snapshot the stored pairs before clearing; skip the markup gate
+        # and the content_shortcodes gate for any recreated value that matches one.
         previously_stored = custom_field_values.pluck(:custom_field_slug, :value).to_set
         custom_field_values.delete_all
         datas.each_value do |fields_data|
@@ -313,7 +313,7 @@ module CamaleonCms
                 value: CamaleonCms::Metas.text_column_value(value), term_order: order_value += 1,
                 group_number: group_number
               )
-              row.unfiltered_value! if previously_stored.include?([field_key.to_s, row.value])
+              row.previously_stored! if previously_stored.include?([field_key.to_s, row.value])
               row.save!
             end
           end

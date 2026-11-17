@@ -148,6 +148,16 @@ module CamaleonCms
       self
     end
 
+    # set_field_values deletes the value rows and creates them again. It marks a new row whose slug and
+    # value equal a stored row, so the markup gate and the content_shortcodes gate do not check an
+    # unchanged value again. A reader plus a bang enabler and no writer, as unfiltered_value.
+    attr_reader :previously_stored
+
+    def previously_stored!
+      @previously_stored = true
+      self
+    end
+
     # The error message of an invalid group number.
     def group_number_refusal
       cama_rejection_message('group_number_invalid', max: MAX_GROUP_NUMBER, digits: MAX_GROUP_NUMBER_DIGITS)
@@ -263,7 +273,7 @@ module CamaleonCms
     # never rewritten. Stored values therefore always equal authored values. The scan/dispatch lives
     # in the class-level gate_rejection_reason so the scan_content rake task reuses it verbatim.
     def reject_untrusted_dangerous_value
-      return if value.blank? || unfiltered_value
+      return if value.blank? || unfiltered_value || previously_stored
 
       field_key = custom_field&.options&.[](:field_key).to_s
       return unless self.class.gated_field_key?(field_key)
@@ -273,6 +283,11 @@ module CamaleonCms
       return unless reason
 
       errors.add(:base, cama_rejection_message(rejection_message_key(reason)))
+    end
+
+    # The content_shortcodes gate skips a value that set_field_values marks as already stored.
+    def cama_gate_unchanged?(attr)
+      attr == :value && previously_stored
     end
 
     def rejection_message_key(reason)
