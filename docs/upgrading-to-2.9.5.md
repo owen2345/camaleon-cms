@@ -316,7 +316,7 @@ after its own delete.
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
 
 - a new post type, or a new slug of a post type
-- a new language of a site
+- a language that no site had
 - the first activation of a plugin or a theme
 
 So a route helper exists at the same moment as before. Outside a block,
