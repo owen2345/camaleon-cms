@@ -88,7 +88,8 @@ theme and the default language. A call at that moment draws at once when no site
 reload.
 
 So only the site asks for a draw, after its own delete. A site delete then draws one time, in a block
-or not. Outside a block, it drew 3 times before.
+or not. Outside a block, it drew one time for each post type and one more time before. That is 3
+times for a site with the 2 default post types.
 
 - *Alternative: keep the code, and name the second draw in the requirement and the notes.* Rejected:
   the code can remove the cause of that draw.
