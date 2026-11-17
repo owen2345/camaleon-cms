@@ -45,9 +45,8 @@ that can wait.** Only the callers that Camaleon owns change to `request_reload`.
 **D2. A draw waits only when it adds no route (the user's choice, 2026-11-17).**
 `PluginRoutes.reload` records what its draw read: the post types with their slugs, the keys of the
 enabled plugins and themes, and the languages. In a block, `request_reload` reads the same data again
-and compares. A new post type, a new slug, a new plugin or theme key, or another set of languages
-draws at once. A site create then draws 3 times: for the Post type, for the Page type, and at the
-end.
+and compares. A new post type, a new slug, a new plugin or theme key, or a new language draws at
+once. A site create then draws 3 times: for the Post type, for the Page type, and at the end.
 
 - *Alternative: one draw at the end of the block for all calls.* Rejected: plugin code that runs
   in the block can call the `cama_post_type_<id>` helper of a new post type. It gets a
@@ -73,7 +72,10 @@ block and the draw both raise, the caller gets the error of the draw.
 
 **D7. A delete can wait.** A post type or a site that the block deletes adds no route. Its route
 stays until the end of the block. A request for it during that time finds no post type, as a request
-did between the delete and the reload before.
+did between the delete and the reload before. A language that the block removes waits in the same
+way (the user's choice, 2026-11-17). The `locale` scope accepts that language until the end of the
+block. The delete of a site removes the metas of the site, and so its languages, before its post
+types. With this rule, the delete of a site with a language of its own draws one time, not 2 times.
 
 **D8. Three callers open a block.** `SitesController#create` puts the save and `site_after_install`
 in one block, and `SitesController#destroy` the delete. `site_after_install` opens its own block, for

@@ -118,7 +118,7 @@ A draw adds a route when the last reload did not have one of these:
 
 - a post type with its present slug
 - the route files of a plugin or a theme that a site has enabled
-- the present set of site languages
+- a language of a site
 
 A call before the first reload of the process SHALL draw at once.
 
@@ -150,6 +150,12 @@ leave the draw to the outer block. A block SHALL NOT change a reload on another 
 #### Scenario: A post type that the block deletes
 
 - **WHEN** code in a block deletes a post type
+- **THEN** the routes are not drawn before the end of the block
+
+#### Scenario: A language that the block removes
+
+- **WHEN** code in a block removes a language of a site, or deletes a site that has a language of its
+  own
 - **THEN** the routes are not drawn before the end of the block
 
 #### Scenario: A block that asks for no draw
@@ -208,6 +214,11 @@ its plugins and its theme, under the same condition as the create.
 
 - **WHEN** an admin deletes a site
 - **THEN** the routes are drawn one time, and they then have no route of a post type of that site
+
+#### Scenario: An admin deletes a site with a language of its own
+
+- **WHEN** an admin deletes a site that has a language that no other site has
+- **THEN** the routes are drawn one time
 
 #### Scenario: A create that fails
 

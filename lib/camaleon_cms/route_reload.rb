@@ -64,7 +64,7 @@ module CamaleonCms
     # The data from the database that a draw of the routes reads.
     def route_inputs
       {
-        locales: all_locales,
+        locales: all_locales.split('|'),
         post_types: get_sites.flat_map { |site| site.post_types.map { |post_type| [post_type.id, post_type.slug] } },
         plugins: all_enabled_plugins.pluck('key'),
         themes: all_enabled_themes.pluck('key')
@@ -72,14 +72,13 @@ module CamaleonCms
     end
 
     # Whether a draw now gives a route that the last reload did not give: a new post type or slug, a
-    # new plugin or theme, or other languages. It reads the data again, so the caches are fresh.
+    # new plugin or theme, or a new language. A part that is gone adds no route, so its draw waits.
+    # It reads the data again, so the caches are fresh.
     def adds_routes?
       reload_monitor.synchronize do
         clear_caches
         drawn = @drawn_route_inputs
-        present = route_inputs
-        drawn.nil? || present[:locales] != drawn[:locales] ||
-          %i[post_types plugins themes].any? { |part| (present[part] - drawn[part]).any? }
+        drawn.nil? || route_inputs.any? { |part, present| (present - drawn[part]).any? }
       end
     end
   end

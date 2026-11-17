@@ -55,8 +55,20 @@ RSpec.describe 'Admin::Settings::SitesController', type: :request do
   end
 
   describe 'DELETE /admin/settings/sites/:id' do
+    let(:other_site) { create(:site, slug: 'other.example.test', name: 'Other site') }
+
+    it 'draws the routes one time for a site with a language that no other site has' do
+      other_site.set_meta('languages_site', %w[en es])
+      count_draws_from_here
+
+      delete "/admin/settings/sites/#{other_site.id}"
+
+      expect(response).to redirect_to('/admin/settings/sites')
+      expect(draws.size).to eq(1)
+      expect(PluginRoutes.all_locales).to eq('en')
+    end
+
     it 'draws the routes one time, and they have no route of a post type of the site' do
-      other_site = create(:site, slug: 'other.example.test', name: 'Other site')
       helpers = post_type_helpers(other_site)
       count_draws_from_here
       expect(helpers).to be_present

@@ -89,6 +89,32 @@ RSpec.describe PluginRoutes do
       end
     end
 
+    it 'leaves the draw to the end of the block for a language that a site loses' do
+      @site.set_meta('languages_site', %w[en es])
+      described_class.reload
+      draws.clear
+
+      described_class.reload_once do
+        @site.set_meta('languages_site', %w[en])
+        described_class.request_reload
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'draws the routes at once for a language that replaces another language' do
+      @site.set_meta('languages_site', %w[en es])
+      described_class.reload
+      draws.clear
+
+      described_class.reload_once do
+        @site.set_meta('languages_site', %w[en fr])
+        described_class.request_reload
+        expect(draws.size).to eq(1)
+      end
+    end
+
     it 'leaves the draw to the end of the block for a post type that the block deletes' do
       described_class.reload_once do
         post_type.delete
