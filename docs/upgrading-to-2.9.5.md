@@ -42,6 +42,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
+| Has authors who saw a server error on a save of deeply nested content | Nothing. The save is now refused with the message for disallowed markup ([details](#content-past-the-limits-of-the-markup-parser-is-refused)) |
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
 | Has plugin or theme code that registers a callback with `PluginRoutes.add_after_reload_routes`, or that makes more than one change that reloads the routes | The callback runs less often for the create and the delete of a site. The new `PluginRoutes.reload_once` draws the routes one time for the changes of a block ([details](#a-site-create-draws-the-routes-less-often)) |
 | Has a top-level model, other than the configured user class, with the short name of a Camaleon model, such as `Post`, `Category`, `Site`, `User` or `Main` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
@@ -325,6 +326,21 @@ So a route helper exists at the same moment as before. Outside a block,
 
 A callback of `PluginRoutes.add_after_reload_routes` runs after each draw. It now runs 3 times for
 a site create, not 8 times. For a site delete, it runs one time, not 3 times.
+
+**Who must act.** Nobody.
+
+---
+
+## Content past the limits of the markup parser is refused
+
+The markup scan reads content that a user without the `post_content_unfiltered_html` permission
+saves: post content, the post summary and custom-field values. Its HTML5 parser raises an error past
+400 nested elements, or past 400 attributes on one element. Before, a save of such content gave a
+server error. Now the save is refused with the message for disallowed markup. Content that an admin,
+or a role with that permission, saves is not scanned, so it does not change.
+
+The scan of content with many translated blocks is also faster. A value with 20,000 translation
+markers took about 27 s to scan, and now takes about 3 s.
 
 **Who must act.** Nobody.
 
