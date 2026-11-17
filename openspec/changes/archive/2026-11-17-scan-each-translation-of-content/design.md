@@ -13,7 +13,7 @@ a `<` comes right before a removed marker. The guard `marker_inside_tag?` finds 
 the same checks. The size bound reads the stored text only, because a translation is shorter.
 
 - The scan reads the text that the page shows, as `docs/security/permissions.md` asks.
-- The content shortcode gate reads each translation in the same way.
+- The content shortcode gate reads only the stored text. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345) makes it read each translation in the same way.
 - A value that does not start with a marker has no translation, and it gets one scan, as before.
 - `String.new` gives the copy that `translations` reads, so the caller's value keeps no result.
 
