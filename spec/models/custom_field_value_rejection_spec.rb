@@ -270,6 +270,21 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value('body')).to eq(script)
     end
 
+    it 'refuses a later change of a legacy value that set_field_values created again' do
+      post.set_field_value('body', '<p>ok</p>')
+      post.custom_field_values.find_by(custom_field_slug: 'body')
+          .update_column(:value, script) # rubocop:disable Rails/SkipsModelValidations -- simulate pre-gate data
+
+      as_user(contributor)
+      post.set_field_values({ '0' => { 'body' => { id: post.get_field_object('body').id,
+                                                   values: { '0' => script } } } })
+      row = post.custom_field_values.find { |value| value.custom_field_slug == 'body' }
+
+      expect(row.update(value: "#{script}<p>more</p>")).to be(false)
+      expect(row.errors[:base].join).to match(/not allowed/)
+      expect(post.reload.get_field_value('body')).to eq(script)
+    end
+
     it 'still refuses a legacy value that the author actually changes (M8 does not weaken the gate)' do
       post.set_field_value('body', '<p>ok</p>')
 

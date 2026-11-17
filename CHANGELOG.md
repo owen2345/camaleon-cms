@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** A role without `content_shortcodes` can save a post or another owner whose field value holds a shortcode of an administrator. This holds while the role leaves that value unchanged. A changed value is still checked. [#1351](https://github.com/owen2345/camaleon-cms/pull/1351).
+
 - **Security fix:** The content scan now also reads each translation of a value. A role without `post_content_unfiltered_html` is refused content when one of its translations fails the scan. `rake camaleon_cms:security:scan_content` lists such stored values. [#1348](https://github.com/owen2345/camaleon-cms/pull/1348).
 
 - **Performance fix:** The markup scan of a saved value with many translated blocks is now fast. Before, a value with 20,000 translation markers took about 27 s to scan. The scan now refuses a value that its parser cannot read, such as one nested deeper than 400 elements. Before, its save gave a server error. [#1350](https://github.com/owen2345/camaleon-cms/pull/1350).
