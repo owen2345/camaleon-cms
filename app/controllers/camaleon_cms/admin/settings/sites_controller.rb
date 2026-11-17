@@ -44,9 +44,7 @@ module CamaleonCms
 
         def create
           @site = CamaleonCms::Site.new(site_params)
-          if @site.save
-            save_metas(@site)
-            site_after_install(@site, @site.get_theme_slug)
+          if create_site
             flash[:notice] = site_created_notice(@site)
             redirect_to action: :index
           else
@@ -55,11 +53,24 @@ module CamaleonCms
         end
 
         def destroy
-          flash[:notice] = t('camaleon_cms.admin.sites.message.deleted') if @site.destroy
+          # The draw of the delete waits for the end of the block, after the transaction of the delete.
+          destroyed = PluginRoutes.reload_once { @site.destroy }
+          flash[:notice] = t('camaleon_cms.admin.sites.message.deleted') if destroyed
           redirect_to action: :index
         end
 
         private
+
+        # Saves and installs the site. The site, its plugins and its theme share one draw of the routes.
+        def create_site
+          PluginRoutes.reload_once do
+            next false unless @site.save
+
+            save_metas(@site)
+            site_after_install(@site, @site.get_theme_slug)
+            true
+          end
+        end
 
         def save_metas(site)
           return if params[:metas].blank?

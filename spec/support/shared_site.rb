@@ -25,5 +25,8 @@ RSpec.configure do |config|
     CamaleonCms::Site.instance_variable_set(:@main_site, nil)
     PluginRoutes.instance_variable_set(:@all_sites, nil)
     PluginRoutes.instance_variable_get(:@cache)&.clear
+    # An example that stubs the draw leaves a record of a reload that drew no route. With no record,
+    # a call in a PluginRoutes.reload_once block draws the routes at once.
+    PluginRoutes.instance_variable_set(:@drawn_route_inputs, nil)
   end
 end

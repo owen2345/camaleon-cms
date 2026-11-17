@@ -108,8 +108,11 @@ module CamaleonCms
       theme_key ||= site.get_theme_slug
       _s = current_site
       current_site(site)
-      PluginRoutes.system_info['default_plugins'].each { |p| plugin_install(p) } # auto install plugins
-      site_install_theme(theme_key)
+      # The plugins and the theme share one draw of the routes, when the routes already have them.
+      PluginRoutes.reload_once do
+        PluginRoutes.system_info['default_plugins'].each { |p| plugin_install(p) } # auto install plugins
+        site_install_theme(theme_key)
+      end
       current_site(_s) if _s.present?
     end
 
@@ -125,7 +128,7 @@ module CamaleonCms
       theme_model = current_site.themes.where(slug: key).first_or_create! { |t| t.name = theme[:name] }
       theme_model.update(status: nil)
       hook_run(theme, 'on_active', theme_model)
-      PluginRoutes.reload
+      PluginRoutes.request_reload
     end
 
     # uninstall current theme form current site

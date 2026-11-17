@@ -43,6 +43,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
+| Has plugin or theme code that registers a callback with `PluginRoutes.add_after_reload_routes`, or that makes more than one change that reloads the routes | The callback runs less often for the create and the delete of a site. The new `PluginRoutes.reload_once` draws the routes one time for the changes of a block ([details](#a-site-create-draws-the-routes-less-often)) |
 | Has a top-level model, other than the configured user class, with the short name of a Camaleon model, such as `Post`, `Category`, `Site`, `User` or `Main` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value whose `owner` is a record of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
@@ -286,6 +287,46 @@ Camaleon adds the Rack middleware `CamaleonCms::RouteReloadLock` to the host app
 `CamaleonCms::MultipartEncodingGuard`.
 
 **Who must act.** Nobody. A job or a thread outside a request that uses a route helper is not covered.
+
+---
+
+## A site create draws the routes less often
+
+The create of a site in the admin panel reloaded the routes 8 times, and the delete of a site 3
+times. Now the create draws the routes 3 times, and the delete draws them one time. The create
+draws them one more time for each default plugin that no other site has. A site delete in other
+code, such as `site.destroy` in a plugin, also draws them one time. Before, a site delete drew them
+one time for each post type of the site, and one more time.
+`PluginRoutes.reload` does not change: it draws the routes at once.
+
+Two new methods are there for code that makes more than one change:
+
+```ruby
+PluginRoutes.reload_once do
+  %w[my_plugin my_other_plugin].each { |key| plugin_install(key) }
+end
+```
+
+`PluginRoutes.reload_once` runs the block. In the block, `PluginRoutes.request_reload` leaves the
+draw to the end of the block when the draw adds no route. The block then draws the routes one time,
+unless it drew them after that call.
+`site_install_theme` and the activation of a plugin with `plugin_install` call
+`PluginRoutes.request_reload`. The create, the delete and a new slug of a post type or a site call it
+too. A post type that its site destroys does not call it: the site calls it after its own delete.
+
+A draw that adds a route does not wait. These changes draw the routes at once, as before:
+
+- a new post type, or a new slug of a post type
+- a language that no site had
+- the first activation of a plugin or a theme
+
+So a route helper exists at the same moment as before. Outside a block,
+`PluginRoutes.request_reload` reloads the routes at once.
+
+A callback of `PluginRoutes.add_after_reload_routes` runs after each draw. It now runs 3 times for
+a site create, not 8 times. For a site delete, it runs one time, not 3 times.
+
+**Who must act.** Nobody.
 
 ---
 

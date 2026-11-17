@@ -253,8 +253,9 @@ module CamaleonCms
 
     # update all routes of the system
     # reload system routes for this site
+    # In a PluginRoutes.reload_once block, the draw waits for the end of the block when it adds no route.
     def refresh_routes
-      PluginRoutes.reload
+      PluginRoutes.request_reload
     end
 
     def before_validating

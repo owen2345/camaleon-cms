@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Performance fix:** The create of a site in the admin panel now draws the routes 3 times, not 8 times. The delete of a site draws them one time, not 3 times. With the new `PluginRoutes.reload_once` and `PluginRoutes.request_reload`, plugin code can draw the routes one time for the changes of a block. [#1349](https://github.com/owen2345/camaleon-cms/pull/1349).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-site-create-draws-the-routes-less-often).
+
 - **Bug fix:** A host model named like a Camaleon model, such as `Post`, is no longer the `owner` of a Camaleon meta or custom-field row. The `owner` of a widget meta no longer raises `NameError`. The save of a custom-field value now touches the record that `owner` gives, also a widget, a plugin record or a host record. The lookup of a name with `::`, or with no Camaleon model, does not change. [#1346](https://github.com/owen2345/camaleon-cms/pull/1346).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-short-owner-name-resolves-to-the-camaleon-class).
 

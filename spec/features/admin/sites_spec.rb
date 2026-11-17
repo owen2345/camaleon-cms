@@ -14,7 +14,9 @@ def create_site
     click_button 'Submit'
   end
   # The next step can visit another page. The visit must wait until the save is done.
-  expect(page).to have_css('.alert-success')
+  # The save installs the plugins and the theme of the new site, and it draws the routes 3 times. On
+  # a slow CI runner, the save can be longer than the default wait of Capybara.
+  expect(page).to have_css('.alert-success', wait: 10)
 end
 
 RSpec.describe 'the Sites', :js do
