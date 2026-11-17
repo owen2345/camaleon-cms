@@ -115,6 +115,30 @@ RSpec.describe PluginRoutes do
       end
     end
 
+    it 'draws the routes at once for a theme that no site had at the last reload' do
+      @site.set_option('_theme', 'camaleon_first')
+
+      described_class.reload_once do
+        described_class.request_reload
+        expect(draws.size).to eq(1)
+      end
+    end
+
+    it 'leaves the draw to the end of the block for a theme that another site has' do
+      other_site = create(:site)
+      @site.set_option('_theme', 'camaleon_first')
+      described_class.reload
+      draws.clear
+
+      described_class.reload_once do
+        other_site.set_option('_theme', 'camaleon_first')
+        described_class.request_reload
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+    end
+
     it 'leaves the draw to the end of the block for a post type that the block deletes' do
       described_class.reload_once do
         post_type.delete
