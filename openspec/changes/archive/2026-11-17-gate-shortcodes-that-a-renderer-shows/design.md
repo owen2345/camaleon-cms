@@ -16,6 +16,13 @@ See `proposal.md`, "Why". `ContentShortcodeGate` validates `Post#content`, `Term
 
 **D3. The gate reads the translations of a copy.** `String#translations` keeps its result on its receiver. `String.new` gives a copy, so the attribute value keeps no result that a later change in place makes wrong.
 
+**D4. The gate reads no UTF-8 copy of a value.** A String in UTF-16, or one with invalid bytes, makes the gate raise an encoding error. But on each Camaleon save, the model code raises such an error before the gate, also for an administrator. Examples are `NormalizeAttrs`, `String#squish` and `String#to_var`.
+
+So nothing is stored. A request cannot send such a String: Rails answers with a 400 for invalid bytes, and `MultipartEncodingGuard` for a UTF-16 part. The maintainer chose to keep this on 2026-11-17.
+
+- Alternative: read the value through `UnsafeMarkup.scannable_string`, as the markup scan does. It changes no save, because the model code raises first. Rejected.
+- Alternative: refuse a String that is not valid UTF-8 with a validation error at each save. It is a change of the model layer, not of this gate. Rejected for this change.
+
 ## Risks / Trade-offs
 
 - [A value that shows a registered shortcode only after a translation or a JSON parse is now refused for a role without `content_shortcodes`.] → Such a stored text is not a form that the admin forms write. An administrator and a holder of the permission store it as before.

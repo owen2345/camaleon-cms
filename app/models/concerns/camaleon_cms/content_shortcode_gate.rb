@@ -39,6 +39,11 @@ module CamaleonCms
     # Post#reject_untrusted_dangerous_content -- and (b) a text that a renderer gives to do_shortcode
     # contains a registered shortcode.
     # A model that creates a row again for an unchanged value says so with cama_gate_unchanged?.
+    #
+    # The gate reads the value as it is, with no copy in UTF-8 (intended). On each Camaleon save, a
+    # String in UTF-16 or with invalid bytes makes the model code raise an encoding error before the
+    # gate, also for an administrator. Examples are NormalizeAttrs, String#squish and String#to_var.
+    # So nothing is stored, and a request cannot send such a String: Rails answers with a 400.
     def cama_shortcode_attr_gated?(attr)
       return false unless new_record? || cama_gate_attribute_changed?(attr)
       return false if cama_gate_unchanged?(attr)

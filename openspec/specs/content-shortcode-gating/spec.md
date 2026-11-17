@@ -122,3 +122,9 @@ The gate SHALL scan each text that a renderer gives to `do_shortcode`, not only 
 
 - **WHEN** any user saves a translated value or a JSON value in which no text that a renderer expands contains a registered shortcode
 - **THEN** the save SHALL NOT be gated by `content_shortcodes`
+
+#### Scenario: A value that is not valid UTF-8 is not stored
+
+- **WHEN** code saves a String in UTF-16, or one with invalid bytes, into post content, a taxonomy description or a custom-field value
+- **THEN** the model code SHALL raise an encoding error before the gate reads the value, also for an administrator
+- **AND** nothing SHALL be stored

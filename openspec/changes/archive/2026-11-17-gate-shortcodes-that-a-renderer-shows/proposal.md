@@ -17,6 +17,7 @@ Non-goals:
 
 - No change of a renderer or of the stored text. The remedy rule of `docs/security/permissions.md` forbids it.
 - No scan of the text that a `post_the_content` or `taxonomy_the_content` hook gives. A hook is the code of a plugin or a theme.
+- No UTF-8 copy of a String in another encoding or with invalid bytes. The model code raises an encoding error before the gate (D4).
 
 ## Capabilities
 

@@ -79,7 +79,9 @@ The pieces that implement the rule:
   entity-decodes to a tag-open, which a client-side `data-html` sink would inject). It bounds value
   size (an over-size value is refused, and callers report it with a size-specific message) and yields
   a verdict for mis-encoded input rather than raising. It reads a valid String in another encoding,
-  such as UTF-16, as UTF-8, because a database stores it as UTF-8 text. A value that the parser
+  such as UTF-16, as UTF-8, because a database stores it as UTF-8 text. A save of such a String,
+  or of one with invalid bytes, still raises an encoding error in the model code before each scan.
+  This also holds for an administrator, and nothing is stored (intended). A value that the parser
   cannot read (more than 400 nested elements, or more than 400 attributes on one element) is
   refused too. The checks read the elements from one walk of the tree. Never search the parsed
   fragment with `css`: its cost grows with the square of the number of top-level nodes. The
