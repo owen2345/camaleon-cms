@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** The content scan now also reads each translation of a value. A role without `post_content_unfiltered_html` is refused content whose translation shows a tag outside the content allowlist. `rake camaleon_cms:security:scan_content` lists such stored values. [#1348](https://github.com/owen2345/camaleon-cms/pull/1348).
+
 - **Performance fix:** The markup scan of a saved value with many translated blocks is now fast. Before, a value with 20,000 translation markers took about 27 s to scan. The scan now refuses a value that its parser cannot read, such as one nested deeper than 400 elements. Before, its save gave a server error. [#1350](https://github.com/owen2345/camaleon-cms/pull/1350).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#content-past-the-limits-of-the-markup-parser-is-refused).
 
