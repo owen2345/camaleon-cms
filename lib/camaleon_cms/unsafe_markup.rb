@@ -11,9 +11,9 @@ module CamaleonCms
   # rewritten. Stored content therefore always equals authored content, and the frontend may render
   # it verbatim, which is what the templates do (`raw` post content, `raw` editor field values).
   #
-  # The detector mirrors the gate cama_contact_form's admin controller applies to its authored
-  # markup positions (keep the two in parity): parse once, compare what the safe-list scrubber
-  # would remove against the parse's own reserialization, so only a genuine removal registers —
+  # The admin controller of cama_contact_form calls this detector for its authored markup positions
+  # too. The detector parses once and compares what the safe-list scrubber would remove against the
+  # parse's own reserialization, so only a genuine removal registers —
   # never a spelling difference (`Tom & Jerry`, `<br/>`, quote style, tag case). Three structural
   # guards cover what that comparison cannot see: markup the parser drops instead of scrubbing,
   # a tag left open at the end of the value, and a translation marker sitting inside a tag (the
