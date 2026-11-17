@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-include CamaleonCms::PluginsHelper
-
 RSpec.describe PluginRoutes do
+  include CamaleonCms::PluginsHelper
+
   init_site
 
   let(:draws) { [] }
