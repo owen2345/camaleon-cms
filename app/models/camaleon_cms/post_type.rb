@@ -29,7 +29,8 @@ module CamaleonCms
     after_create :fill_default_options
     after_create :set_default_site_user_roles
     after_create :refresh_routes
-    after_destroy :refresh_routes
+    # The site asks for the draw after its own delete, when it destroys this post type.
+    after_destroy :refresh_routes, if: proc { |obj| obj.destroyed_by_association.blank? }
     after_update :refresh_routes,
                  if: proc { |obj| obj.destroyed_by_association.blank? && obj.saved_change_to_attribute?(:slug) }
     before_update :default_category

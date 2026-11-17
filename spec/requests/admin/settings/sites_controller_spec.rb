@@ -68,6 +68,16 @@ RSpec.describe 'Admin::Settings::SitesController', type: :request do
       expect(PluginRoutes.all_locales).to eq('en')
     end
 
+    it 'draws the routes one time when no site has the default language' do
+      [@site, other_site].each { |site| site.set_meta('languages_site', %w[es]) }
+      count_draws_from_here
+
+      delete "/admin/settings/sites/#{other_site.id}"
+
+      expect(response).to redirect_to('/admin/settings/sites')
+      expect(draws.size).to eq(1)
+    end
+
     it 'draws the routes one time, and they have no route of a post type of the site' do
       helpers = post_type_helpers(other_site)
       count_draws_from_here

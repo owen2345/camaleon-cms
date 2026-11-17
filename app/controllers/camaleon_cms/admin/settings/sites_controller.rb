@@ -53,7 +53,7 @@ module CamaleonCms
         end
 
         def destroy
-          # The site and its post types share one draw of the routes.
+          # The draw of the delete waits for the end of the block, after the transaction of the delete.
           destroyed = PluginRoutes.reload_once { @site.destroy }
           flash[:notice] = t('camaleon_cms.admin.sites.message.deleted') if destroyed
           redirect_to action: :index

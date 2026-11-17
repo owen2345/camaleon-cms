@@ -294,7 +294,8 @@ Camaleon adds the Rack middleware `CamaleonCms::RouteReloadLock` to the host app
 
 The create of a site in the admin panel reloaded the routes 8 times, and the delete of a site 3
 times. Now the create draws the routes 3 times, and the delete draws them one time. The create
-draws them one more time for each default plugin that no other site has.
+draws them one more time for each default plugin that no other site has. A site delete in other
+code, such as `site.destroy` in a plugin, also draws them one time, not 3 times.
 `PluginRoutes.reload` does not change: it draws the routes at once.
 
 Two new methods are there for code that makes more than one change:
@@ -309,7 +310,8 @@ end
 draw to the end of the block when the draw adds no route. The block then draws the routes one time,
 unless it drew them after that call.
 `plugin_install`, `site_install_theme` and the save or the delete of a post type or a site call
-`PluginRoutes.request_reload`.
+`PluginRoutes.request_reload`. A post type that its site destroys does not call it: the site calls it
+after its own delete.
 
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
 
@@ -321,7 +323,7 @@ So a route helper exists at the same moment as before. Outside a block,
 `PluginRoutes.request_reload` reloads the routes at once.
 
 A callback of `PluginRoutes.add_after_reload_routes` runs after each draw. It now runs 3 times for
-a site create, not 8 times.
+a site create, not 8 times. For a site delete, it runs one time, not 3 times.
 
 **Who must act.** Nobody.
 

@@ -205,4 +205,50 @@ RSpec.describe PluginRoutes do
       end
     end
   end
+
+  describe 'the delete of a site' do
+    let(:other_site) { create(:site) }
+
+    # Makes the data of the example the data of the last reload.
+    def count_draws_from_here
+      described_class.reload
+      draws.clear
+    end
+
+    it 'draws the routes one time outside a block' do
+      other_site
+      count_draws_from_here
+
+      other_site.destroy
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'draws the routes one time in a block when no site has the default theme' do
+      [@site, other_site].each { |site| site.set_option('_theme', 'camaleon_first') }
+      count_draws_from_here
+
+      described_class.reload_once { other_site.destroy }
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'draws the routes one time in a block when no site has the default language' do
+      [@site, other_site].each { |site| site.set_meta('languages_site', %w[es]) }
+      count_draws_from_here
+
+      described_class.reload_once { other_site.destroy }
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'draws the routes at once for a post type that is deleted with no delete of its site' do
+      created = @site.post_types.create!(name: 'Books', slug: 'books')
+      draws.clear
+
+      created.destroy
+
+      expect(draws.size).to eq(1)
+    end
+  end
 end

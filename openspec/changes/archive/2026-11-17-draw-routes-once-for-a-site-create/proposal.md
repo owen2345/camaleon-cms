@@ -22,10 +22,12 @@ site already has is in the route set already.
   the draw to the end of the block only when the draw adds no route.
 - `PluginRoutes.reload` does not change. It draws the routes at once, also in the block.
 - The save and the delete of a post type or a site, `plugin_install` and `site_install_theme` call
-  `PluginRoutes.request_reload`.
+  `PluginRoutes.request_reload`. A post type that its site destroys does not call it: the site calls
+  it after its own delete.
 - The create and the delete of a site in the admin panel run in `PluginRoutes.reload_once`, and
   `site_after_install` does too. A site create then draws the routes 3 times, when another site
-  already has the default plugins and the theme. A site delete draws them one time.
+  already has the default plugins and the theme. A site delete draws them one time, in a block or
+  not.
 - `create_site` of `spec/features/admin/sites_spec.rb` waits 10 seconds for the success message.
 
 A route helper exists at the same moment as before, for each hook and each model callback of a

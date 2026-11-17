@@ -207,9 +207,13 @@ leave the draw to the outer block. A block SHALL NOT change a reload on another 
 
 The site create of the admin panel SHALL draw the routes one time for each default post type. It
 SHALL draw them one more time for the site, its plugins and its theme, when the last reload had those
-plugins and that theme. The last draw SHALL be done before the admin gets the response. The delete of a site in the
-admin panel SHALL draw the routes one time. `site_after_install` SHALL draw the routes one time for
-its plugins and its theme, under the same condition as the create.
+plugins and that theme. The last draw SHALL be done before the admin gets the response.
+`site_after_install` SHALL draw the routes one time for its plugins and its theme, under the same
+condition as the create.
+
+The delete of a site SHALL draw the routes one time, in a `PluginRoutes.reload_once` block or not. A
+post type that its site destroys SHALL ask for no draw. The site SHALL ask for the draw after its own
+delete.
 
 #### Scenario: An admin creates a second site
 
@@ -226,6 +230,21 @@ its plugins and its theme, under the same condition as the create.
 
 - **WHEN** an admin deletes a site that has a language that no other site has
 - **THEN** the routes are drawn one time
+
+#### Scenario: No site has the default theme or the default language
+
+- **WHEN** an admin deletes a site, and no site has the default theme or the default language
+- **THEN** the routes are drawn one time
+
+#### Scenario: A site delete outside a block
+
+- **WHEN** code outside a `PluginRoutes.reload_once` block destroys a site
+- **THEN** the routes are drawn one time, after the delete of the site
+
+#### Scenario: A post type that is deleted with no delete of its site
+
+- **WHEN** code outside a block destroys a post type, and not its site
+- **THEN** the routes are drawn at once
 
 #### Scenario: A create that fails
 

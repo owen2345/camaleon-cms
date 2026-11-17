@@ -25,7 +25,8 @@ See `proposal.md`, "Why". These facts of the code shape the design:
 - The create and the delete of a site draw the routes less often.
 - A route helper exists at the same moment as before, for each hook and each model callback of a
   plugin.
-- Code outside a `PluginRoutes.reload_once` block gets the same draws as before.
+- Code outside a `PluginRoutes.reload_once` block gets the same draws as before. The delete of a site
+  is the one exception (D9).
 
 **Non-Goals:**
 
@@ -75,17 +76,30 @@ block and the draw both raise, the caller gets the error of the draw.
 stays until the end of the block. A request for it during that time finds no post type, as a request
 did between the delete and the reload before. A language that the block removes waits in the same
 way (the user's choice, 2026-11-17). The `locale` scope accepts that language until the end of the
-block. The delete of a site removes the metas of the site, and so its languages, before its post
-types. With this rule, the delete of a site with a language of its own draws one time, not 2 times.
+block. The delete of a site with a language of its own is such a case.
 
 **D8. Three callers open a block.** `SitesController#create` puts the save and `site_after_install`
 in one block, and `SitesController#destroy` the delete. `site_after_install` opens its own block, for
 the installer, the site factories of the plugins and the host apps that call it.
 
+**D9. A post type that its site destroys asks for no draw (the user's choice, 2026-11-17).** The
+delete of a site removes the metas of the site before its post types. The site then reads the default
+theme and the default language. A call at that moment draws at once when no site had them at the last
+reload.
+
+So only the site asks for a draw, after its own delete. A site delete then draws one time, in a block
+or not. Outside a block, it drew 3 times before.
+
+- *Alternative: keep the code, and name the second draw in the requirement and the notes.* Rejected:
+  the code can remove the cause of that draw.
+- *Alternative: a post type asks for no draw only in a block.* Rejected: the model then knows about
+  the block, and a site delete outside a block keeps 3 draws.
+
 ## Risks / Trade-offs
 
 - [A callback of `PluginRoutes.add_after_reload_routes` runs less often] → It ran 8 times for a site
-  create, and it now runs 3 times. Such a callback runs after a draw, and each draw still runs it.
+  create, and it now runs 3 times. It ran 3 times for a site delete, and it now runs one time, outside
+  a block too. Such a callback runs after a draw, and each draw still runs it.
 - [A plugin route file that reads data outside the record of D2] → Its route comes at the end of
   the block. No bundled or surveyed plugin has such a route file.
 - [Each `request_reload` in a block reads the data of the routes again] → It is a few queries. The
