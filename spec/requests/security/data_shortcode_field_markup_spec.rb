@@ -97,6 +97,43 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
   end
 
+  # String#translate removes the first marker of the locale on each line, anywhere in the line. So a
+  # translation can join `javascript:` that a marker splits in the stored text, and the shortcode
+  # shows that translation.
+  it 'refuses a script URL that a translation joins, and the shortcode inside a link adds none' do
+    link = post_type.add_field({ 'name' => 'Link', 'slug' => 'link' }, { 'field_key' => 'url' }, 'Post')
+    place_shortcode(published_post, %(<a href="[data field='link']">Shop</a>))
+    sign_in_as(editor, site: current_site)
+    value = "<!--:-->java<!--:en-->script:alert(1)\n<!--:en-->"
+    expect(value.translate(:en)).to eq("javascript:alert(1)\n")
+
+    save_note(stored_post, value, field: link)
+
+    expect(flash[:error]).to include(I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_uri', slug: 'link'))
+    expect(stored_post.get_field_value('link')).to be_blank
+    get "/#{stored_post.slug}"
+    hrefs = Nokogiri::HTML5.parse(response.body).css('a').map { |anchor| anchor['href'].to_s.strip }
+    expect(hrefs.grep(/\Ajavascript:/i)).to be_empty
+  end
+
+  # String#translate shows a marker that is not at the start of a translation. In an attribute with no
+  # quotes, the `>` of that marker ends the tag, and the rest of the tag shows as text.
+  it 'refuses a marker that the shortcode shows in an image value, and the tag keeps its attributes' do
+    photo = post_type.add_field({ 'name' => 'Photo', 'slug' => 'photo' }, { 'field_key' => 'image' }, 'Post')
+    place_shortcode(published_post, "<img src=https://cdn.example.test/[data field='photo'] alt=Photo>")
+    sign_in_as(editor, site: current_site)
+
+    save_note(stored_post, 'https://a.example.test/x<!--:-->y', field: photo)
+
+    expect(flash[:error]).to include(
+      I18n.t('camaleon_cms.admin.custom_field.message.value_rejected_url_characters', slug: 'photo')
+    )
+    expect(stored_post.get_field_value('photo')).to be_blank
+    get "/#{stored_post.slug}"
+    image = Nokogiri::HTML5.parse(response.body).at_css('img[src^="https://cdn.example.test/"]')
+    expect(image['alt']).to eq('Photo')
+  end
+
   # JSON.parse keeps only the last member of a key that occurs twice. The shortcode puts the stored
   # JSON into the page, with each member. So the scan reads each member, also one that a later
   # member of the same key replaces.

@@ -91,8 +91,8 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
-  # The data shortcode shows one translation of a translated value, with no translation marker. So
-  # the markers pass, and the whitespace rule reads each translation.
+  # The data shortcode shows one translation of a translated value, without the markers that separate
+  # the translations. So those markers pass, and the rules read each text that String#translate shows.
   describe '.attribute_ending_url? and translations' do
     it 'passes the markers of a translated URL' do
       translated = { en: 'https://x.test/en ', es: 'https://x.test/es' }.to_translate
@@ -104,6 +104,14 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
       [{ en: 'https://x.test/a b' }.to_translate, { en: 'x" onerror="alert(1)' }.to_translate,
        { en: 'https://x.test/<b>' }.to_translate, "#{{ en: 'https://x.test/' }.to_translate}\" onerror=\"alert(1)",
        "  #{{ en: 'https://x.test/' }.to_translate}"].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(true), value.inspect
+      end
+    end
+
+    # String#translate shows a marker that is not at the start of a translation, and the `>` of the
+    # marker ends an attribute with no quotes.
+    it 'refuses a marker that an untranslated value or a translation shows' do
+      ['https://x.test/a<!--:-->b', '<!--:en-->https://x.test/a<!--:es-->b<!--:-->'].each do |value|
         expect(described_class.attribute_ending_url?(value)).to be(true), value.inspect
       end
     end

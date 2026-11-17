@@ -112,13 +112,17 @@ module CamaleonCms
       # after it become a new attribute. So leading whitespace is refused too. Whitespace at the end
       # passes: no character of the value follows it.
       # A translated value holds the translation markers that the admin form writes. The data shortcode
-      # shows one translation, with no marker. So the markers pass, and the whitespace rule reads each
-      # translation.
+      # shows one translation, without the markers that separate the translations. So those markers
+      # pass, and both rules read each text that String#translate shows. translate removes only the
+      # first marker of the locale on each line, so a shown text can keep a marker. A value with no
+      # translation keeps each marker.
       # The check reads the value as unsafe_html? does, so a value in another encoding gets a verdict.
       def attribute_ending_url?(value)
         string = scannable_string(value)
         string.gsub(TRANSLATION_MARKER, '').match?(URL_ATTRIBUTE_END) ||
-          string.dup.translations_array.any? { |url| url.rstrip.match?(HTML_WHITESPACE) }
+          string.dup.translations_array.any? do |url|
+            url.match?(URL_ATTRIBUTE_END) || url.rstrip.match?(HTML_WHITESPACE)
+          end
       end
 
       # The gate only reads, never stores. A value in another encoding, or with invalid bytes, makes

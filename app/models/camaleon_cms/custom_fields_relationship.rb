@@ -220,7 +220,7 @@ module CamaleonCms
         key = field_key.to_s
         if JSON_MARKUP_FIELD_KEYS.include?(key)
           :html if json_member_values(value).any? { |member| markup_unsafe?(member) }
-        elsif URI_FIELD_KEYS.include?(key) && CamaleonCms::UnsafeMarkup.dangerous_uri?(value)
+        elsif URI_FIELD_KEYS.include?(key) && script_url?(value)
           :uri
         elsif markup_unsafe?(value)
           :html
@@ -247,6 +247,14 @@ module CamaleonCms
           value, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
                  attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES
         )
+      end
+
+      # The URI rule reads the stored text and each text that String#translate shows. translate removes
+      # the first marker of the locale on each line, so a translation can join a script URL, such as
+      # `javascript:`, that a marker splits in the stored text.
+      def script_url?(value)
+        texts = [value, *CamaleonCms::UnsafeMarkup.scannable_string(value).dup.translations_array]
+        texts.any? { |text| CamaleonCms::UnsafeMarkup.dangerous_uri?(text) }
       end
 
       # A field_attrs value stores JSON. The scan reads it as each renderer shows it:

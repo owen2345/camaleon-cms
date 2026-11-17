@@ -618,8 +618,9 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   another character SHALL also be refused. A `data` shortcode inside a tag puts the value into an
   attribute, and each of these characters ends the attribute. A URL can encode them, such as `%27` for `'`. Whitespace
   at the end of the value SHALL pass: no character of the value follows it. The translation markers
-  of a translated value SHALL pass, and the whitespace rule SHALL read each translation. The
-  shortcode shows one translation, with no marker.
+  of a translated value SHALL pass, because the shortcode shows one translation without them.
+- For a URI-type value, the scheme rule and the character rule SHALL also read each text that
+  `String#translate` shows. That text can keep a marker, or join a scheme across one.
 - For a `field_attrs` value, the value as stored SHALL be held to the post-content allowlist,
   because the `data` shortcode shows it as stored. Each key and decoded member of the parse SHALL be
   held to it too, also in each translation of the value. The template of the field translates the
@@ -689,6 +690,20 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 - **WHEN** an untrusted author saves the translated `url`-type value
   `<!--:en-->https://example.com/en<!--:--><!--:es-->https://example.com/es<!--:-->`
 - **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A script URL that a translation joins is refused
+
+- **WHEN** an untrusted author saves a `url`-type value of `<!--:-->java<!--:en-->script:alert(1)`,
+  a line break and `<!--:en-->`
+- **THEN** the save is refused, because `translate` shows `javascript:alert(1)`, and no value row is
+  stored
+
+#### Scenario: A marker that the shortcode shows in a URL value is refused
+
+- **WHEN** an untrusted author saves an `image`-type value of `https://example.com/x<!--:-->y`
+- **THEN** the save is refused, because the shortcode shows the marker, and its `>` ends an attribute
+  with no quotes
+- **AND** no value row is stored
 
 #### Scenario: An encoded URL is stored unchanged
 

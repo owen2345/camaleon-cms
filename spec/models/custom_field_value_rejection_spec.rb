@@ -125,6 +125,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value('link')).to eq(translated)
     end
 
+    # String#translate removes the first marker of the locale on each line, so a translation can join
+    # a script URL that a marker splits in the stored text.
+    it 'refuses a script URL that a translation joins, in each URL kind' do
+      value = "<!--:-->java<!--:en-->script:alert(1)\n<!--:en-->"
+
+      %w[url image audio video file].each do |kind|
+        expect(described_class.gate_rejection_reason(kind, value)).to eq(:uri), kind
+      end
+    end
+
     # A data shortcode inside a tag puts the value into an attribute, as in
     # <img src="[data field='photo']">. A quote, a space or a backtick ends that attribute. Without
     # quotes, a leading space ends the text before the shortcode, as in
