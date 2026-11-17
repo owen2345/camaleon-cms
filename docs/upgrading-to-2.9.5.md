@@ -340,9 +340,10 @@ raises an error past 400 nested elements, or past 400 attributes on one element.
 such content gave a server error. Now the save is refused with the message for disallowed markup.
 Content that the scan skips does not change.
 
-Code that saves post content or a custom-field value with no request, such as an import, is scanned
-too, unless it calls `unfiltered_content!` or `unfiltered_value!`. Before, such a save raised
-`ArgumentError`. Now the record is invalid, and `save` returns false.
+The scan also reads post content and `editor` and `field_attrs` values that code saves with no
+request, such as an import. Such code skips the scan only when it calls `unfiltered_content!` or
+`unfiltered_value!`. Before, such a save raised `ArgumentError`. Now the record is invalid, and
+`save` returns false.
 
 The scan of content with many translated blocks is also faster. A value with 20,000 translation
 markers took about 27 s to scan, and now takes about 3 s.
