@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Security fix:** The save of a custom field value now scans every field kind for an untrusted author. `settings` and `custom_fields` now trust a role for the fields outside posts, and `theme_settings` for theme fields. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
+- **Security fix:** The save of a custom field value now scans every field kind for an untrusted author. `settings` and `custom_fields` now trust a role for the fields outside posts, and `theme_settings` for theme fields. The `content_shortcodes` gate now also finds a shortcode that a translation or a JSON member of a value shows. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
   - **Breaking change:** an untrusted author is refused markup outside the content allowlist in any field. In a URL value, a quote or whitespace before its end is refused too.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-custom-field-value-of-every-kind-is-scanned-at-save).
 

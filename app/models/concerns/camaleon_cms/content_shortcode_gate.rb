@@ -15,10 +15,10 @@ module CamaleonCms
     extend ActiveSupport::Concern
 
     class_methods do
-      # Gate the named attribute(s) on create/update. Each attribute is scanned in its RAW stored
-      # form -- which contains every locale of a translatable value at once, so a shortcode in any
-      # locale is caught -- and, if a registered shortcode is present and the actor is a
-      # non-administrator lacking `content_shortcodes`, the save is refused with a base error.
+      # Gate the named attribute(s) on create/update. The gate scans each attribute as stored and as
+      # each renderer gives it to do_shortcode (cama_shortcode_texts). If a registered shortcode is
+      # present and the actor is a non-administrator lacking `content_shortcodes`, the save is
+      # refused with a base error.
       def gate_content_shortcodes(*attributes, on: %i[create update])
         gated = attributes.map(&:to_sym)
         validate(on: on) { cama_reject_unauthorized_shortcodes(gated) }
@@ -36,14 +36,31 @@ module CamaleonCms
 
     # An attribute needs the gate only when it (a) changed on this save (or the record is new) -- so
     # a title-only edit never re-gates pre-existing shortcode content, mirroring
-    # Post#reject_untrusted_dangerous_content -- and (b) actually contains a registered shortcode.
+    # Post#reject_untrusted_dangerous_content -- and (b) a text that a renderer gives to do_shortcode
+    # contains a registered shortcode.
     # A model that creates a row again for an unchanged value says so with cama_gate_unchanged?.
     def cama_shortcode_attr_gated?(attr)
       return false unless new_record? || cama_gate_attribute_changed?(attr)
       return false if cama_gate_unchanged?(attr)
 
       value = self[attr]
-      value.present? && CamaleonCms::ShortcodeRegistry.content_has_shortcode?(value.to_s)
+      return false if value.blank?
+
+      cama_shortcode_texts(attr, value.to_s).any? { |text| CamaleonCms::ShortcodeRegistry.content_has_shortcode?(text) }
+    end
+
+    # The texts that a renderer gives to do_shortcode: the stored text and each translation of it.
+    # String#translate removes the translation marker of a later line, so a translation can join a
+    # shortcode that the stored text does not contain. A model adds the texts that its own renderers
+    # decode.
+    def cama_shortcode_texts(_attr, text)
+      cama_text_with_translations(text)
+    end
+
+    # String#translations keeps its result on the String. String.new gives a copy, so the attribute
+    # value keeps no result that a later change of the value makes wrong.
+    def cama_text_with_translations(text)
+      [text, *String.new(text).translations.values]
     end
 
     # True when a new record holds a value that was already stored. False by default.

@@ -329,6 +329,22 @@ module CamaleonCms
       attr == :value && previously_stored
     end
 
+    # The content_shortcodes gate also scans the texts that the_json_field gives to do_shortcode.
+    # parse_html_json of CustomFieldsConcern parses the value as a JSON object, and translates the
+    # to_s of each member. There a JSON escape shows a bracket, and a member that is an object or an
+    # array shows as Ruby text on one line. A theme can call the_json_field for a field of each kind.
+    def cama_shortcode_texts(attr, text)
+      texts = super
+      return texts unless attr == :value
+
+      members = JSON.parse(text)
+      return texts unless members.is_a?(Hash)
+
+      texts + members.with_indifferent_access.values.flat_map { |member| cama_text_with_translations(member.to_s) }
+    rescue JSON::ParserError
+      texts
+    end
+
     # An admin in a request context. Without a user or a site, the gate applies to an admin too.
     def request_admin?
       CurrentRequest.site.present? && CurrentRequest.user.present? && CurrentRequest.user.admin?

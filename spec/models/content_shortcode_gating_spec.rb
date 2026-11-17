@@ -181,6 +181,18 @@ RSpec.describe 'Content shortcode gating', type: :model do
 
       expect(taxonomy.save).to be true
     end
+
+    # String#translate removes the translation marker of a later line, so the translation shows a
+    # shortcode that the stored text does not contain.
+    it 'refuses a description whose translation joins a shortcode for a non-administrator' do
+      as_user(contributor)
+      description = "<!--:en-->Intro\n[widget<!--:en--> my_widget]<!--:-->"
+      expect(description.translate(:en)).to eq("Intro\n[widget my_widget]")
+      taxonomy = build(:post_type, site: site, description: description)
+
+      expect(taxonomy).not_to be_valid
+      expect(taxonomy.errors[:base].join).to match(/shortcode/i)
+    end
   end
 
   describe 'widget descriptions (Widget::Main#description, a TermTaxonomy STI subclass)' do
