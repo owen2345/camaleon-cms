@@ -334,11 +334,11 @@ a site create, not 8 times. For a site delete, it runs one time, not 3 times.
 ## Content past the limits of the markup parser is refused
 
 The markup scan reads post content, the post summary and the values of `editor` and `field_attrs`
-custom fields that a non-admin user saves. It skips post content, the summary and the custom-field values of a post for a role
-with the `post_content_unfiltered_html` permission. Its HTML5 parser raises an error past 400 nested
-elements, or past 400 attributes on one element. Before, a save of such content gave a server error.
-Now the save is refused with the message for disallowed markup. Content that the scan skips does not
-change.
+custom fields that a non-admin user saves. It skips post content, the summary and the custom-field
+values of a post for a role with the `post_content_unfiltered_html` permission. Its HTML5 parser
+raises an error past 400 nested elements, or past 400 attributes on one element. Before, a save of
+such content gave a server error. Now the save is refused with the message for disallowed markup.
+Content that the scan skips does not change.
 
 Code that saves post content or a custom-field value with no request, such as an import, is scanned
 too, unless it calls `unfiltered_content!` or `unfiltered_value!`. Before, such a save raised
