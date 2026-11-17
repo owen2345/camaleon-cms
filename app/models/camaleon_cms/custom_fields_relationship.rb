@@ -150,11 +150,15 @@ module CamaleonCms
 
     # set_field_values deletes the value rows and creates them again. It marks a new row whose slug and
     # value equal a stored row, so the markup gate and the content_shortcodes gate do not check an
-    # unchanged value again. A reader plus a bang enabler and no writer, as unfiltered_value.
-    attr_reader :previously_stored
+    # unchanged value again. A reader plus a bang enabler and no writer, as unfiltered_value. The mark
+    # is only for the marked value: a later change of the value removes it, and a copy (dup) does not
+    # get it.
+    def previously_stored
+      @previously_stored_value == [value]
+    end
 
     def previously_stored!
-      @previously_stored = true
+      @previously_stored_value = [value]
       self
     end
 
@@ -173,9 +177,11 @@ module CamaleonCms
     # method copies the group number before the cast, and the copy of an invalid record is invalid.
     #
     # A copy is a new record, and a new record is always validated. So the copy of a stored record
-    # with a negative number from an earlier release is invalid (intended).
+    # with a negative number from an earlier release is invalid (intended). The copy does not get the
+    # mark of previously_stored!.
     def initialize_dup(other)
       super
+      @previously_stored_value = nil
       self[:group_number] = other.group_number_before_type_cast
     end
 

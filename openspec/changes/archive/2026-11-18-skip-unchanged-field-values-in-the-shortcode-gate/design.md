@@ -13,6 +13,10 @@ of `unfiltered_value!`. The markup gate and the shortcode gate read it.
 - `unfiltered_value!` is the opt-out of trusted server code. `Post#unfiltered_content!` does not
   skip the shortcode gate, so `unfiltered_value!` does not skip it either.
 - The flag has a reader and a bang enabler, and no writer, so mass assignment cannot set it.
+- The flag is only for the value that it marks. `unfiltered_value!` stays on the row for its life.
+  This flag is false again when the value of the row changes, and a copy (`dup`) does not get it.
+  Both gates then check a changed value, also on a row that `set_field_values` left in the loaded
+  association.
 
 **D2. The concern asks the model with `cama_gate_unchanged?(attr)`.** The default is false.
 `CustomFieldsRelationship` returns the flag for `value`. Post content and a taxonomy description

@@ -131,6 +131,37 @@ RSpec.describe 'Content shortcode gating', type: :model do
 
       expect(post.get_field_value('note')).to eq(shortcode_content)
     end
+
+    # set_field_values marks a row that it creates again with a stored value, and the gate skips that
+    # row. The mark is only for that value on that row.
+    describe 'a row that set_field_values creates again with a stored value' do
+      def recreate_note(value)
+        post.set_field_values({ '0' => { 'note' => { 'values' => { '0' => value } } } })
+        post.custom_field_values.find { |row| row.custom_field_slug == 'note' }
+      end
+
+      before do
+        as_user(admin)
+        post.set_field_value('note', shortcode_content)
+        as_user(contributor)
+      end
+
+      it 'checks a later change of the value of that row' do
+        row = recreate_note(shortcode_content)
+
+        expect(row.update(value: "#{shortcode_content} [widget other]")).to be(false)
+        expect(post.reload.get_field_value('note')).to eq(shortcode_content)
+      end
+
+      it 'checks a copy of that row on another post' do
+        other_post = create(:post, post_type: post_type, owner: admin)
+        copy = recreate_note(shortcode_content).dup
+        copy.objectid = other_post.id
+
+        expect(copy.save).to be(false)
+        expect(other_post.reload.get_field_value('note')).to be_blank
+      end
+    end
   end
 
   describe 'taxonomy content (TermTaxonomy#description)' do
