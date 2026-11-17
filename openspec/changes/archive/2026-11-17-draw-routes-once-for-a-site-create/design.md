@@ -96,6 +96,17 @@ times for a site with the 2 default post types.
 - *Alternative: a post type asks for no draw only in a block.* Rejected: the model then knows about
   the block, and a site delete outside a block keeps 3 draws.
 
+**D10. A draw at once reads the data of the routes two times (the user's choice, 2026-11-17).**
+`request_reload` reads the data for the comparison of D2. `PluginRoutes.reload` then clears the caches
+and reads the data again for the draw. `reload` first waits for the other requests, and another
+thread can reload the routes in that time. That reload fills the caches from its own database
+connection, so they lack a post type that this thread did not commit yet.
+
+- *Alternative: the draw uses the caches of the comparison.* Rejected: after a reload on another
+  thread, the draw has no route for the new post type.
+- *Alternative: the draw skips the clear when no other clear came after the comparison.* Rejected: it
+  saves a few queries before a draw, and it adds state to the code that holds the locks.
+
 ## Risks / Trade-offs
 
 - [A callback of `PluginRoutes.add_after_reload_routes` runs less often] → It ran 8 times for a site
@@ -103,5 +114,6 @@ times for a site with the 2 default post types.
   a block too. Such a callback runs after a draw, and each draw still runs it.
 - [A plugin route file that reads data outside the record of D2] → Its route comes at the end of
   the block. No bundled or surveyed plugin has such a route file.
-- [Each `request_reload` in a block reads the data of the routes again] → It is a few queries. The
-  draw that it replaces reads the same data.
+- [Each `request_reload` in a block reads the data of the routes again] → It is a few queries. A
+  draw that waits reads the same data one time, at the end of the block. A draw at once reads it a
+  second time (D10).

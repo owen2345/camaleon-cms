@@ -50,6 +50,9 @@ module CamaleonCms
     # caches are clear at once in each case.
     def request_reload
       block = Thread.current[BLOCK_KEY]
+      # A draw at once reads the data again, after adds_routes? read it (intended). Another thread can
+      # reload the routes before this draw starts, and its caches lack the changes that this thread
+      # did not commit yet.
       return reload if block.nil? || adds_routes?
 
       block[:draw_waits] = true
