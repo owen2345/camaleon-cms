@@ -106,4 +106,22 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
       expect(unsafe?(blocks('<span title="&lt;img src=x onerror=alert(1)&gt;">y</span>'))).to be true
     end
   end
+
+  # The HTML5 parser raises ArgumentError past its limits: 400 nested elements, or 400 attributes on
+  # one element. The gate cannot scan such a value, so it must refuse it and not raise.
+  describe '.unsafe_html? past the limits of the parser' do
+    it 'accepts 399 nested elements' do
+      expect(unsafe?("#{'<div>' * 399}x#{'</div>' * 399}")).to be false
+    end
+
+    it 'refuses 401 nested elements' do
+      expect(unsafe?("#{'<div>' * 401}x#{'</div>' * 401}")).to be true
+    end
+
+    it 'refuses an element with 401 attributes' do
+      attrs = (1..401).map { |i| "data-a#{i}=\"x\"" }.join(' ')
+
+      expect(unsafe?("<p #{attrs}>y</p>")).to be true
+    end
+  end
 end

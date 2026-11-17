@@ -80,6 +80,8 @@ module CamaleonCms
 
         shielded = string.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
         fragment = parse(shielded)
+        return true if fragment.nil?
+
         # The checks below change only attribute values, so one list of the elements serves all three.
         nodes = elements(fragment)
         # The css scrubber reformats whitespace while it scrubs, so a benign `text-align: center`
@@ -115,12 +117,17 @@ module CamaleonCms
       # Prefer the HTML5 parser (browser-parity) only when it is actually available: the method
       # arrived in loofah 2.21, so guard on the method itself, not on `Nokogiri::HTML5` (present
       # since nokogiri 1.11) -- an older loofah with a newer nokogiri would otherwise NoMethodError.
+      # The HTML5 parser raises ArgumentError past its limits: more than 400 nested elements, or
+      # more than 400 attributes on one element. The gate cannot scan such a value, so parse gives
+      # nil and the caller refuses the value.
       def parse(string)
         if Loofah.respond_to?(:html5_fragment) && defined?(Nokogiri::HTML5)
           Loofah.html5_fragment(string)
         else
           Loofah.fragment(string)
         end
+      rescue ArgumentError
+        nil
       end
 
       # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding would
