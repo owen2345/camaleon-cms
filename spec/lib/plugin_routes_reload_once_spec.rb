@@ -17,9 +17,6 @@ RSpec.describe PluginRoutes do
     draws.clear
   end
 
-  # The stub drew no route, so the record of the last reload is not true for the next spec.
-  after { described_class.instance_variable_set(:@drawn_route_inputs, nil) }
-
   describe '.request_reload' do
     it 'reloads the routes at once outside a block' do
       described_class.request_reload
