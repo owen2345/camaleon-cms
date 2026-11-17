@@ -340,6 +340,10 @@ elements, or past 400 attributes on one element. Before, a save of such content 
 Now the save is refused with the message for disallowed markup. Content that the scan skips does not
 change.
 
+Code that saves post content or a custom-field value with no request, such as an import, is scanned
+too, unless it calls `unfiltered_content!` or `unfiltered_value!`. Before, such a save raised
+`ArgumentError`. Now the record is invalid, and `save` returns false.
+
 The scan of content with many translated blocks is also faster. A value with 20,000 translation
 markers took about 27 s to scan, and now takes about 3 s.
 
