@@ -25,4 +25,4 @@
   methods and what changes for a callback of `PluginRoutes.add_after_reload_routes`.
 - [x] 3.2 `bin/rubocop -A`, the adjacent specs, `bin/brakeman --no-pager`,
   `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 3.3 Add the CHANGELOG entry, archive this change on the branch
+- [x] 3.3 Add the CHANGELOG entry, archive this change on the branch
