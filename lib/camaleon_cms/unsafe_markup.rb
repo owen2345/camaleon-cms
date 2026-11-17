@@ -37,6 +37,7 @@ module CamaleonCms
     # unterminated one additionally swallows everything to the next `-->` when emitted.
     TRANSLATION_MARKER = /<!--:[\w|-]{0,5}-->/
     TRANSLATION_MARKER_ONLY = /\A#{TRANSLATION_MARKER}\z/
+    private_constant :TRANSLATION_MARKER_ONLY
 
     # `<` only opens a tag when a name, a solidus or a markup declaration follows it — this is what
     # keeps `Age < 18` and `5 > 3` out of the tag scanners below.

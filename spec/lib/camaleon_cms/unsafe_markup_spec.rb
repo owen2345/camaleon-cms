@@ -124,4 +124,12 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
       expect(unsafe?("<p #{attrs}>y</p>")).to be true
     end
   end
+
+  # cama_contact_form reads TRANSLATION_MARKER. The anchored form is internal to the gate.
+  describe 'constants' do
+    it 'keeps TRANSLATION_MARKER public and TRANSLATION_MARKER_ONLY private' do
+      expect(described_class::TRANSLATION_MARKER).to be_a(Regexp)
+      expect { described_class::TRANSLATION_MARKER_ONLY }.to raise_error(NameError, /private constant/)
+    end
+  end
 end
