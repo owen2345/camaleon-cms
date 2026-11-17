@@ -80,15 +80,17 @@ module CamaleonCms
 
         shielded = string.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
         fragment = parse(shielded)
+        # The checks below change only attribute values, so one list of the elements serves all three.
+        nodes = elements(fragment)
         # The css scrubber reformats whitespace while it scrubs, so a benign `text-align: center`
         # would register as a removal in the comparison below. Check style values separately
         # (whitespace-insensitively) and normalize them on the tree first, so the comparison sees
         # identical css on both sides and only element/attribute removals register.
-        return true if dangerous_or_normalized_css!(fragment)
-        return true if attribute_holds_markup?(fragment)
+        return true if dangerous_or_normalized_css!(nodes)
+        return true if attribute_holds_markup?(nodes)
 
         baseline = fragment.to_s
-        return true if markup_dropped?(shielded, fragment)
+        return true if markup_dropped?(shielded, nodes)
 
         # One parse, not two: scrub the fragment already built, so both sides of the comparison
         # share the same parser and serializer and only a genuine removal differs.
@@ -144,8 +146,8 @@ module CamaleonCms
       # semicolon), and write the scrubbed form back so the later serialization comparison cannot
       # re-register it. A surviving difference means the scrubber refused part of the css
       # (expression(), url(javascript:), a disallowed property) — dangerous, report it.
-      def dangerous_or_normalized_css!(fragment)
-        elements(fragment).any? do |node|
+      def dangerous_or_normalized_css!(nodes)
+        nodes.any? do |node|
           next false unless node.has_attribute?('style')
 
           original = node['style'].to_s
@@ -158,15 +160,16 @@ module CamaleonCms
       # Every element of the parse. Do not use `fragment.css`: a fragment runs the query once for
       # each top-level node and adds each result to the set so far, so its cost grows with the
       # square of the number of top-level nodes. A value with many translated blocks has many
-      # top-level nodes (20,000 markers took about 27 s). This loop reads each node once and uses
-      # no recursion, so a deep tree cannot exhaust the stack.
+      # top-level nodes (20,000 markers took about 27 s). This loop reads each element once and uses
+      # no recursion, so a deep tree cannot exhaust the stack. Only an element contains elements,
+      # so the loop reads no text or comment node.
       def elements(fragment)
         found = []
-        pending = fragment.children.to_a
+        pending = fragment.element_children.to_a
         until pending.empty?
           node = pending.pop
-          found << node if node.element?
-          pending.concat(node.children.to_a)
+          found << node
+          pending.concat(node.element_children.to_a)
         end
         found
       end
@@ -188,11 +191,11 @@ module CamaleonCms
       # Every tag the author wrote has to appear in the parse. Compared by name rather than by
       # count, because the parser *inserts* elements too — an implied `<tbody>` would otherwise
       # cancel out a dropped `<td>` and let the pair through.
-      def markup_dropped?(shielded, fragment)
+      def markup_dropped?(shielded, nodes)
         written = shielded.scan(START_TAG_NAME).flatten.map(&:downcase).tally
         return false if written.empty?
 
-        parsed = elements(fragment).map { |node| node.name.downcase }.tally
+        parsed = nodes.map { |node| node.name.downcase }.tally
         written.any? { |name, count| parsed.fetch(name, 0) < count }
       end
 
@@ -203,8 +206,8 @@ module CamaleonCms
       # stored bytes, so `markup_dropped?` never sees it; but the parser has already entity-decoded
       # the value on the node, so a tag-open here is real markup the renderer would emit. Reject it
       # (never rewrite). A legitimate `<` in an attribute value (rare) must be entity-escaped by hand.
-      def attribute_holds_markup?(fragment)
-        elements(fragment).any? do |node|
+      def attribute_holds_markup?(nodes)
+        nodes.any? do |node|
           node.attribute_nodes.any? { |attr| attr.value.to_s.match?(TAG_OPEN) }
         end
       end

@@ -73,12 +73,12 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
-  # Each translated block adds top-level nodes to the parse. A CSS or XPath search of a fragment
-  # runs once for each top-level node and merges the results, so its cost grows with the square of
-  # that number. The gate must read each element once, and must still see the last block.
+  # Each translated block adds top-level nodes to the parse. A CSS search of a fragment runs once
+  # for each top-level node and merges the results, so its cost grows with the square of that
+  # number. The gate must read each element once, and must still see the last block.
   describe '.unsafe_html? with many translated blocks' do
     def blocks(last)
-      ('aa'..'zz').first(600).map { |key| "<!--:#{key}--><b>x</b><!--:-->" }.join + last
+      ('aa'..'zz').first(600).map { |key| "<!--:#{key}--><b>x</b><!--:-->" }.join + "<!--:en-->#{last}<!--:-->"
     end
 
     before do
@@ -87,11 +87,15 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
 
     it 'accepts clean blocks without a fragment-wide search' do
-      expect(unsafe?(blocks('<!--:en--><p>y</p><!--:-->'))).to be false
+      expect(unsafe?(blocks('<p>y</p>'))).to be false
+    end
+
+    it 'accepts a benign style in the last block' do
+      expect(unsafe?(blocks('<p style="text-align: center">y</p>'))).to be false
     end
 
     it 'refuses a disallowed tag in the last block' do
-      expect(unsafe?(blocks('<!--:en--><p>y</p><!--:--><svg><circle r="1"/></svg>'))).to be true
+      expect(unsafe?(blocks('<p>y</p><svg><circle r="1"/></svg>'))).to be true
     end
 
     it 'refuses dangerous css in the last block' do
