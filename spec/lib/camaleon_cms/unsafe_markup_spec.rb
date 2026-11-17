@@ -72,4 +72,34 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
       expect(unsafe?(long_clean)).to be false
     end
   end
+
+  # Each translated block adds top-level nodes to the parse. A CSS or XPath search of a fragment
+  # runs once for each top-level node and merges the results, so its cost grows with the square of
+  # that number. The gate must read each element once, and must still see the last block.
+  describe '.unsafe_html? with many translated blocks' do
+    def blocks(last)
+      ('aa'..'zz').first(600).map { |key| "<!--:#{key}--><b>x</b><!--:-->" }.join + last
+    end
+
+    before do
+      allow_any_instance_of(Nokogiri::XML::DocumentFragment).to receive(:css)
+        .and_raise('a fragment-wide css search costs the square of the top-level node count')
+    end
+
+    it 'accepts clean blocks without a fragment-wide search' do
+      expect(unsafe?(blocks('<!--:en--><p>y</p><!--:-->'))).to be false
+    end
+
+    it 'refuses a disallowed tag in the last block' do
+      expect(unsafe?(blocks('<!--:en--><p>y</p><!--:--><svg><circle r="1"/></svg>'))).to be true
+    end
+
+    it 'refuses dangerous css in the last block' do
+      expect(unsafe?(blocks('<p style="background: url(javascript:alert(1))">y</p>'))).to be true
+    end
+
+    it 'refuses markup in an attribute of the last block' do
+      expect(unsafe?(blocks('<span title="&lt;img src=x onerror=alert(1)&gt;">y</span>'))).to be true
+    end
+  end
 end

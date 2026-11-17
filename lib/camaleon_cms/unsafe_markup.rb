@@ -36,6 +36,7 @@ module CamaleonCms
     # the sanitizer strips comments, so a stray comment would register as a removal anyway, but an
     # unterminated one additionally swallows everything to the next `-->` when emitted.
     TRANSLATION_MARKER = /<!--:[\w|-]{0,5}-->/
+    TRANSLATION_MARKER_ONLY = /\A#{TRANSLATION_MARKER}\z/
 
     # `<` only opens a tag when a name, a solidus or a markup declaration follows it — this is what
     # keeps `Age < 18` and `5 > 3` out of the tag scanners below.
@@ -144,12 +145,30 @@ module CamaleonCms
       # re-register it. A surviving difference means the scrubber refused part of the css
       # (expression(), url(javascript:), a disallowed property) — dangerous, report it.
       def dangerous_or_normalized_css!(fragment)
-        fragment.css('[style]').any? do |node|
+        elements(fragment).any? do |node|
+          next false unless node.has_attribute?('style')
+
           original = node['style'].to_s
           scrubbed = Loofah::HTML5::Scrub.scrub_css(original)
           node['style'] = scrubbed
           css_declarations(original) != css_declarations(scrubbed)
         end
+      end
+
+      # Every element of the parse. Do not use `fragment.css`: a fragment runs the query once for
+      # each top-level node and adds each result to the set so far, so its cost grows with the
+      # square of the number of top-level nodes. A value with many translated blocks has many
+      # top-level nodes (20,000 markers took about 27 s). This loop reads each node once and uses
+      # no recursion, so a deep tree cannot exhaust the stack.
+      def elements(fragment)
+        found = []
+        pending = fragment.children.to_a
+        until pending.empty?
+          node = pending.pop
+          found << node if node.element?
+          pending.concat(node.children.to_a)
+        end
+        found
       end
 
       def css_declarations(css)
@@ -173,7 +192,7 @@ module CamaleonCms
         written = shielded.scan(START_TAG_NAME).flatten.map(&:downcase).tally
         return false if written.empty?
 
-        parsed = fragment.css('*').map { |node| node.name.downcase }.tally
+        parsed = elements(fragment).map { |node| node.name.downcase }.tally
         written.any? { |name, count| parsed.fetch(name, 0) < count }
       end
 
@@ -185,7 +204,7 @@ module CamaleonCms
       # the value on the node, so a tag-open here is real markup the renderer would emit. Reject it
       # (never rewrite). A legitimate `<` in an attribute value (rare) must be entity-escaped by hand.
       def attribute_holds_markup?(fragment)
-        fragment.css('*').any? do |node|
+        elements(fragment).any? do |node|
           node.attribute_nodes.any? { |attr| attr.value.to_s.match?(TAG_OPEN) }
         end
       end
@@ -198,7 +217,7 @@ module CamaleonCms
 
         tags = +''
         string.scan(/#{TRANSLATION_MARKER}|#{TAG_SPAN}/) do |match|
-          tags << match unless match.match?(/\A#{TRANSLATION_MARKER}\z/)
+          tags << match unless match.match?(TRANSLATION_MARKER_ONLY)
         end
         tags.match?(TRANSLATION_MARKER)
       end
