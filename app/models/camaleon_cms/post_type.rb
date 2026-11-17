@@ -316,8 +316,9 @@ module CamaleonCms
     end
 
     # reload routes to enable this post type url, like: http://localhost/my-slug
+    # In a PluginRoutes.reload_once block, the draw for a delete waits for the end of the block.
     def refresh_routes
-      PluginRoutes.reload
+      PluginRoutes.request_reload
     end
   end
 end

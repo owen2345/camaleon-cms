@@ -2,8 +2,12 @@
 
 require 'json'
 require 'monitor'
+require_relative 'camaleon_cms/route_reload'
 
 class PluginRoutes
+  # reload, reload_once and request_reload
+  extend CamaleonCms::RouteReload
+
   class << self
     # return plugin information
     def plugin_info(plugin_key)
@@ -160,19 +164,6 @@ class PluginRoutes
         end
       end
       res
-    end
-
-    # Reloads the routes. The reload waits until the other requests are done, and new requests wait
-    # until it is done (CamaleonCms::RouteReloadLock).
-    def reload
-      CamaleonCms::RouteReloadLock.exclusive do
-        reload_monitor.synchronize do
-          @all_sites = nil
-          cache.clear
-          Rails.application.reload_routes!
-          after_reload_callbacks.uniq.each(&:call)
-        end
-      end
     end
 
     # Draw the route table at boot so the first request is never served against a half-built set

@@ -39,7 +39,8 @@ module CamaleonCms
         return plugin_model if plugin_model.active?
 
         plugin_model.active
-        PluginRoutes.reload
+        # The routes are drawn before the hooks below, or they already have the routes of the plugin.
+        PluginRoutes.request_reload
         # plugins_initialize(self)
         hook_run(plugin_model.settings, 'on_active', plugin_model)
         hooks_run('plugin_after_install', { plugin: plugin_model })
