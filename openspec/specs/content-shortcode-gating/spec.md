@@ -2,7 +2,9 @@
 
 ## Purpose
 Authoring shortcodes in content that the CMS later expands is a privileged capability: a shortcode makes theme/plugin code emit arbitrary HTML/JS at render, which the save-time content scan cannot judge. This capability gates it behind a default-off `content_shortcodes` permission across every authored surface that `do_shortcode` expands (post content, custom-field values, taxonomy content, widget descriptions), closing the shortcode end-run around `post_content_unfiltered_html`.
+
 ## Requirements
+
 ### Requirement: Publishing content with shortcodes requires the content_shortcodes permission
 
 Saving authored content that will be expanded by `do_shortcode` — post content, custom-field values, taxonomy content, or widget descriptions — and that contains one or more registered shortcodes SHALL be permitted for a non-administrator role only when that role holds the `content_shortcodes` permission. When the acting user is neither an administrator nor a holder of the permission, the save SHALL be rejected with a validation error that names the reason, and the content SHALL NOT be persisted. Content that contains no registered shortcode SHALL be unaffected by this gate.
@@ -80,3 +82,19 @@ Because authorship is gated rather than filtered, the CMS SHALL NOT escape, sani
 - **WHEN** the save/update and render paths are audited for escaping or sanitizing applied specifically to shortcodes
 - **THEN** none SHALL remain, except any instance explicitly recorded as guarding a threat the authorization gate does not cover
 
+### Requirement: An unchanged custom field value is not checked again
+
+The gate SHALL NOT check a custom field value that `set_field_values` creates again with the same
+slug and value as a stored row. The admin form of a post sends each stored value again on each
+save. A value that changes SHALL be checked as before.
+
+#### Scenario: A title change keeps the shortcode of an administrator
+
+- **WHEN** a custom field of a post holds a shortcode that an administrator saved
+- **AND** an editor without `content_shortcodes` changes only the title of the post
+- **THEN** the save SHALL succeed, and the field SHALL keep the shortcode
+
+#### Scenario: A changed shortcode value is still refused
+
+- **WHEN** the same editor adds a shortcode to that field value
+- **THEN** the save SHALL be refused, and nothing SHALL be stored
