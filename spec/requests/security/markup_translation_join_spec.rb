@@ -30,6 +30,20 @@ RSpec.describe 'Security: a tag that a translation joins', type: :request do
     expect(stored_post.get_meta('summary')).to be_blank
   end
 
+  it 'refuses a custom field value whose translation shows an event handler' do
+    group = CamaleonCms::CustomFieldGroup.create!(name: 'Extra', slug: 'extra', object_class: 'PostType_Post',
+                                                  objectid: post_type.id, site: current_site.model)
+    field = group.add_manual_field({ name: 'Body', slug: 'extra_body' }, { field_key: 'editor' })
+
+    patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}", params: {
+      post: { title: 'Changed title', content: 'body', status: 'published' },
+      field_options: { '0' => { 'extra_body' => { 'id' => field.id.to_s, 'values' => { '0' => joined } } } }
+    }
+
+    expect(flash[:error]).to include('not allowed')
+    expect(stored_post.get_field_value('extra_body')).to be_blank
+  end
+
   it 'stores translated content with allowed markup unchanged' do
     translated = { en: "<p>Intro</p>\n<b>bold</b>", es: '<p>Hola</p>' }.to_translate
 
