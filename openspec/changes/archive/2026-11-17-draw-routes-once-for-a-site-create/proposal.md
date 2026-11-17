@@ -16,7 +16,7 @@ site already has is in the route set already.
 ## What Changes
 
 - New `PluginRoutes.reload_once`. It runs a block. At the end of the block, it draws the routes one
-  time when code in the block left a draw to it.
+  time when code in the block left a draw to it and the block drew no routes after that.
 - New `PluginRoutes.request_reload`. Outside such a block, it reloads the routes at once, as
   `PluginRoutes.reload` does. In the block, it clears the caches of `PluginRoutes` at once. It leaves
   the draw to the end of the block only when the draw adds no route.

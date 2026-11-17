@@ -5,8 +5,8 @@
 `PluginRoutes.reload_once` SHALL run its block. In the block, `PluginRoutes.request_reload` SHALL
 clear the caches of `PluginRoutes` at once. It SHALL leave the draw to the end of the block only when
 the draw adds no route to the routes of the last reload. At the end of the block,
-`PluginRoutes.reload_once` SHALL draw the routes one time when a call left a draw to it. It SHALL
-draw them also when the block raises an error.
+`PluginRoutes.reload_once` SHALL draw the routes one time when a call left a draw to it and the block
+drew no routes after that call. It SHALL draw them also when the block raises an error.
 
 A draw adds a route when the last reload did not have one of these:
 

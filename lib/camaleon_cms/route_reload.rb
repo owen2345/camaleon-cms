@@ -29,8 +29,8 @@ module CamaleonCms
     end
 
     # Runs the block. At its end, it draws the routes one time when a request_reload call in the
-    # block left a draw to it, also when the block raises an error. A block in a block leaves the
-    # draw to the outer block.
+    # block left a draw to it and the block drew no routes after that call. It draws them also when
+    # the block raises an error. A block in a block leaves the draw to the outer block.
     def reload_once
       return yield if Thread.current[BLOCK_KEY]
 

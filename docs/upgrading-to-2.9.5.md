@@ -306,7 +306,8 @@ end
 ```
 
 `PluginRoutes.reload_once` runs the block. In the block, `PluginRoutes.request_reload` leaves the
-draw to the end of the block when the draw adds no route. The block then draws the routes one time.
+draw to the end of the block when the draw adds no route. The block then draws the routes one time,
+unless it drew them after that call.
 `plugin_install`, `site_install_theme` and the save or the delete of a post type or a site call
 `PluginRoutes.request_reload`.
 
