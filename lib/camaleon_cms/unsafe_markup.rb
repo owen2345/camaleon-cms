@@ -17,7 +17,8 @@ module CamaleonCms
   # never a spelling difference (`Tom & Jerry`, `<br/>`, quote style, tag case). Three structural
   # guards cover what that comparison cannot see: markup the parser drops instead of scrubbing,
   # a tag left open at the end of the value, and a translation marker sitting inside a tag (the
-  # renderer deletes markers, so one inside a tag splices markup the gate never saw).
+  # renderer deletes markers, so one inside a tag splices markup the gate never saw). The scan also
+  # reads each translation of the value, which is the text that the page shows.
   module UnsafeMarkup
     # Every gated value costs a parse, and both the number of values and their size are chosen by
     # the caller — bound the size so a pathological multi-megabyte value cannot drive a giant Loofah
@@ -71,10 +72,39 @@ module CamaleonCms
     class << self
       # True when `value` contains markup outside the given allowlist (or one of the structural
       # shapes above). Callers reject the save when this is true for an untrusted author.
+      #
+      # The page shows String#translate of the value. translate removes the first marker of the
+      # locale on each line, anywhere in the line. So a `<` right before such a marker forms a tag
+      # with the text after the marker. The scan reads the stored text and each translation.
       def unsafe_html?(value, tags:, attributes:)
         string = scannable_string(value)
         return false unless string.match?(SANITIZER_SIGNIFICANT)
         return true if string.bytesize > MAX_GATED_VALUE_BYTES
+
+        texts = [string]
+        # A value with no marker has no translation, so the copy and the split are not necessary.
+        texts.concat(String.new(string).translations.values) if string.include?('<!--:')
+        texts.uniq.any? { |text| unsafe_text?(text, tags, attributes) }
+      end
+
+      # True when the value exceeds the parse-cost ceiling. Callers refuse it with a size-specific
+      # message rather than the markup message — an over-size value may be perfectly clean.
+      def too_large?(value)
+        value.to_s.bytesize > MAX_GATED_VALUE_BYTES
+      end
+
+      # True when `value` carries a script-capable URI scheme (javascript:, vbscript:, or a
+      # non-raster data: URI), tolerant of the gap characters and entity encodings a browser
+      # strips. For values a renderer emits into a URL position (href/src).
+      def dangerous_uri?(value)
+        CamaleonCms::ContentSecurity.blocked_scheme?(value.to_s)
+      end
+
+      private
+
+      # The checks of unsafe_html? for one text: the stored value or one translation of it.
+      def unsafe_text?(string, tags, attributes)
+        return false unless string.match?(SANITIZER_SIGNIFICANT)
         return true if disallowed_comment?(string)
         return true if marker_inside_tag?(string)
         return true if unterminated_tag?(string)
@@ -99,21 +129,6 @@ module CamaleonCms
         # share the same parser and serializer and only a genuine removal differs.
         fragment.scrub!(scrubber_for(tags, attributes)).to_s != baseline
       end
-
-      # True when the value exceeds the parse-cost ceiling. Callers refuse it with a size-specific
-      # message rather than the markup message — an over-size value may be perfectly clean.
-      def too_large?(value)
-        value.to_s.bytesize > MAX_GATED_VALUE_BYTES
-      end
-
-      # True when `value` carries a script-capable URI scheme (javascript:, vbscript:, or a
-      # non-raster data: URI), tolerant of the gap characters and entity encodings a browser
-      # strips. For values a renderer emits into a URL position (href/src).
-      def dangerous_uri?(value)
-        CamaleonCms::ContentSecurity.blocked_scheme?(value.to_s)
-      end
-
-      private
 
       # Prefer the HTML5 parser (browser-parity) only when it is actually available: the method
       # arrived in loofah 2.21, so guard on the method itself, not on `Nokogiri::HTML5` (present
