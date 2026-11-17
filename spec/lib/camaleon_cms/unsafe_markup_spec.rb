@@ -59,6 +59,22 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
+  # String#translate removes the first marker of the locale on each line, anywhere in the line. A
+  # marker right after `<` is not inside a tag, but the translation joins the `<` and the text after
+  # the marker into a tag. So the scan also reads each translation.
+  describe '.unsafe_html? with a tag that a translation joins' do
+    it 'refuses a value whose translation shows a script or an event handler' do
+      ["<!--:en-->x\n<<!--:en-->img src=x onerror=alert(1)><!--:-->",
+       "<!--:-->x\n<<!--:en-->script>alert(1)</script>\n<!--:en-->"].each do |value|
+        expect(unsafe?(value)).to be(true), value.inspect
+      end
+    end
+
+    it 'passes a translated value with allowed markup in each translation' do
+      expect(unsafe?({ en: "<p>Intro</p>\n<b>bold</b>", es: '<p>Hola</p>' }.to_translate)).to be false
+    end
+  end
+
   describe '.too_large? (M16)' do
     it 'is true above the ceiling and false below it' do
       expect(described_class.too_large?('a' * (described_class::MAX_GATED_VALUE_BYTES + 1))).to be true

@@ -86,7 +86,9 @@ The pieces that implement the rule:
   `CustomFieldsRelationship.gate_rejection_reason` decodes every member of a `field_attrs` value's
   JSON (any shape — object, array, nested) before scanning, because the JSON encoder hides `<` behind
   unicode escapes, and the same class-level dispatch backs the `scan_content` audit task so the two
-  cannot drift.
+  cannot drift. The scan reads the stored text and each translation of it, because `String#translate`
+  removes the first marker of the locale on each line. So a translation can join a `<` and the text
+  after a marker into a tag.
 - **Gates sit on models** (`Post#reject_untrusted_dangerous_content`,
   `CustomFieldsRelationship#reject_untrusted_dangerous_value`), so no controller path can skip
   them; the admin post save wraps the parent and its field values in one transaction, so a refused
