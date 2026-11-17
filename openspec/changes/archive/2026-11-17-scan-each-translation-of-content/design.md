@@ -32,7 +32,7 @@ The maintainer chose D1, in a PR of its own, on 2026-11-17.
 
 ## Risks / Trade-offs
 
-- [A translated value costs one parse for each translation.] → Only a value that starts with a
+- [A translated value costs one parse for each different translation.] → Only a value that starts with a
   marker has a translation, and a translation is a part of the stored text.
 - [A translation can fail a check that the stored text passes, with no join.] → A translation is the
   stored text without its markers. The admin form writes whole translations, and the specs show
