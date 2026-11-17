@@ -61,7 +61,8 @@ the lists that `PluginRoutes` caches, for example the enabled plugins of the sit
 comparison of D2 fills the caches again from the database.
 
 **D4. Before the first reload of the process, `request_reload` draws at once.** The draw at boot
-does not go through `PluginRoutes.reload`, so the record of D2 is empty until the first reload.
+does not go through `PluginRoutes.reload`, so the record of D2 is empty until the first reload. A
+draw that raises an error empties the record too, because the route set is then not whole.
 
 **D5. The state of the block is local to the thread.** One `Thread.current` key holds the flag for
 the draw. A request on another thread reloads at once. A block in a block uses the state of the outer

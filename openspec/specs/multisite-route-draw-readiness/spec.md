@@ -120,7 +120,8 @@ A draw adds a route when the last reload did not have one of these:
 - the route files of a plugin or a theme that a site has enabled
 - a language of a site
 
-A call before the first reload of the process SHALL draw at once.
+A call before the first reload of the process SHALL draw at once. A call after a draw that raised an
+error SHALL draw at once too.
 
 Outside such a block, `PluginRoutes.request_reload` SHALL reload the routes at once.
 `PluginRoutes.reload` SHALL draw the routes at once, in the block too. A block in another block SHALL
@@ -162,6 +163,12 @@ leave the draw to the outer block. A block SHALL NOT change a reload on another 
 
 - **WHEN** no code in a `PluginRoutes.reload_once` block calls `PluginRoutes.request_reload`
 - **THEN** the routes are not drawn
+
+#### Scenario: A call after a draw that raised an error
+
+- **WHEN** a draw of the routes raised an error, and code in a block then calls
+  `PluginRoutes.request_reload`
+- **THEN** the routes are drawn at once
 
 #### Scenario: A call outside a block
 

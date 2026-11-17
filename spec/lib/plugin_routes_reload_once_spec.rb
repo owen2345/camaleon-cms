@@ -193,5 +193,16 @@ RSpec.describe PluginRoutes do
         expect(draws.size).to eq(1)
       end
     end
+
+    it 'draws the routes at once after a draw that raised an error' do
+      allow(Rails.application).to receive(:reload_routes!).and_raise(ArgumentError, 'probe')
+      expect { described_class.reload }.to raise_error(ArgumentError, 'probe')
+      allow(Rails.application).to receive(:reload_routes!) { draws << :draw }
+
+      described_class.reload_once do
+        described_class.request_reload
+        expect(draws.size).to eq(1)
+      end
+    end
   end
 end

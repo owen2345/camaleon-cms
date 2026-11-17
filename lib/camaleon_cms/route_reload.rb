@@ -17,6 +17,8 @@ module CamaleonCms
       CamaleonCms::RouteReloadLock.exclusive do
         reload_monitor.synchronize do
           clear_caches
+          # A draw that raises an error leaves no record, so the next call in a block draws at once.
+          @drawn_route_inputs = nil
           Rails.application.reload_routes!
           @drawn_route_inputs = route_inputs
           after_reload_callbacks.uniq.each(&:call)
