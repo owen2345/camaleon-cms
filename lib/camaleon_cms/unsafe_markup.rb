@@ -81,7 +81,10 @@ module CamaleonCms
         return false unless string.match?(SANITIZER_SIGNIFICANT)
         return true if string.bytesize > MAX_GATED_VALUE_BYTES
 
-        [string, *String.new(string).translations.values].any? { |text| unsafe_text?(text, tags, attributes) }
+        texts = [string]
+        # A value with no marker has no translation, so the copy and the split are not necessary.
+        texts.concat(String.new(string).translations.values) if string.include?('<!--:')
+        texts.uniq.any? { |text| unsafe_text?(text, tags, attributes) }
       end
 
       # True when the value exceeds the parse-cost ceiling. Callers refuse it with a size-specific
