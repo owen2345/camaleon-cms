@@ -11,6 +11,11 @@ RSpec.describe 'Admin::Settings::SitesController', type: :request do
     site.post_types.pluck(:id).map { |id| :"cama_post_type_#{id}_path" }
   end
 
+  # The helpers of the list that the routes have.
+  def helpers_in_routes(helpers)
+    helpers.select { |helper| url_helpers.method_defined?(helper) }
+  end
+
   # Each example counts the draws of its request. The reload makes the routes of the example the
   # routes of the last reload.
   def count_draws_from_here
@@ -36,8 +41,9 @@ RSpec.describe 'Admin::Settings::SitesController', type: :request do
 
       expect(response).to redirect_to('/admin/settings/sites')
       expect(draws.size).to eq(3)
-      new_site = CamaleonCms::Site.find_by!(slug: 'second.example.test')
-      expect(post_type_helpers(new_site)).to all(satisfy { |helper| url_helpers.method_defined?(helper) })
+      helpers = post_type_helpers(CamaleonCms::Site.find_by!(slug: 'second.example.test'))
+      expect(helpers).to be_present
+      expect(helpers_in_routes(helpers)).to eq(helpers)
     end
 
     it 'does not draw the routes for a site that is not valid' do
@@ -53,12 +59,14 @@ RSpec.describe 'Admin::Settings::SitesController', type: :request do
       other_site = create(:site, slug: 'other.example.test', name: 'Other site')
       helpers = post_type_helpers(other_site)
       count_draws_from_here
+      expect(helpers).to be_present
+      expect(helpers_in_routes(helpers)).to eq(helpers)
 
       delete "/admin/settings/sites/#{other_site.id}"
 
       expect(response).to redirect_to('/admin/settings/sites')
       expect(draws.size).to eq(1)
-      expect(helpers).to all(satisfy { |helper| !url_helpers.method_defined?(helper) })
+      expect(helpers_in_routes(helpers)).to be_empty
     end
   end
 end
