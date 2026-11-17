@@ -248,6 +248,23 @@ RSpec.describe PluginRoutes do
       expect(draws.size).to eq(1)
     end
 
+    it 'leaves no route of a post type of the site after a delete outside a block' do
+      allow(Rails.application).to receive(:reload_routes!).and_wrap_original do |draw|
+        draws << :draw
+        draw.call
+      end
+      helpers = other_site.post_types.pluck(:id).map { |id| :"cama_post_type_#{id}_path" }
+      url_helpers = Rails.application.routes.url_helpers
+      count_draws_from_here
+      expect(helpers).to be_present
+      expect(helpers.select { |helper| url_helpers.method_defined?(helper) }).to eq(helpers)
+
+      other_site.destroy
+
+      expect(draws.size).to eq(1)
+      expect(helpers.select { |helper| url_helpers.method_defined?(helper) }).to be_empty
+    end
+
     it 'draws the routes one time in a block when no site has the default theme' do
       [@site, other_site].each { |site| site.set_option('_theme', 'camaleon_first') }
       count_draws_from_here
