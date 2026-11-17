@@ -150,6 +150,7 @@ RSpec.describe 'Content shortcode gating', type: :model do
         row = recreate_note(shortcode_content)
 
         expect(row.update(value: "#{shortcode_content} [widget other]")).to be(false)
+        expect(row.errors[:base].join).to match(/shortcode/i)
         expect(post.reload.get_field_value('note')).to eq(shortcode_content)
       end
 
@@ -159,6 +160,7 @@ RSpec.describe 'Content shortcode gating', type: :model do
         copy.objectid = other_post.id
 
         expect(copy.save).to be(false)
+        expect(copy.errors[:base].join).to match(/shortcode/i)
         expect(other_post.reload.get_field_value('note')).to be_blank
       end
     end
