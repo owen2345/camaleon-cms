@@ -310,9 +310,9 @@ end
 `PluginRoutes.reload_once` runs the block. In the block, `PluginRoutes.request_reload` leaves the
 draw to the end of the block when the draw adds no route. The block then draws the routes one time,
 unless it drew them after that call.
-`plugin_install`, `site_install_theme` and the save or the delete of a post type or a site call
-`PluginRoutes.request_reload`. A post type that its site destroys does not call it: the site calls it
-after its own delete.
+`site_install_theme` and the activation of a plugin with `plugin_install` call
+`PluginRoutes.request_reload`. The create, the delete and a new slug of a post type or a site call it
+too. A post type that its site destroys does not call it: the site calls it after its own delete.
 
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
 

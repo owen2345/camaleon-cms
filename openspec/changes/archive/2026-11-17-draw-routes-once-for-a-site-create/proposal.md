@@ -21,9 +21,9 @@ site already has is in the route set already.
   `PluginRoutes.reload` does. In the block, it clears the caches of `PluginRoutes` at once. It leaves
   the draw to the end of the block only when the draw adds no route.
 - `PluginRoutes.reload` does not change. It draws the routes at once, also in the block.
-- The save and the delete of a post type or a site, `plugin_install` and `site_install_theme` call
-  `PluginRoutes.request_reload`. A post type that its site destroys does not call it: the site calls
-  it after its own delete.
+- The create, the delete and a new slug of a post type or a site call `PluginRoutes.request_reload`.
+  `site_install_theme` and the activation of a plugin with `plugin_install` call it too. A post type
+  that its site destroys does not call it: the site calls it after its own delete.
 - The create and the delete of a site in the admin panel run in `PluginRoutes.reload_once`, and
   `site_after_install` does too. A site create then draws the routes 3 times, when another site
   already has the default plugins and the theme. A site delete draws them one time, in a block or
