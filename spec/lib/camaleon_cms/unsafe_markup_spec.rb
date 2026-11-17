@@ -72,4 +72,64 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
       expect(unsafe?(long_clean)).to be false
     end
   end
+
+  # Each translated block adds top-level nodes to the parse. A CSS search of a fragment runs once
+  # for each top-level node and merges the results, so its cost grows with the square of that
+  # number. The gate must read each element once, and must still see the last block.
+  describe '.unsafe_html? with many translated blocks' do
+    def blocks(last)
+      ('aa'..'zz').first(600).map { |key| "<!--:#{key}--><b>x</b><!--:-->" }.join + "<!--:en-->#{last}<!--:-->"
+    end
+
+    before do
+      allow_any_instance_of(Nokogiri::XML::DocumentFragment).to receive(:css)
+        .and_raise('a fragment-wide css search costs the square of the top-level node count')
+    end
+
+    it 'accepts clean blocks without a fragment-wide search' do
+      expect(unsafe?(blocks('<p>y</p>'))).to be false
+    end
+
+    it 'accepts a benign style in the last block' do
+      expect(unsafe?(blocks('<p style="text-align: center">y</p>'))).to be false
+    end
+
+    it 'refuses a disallowed tag in the last block' do
+      expect(unsafe?(blocks('<p>y</p><svg><circle r="1"/></svg>'))).to be true
+    end
+
+    it 'refuses dangerous css in the last block' do
+      expect(unsafe?(blocks('<p style="background: url(javascript:alert(1))">y</p>'))).to be true
+    end
+
+    it 'refuses markup in an attribute of the last block' do
+      expect(unsafe?(blocks('<span title="&lt;img src=x onerror=alert(1)&gt;">y</span>'))).to be true
+    end
+  end
+
+  # The HTML5 parser raises ArgumentError past its limits: 400 nested elements, or 400 attributes on
+  # one element. The gate cannot scan such a value, so it must refuse it and not raise.
+  describe '.unsafe_html? past the limits of the parser' do
+    it 'accepts 399 nested elements' do
+      expect(unsafe?("#{'<div>' * 399}x#{'</div>' * 399}")).to be false
+    end
+
+    it 'refuses 401 nested elements' do
+      expect(unsafe?("#{'<div>' * 401}x#{'</div>' * 401}")).to be true
+    end
+
+    it 'refuses an element with 401 attributes' do
+      attrs = (1..401).map { |i| "data-a#{i}=\"x\"" }.join(' ')
+
+      expect(unsafe?("<p #{attrs}>y</p>")).to be true
+    end
+  end
+
+  # cama_contact_form reads TRANSLATION_MARKER. The anchored form is internal to the gate.
+  describe 'constants' do
+    it 'keeps TRANSLATION_MARKER public and TRANSLATION_MARKER_ONLY private' do
+      expect(described_class::TRANSLATION_MARKER).to be_a(Regexp)
+      expect { described_class::TRANSLATION_MARKER_ONLY }.to raise_error(NameError, /private constant/)
+    end
+  end
 end

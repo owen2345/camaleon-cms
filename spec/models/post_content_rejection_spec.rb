@@ -138,6 +138,13 @@ RSpec.describe CamaleonCms::Post, type: :model do
         expect(post.errors[:content].join).not_to include('scripts')
       end
 
+      it 'refuses content nested deeper than the parser reads, and does not raise' do
+        post = build_post("#{'<div>' * 401}x#{'</div>' * 401}", owner: contributor)
+
+        expect(post).not_to be_valid
+        expect(post.errors[:content].join).to include('not allowed for your role')
+      end
+
       it 'stores a long clean post that exceeds the old 64 KiB cap' do
         content = "<p>#{'word ' * 20_000}</p>"
         post = build_post(content, owner: contributor)

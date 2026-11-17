@@ -11,9 +11,9 @@ module CamaleonCms
   # rewritten. Stored content therefore always equals authored content, and the frontend may render
   # it verbatim, which is what the templates do (`raw` post content, `raw` editor field values).
   #
-  # The detector mirrors the gate cama_contact_form's admin controller applies to its authored
-  # markup positions (keep the two in parity): parse once, compare what the safe-list scrubber
-  # would remove against the parse's own reserialization, so only a genuine removal registers —
+  # The admin controller of cama_contact_form calls this detector for its authored markup positions
+  # too. The detector parses once and compares what the safe-list scrubber would remove against the
+  # parse's own reserialization, so only a genuine removal registers —
   # never a spelling difference (`Tom & Jerry`, `<br/>`, quote style, tag case). Three structural
   # guards cover what that comparison cannot see: markup the parser drops instead of scrubbing,
   # a tag left open at the end of the value, and a translation marker sitting inside a tag (the
@@ -36,6 +36,8 @@ module CamaleonCms
     # the sanitizer strips comments, so a stray comment would register as a removal anyway, but an
     # unterminated one additionally swallows everything to the next `-->` when emitted.
     TRANSLATION_MARKER = /<!--:[\w|-]{0,5}-->/
+    TRANSLATION_MARKER_ONLY = /\A#{TRANSLATION_MARKER}\z/
+    private_constant :TRANSLATION_MARKER_ONLY
 
     # `<` only opens a tag when a name, a solidus or a markup declaration follows it — this is what
     # keeps `Age < 18` and `5 > 3` out of the tag scanners below.
@@ -79,15 +81,19 @@ module CamaleonCms
 
         shielded = string.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
         fragment = parse(shielded)
+        return true if fragment.nil?
+
+        # The checks below change only attribute values, so one list of the elements serves all three.
+        nodes = elements(fragment)
         # The css scrubber reformats whitespace while it scrubs, so a benign `text-align: center`
         # would register as a removal in the comparison below. Check style values separately
         # (whitespace-insensitively) and normalize them on the tree first, so the comparison sees
         # identical css on both sides and only element/attribute removals register.
-        return true if dangerous_or_normalized_css!(fragment)
-        return true if attribute_holds_markup?(fragment)
+        return true if dangerous_or_normalized_css!(nodes)
+        return true if attribute_holds_markup?(nodes)
 
         baseline = fragment.to_s
-        return true if markup_dropped?(shielded, fragment)
+        return true if markup_dropped?(shielded, nodes)
 
         # One parse, not two: scrub the fragment already built, so both sides of the comparison
         # share the same parser and serializer and only a genuine removal differs.
@@ -112,12 +118,17 @@ module CamaleonCms
       # Prefer the HTML5 parser (browser-parity) only when it is actually available: the method
       # arrived in loofah 2.21, so guard on the method itself, not on `Nokogiri::HTML5` (present
       # since nokogiri 1.11) -- an older loofah with a newer nokogiri would otherwise NoMethodError.
+      # The HTML5 parser raises ArgumentError past its limits: more than 400 nested elements, or
+      # more than 400 attributes on one element. The gate cannot scan such a value, so parse gives
+      # nil and the caller refuses the value.
       def parse(string)
         if Loofah.respond_to?(:html5_fragment) && defined?(Nokogiri::HTML5)
           Loofah.html5_fragment(string)
         else
           Loofah.fragment(string)
         end
+      rescue ArgumentError
+        nil
       end
 
       # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding would
@@ -143,13 +154,32 @@ module CamaleonCms
       # semicolon), and write the scrubbed form back so the later serialization comparison cannot
       # re-register it. A surviving difference means the scrubber refused part of the css
       # (expression(), url(javascript:), a disallowed property) — dangerous, report it.
-      def dangerous_or_normalized_css!(fragment)
-        fragment.css('[style]').any? do |node|
+      def dangerous_or_normalized_css!(nodes)
+        nodes.any? do |node|
+          next false unless node.has_attribute?('style')
+
           original = node['style'].to_s
           scrubbed = Loofah::HTML5::Scrub.scrub_css(original)
           node['style'] = scrubbed
           css_declarations(original) != css_declarations(scrubbed)
         end
+      end
+
+      # Every element of the parse. Do not use `fragment.css`: a fragment runs the query once for
+      # each top-level node and adds each result to the set so far, so its cost grows with the
+      # square of the number of top-level nodes. A value with many translated blocks has many
+      # top-level nodes (20,000 markers took about 27 s). This loop reads each element once and uses
+      # no recursion, so a deep tree cannot exhaust the stack. Only an element contains elements,
+      # so the loop reads no text or comment node.
+      def elements(fragment)
+        found = []
+        pending = fragment.element_children.to_a
+        until pending.empty?
+          node = pending.pop
+          found << node
+          pending.concat(node.element_children.to_a)
+        end
+        found
       end
 
       def css_declarations(css)
@@ -169,11 +199,11 @@ module CamaleonCms
       # Every tag the author wrote has to appear in the parse. Compared by name rather than by
       # count, because the parser *inserts* elements too — an implied `<tbody>` would otherwise
       # cancel out a dropped `<td>` and let the pair through.
-      def markup_dropped?(shielded, fragment)
+      def markup_dropped?(shielded, nodes)
         written = shielded.scan(START_TAG_NAME).flatten.map(&:downcase).tally
         return false if written.empty?
 
-        parsed = fragment.css('*').map { |node| node.name.downcase }.tally
+        parsed = nodes.map { |node| node.name.downcase }.tally
         written.any? { |name, count| parsed.fetch(name, 0) < count }
       end
 
@@ -184,8 +214,8 @@ module CamaleonCms
       # stored bytes, so `markup_dropped?` never sees it; but the parser has already entity-decoded
       # the value on the node, so a tag-open here is real markup the renderer would emit. Reject it
       # (never rewrite). A legitimate `<` in an attribute value (rare) must be entity-escaped by hand.
-      def attribute_holds_markup?(fragment)
-        fragment.css('*').any? do |node|
+      def attribute_holds_markup?(nodes)
+        nodes.any? do |node|
           node.attribute_nodes.any? { |attr| attr.value.to_s.match?(TAG_OPEN) }
         end
       end
@@ -198,7 +228,7 @@ module CamaleonCms
 
         tags = +''
         string.scan(/#{TRANSLATION_MARKER}|#{TAG_SPAN}/) do |match|
-          tags << match unless match.match?(/\A#{TRANSLATION_MARKER}\z/)
+          tags << match unless match.match?(TRANSLATION_MARKER_ONLY)
         end
         tags.match?(TRANSLATION_MARKER)
       end

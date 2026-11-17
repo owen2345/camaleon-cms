@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Performance fix:** The markup scan of a saved value with many translated blocks is now fast. Before, a value with 20,000 translation markers took about 27 s to scan. The scan now refuses a value that its parser cannot read, such as one nested deeper than 400 elements. Before, its save gave a server error. [#1350](https://github.com/owen2345/camaleon-cms/pull/1350).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#content-past-the-limits-of-the-markup-parser-is-refused).
+
 - **Performance fix:** The create of a site in the admin panel now draws the routes 3 times, not 8 times. The delete of a site draws them one time, not 3 times. With the new `PluginRoutes.reload_once` and `PluginRoutes.request_reload`, plugin code can draw the routes one time for the changes of a block. [#1349](https://github.com/owen2345/camaleon-cms/pull/1349).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-site-create-draws-the-routes-less-often).
 
