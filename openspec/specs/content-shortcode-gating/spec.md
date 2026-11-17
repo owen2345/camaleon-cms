@@ -9,6 +9,8 @@ Authoring shortcodes in content that the CMS later expands is a privileged capab
 
 Saving authored content that will be expanded by `do_shortcode` — post content, custom-field values, taxonomy content, or widget descriptions — and that contains one or more registered shortcodes SHALL be permitted for a non-administrator role only when that role holds the `content_shortcodes` permission. When the acting user is neither an administrator nor a holder of the permission, the save SHALL be rejected with a validation error that names the reason, and the content SHALL NOT be persisted. Content that contains no registered shortcode SHALL be unaffected by this gate.
 
+The requirement "An unchanged custom field value is not checked again" gives an exception for a custom field value.
+
 #### Scenario: A non-administrator without the permission is refused
 
 - **WHEN** a non-administrator role that does not hold `content_shortcodes` saves post content containing a registered shortcode
