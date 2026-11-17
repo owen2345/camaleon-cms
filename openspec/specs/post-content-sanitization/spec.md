@@ -217,7 +217,7 @@ A post save or draft save whose `meta[summary]` the content scan would refuse (t
 The markup gate (`CamaleonCms::UnsafeMarkup.unsafe_html?`) SHALL get the elements of its parse from
 one walk of the tree, with no recursion. It SHALL NOT search the parsed fragment with `css`. Such a
 search runs once for each top-level node, and its cost grows with the square of their number. The
-gate SHALL see the elements of the last translated block of a value.
+gate SHALL see every element of a value, the elements of its last translated block too.
 
 #### Scenario: A value with many translated blocks
 
