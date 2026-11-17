@@ -33,7 +33,11 @@ The maintainer chose D1, in a PR of its own, on 2026-11-17.
 ## Risks / Trade-offs
 
 - [A translated value costs one parse for each different translation.] → Only a value that starts with a
-  marker has a translation, and a translation is a part of the stored text.
+  marker has a translation, and a translation is a part of the stored text. A value with a few
+  languages costs about two parses. The worst case is many different locale keys. A 1.94 MB value with
+  60,000 keys took 34 s, and its stored text alone took 12 s. Only a signed-in role can save such a
+  value, and the maintainer accepted this cost on 2026-11-17. A limit on the number of translations
+  would add a refusal for all callers.
 - [A translation can fail a check that the stored text passes, with no join.] → A translation is the
   stored text without its markers. The admin form writes whole translations, and the specs show
   that they pass.
