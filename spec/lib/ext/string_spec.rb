@@ -42,6 +42,15 @@ RSpec.describe String do
       expect(result.encoding).to eq(Encoding::UTF_8)
     end
 
+    # The byte match reads two keys with the same bytes in two encodings as one code.
+    it 'takes the first value of a code of a text with invalid bytes' do
+      text = (+"Caf\xE9 [é]").force_encoding(Encoding::UTF_8)
+
+      result = text.cama_replace_codes('é' => 'first', 'é'.b => 'second')
+
+      expect(result.b).to eq("Caf\xE9 first".b)
+    end
+
     it 'returns the text as it is for an unknown format' do
       expect('[c1]'.cama_replace_codes({ c1: 'x' }, '<')).to eq('[c1]')
     end

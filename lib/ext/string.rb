@@ -81,8 +81,8 @@ class String
   # One pass replaces all codes, so a value is not searched for a later code. The block form shows a
   # backslash sequence of a value as written.
   # A Regexp raises an error on a text with invalid bytes, so the method matches such a text by its
-  # bytes, as the String pattern of the loop before did. It never matches a valid text by its bytes:
-  # in an encoding such as Shift_JIS, a byte of a character can equal `[`.
+  # bytes. In UTF-8, the String pattern of the loop before found the same places. It never matches a
+  # valid text by its bytes: in an encoding such as Shift_JIS, a byte of a character can equal `[`.
   def cama_replace_codes(values, format_code = '[')
     opening, closing = { '[' => ['[', ']'], '{' => ['{', '}'], '%{' => ['%{', '}'] }[format_code]
     return self unless opening
@@ -96,7 +96,8 @@ class String
     return self if replacements.empty?
     return gsub(Regexp.union(replacements.keys)) { |code| replacements[code] } if valid_encoding?
 
-    codes = replacements.to_h { |code, value| [code.b, value.b] }
+    # Two keys with the same bytes in two encodings are one code here, and its first value counts.
+    codes = replacements.each_with_object({}) { |(code, value), found| found[code.b] ||= value.b }
     b.gsub(Regexp.union(codes.keys)) { |code| codes[code] }.force_encoding(encoding)
   end
 
