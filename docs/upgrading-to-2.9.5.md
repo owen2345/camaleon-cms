@@ -50,6 +50,7 @@ what theme/plugin developers should know.
 | Has a top-level model, other than the configured user class, with the short name of a Camaleon model, such as `Post`, `Category`, `Site`, `User` or `Main` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value whose `owner` is a record of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
+| Has a plugin or theme shortcode whose output holds a backslash, or the text of another shortcode | The output now shows as written, and the other shortcode in it stays as text ([details](#a-shortcode-output-shows-as-written)) |
 
 ---
 
@@ -976,6 +977,29 @@ end
 The method tries the top-level class first, so a name with a top-level class, such as `User`,
 gives the host record. A name with no top-level class, such as `Main`, resolves through the
 Camaleon lookup.
+
+### A shortcode output shows as written
+
+`do_shortcode` and `render_shortcode` now replace each shortcode at its place, from left to right.
+Before, they gave each output to `String#sub` as the replacement text, and `sub` read a backslash
+sequence in it. `\\` showed one backslash, `\'` the text after the shortcode and `\0` the shortcode
+itself. A group name, as in `\k<x>`, raised an `IndexError`. Now each output shows as written.
+
+The search for the next shortcode now starts after the last output. Before, the text of a later
+shortcode in an earlier output was replaced there, and the later shortcode stayed as text. So two
+custom field values could join into one tag through the `data` shortcode. A closing tag, such as
+`[/title]`, before its shortcode or in an earlier output is now text. Before, it raised
+`NoMethodError`, and the page gave a server error.
+
+These do not change:
+
+- An enclosing shortcode gets its inner text as written in `args[:shortcode_content]`. The
+  shortcodes of that text are then replaced in its output.
+- A callback that returns a Hash shows the value of the shortcode text in it, or nothing. The
+  `grid_editor` shortcode of `camaleon_editor` returns such a Hash.
+- A callback that returns something other than a String or a Hash raises a `TypeError`.
+
+**Action:** a shortcode that writes two backslashes to show one must now write one.
 
 ---
 

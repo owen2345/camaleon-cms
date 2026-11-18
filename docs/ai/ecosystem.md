@@ -360,6 +360,15 @@ Changes that look free from inside this repository and are not:
   raises no refusal. The settings forms of `camaleon_cms_rating`, `camaleon_image_optimizer`,
   `camaleon_sitemap_customizer`, `camaleon-download`, `camaleon-spree` and `camaleon-post-clone`
   pass custom-field values through a submitted form.
+- **Replacing each shortcode at its place** (#1345) changes no surveyed consumer. `do_shortcode` shows
+  each output as written, and it does not search an output for a later shortcode.
+  - `cama_contact_form`, `camaleon_editor`, `camaleon-download`, `cama_image_lightbox` and three
+    themes of `camaleon_website` register shortcodes. No callback or shortcode template of them
+    writes a backslash sequence or the text of another shortcode in its own code.
+  - None reads `args[:shortcode_content]` or calls the private `_cama_replace_shortcode`, which is
+    gone.
+  - The `grid_editor` callback of `camaleon_editor` returns the Hash of `append_asset_libraries`. Its
+    marker still shows nothing, because a Hash output goes in as `String#sub` put it.
 - **`update_field_value` stores a value in the form that `set_field_value` gives one value**
   changes no surveyed consumer. A Hash, an Array or `ActionController::Parameters` is stored as
   one JSON value, and `true` or `false` as `"true"` or `"false"`. Before, a Hash or an Array was

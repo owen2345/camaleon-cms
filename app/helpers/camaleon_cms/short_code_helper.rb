@@ -108,10 +108,7 @@ module CamaleonCms
     # return rendered string
     def do_shortcode(content, args = {})
       args = { owner: args } unless args.is_a?(Hash)
-      content.scan(/#{cama_reg_shortcode}/) do |item|
-        content = _cama_replace_shortcode(content, item, args)
-      end
-      content
+      _cama_replace_shortcodes(content, /#{cama_reg_shortcode}/, args)
     end
 
     # remove all shortcodes from text
@@ -132,10 +129,7 @@ module CamaleonCms
     #   lambda { |attrs, args| puts attrs; return "my test"; }
     # )
     def render_shortcode(text, key, template = nil)
-      text.scan(/#{cama_reg_shortcode(key)}/).each do |item|
-        text = _cama_replace_shortcode(text, item, {}, template)
-      end
-      text
+      _cama_replace_shortcodes(text, /#{cama_reg_shortcode(key)}/, {}, template)
     end
 
     def shortcodes_list
@@ -148,19 +142,69 @@ module CamaleonCms
 
     private
 
-    # helper to replace shortcodes adding support for closed shortcodes, sample: [title]my title[/title]
-    def _cama_replace_shortcode(content, item, args = {}, template = nil)
-      shortcode, code, attrs = item
-      close_code = "[/#{code}]"
-      if content.include?(close_code)
-        shortcode_bk = shortcode
-        tmp_content = content[content.index(shortcode)..]
-        shortcode = tmp_content[0..(tmp_content.index(close_code) + close_code.size - 1)]
-        args[:shortcode_content] = shortcode.sub(shortcode_bk, '').sub(close_code, '')
+    # Replaces each shortcode of the content with its output, also an enclosing shortcode, sample:
+    # [title]my title[/title]. The replacement goes from left to right, and each search starts after the
+    # last output. So an output is never searched for a later shortcode, and a backslash in an output
+    # shows as written. An enclosing shortcode gets its inner text as written. The shortcodes of that text
+    # are then replaced in its output in the same way.
+    def _cama_replace_shortcodes(content, regex, args, template = nil)
+      nodes = _cama_shortcode_nodes(content, regex)
+      return content if nodes.empty?
+
+      _cama_replace_shortcode_nodes(String.new(content), nodes, args, template)
+    end
+
+    # Each shortcode of the content, in order. A shortcode before the closing tag of an enclosing
+    # shortcode is one of its children.
+    def _cama_shortcode_nodes(content, regex)
+      roots = []
+      open = []
+      content.scan(regex) do
+        match = Regexp.last_match
+        open.pop while open.any? && match.begin(0) >= open.last[:close_at]
+        close_at = content.index("[/#{match[2]}]", match.end(0))
+        node = { shortcode: match[1], code: match[2], attrs: match[3], close_at: close_at, children: [] }
+        (open.any? ? open.last[:children] : roots) << node
+        open << node if close_at
       end
-      args[:shortcode] = shortcode
-      args[:code] = code
-      content.sub(shortcode, _eval_shortcode(code, attrs, args, template))
+      roots
+    end
+
+    # The content is a String that this method changes. A SafeBuffer would escape each output.
+    def _cama_replace_shortcode_nodes(content, nodes, args, template)
+      cursor = 0
+      nodes.each do |node|
+        start = content.index(node[:shortcode], cursor)
+        next unless start
+
+        stop = start + node[:shortcode].size
+        close_code = "[/#{node[:code]}]"
+        close_at = content.index(close_code, stop)
+        if close_at
+          args[:shortcode_content] = content[stop...close_at]
+          stop = close_at + close_code.size
+        end
+        matched = content[start...stop]
+        args[:shortcode] = matched
+        args[:code] = node[:code]
+        output = _cama_shortcode_output(_eval_shortcode(node[:code], node[:attrs], args, template), matched)
+        output = _cama_replace_shortcode_nodes(output, node[:children], args, template) if node[:children].any?
+        content[start...stop] = output
+        cursor = start + output.size
+      end
+      content
+    end
+
+    # The output as String#sub took it before: a Hash gives the value of the shortcode text, as the
+    # callback of a plugin that returns the result of append_asset_libraries. An output that is no
+    # String raises a TypeError.
+    def _cama_shortcode_output(output, shortcode)
+      return output[shortcode].to_s if output.is_a?(Hash)
+
+      text = String.try_convert(output)
+      raise TypeError, "no implicit conversion of #{output.class} into String" unless text
+
+      String.new(text)
     end
 
     # create the regexpression for shortcodes

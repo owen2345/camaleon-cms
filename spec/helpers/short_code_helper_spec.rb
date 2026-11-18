@@ -71,6 +71,68 @@ RSpec.describe 'CamaleonCms::ShortCodeHelper' do
     end
   end
 
+  describe 'Shortcode output' do
+    shortcode_tests
+    let(:backslashes) { %q(\0 \& \' \` \\\\ \1 \k<x>) }
+
+    before do
+      text = backslashes
+      helper.shortcode_add('backslashes', ->(_attrs, _args) { text })
+      helper.shortcode_add('mirror', ->(_attrs, _args) { "<i title='[hello_world]'></i>" })
+      helper.shortcode_add('closer', ->(_attrs, _args) { '[/title]' })
+    end
+
+    it 'shows a backslash sequence of an output as written' do
+      expect(helper.do_shortcode('a [backslashes] b')).to eq("a #{backslashes} b")
+    end
+
+    it 'shows a backslash sequence as written when render_shortcode replaces the shortcode' do
+      expect(helper.render_shortcode('a [backslashes] b', 'backslashes')).to eq("a #{backslashes} b")
+    end
+
+    it 'does not replace the text of a later shortcode inside the output of an earlier one' do
+      expect(helper.do_shortcode('[mirror] and [hello_world]'))
+        .to eq("<i title='[hello_world]'></i> and Hello World")
+    end
+
+    it 'does not replace the text of a later shortcode inside an earlier output in an enclosing shortcode' do
+      expect(helper.do_shortcode('[title][mirror][hello_world][/title]'))
+        .to eq("<h1><i title='[hello_world]'></i>Hello World</h1>")
+    end
+
+    it 'reads a closing tag in an earlier output as text' do
+      expect(helper.do_shortcode('[closer] [title]Name')).to eq('[/title] <h1></h1>Name')
+    end
+
+    it 'reads a closing tag before the shortcode as text' do
+      expect(helper.do_shortcode('[/title] [title]Name')).to eq('[/title] <h1></h1>Name')
+    end
+
+    it 'reads a Hash output by the shortcode text, as String#sub did' do
+      helper.shortcode_add('assets', ->(_attrs, _args) { { front_grid_editor: { css: ['basic.css'] } } })
+      helper.shortcode_add('keyed', ->(_attrs, _args) { { '[keyed]' => 'Value' } })
+
+      expect(helper.do_shortcode('a [assets] b [keyed] c')).to eq('a  b Value c')
+    end
+
+    it 'raises a TypeError for an output that is no String, as String#sub did' do
+      helper.shortcode_add('nothing', ->(_attrs, _args) {})
+
+      expect { helper.do_shortcode('a [nothing] b') }.to raise_error(TypeError)
+    end
+
+    it 'gives an enclosing shortcode its inner text as written' do
+      contents = []
+      helper.shortcode_add('collect', lambda { |_attrs, args|
+        contents << args[:shortcode_content]
+        args[:shortcode_content]
+      })
+
+      expect(helper.do_shortcode('[collect][hello name="Owen"][/collect]')).to eq('Hello Owen')
+      expect(contents).to eq(['[hello name="Owen"]'])
+    end
+  end
+
   describe 'CurrentRequest-backed shortcode state' do
     it 'stores shortcode registrations in CurrentRequest' do
       helper.shortcodes_init

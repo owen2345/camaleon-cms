@@ -198,6 +198,31 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(stored_post.get_field_value('note')).to be_blank
   end
 
+  # String#sub reads a backslash sequence in a String replacement: `\'` gives the text after the match.
+  # So the output of the first shortcode took in the second shortcode, and the second value then ended
+  # the title attribute of the first value. Each value passes the scan alone.
+  it 'shows two values as stored, and the second value does not end an attribute of the first' do
+    second = post_type.add_field({ 'name' => 'Second', 'slug' => 'note2' }, { 'field_key' => 'text_box' }, 'Post')
+    place_shortcode(published_post, "<p>[data field='note']</p><p>[data field='note2']</p>")
+    sign_in_as(editor, site: current_site)
+    first_value = %q(<img src="x" title="\'">)
+    second_value = '" onerror="alert(1)//'
+
+    patch "/admin/post_type/#{post_type.id}/posts/#{stored_post.id}", params: {
+      post: { title: stored_post.title, content: stored_post.content, status: stored_post.status },
+      field_options: { '0' => {
+        note_field.slug => { 'id' => note_field.id.to_s, 'values' => { '0' => first_value } },
+        second.slug => { 'id' => second.id.to_s, 'values' => { '0' => second_value } }
+      } }
+    }
+
+    expect(flash[:error]).to be_blank
+    expect(stored_post.get_field_value('note2')).to eq(second_value)
+    get "/#{stored_post.slug}"
+    expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
+    expect(response.body).to include("<p>#{first_value}</p><p>#{second_value}</p>")
+  end
+
   it 'keeps a plain value of the field on the page' do
     place_shortcode(published_post, "[data field='note']")
     sign_in_as(editor, site: current_site)
