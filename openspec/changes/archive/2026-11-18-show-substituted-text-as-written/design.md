@@ -12,6 +12,7 @@ See `proposal.md`, "Why". The markup scan of PR #1345 reads each custom field va
 **D2. An enclosing shortcode keeps its contract.** It gets its inner text as written in `args[:shortcode_content]`. The shortcodes of that text are then replaced in its output, from left to right. `spec/helpers/short_code_helper_spec.rb` holds this contract ("Many Shortcodes").
 
 - A shortcode before the closing tag of an enclosing shortcode is one of its children. A child that the output does not show is not replaced.
+- The output can show the shortcodes of a child without that child, or without its closing tag. They are then replaced at their place in the output, as the next shortcodes of that text.
 - The inner text of the parent ends at its closing tag. So a child has a closing tag only before that tag, and a later closing tag does not close it.
 - A shortcode with no closing tag gets no inner text. Before, `args` kept the inner text of an earlier enclosing shortcode. The `lightbox` shortcode of `cama_image_lightbox` then showed that text, not its `title`.
 - Alternative: replace the inner shortcodes first, and give the enclosing shortcode the result. It changes what `args[:shortcode_content]` holds for each plugin. Rejected.
