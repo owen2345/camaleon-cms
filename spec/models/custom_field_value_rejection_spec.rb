@@ -224,6 +224,26 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     end
   end
 
+  # String#translations keeps its result on the String, and dup copies that result. So a value that
+  # changes in place after a call of translate keeps the translations of its earlier text.
+  describe 'a value that changes in place after a call of translate' do
+    def changed_in_place(before, after)
+      String.new(before).tap(&:translations).replace(after)
+    end
+
+    it 'is scanned by the translations of its current text' do
+      url = { en: 'https://example.com/' }.to_translate
+      pair = { en: { attr: 'Color' }.to_json }.to_translate
+      script = { en: { attr: 'Color', value: '<script>alert(1)</script>' }.to_json }.to_translate
+      joined = changed_in_place(url, "<!--:-->java<!--:en-->script:x\n<!--:en-->")
+      spaced = changed_in_place(url, '<!--:en--> onerror=alert(1)<!--:-->')
+
+      expect(described_class.gate_rejection_reason('url', joined)).to eq(:uri)
+      expect(described_class.gate_rejection_reason('url', spaced)).to eq(:url_characters)
+      expect(described_class.gate_rejection_reason('field_attrs', changed_in_place(pair, script))).to eq(:html)
+    end
+  end
+
   describe 'field_attrs values (verbatim JSON markup position)' do
     it 'refuses a script hidden in the pair for an untrusted author' do
       as_user(contributor)

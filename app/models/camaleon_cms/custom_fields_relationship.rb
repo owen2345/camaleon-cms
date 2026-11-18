@@ -251,9 +251,10 @@ module CamaleonCms
 
       # The URI rule reads the stored text and each text that String#translate shows. translate removes
       # the first marker of the locale on each line, so a translation can join a script URL, such as
-      # `javascript:`, that a marker splits in the stored text.
+      # `javascript:`, that a marker splits in the stored text. The scans read the translations of a
+      # String.new copy, as UnsafeMarkup.attribute_ending_url? does.
       def script_url?(value)
-        texts = [value, *CamaleonCms::UnsafeMarkup.scannable_string(value).dup.translations_array]
+        texts = [value, *String.new(CamaleonCms::UnsafeMarkup.scannable_string(value)).translations_array]
         texts.any? { |text| CamaleonCms::UnsafeMarkup.dangerous_uri?(text) }
       end
 
@@ -272,7 +273,7 @@ module CamaleonCms
       #   each one. So the scan also decodes each string literal of each translation.
       def json_member_values(value)
         source = value.to_s
-        texts = CamaleonCms::UnsafeMarkup.scannable_string(source).dup.translations_array
+        texts = String.new(CamaleonCms::UnsafeMarkup.scannable_string(source)).translations_array
         [source, *texts.flat_map { |text| json_strings(text) }]
       end
 

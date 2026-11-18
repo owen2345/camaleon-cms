@@ -117,10 +117,12 @@ module CamaleonCms
       # first marker of the locale on each line, so a shown text can keep a marker. A value with no
       # translation keeps each marker.
       # The check reads the value as unsafe_html? does, so a value in another encoding gets a verdict.
+      # String#translations keeps its result on the String, and dup copies that result. So the check
+      # reads the translations of a String.new copy, which has no result of an earlier text.
       def attribute_ending_url?(value)
         string = scannable_string(value)
         string.gsub(TRANSLATION_MARKER, '').match?(URL_ATTRIBUTE_END) ||
-          string.dup.translations_array.any? do |url|
+          String.new(string).translations_array.any? do |url|
             url.match?(URL_ATTRIBUTE_END) || url.rstrip.match?(HTML_WHITESPACE)
           end
       end
