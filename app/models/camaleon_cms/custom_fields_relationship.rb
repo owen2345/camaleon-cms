@@ -17,11 +17,11 @@ module CamaleonCms
 
     # The save scans the value of every field kind (scan-and-reject policy). The data shortcode puts
     # a value of any kind into the page as markup, so each value is held to the post-content
-    # allowlist. A `field_attrs` value is JSON, so the scan also reads its decoded members and keys. A URI kind
+    # allowlist. The field_attrs template and the_json_field show the decoded members of a JSON value,
+    # so the scan also reads the decoded members and keys of a value of each kind. A URI kind
     # also goes into href and src, so it is held to the URI rule too. A shortcode inside a tag puts a
     # URI value into an attribute, so the scan also refuses a character that ends the attribute. The
     # role that puts a shortcode of another kind inside a tag chooses that position (intended).
-    JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
     # The settings and custom_fields permissions give a role the trust of an administrator
     # (docs/security/permissions.md). So a holder of one of them is trusted for the values of an
@@ -38,7 +38,7 @@ module CamaleonCms
     # another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
 
-    # A JSON string literal (a key or a String member of a field_attrs value, with its escapes), or a
+    # A JSON string literal (a key or a String member of a JSON value, with its escapes), or a
     # comment, which the parse skips.
     JSON_LITERAL_OR_COMMENT = %r{"(?:[^"\\]|\\.)*"|/\*.*?\*/|//[^\n]*}m
 
@@ -218,11 +218,9 @@ module CamaleonCms
         return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
 
         key = field_key.to_s
-        if JSON_MARKUP_FIELD_KEYS.include?(key)
-          :html if json_member_values(value).any? { |member| markup_unsafe?(member) }
-        elsif URI_FIELD_KEYS.include?(key) && script_url?(value)
+        if URI_FIELD_KEYS.include?(key) && script_url?(value)
           :uri
-        elsif markup_unsafe?(value)
+        elsif json_member_values(value).any? { |member| markup_unsafe?(member) }
           :html
         elsif URI_FIELD_KEYS.include?(key) && CamaleonCms::UnsafeMarkup.attribute_ending_url?(value)
           :url_characters
@@ -258,19 +256,22 @@ module CamaleonCms
         texts.any? { |text| CamaleonCms::UnsafeMarkup.dangerous_uri?(text) }
       end
 
-      # A field_attrs value stores JSON. The scan reads it as each renderer shows it:
+      # The texts that the markup scan reads for a value of each kind. A value that parses as JSON is
+      # read as each renderer shows it:
       # - The data shortcode shows the value as stored, where `\"` does not escape a quote. So the
-      #   scan reads the value as stored. A pair that code stores as a Hash keeps `<` and `\"`, so
-      #   a tag with an attribute in it, such as a link, can be refused (intended). Its to_json form
-      #   escapes `<`.
-      # - The template of the field translates the value, parses the JSON and shows its keys and
-      #   members. The Rails JSON encoder escapes `<`, so only the decoded strings show such markup.
-      #   So the scan reads each key and String member of the parse of each translation.
-      # - The template of the field and the_json_field show a member of the object with to_s. A
+      #   scan reads the value as stored. A field_attrs pair that code stores as a Hash keeps `<` and
+      #   `\"`, so a tag with an attribute in it, such as a link, can be refused (intended). Its
+      #   to_json form escapes `<`.
+      # - The field_attrs template translates the value, parses the JSON and shows its keys and
+      #   members. the_json_field parses the value of any kind. The Rails JSON encoder escapes `<`,
+      #   so only the decoded strings show such markup. So the scan reads each key and String member
+      #   of the parse of each translation. A value with no translation is its own translation.
+      # - The field_attrs template and the_json_field show a member of the object with to_s. A
       #   member that is an object or an array then shows as Ruby text, which writes each quote of a
       #   String in it as `\"`. So the scan also reads that text.
       # - The parse keeps only the last member of a key that occurs twice, but the stored value keeps
       #   each one. So the scan also decodes each string literal of each translation.
+      # A value that does not parse adds no text.
       def json_member_values(value)
         source = value.to_s
         texts = String.new(CamaleonCms::UnsafeMarkup.scannable_string(source)).translations_array

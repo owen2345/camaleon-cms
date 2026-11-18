@@ -6,6 +6,7 @@
 - [x] 1.2 In `spec/models/custom_field_value_rejection_spec.rb`, replace the example "carries no gate for values the renderer escapes". Add examples: a script `text_box` value is refused, `a < b & c` and `<b>bold</b>` are stored unchanged, and a `url` value with `"><script>` is refused. Add the forged-id example of a `text_box` id on a `url` slug. Make sure that the new refusal examples fail before the fix.
 - [x] 1.3 In `custom_fields_relationship.rb`, apply D1 to D4: remove `GATED_FIELD_KEYS`, `MARKUP_FIELD_KEYS`, `gated_field_key?` and the early return, and give a URL kind both rules. Update the comments. Verify that the specs of 1.1 and 1.2 pass.
 - [x] 1.4 In `spec/lib/tasks/unsafe_stored_content_rake_spec.rb`, add an example: the task lists a stored `text_box` value with a script. Update the comment above the custom field loop of `lib/tasks/unsafe_stored_content.rake`. Verify that the example passes.
+- [x] 1.5 Scan the decoded JSON members of a value of every kind (D10). Add a request example and a model example for a `text_box` value with a `<script>` in a JSON escape. Make sure that the two examples fail before the fix.
 
 ## 2. The trust of site and theme field values
 

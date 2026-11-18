@@ -20,7 +20,7 @@ The requirement "Untrusted input is rejected, never transformed" of `security-ca
 
 ## Decisions
 
-**D1. The markup rule for every kind except `field_attrs`.** The rule is the one that `editor` uses today: `UnsafeMarkup.unsafe_html?` with the post-content allowlist. The same untrusted author is held to the same rule for the post content, so the rule is not new to that author.
+**D1. The markup rule for every kind.** The rule is the one that `editor` uses today: `UnsafeMarkup.unsafe_html?` with the post-content allowlist. The same untrusted author is held to the same rule for the post content, so the rule is not new to that author.
 
 A probe in the dummy app gave these verdicts. Pass: `a < b & c`, `x > y`, `5 <3 you`, `<b>bold</b>`, `https://x.test/p?a=1&b=2`, `#ff0000`, `2026-11-15`. Refuse: `Fish & Chips <today>`, `<iframe src=x></iframe>`.
 
@@ -45,7 +45,7 @@ The stored-text scan can refuse a tag with an attribute, such as a link, in a pa
 - Alternative: a narrower check of the stored text, for event handlers and script URLs only. It is a second rule, which D1 rejects, and it misses an attribute such as a `style` overlay. Rejected.
 - Alternative: store a Hash pair with `<` escaped. It changes the stored text of each Hash meta, or it needs a special case for one field kind. It also reverses the `generate_json` choice of PR #1339. Rejected.
 
-**D4. `GATED_FIELD_KEYS` and `gated_field_key?` go away.** Every kind is gated, so the early return in the validation goes too. `MARKUP_FIELD_KEYS` goes as well, since the markup rule is the default. `URI_FIELD_KEYS` and `JSON_MARKUP_FIELD_KEYS` stay.
+**D4. `GATED_FIELD_KEYS` and `gated_field_key?` go away.** Every kind is gated, so the early return in the validation goes too. `MARKUP_FIELD_KEYS` goes as well, since the markup rule is the default. `URI_FIELD_KEYS` stays. `JSON_MARKUP_FIELD_KEYS` stayed until D10.
 
 A search of the sibling plugin and theme checkouts finds no caller of the removed constants or of `gated_field_key?`. The constants are not a documented API (`docs/ai/ecosystem.md`).
 
@@ -89,11 +89,18 @@ A URI kind now also refuses `"`, `'`, `<`, `>`, a backtick and whitespace before
 - Alternative: escape the value in the shortcode. The remedy rule forbids a change at render, and an `editor` value must show as markup. Rejected.
 - Alternative: refuse a quote in a value of every kind. It refuses ordinary prose. Rejected.
 
+**D10. The scan decodes the JSON members of a value of every kind.** `the_json_field`, `the_json_fields` and `the_fields_grouped` with JSON parse the value of each field that a theme names, and they show the decoded members. A review on 2026-11-18 found that a `text_area` value with a `<script>` in a JSON escape passed the scan, and `the_json_field` showed the script. On 2026-11-18 the maintainer chose to scan the decoded members and keys of a JSON value of every kind, as D3 does. `JSON_MARKUP_FIELD_KEYS` goes.
+
+- A value that does not parse adds no text. Most plain text fails the parse at its first character.
+- Alternative: leave it, because the comment of `the_json_field` names the `field_attrs` kind. But D2 of `gate-shortcodes-that-a-renderer-shows` says that a theme can call it for each field. Rejected.
+- Alternative: parse only a `field_attrs` value in the `content_shortcodes` gate too, so that the two gates read the same texts. The theme gap stays open. Rejected.
+
 ## Risks / Trade-offs
 
 - [An untrusted author who stored `Fish & Chips <today>` in a `text_box` gets a refusal at the next change of that value.] → An unchanged value is not checked again on an unrelated edit (the requirement "An unchanged pre-gate value does not block an unrelated edit"). The changelog names the change. `scan_content` lists the stored values that the scan now refuses.
 - [A plugin that writes a value of any kind from a job, with no request context, now gets the scan.] → The value passes when it holds no unsafe markup. A plugin calls `unfiltered_value!` to skip the scan, as it does today for `editor`.
 - [A stored URL value with a quote, or with a space before another character, is refused at the next change of that value (D9).] → An unchanged value is not checked again, and `scan_content` lists the value.
+- [A stored JSON value of any kind with an escaped tag outside the allowlist is refused at the next change of that value (D10).] → An unchanged value is not checked again, and `scan_content` lists the value.
 - [`scan_content` lists more rows on an install with markup in plain fields.] → The task is read-only. The upgrade note says so.
 
 ## Migration Plan

@@ -6,6 +6,7 @@ The save of a custom field value scans only the `editor`, `field_attrs` and URL 
 
 - The save of a custom field value scans the value of every field kind for an untrusted author. A kind that is not `editor`, `field_attrs` or a URL kind gets the markup rule of `editor`.
 - A URL kind (`url`, `image`, `audio`, `video`, `file`) gets the markup rule as well as the URL rule. The `data` shortcode puts a URL value into the content as markup too.
+- A value of any kind that parses as JSON is also scanned by its decoded members and keys, as a `field_attrs` value is. `the_json_field` shows them for a field of any kind.
 - A holder of the `settings` or the `custom_fields` permission is trusted for the field values of each owner that is not a post. `docs/security/permissions.md` gives these two permissions the trust of an administrator. A holder of the `theme_settings` permission is trusted for the field values of a theme, which it saves through the theme settings.
 - `rake camaleon_cms:security:scan_content` lists a stored value of every kind that the scan refuses, because it uses the same dispatch.
 - **BREAKING**: an untrusted author can no longer store markup outside the content allowlist in a field of any kind, `text_box` and `text_area` included. An example is `Fish & Chips <today>`. The save fails with an error that names the field. Stored values do not change.

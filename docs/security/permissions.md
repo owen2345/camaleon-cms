@@ -87,8 +87,8 @@ The pieces that implement the rule:
   fragment with `css`: its cost grows with the square of the number of top-level nodes. The
   cama_contact_form plugin calls this detector for its authored markup, so a change here applies
   there too. Scan the content **the renderer will emit**, not the stored encoding:
-  `CustomFieldsRelationship.gate_rejection_reason` decodes every member of a `field_attrs` value's
-  JSON (any shape — object, array, nested) before scanning, because the JSON encoder hides `<` behind
+  `CustomFieldsRelationship.gate_rejection_reason` decodes every member, at each depth, of a JSON
+  value of each kind before scanning, because the JSON encoder hides `<` behind
   unicode escapes. It also scans each member of a key that occurs twice, which the parse drops. It parses each translation of the value, as the template of the field does. It scans a member that is an object or an array as the Ruby text that the template shows. It also scans the value as stored, which the `data` shortcode shows. And the same class-level dispatch backs the `scan_content` audit task so the two
   cannot drift. The scan reads the stored text and each translation of it, because `String#translate`
   removes the first marker of the locale on each line. So a translation can join a `<` and the text
@@ -102,7 +102,8 @@ The pieces that implement the rule:
 - **Every custom field kind is scanned.** A custom field value is not such a position. The `data` shortcode
   (`[data field='note']`) puts a stored value of any kind into the content. The theme shows that
   content with `raw`. So the save holds the value of every kind to the post-content allowlist. A URL
-  kind also gets the URL rule, and a `field_attrs` value is also scanned by its decoded members and keys.
+  kind also gets the URL rule. A value that parses as JSON is also scanned by its decoded members and
+  keys, because `the_json_field` shows them for a field of any kind.
 - **A URL value cannot end an attribute.** A `data` shortcode inside a tag, as in
   `<img src="[data field='photo']">`, puts the value into an attribute. So a URL kind also refuses a
   quote, an angle bracket, a backtick and whitespace before another character. A URL can encode

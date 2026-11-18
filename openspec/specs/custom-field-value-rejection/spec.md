@@ -608,8 +608,7 @@ GET or HEAD request is no submitted save and SHALL be raised, not answered.
 The system SHALL validate every custom-field value row on save, for every field kind. The `data`
 shortcode puts a stored value of any kind into a page as markup. So no kind is safe without the scan.
 
-- For a value of any kind except `field_attrs`, content outside the post-content allowlist SHALL be
-  refused. Examples are script elements, event-handler attributes, script-capable URI schemes and
+- For a value of any kind, content outside the post-content allowlist SHALL be refused. Examples are script elements, event-handler attributes, script-capable URI schemes and
   disallowed elements. Comments that are not translation markers are refused too. So is deceptive
   markup: tags that the parser drops or that stay open, and translation markers inside tags.
 - For a URI-type value (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
@@ -621,17 +620,17 @@ shortcode puts a stored value of any kind into a page as markup. So no kind is s
   of a translated value SHALL pass, because the shortcode shows one translation without them.
 - For a URI-type value, the scheme rule and the character rule SHALL also read each text that
   `String#translate` shows. That text can keep a marker, or join a scheme across one.
-- For a `field_attrs` value, the value as stored SHALL be held to the post-content allowlist,
-  because the `data` shortcode shows it as stored. Each key and decoded member of the parse SHALL be
-  held to it too, also in each translation of the value. The template of the field translates the
-  value before it parses it. This SHALL include each member of a key that occurs twice in an object.
-  The parse keeps only the last of them, but the stored JSON keeps each one. A pair that code stores
-  as a Hash keeps `<` and writes each attribute quote as `\"`. So a tag with an attribute in such a
-  pair, such as a link, can be refused (intended). The `to_json` form of the pair, which escapes `<`,
-  SHALL pass.
-  The template of the field and `the_json_field` show a member of the object with `to_s`. So a
-  member that is an object or an array SHALL also be held to it as its Ruby text. That text writes
-  each quote of a String in the member as `\"`.
+- For a value of any kind that parses as JSON, each key and decoded member SHALL be held to the
+  allowlist too. `the_json_field` parses a value of any kind. The scan SHALL also parse each
+  translation of the value, because the `field_attrs` template translates the value before it parses
+  it. The scan SHALL include each member of a key that occurs twice in an object. The parse keeps
+  only the last of them, but the stored JSON keeps each one.
+- For such a value, the `field_attrs` template and `the_json_field` show a member of the object with
+  `to_s`. So a member that is an object or an array SHALL also be held to the allowlist as its Ruby
+  text. That text writes each quote of a String as `\"`.
+- A `field_attrs` pair that code stores as a Hash keeps `<` and writes each attribute quote as `\"`.
+  So the scan of the stored value can refuse a tag with an attribute in such a pair, such as a link
+  (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
 - A value beyond the parse size bound SHALL be refused for every kind.
 
 The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or
@@ -765,6 +764,13 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 
 - **WHEN** an untrusted author saves a `text_box` value that holds a `<script>` element
 - **THEN** the save is refused with an error naming the field, and no value row is stored
+
+#### Scenario: An escaped script in a JSON member of a text_box value is refused
+
+- **WHEN** an untrusted author saves, as a `text_box` value, the `to_json` form of
+  `{ label: '<script>alert(1)</script>' }`, which escapes `<`
+- **THEN** the save is refused, because `the_json_field` shows the decoded member, and no value row
+  is stored
 
 #### Scenario: A plain text_box value is stored unchanged
 

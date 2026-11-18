@@ -183,6 +183,21 @@ RSpec.describe 'Security: data shortcode output of a custom field', type: :reque
     expect(Nokogiri::HTML5.parse(response.body).css('img[onerror]')).to be_empty
   end
 
+  # A theme can show a value of each kind with the_json_field, which parses the value as JSON and shows
+  # the decoded members. The Rails JSON encoder escapes `<`, so the stored text has no tag, but the
+  # decoded member has one.
+  it 'refuses a script in a JSON member of a text_box value, which the_json_field shows' do
+    sign_in_as(editor, site: current_site)
+    value = { label: script }.to_json
+    expect(value).not_to include('<')
+    expect(JSON.parse(value).values).to include(script)
+
+    save_note(stored_post, value)
+
+    expect(flash[:error]).to include(refusal)
+    expect(stored_post.get_field_value('note')).to be_blank
+  end
+
   it 'keeps a plain value of the field on the page' do
     place_shortcode(published_post, "[data field='note']")
     sign_in_as(editor, site: current_site)

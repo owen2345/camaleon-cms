@@ -176,6 +176,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_field_value('note')).to be_blank
     end
 
+    # the_json_field shows the decoded members of a value of each kind that parses as JSON.
+    it 'refuses a script that the JSON escapes in a member of the value' do
+      as_user(contributor)
+      value = { label: script }.to_json
+      expect(value).not_to include('<')
+
+      expect { post.set_field_value('note', value) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+      expect(described_class.gate_rejection_reason('text_area', value)).to eq(:html)
+      expect(described_class.gate_rejection_reason('url', value)).to eq(:html)
+    end
+
     # The trust check loads the role and its metas. A value that passes the scan does not need it.
     it 'checks no permission of a non-admin for a value that passes the scan' do
       as_user(contributor)
@@ -190,7 +201,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     it 'stores plain text and allowed markup from an untrusted author unchanged' do
       as_user(contributor)
 
-      ['a < b & c', '<b>bold</b>'].each do |value|
+      ['a < b & c', '<b>bold</b>', { label: '<b>bold</b>' }.to_json].each do |value|
         post.set_field_value('note', value)
 
         expect(post.get_field_value('note')).to eq(value)
