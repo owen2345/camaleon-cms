@@ -203,9 +203,10 @@ module CamaleonCms
 
     # The output as String#sub took it before: a Hash gives the value of the shortcode text, as the
     # callback of a plugin that returns the result of append_asset_libraries. An output that is no
-    # String raises a TypeError.
+    # String raises a TypeError. The result is a copy: the replacement of the inner shortcodes changes
+    # it, and it must not change the String of the callback.
     def _cama_shortcode_output(output, shortcode)
-      return output[shortcode].to_s if output.is_a?(Hash)
+      return String.new(output[shortcode].to_s) if output.is_a?(Hash)
 
       text = String.try_convert(output)
       raise TypeError, "no implicit conversion of #{output.class} into String" unless text

@@ -127,6 +127,19 @@ RSpec.describe 'CamaleonCms::ShortCodeHelper' do
       expect(helper.do_shortcode('a [assets] b [keyed] c')).to eq('a  b Value c')
     end
 
+    # The value of the Hash is a String of the callback. The replacement of the inner shortcodes
+    # changed it in place, and a frozen value raised a FrozenError.
+    it 'replaces the inner shortcodes of a Hash output, and does not change its value' do
+      frozen = 'Frozen [hello_world] end'
+      value = +'Value [hello_world] end'
+      helper.shortcode_add('frozen', ->(_attrs, args) { { args[:shortcode] => frozen } })
+      helper.shortcode_add('keyed', ->(_attrs, args) { { args[:shortcode] => value } })
+
+      expect(helper.do_shortcode('[frozen][hello_world][/frozen] [keyed][hello_world][/keyed]'))
+        .to eq('Frozen Hello World end Value Hello World end')
+      expect(value).to eq('Value [hello_world] end')
+    end
+
     it 'raises a TypeError for an output that is no String, as String#sub did' do
       helper.shortcode_add('nothing', ->(_attrs, _args) {})
 
