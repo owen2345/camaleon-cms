@@ -175,13 +175,18 @@ module CamaleonCms
     # The content is a String that this method changes. A SafeBuffer would escape each output.
     def _cama_replace_shortcode_nodes(content, nodes, args, template)
       cursor = 0
-      nodes.each do |node|
+      pending = nodes.dup
+      until pending.empty?
+        node = pending.shift
         start = content.index(node[:shortcode], cursor)
+        stop = start && (start + node[:shortcode].size)
+        close_code = "[/#{node[:code]}]"
+        close_at = stop && node[:close_at] && content.index(close_code, stop)
+        # The output of a parent can show the children of a shortcode without that shortcode, or
+        # without its closing tag. The children are then the next shortcodes of this text.
+        pending.unshift(*node[:children]) unless close_at
         next unless start
 
-        stop = start + node[:shortcode].size
-        close_code = "[/#{node[:code]}]"
-        close_at = node[:close_at] && content.index(close_code, stop)
         # args is one Hash for all shortcodes of the text. A shortcode with no closing tag has no inner
         # text, so it must not read the inner text of an earlier enclosing shortcode there.
         if close_at
@@ -194,7 +199,7 @@ module CamaleonCms
         args[:shortcode] = matched
         args[:code] = node[:code]
         output = _cama_shortcode_output(_eval_shortcode(node[:code], node[:attrs], args, template), matched)
-        output = _cama_replace_shortcode_nodes(output, node[:children], args, template) if node[:children].any?
+        output = _cama_replace_shortcode_nodes(output, node[:children], args, template) if close_at
         content[start...stop] = output
         cursor = start + output.size
       end

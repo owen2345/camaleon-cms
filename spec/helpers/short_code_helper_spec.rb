@@ -127,6 +127,18 @@ RSpec.describe 'CamaleonCms::ShortCodeHelper' do
       expect(helper.do_shortcode('a [assets] b [keyed] c')).to eq('a  b Value c')
     end
 
+    # The output of an enclosing shortcode can show its inner text without a child, or without the
+    # closing tag of a child. Before, the shortcodes of that child stayed as text in the output.
+    it 'replaces the shortcodes of a child that the output of its parent shows without the child' do
+      helper.shortcode_add('bare', ->(_attrs, args) { args[:shortcode_content].gsub(%r{\[/?title\]}, '') })
+      helper.shortcode_add('open', ->(_attrs, args) { args[:shortcode_content].gsub('[/title]', '') })
+
+      expect(helper.do_shortcode('[bare][title]A [hello_world] B[/title] [hello name="Owen"][/bare]'))
+        .to eq('A Hello World B Hello Owen')
+      expect(helper.do_shortcode('[open][title]A [hello_world] B[/title][/open] [hello name="Owen"]'))
+        .to eq('<h1></h1>A Hello World B Hello Owen')
+    end
+
     # The value of the Hash is a String of the callback. The replacement of the inner shortcodes
     # changed it in place, and a frozen value raised a FrozenError.
     it 'replaces the inner shortcodes of a Hash output, and does not change its value' do
