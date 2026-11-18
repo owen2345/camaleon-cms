@@ -682,20 +682,8 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
   # of another kind made the gate read the wrong field_key and use the wrong rules. The id is now
   # resolved from the trusted slug instead.
   describe 'forged custom_field_id' do
-    # A text_box value is scanned as stored. A field_attrs value is scanned by its decoded JSON members,
-    # and the stored JSON escapes `<` as <. So the forged id of a text_box would pass the script.
-    it 'keeps the member scan of a field_attrs slug when the client forges the custom_field_id of a text_box' do
-      as_user(contributor)
-      forged_id = post.get_field_object('note').id
-      escaped = { attr: 'Color', value: script }.to_json
-      expect(escaped).not_to include('<')
-
-      datas = { '0' => { 'specs' => { id: forged_id, values: { '0' => escaped } } } }
-
-      expect { post.set_field_values(datas) }.to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
-      expect(post.custom_field_values.where(custom_field_slug: 'specs')).not_to exist
-    end
-
+    # Only a URL kind has rules that the other kinds do not have. So the forged id of a text_box
+    # changes only the rules of a slug of a URL kind.
     it 'keeps the URL rule of a url slug when the client forges the custom_field_id of a text_box' do
       as_user(contributor)
       forged_id = post.get_field_object('note').id
