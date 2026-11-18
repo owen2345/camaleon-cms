@@ -34,10 +34,11 @@ module CamaleonCms
       errors.add(:base, cama_shortcode_rejection_message)
     end
 
-    # An attribute needs the gate only when it (a) changed on this save (or the record is new) -- so
-    # a title-only edit never re-gates pre-existing shortcode content, mirroring
-    # Post#reject_untrusted_dangerous_content -- and (b) a text that a renderer gives to do_shortcode
-    # contains a registered shortcode.
+    # The gate checks an attribute only when both of these are true:
+    # - The attribute changed on this save, or the record is new. So an edit of the title only does
+    #   not check the shortcode content that was stored before. Post#reject_untrusted_dangerous_content
+    #   does the same.
+    # - A text that a renderer gives to do_shortcode contains a registered shortcode.
     # A model that creates a row again for an unchanged value says so with cama_gate_unchanged?.
     #
     # The gate reads the value as it is, with no copy in UTF-8 (intended). On each Camaleon save, a
