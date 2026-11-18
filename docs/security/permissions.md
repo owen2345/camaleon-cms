@@ -77,22 +77,29 @@ The pieces that implement the rule:
   (only genuine removals register), plus structural guards — markup the parser drops or leaves open,
   a translation marker inside a tag, and markup smuggled through an attribute value (a value that
   entity-decodes to a tag-open, which a client-side `data-html` sink would inject). It bounds value
-  size (an over-size value is refused, and callers report it with a size-specific message) and yields
-  a verdict for mis-encoded input rather than raising. It reads a valid String in another encoding,
-  such as UTF-16, as UTF-8, because a database stores it as UTF-8 text. A save of such a String,
-  or of one with invalid bytes, still raises an encoding error in the model code before each scan.
-  This also holds for an administrator, and nothing is stored (intended). A value that the parser
-  cannot read (more than 400 nested elements, or more than 400 attributes on one element) is
-  refused too. The checks read the elements from one walk of the tree. Never search the parsed
-  fragment with `css`: its cost grows with the square of the number of top-level nodes. The
+  size (an over-size value is refused, and callers report it with a size-specific message). A value
+  that the parser cannot read (more than 400 nested elements, or more than 400 attributes on one
+  element) is refused too. The checks read the elements from one walk of the tree. Never search the
+  parsed fragment with `css`: its cost grows with the square of the number of top-level nodes. The
   cama_contact_form plugin calls this detector for its authored markup, so a change here applies
-  there too. Scan the content **the renderer will emit**, not the stored encoding:
+  there too.
+- **A mis-encoded value gets a verdict.** `UnsafeMarkup` gives a verdict for mis-encoded input, and
+  it does not raise. It reads a valid String in another encoding, such as UTF-16, as UTF-8, because
+  a database stores it as UTF-8 text. A save of such a String, or of one with invalid bytes, still
+  raises an encoding error in the model code before each scan. This also holds for an
+  administrator, and nothing is stored (intended).
+- **Each translation is scanned.** `UnsafeMarkup` reads the stored text and each translation of it,
+  because `String#translate` removes the first marker of the locale on each line. So a translation
+  can join a `<` and the text after a marker into a tag.
+- **Scan the content the renderer will emit**, not the stored encoding.
   `CustomFieldsRelationship.gate_rejection_reason` decodes every member, at each depth, of a JSON
-  value of each kind before scanning, because the JSON encoder hides `<` behind
-  unicode escapes. It also scans each member of a key that occurs twice, which the parse drops. It parses each translation of the value, as the template of the field does. It scans a member that is an object or an array as the Ruby text that the template shows. It also scans the value as stored, which the `data` shortcode shows. And the same class-level dispatch backs the `scan_content` audit task so the two
-  cannot drift. The scan reads the stored text and each translation of it, because `String#translate`
-  removes the first marker of the locale on each line. So a translation can join a `<` and the text
-  after a marker into a tag.
+  value of each kind before scanning, because the JSON encoder hides `<` behind unicode escapes. It
+  also scans each member of a key that occurs twice, which the parse drops. It parses each
+  translation of the value, as the `field_attrs` template does. It scans a member that is an object
+  or an array as the Ruby text that the `field_attrs` template and `the_json_field` show. It also
+  scans the value as stored, which the `data` shortcode shows.
+- **The gate and the audit share one dispatch.** The `scan_content` audit task calls the same
+  class-level dispatch, so the two cannot drift.
 - **Gates sit on models** (`Post#reject_untrusted_dangerous_content`,
   `CustomFieldsRelationship#reject_untrusted_dangerous_value`), so no controller path can skip
   them; the admin post save wraps the parent and its field values in one transaction, so a refused
@@ -109,10 +116,12 @@ The pieces that implement the rule:
   quote, an angle bracket, a backtick and whitespace before another character. A URL can encode
   each of them, such as `%27` for `'`. Without quotes, as in `<img src=https://cdn.test/[data field='photo']>`, a leading
   space ends the attribute too. Whitespace at the end passes, because no character of the value
-  follows it. The translation markers of a translated value pass, because the shortcode shows one
-  translation without them. The URL rules also read each translation, which can keep a marker or join
-  `javascript:` across one. A value of another kind inside a tag gets no such rule: the role that places the shortcode
-  chooses that position.
+  follows it.
+- **A translated URL passes.** The translation markers of a translated value pass, because the
+  shortcode shows one translation without them. The URL rules also read each translation, which can
+  keep a marker or join `javascript:` across one.
+- **A value of another kind inside a tag gets no attribute rule.** The role that places the
+  shortcode chooses that position.
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its
   field values); no request context means the gate applies. A holder of `settings` or `custom_fields` also
