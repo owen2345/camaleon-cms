@@ -8,9 +8,9 @@
 
 ## 2. `cama_replace_codes`
 
-- [ ] 2.1 Add `spec/lib/ext/string_spec.rb` with a value that has a backslash sequence or the text of another code. Make sure that it fails before the fix.
-- [ ] 2.2 Replace all codes in one pass in `cama_replace_codes`. Verify that the spec of 2.1 passes.
-- [ ] 2.3 Add the requirement to `text-substitution-integrity`, and the notes to `docs/upgrading-to-2.9.5.md` and `docs/ai/ecosystem.md`.
+- [x] 2.1 Add `spec/lib/ext/string_spec.rb` with a value that has a backslash sequence or the text of another code. Make sure that it fails before the fix.
+- [x] 2.2 Replace all codes in one pass in `cama_replace_codes`. Verify that the spec of 2.1 passes.
+- [x] 2.3 Add the requirement to `text-substitution-integrity`, and the notes to `docs/upgrading-to-2.9.5.md` and `docs/ai/ecosystem.md`.
 
 ## 3. The menu container
 

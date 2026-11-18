@@ -37,3 +37,32 @@
 - **THEN** it SHALL get `[hello name="Owen"]` as its inner text
 - **AND** the shortcodes of that inner text SHALL then be replaced in its output
 - **AND** the text SHALL show `<h1>Hello Owen</h1>` when the output of `[title]` is the inner text in an `h1` element
+
+### Requirement: Each code value shows as written
+
+`String#cama_replace_codes` SHALL replace all codes of the text in one pass. It SHALL show each value as written, also a backslash sequence in it. It SHALL NOT search a value that it put in for another code.
+
+#### Scenario: A backslash sequence in a value shows as written
+
+- **WHEN** a value holds `\0`, `\&`, `\'`, `` \` ``, `\\`, `\1` or `\k<x>`
+- **THEN** the text SHALL hold that sequence as written, and no error SHALL be raised
+
+#### Scenario: A value keeps the code of a later value
+
+- **WHEN** the value of `[c1]` holds the text `[c2]`, and `[c2]` is also a code of the call
+- **THEN** the value of `[c1]` SHALL keep the text `[c2]`, and the code `[c2]` of the text SHALL get its own value
+
+#### Scenario: A list value shows its items joined with commas
+
+- **WHEN** a value is a list
+- **THEN** the text SHALL show its items joined with commas, as before
+
+#### Scenario: The first value of a key counts
+
+- **WHEN** a key is given as a Symbol and as a String
+- **THEN** the first value of the two SHALL count, as before
+
+#### Scenario: An unknown format gives the text as it is
+
+- **WHEN** the format is not `[`, `{` or `%{`
+- **THEN** the method SHALL give the text as it is, as before

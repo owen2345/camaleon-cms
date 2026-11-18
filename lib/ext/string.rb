@@ -78,15 +78,21 @@ class String
 
   # parse all codes in current text to replace with values
   # sample: "Hello [c1]".cama_replace_codes({c1: 'World'}) ==> Hello World
+  # One pass replaces all codes, so a value is not searched for a later code. The block form shows a
+  # backslash sequence of a value as written.
   def cama_replace_codes(values, format_code = '[')
-    res = self
+    opening, closing = { '[' => ['[', ']'], '{' => ['{', '}'], '%{' => ['%{', '}'] }[format_code]
+    return self unless opening
+
+    replacements = {}
     values.each do |k, v|
       v = v.join(',') if v.is_a?(Array)
-      res = res.gsub("[#{k}]", v.to_s) if format_code == '['
-      res = res.gsub("{#{k}}", v.to_s) if format_code == '{'
-      res = res.gsub("%{#{k}}", v.to_s) if format_code == '%{'
+      code = "#{opening}#{k}#{closing}"
+      replacements[code] = v.to_s unless replacements.key?(code)
     end
-    res
+    return self if replacements.empty?
+
+    gsub(Regexp.union(replacements.keys)) { |code| replacements[code] }
   end
 
   # remove double or more secuencial slashes, like: '/a//b/c/d///abs'.cama_fix_slash => /a/b/c/d/abs

@@ -51,6 +51,7 @@ what theme/plugin developers should know.
 | Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value whose `owner` is a record of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin or theme shortcode whose output holds a backslash, or the text of another shortcode | The output now shows as written, and the other shortcode in it stays as text ([details](#a-shortcode-output-shows-as-written)) |
+| Has plugin or theme code that calls `cama_replace_codes` with a value that holds a backslash or another code | The value now shows as written, and the code in it stays as text ([details](#cama_replace_codes-shows-each-value-as-written)) |
 
 ---
 
@@ -1000,6 +1001,17 @@ These do not change:
 - A callback that returns something other than a String or a Hash raises a `TypeError`.
 
 **Action:** a shortcode that writes two backslashes to show one must now write one.
+
+### `cama_replace_codes` shows each value as written
+
+`String#cama_replace_codes` now replaces all codes in one pass, and it shows each value as written.
+Before, it gave each value to `String#gsub` as the replacement text. So `\\` in a value showed one
+backslash, and `\'` the text after the code. A value that held a later code, such as `[c2]`, got
+the value of that code. The `cama_contact_form` plugin gives the method the values that a visitor
+sends.
+
+**Action:** code that puts a code into a value, to have it replaced, must replace it in a second
+call.
 
 ---
 

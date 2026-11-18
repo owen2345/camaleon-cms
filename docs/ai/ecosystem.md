@@ -369,6 +369,12 @@ Changes that look free from inside this repository and are not:
     gone.
   - The `grid_editor` callback of `camaleon_editor` returns the Hash of `append_asset_libraries`. Its
     marker still shows nothing, because a Hash output goes in as `String#sub` put it.
+- **`cama_replace_codes` in one pass** (#1345) changes no surveyed consumer. It shows each value as
+  written, and a value that holds another code keeps that code as text.
+  - `cama_contact_form` gives it the values that a visitor sends, for the subject and the body of
+    its e-mails. Such a value now shows as the visitor sent it.
+  - `camaleon-ecommerce` gives it the data of an order with the `{` format. No partial that it
+    renders into a value holds one of its codes.
 - **`update_field_value` stores a value in the form that `set_field_value` gives one value**
   changes no surveyed consumer. A Hash, an Array or `ActionController::Parameters` is stored as
   one JSON value, and `true` or `false` as `"true"` or `"false"`. Before, a Hash or an Array was

@@ -20,6 +20,10 @@ See `proposal.md`, "Why". The markup scan of PR #1345 reads each custom field va
 
 - Alternative: `output.to_s`, as the block form of `sub` does. It shows the Hash of `grid_editor` on each page of that plugin. Rejected.
 
+**D5. `cama_replace_codes` replaces all codes in one pass.** It makes the code of each key in the given format. One `gsub` with a block then replaces each place of a code. The first value of a code counts, as the first `gsub` of the loop did before. An unknown format gives the text as it is.
+
+- Alternative: the block form in each `gsub` of the loop. A later `gsub` still searches the values that an earlier one put in. Rejected.
+
 ## Risks / Trade-offs
 
 - [A shortcode whose output has a backslash sequence now shows it as written.] → Before, `\\` showed one backslash and `\0` the shortcode. A plugin that wrote two backslashes to show one now shows two. No surveyed shortcode writes a backslash sequence in its own code (`docs/ai/ecosystem.md`).
