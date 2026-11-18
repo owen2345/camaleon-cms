@@ -108,6 +108,18 @@ RSpec.describe 'CamaleonCms::ShortCodeHelper' do
       expect(helper.do_shortcode('[/title] [title]Name')).to eq('[/title] <h1></h1>Name')
     end
 
+    # The inner text of an enclosing shortcode ends at its closing tag. A closing tag after it belongs
+    # to no child of that shortcode, so a later shortcode is no child of such a child.
+    it 'replaces a shortcode after an enclosing shortcode whose child has a later closing tag' do
+      expect(helper.do_shortcode('[title][hello_world][/title] [hello name="Owen"] [/hello_world]'))
+        .to eq('<h1>Hello World</h1> Hello Owen [/hello_world]')
+    end
+
+    it 'does not replace the text of a later shortcode in the output of such a child' do
+      expect(helper.do_shortcode('[title][mirror][/title] [hello_world] [/mirror]'))
+        .to eq("<h1><i title='[hello_world]'></i></h1> Hello World [/mirror]")
+    end
+
     it 'reads a Hash output by the shortcode text, as String#sub did' do
       helper.shortcode_add('assets', ->(_attrs, _args) { { front_grid_editor: { css: ['basic.css'] } } })
       helper.shortcode_add('keyed', ->(_attrs, _args) { { '[keyed]' => 'Value' } })

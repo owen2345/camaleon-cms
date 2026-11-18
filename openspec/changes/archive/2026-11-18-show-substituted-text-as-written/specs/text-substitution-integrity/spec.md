@@ -25,6 +25,12 @@
 - **WHEN** a closing tag, such as `[/title]`, is before its shortcode or in an earlier output
 - **THEN** the shortcode SHALL be replaced as a shortcode with no closing tag, and no error SHALL be raised
 
+#### Scenario: A closing tag after an enclosing shortcode belongs to no child
+
+- **WHEN** a child of an enclosing shortcode has a closing tag only after the closing tag of its parent
+- **THEN** the child SHALL be replaced as a shortcode with no closing tag
+- **AND** a shortcode after the parent SHALL be replaced at its own place
+
 #### Scenario: An output that is no String goes in as before
 
 - **WHEN** the callback of a shortcode returns a Hash

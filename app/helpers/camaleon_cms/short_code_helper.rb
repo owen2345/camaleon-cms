@@ -155,7 +155,8 @@ module CamaleonCms
     end
 
     # Each shortcode of the content, in order. A shortcode before the closing tag of an enclosing
-    # shortcode is one of its children.
+    # shortcode is one of its children. The inner text of the parent ends at its closing tag, so a
+    # child has a closing tag only before that tag.
     def _cama_shortcode_nodes(content, regex)
       roots = []
       open = []
@@ -163,6 +164,7 @@ module CamaleonCms
         match = Regexp.last_match
         open.pop while open.any? && match.begin(0) >= open.last[:close_at]
         close_at = content.index("[/#{match[2]}]", match.end(0))
+        close_at = nil if close_at && open.any? && close_at >= open.last[:close_at]
         node = { shortcode: match[1], code: match[2], attrs: match[3], close_at: close_at, children: [] }
         (open.any? ? open.last[:children] : roots) << node
         open << node if close_at
@@ -179,7 +181,7 @@ module CamaleonCms
 
         stop = start + node[:shortcode].size
         close_code = "[/#{node[:code]}]"
-        close_at = content.index(close_code, stop)
+        close_at = node[:close_at] && content.index(close_code, stop)
         if close_at
           args[:shortcode_content] = content[stop...close_at]
           stop = close_at + close_code.size
