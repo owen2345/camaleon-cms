@@ -30,6 +30,18 @@ RSpec.describe String do
       expect('[c1]'.cama_replace_codes({ c1: 'first', 'c1' => 'second' })).to eq('first')
     end
 
+    # A Regexp raises an ArgumentError on a text with invalid bytes, such as a Latin-1 template that
+    # Ruby reads as UTF-8. The loop before replaced the codes of such a text.
+    it 'replaces the codes of a text with invalid bytes in one pass, and keeps its encoding' do
+      text = (+"Caf\xE9 [c1] [c2] [é]").force_encoding(Encoding::UTF_8)
+      expect(text).not_to be_valid_encoding
+
+      result = text.cama_replace_codes('c1' => '\0 [c2]', 'c2' => 'x', 'é' => 'y')
+
+      expect(result.b).to eq("Caf\xE9 \\0 [c2] x y".b)
+      expect(result.encoding).to eq(Encoding::UTF_8)
+    end
+
     it 'returns the text as it is for an unknown format' do
       expect('[c1]'.cama_replace_codes({ c1: 'x' }, '<')).to eq('[c1]')
     end

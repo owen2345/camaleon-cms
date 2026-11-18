@@ -25,6 +25,10 @@ See `proposal.md`, "Why". The markup scan of PR #1345 reads each custom field va
 **D5. `cama_replace_codes` replaces all codes in one pass.** It makes the code of each key in the given format. One `gsub` with a block then replaces each place of a code. The first value of a code counts, as the first `gsub` of the loop did before. An unknown format gives the text as it is.
 
 - Alternative: the block form in each `gsub` of the loop. A later `gsub` still searches the values that an earlier one put in. Rejected.
+- A text with invalid bytes is matched by its bytes. A Regexp raises `ArgumentError` on such a text, and the loop before replaced its codes with a String pattern. The maintainer chose to keep that result on 2026-11-18. No surveyed caller gives such a text: each call runs `translate` first, which raises on it.
+- A valid text is never matched by its bytes. In an encoding such as Shift_JIS, a byte of a character can equal `[`.
+- Alternative: let the method raise, and say so in the upgrade note. A plugin that reads a template file in Latin-1 then gets an error in place of a mail. Rejected.
+- Alternative: rescue the error and run the loop before. That loop reads a backslash sequence and searches each value again. Rejected.
 
 **D6. `draw_menu` interpolates its items.** It renders the items first and puts them into the container string. The placeholder `{__}` is gone.
 

@@ -80,6 +80,9 @@ class String
   # sample: "Hello [c1]".cama_replace_codes({c1: 'World'}) ==> Hello World
   # One pass replaces all codes, so a value is not searched for a later code. The block form shows a
   # backslash sequence of a value as written.
+  # A Regexp raises an error on a text with invalid bytes, so the method matches such a text by its
+  # bytes, as the String pattern of the loop before did. It never matches a valid text by its bytes:
+  # in an encoding such as Shift_JIS, a byte of a character can equal `[`.
   def cama_replace_codes(values, format_code = '[')
     opening, closing = { '[' => ['[', ']'], '{' => ['{', '}'], '%{' => ['%{', '}'] }[format_code]
     return self unless opening
@@ -91,8 +94,10 @@ class String
       replacements[code] = v.to_s unless replacements.key?(code)
     end
     return self if replacements.empty?
+    return gsub(Regexp.union(replacements.keys)) { |code| replacements[code] } if valid_encoding?
 
-    gsub(Regexp.union(replacements.keys)) { |code| replacements[code] }
+    codes = replacements.to_h { |code, value| [code.b, value.b] }
+    b.gsub(Regexp.union(codes.keys)) { |code| codes[code] }.force_encoding(encoding)
   end
 
   # remove double or more secuencial slashes, like: '/a//b/c/d///abs'.cama_fix_slash => /a/b/c/d/abs

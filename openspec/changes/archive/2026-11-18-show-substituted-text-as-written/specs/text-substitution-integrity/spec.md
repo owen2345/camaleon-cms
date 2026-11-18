@@ -51,7 +51,7 @@
 
 ### Requirement: Each code value shows as written
 
-`String#cama_replace_codes` SHALL replace all codes of the text in one pass. It SHALL show each value as written, also a backslash sequence in it. It SHALL NOT search a value that it put in for another code.
+`String#cama_replace_codes` SHALL replace all codes of the text in one pass. It SHALL show each value as written, also a backslash sequence in it. It SHALL NOT search a value that it put in for another code. For a text with invalid bytes, it SHALL replace the codes by their bytes and raise no error.
 
 #### Scenario: A backslash sequence in a value shows as written
 
@@ -77,6 +77,12 @@
 
 - **WHEN** the format is not `[`, `{` or `%{`
 - **THEN** the method SHALL give the text as it is, as before
+
+#### Scenario: A text with invalid bytes gets its codes replaced
+
+- **WHEN** the text holds bytes that are not valid in its encoding, such as a Latin-1 template that Ruby reads as UTF-8
+- **THEN** the method SHALL replace each code and raise no error, as before
+- **AND** each value SHALL show as written, and the result SHALL keep the encoding of the text
 
 ### Requirement: The menu container shows its items as rendered
 
