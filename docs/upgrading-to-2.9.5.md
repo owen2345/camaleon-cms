@@ -1013,6 +1013,13 @@ sends.
 **Action:** code that puts a code into a value, to have it replaced, must replace it in a second
 call.
 
+### A menu item name shows as written
+
+`draw_menu` now puts the rendered menu items into the menu container with no replacement. Before,
+`String#sub` read a backslash sequence of an item name: `\0` showed the placeholder `{__}`, and `\k`
+with a group name raised an `IndexError`. A `{__}` in the `container_prepend` or `container_append`
+option is now text.
+
 ---
 
 ## Recommended rollout

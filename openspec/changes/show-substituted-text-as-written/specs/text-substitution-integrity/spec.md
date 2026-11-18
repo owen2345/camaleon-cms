@@ -66,3 +66,17 @@
 
 - **WHEN** the format is not `[`, `{` or `%{`
 - **THEN** the method SHALL give the text as it is, as before
+
+### Requirement: The menu container shows its items as rendered
+
+`draw_menu` SHALL put the rendered menu items into the menu container with no replacement. A backslash sequence in an item name SHALL show as written.
+
+#### Scenario: A backslash sequence in a menu item name shows as written
+
+- **WHEN** the name of a menu item holds `\0`, `\'`, `` \` ``, `\\`, `\1` or `\k'x'`
+- **THEN** the menu SHALL show that name as written, and no error SHALL be raised
+
+#### Scenario: A site with no menu gets an empty container
+
+- **WHEN** the site has no menu
+- **THEN** `draw_menu` SHALL give the container with no items, as before

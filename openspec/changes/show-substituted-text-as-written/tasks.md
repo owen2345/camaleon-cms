@@ -14,9 +14,9 @@
 
 ## 3. The menu container
 
-- [ ] 3.1 Add an example of a menu item name with a backslash sequence to `spec/helpers/camaleon_cms/frontend/nav_menu_helper_spec.rb`. Make sure that it fails before the fix.
-- [ ] 3.2 Put the menu items into the container with no replacement in `draw_menu`. Verify that the spec of 3.1 passes.
-- [ ] 3.3 Add the requirement to `text-substitution-integrity`, and the note to `docs/upgrading-to-2.9.5.md`.
+- [x] 3.1 Add an example of a menu item name with a backslash sequence to `spec/helpers/camaleon_cms/frontend/nav_menu_helper_spec.rb`. Make sure that it fails before the fix.
+- [x] 3.2 Put the menu items into the container with no replacement in `draw_menu`. Verify that the spec of 3.1 passes.
+- [x] 3.3 Add the requirement to `text-substitution-integrity`, and the note to `docs/upgrading-to-2.9.5.md`.
 
 ## 4. Shipping
 

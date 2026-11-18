@@ -348,6 +348,31 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
     end
   end
 
+  describe '#draw_menu' do
+    before { allow(helper).to receive(:current_site).and_return(@site) }
+
+    # String#sub read a backslash sequence of the items: `\0` gave the placeholder `{__}`, `\'` the end of
+    # the container, and `\k` with a name raised an IndexError.
+    it 'shows a backslash sequence of an item name as written' do
+      name = %q(Sale \0 \' \` \\\\ \1 \k'x')
+      shop = create(:nav_menu, name: 'Shop', slug: 'shop_menu', parent: @site)
+      item = create(:nav_menu_item, name: name, url: '/sale', kind: 'external', target: '', parent: shop)
+      expect(item.reload.name).to eq(name)
+
+      result = helper.draw_menu(menu_slug: 'shop_menu', container_class: 'nav')
+
+      expect(result).to include(">#{name}</a>")
+      expect(result).to end_with('</a></li></ul>')
+    end
+
+    it 'gives an empty container for a site with no menu' do
+      CamaleonCms::NavMenu.where(parent_id: @site.id).find_each(&:destroy)
+
+      expect(helper.draw_menu(container_class: 'nav', container_id: 'main'))
+        .to eq("<ul class='nav' id='main'></ul>")
+    end
+  end
+
   describe '#cama_parse_menu_item current state' do
     it 'falls back to the legacy visited post ivar when CurrentRequest is unset (regression M20)' do
       create(:nav_menu_item, name: 'Post', kind: 'post', url: '42', parent: @menu)

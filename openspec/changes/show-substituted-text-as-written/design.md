@@ -24,6 +24,12 @@ See `proposal.md`, "Why". The markup scan of PR #1345 reads each custom field va
 
 - Alternative: the block form in each `gsub` of the loop. A later `gsub` still searches the values that an earlier one put in. Rejected.
 
+**D6. `draw_menu` interpolates its items.** It renders the items first and puts them into the container string. The placeholder `{__}` is gone.
+
+- Before, `String#sub` read a backslash sequence of an item name. A `{__}` in `container_prepend` also took the items in place of the placeholder. No surveyed theme writes `{__}`.
+
+- Alternative: the block form `html.sub('{__}') { items }`. It keeps a placeholder that a theme option can hold. Rejected.
+
 ## Risks / Trade-offs
 
 - [A shortcode whose output has a backslash sequence now shows it as written.] → Before, `\\` showed one backslash and `\0` the shortcode. A plugin that wrote two backslashes to show one now shows two. No surveyed shortcode writes a backslash sequence in its own code (`docs/ai/ecosystem.md`).
