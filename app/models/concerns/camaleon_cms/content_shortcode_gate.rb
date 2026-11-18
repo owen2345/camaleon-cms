@@ -63,10 +63,10 @@ module CamaleonCms
       cama_text_with_translations(text)
     end
 
-    # String#translations keeps its result on the String. String.new gives a copy, so the attribute
-    # value keeps no result that a later change of the value makes wrong.
+    # The stored text and each text that String#translate shows. A text with no translation shows as
+    # it is stored, so it is in the list once.
     def cama_text_with_translations(text)
-      [text, *String.new(text).translations.values]
+      [text, *CamaleonCms::UnsafeMarkup.shown_texts(text)].uniq
     end
 
     # True when a new record holds a value that was already stored. False by default.

@@ -86,10 +86,17 @@ module CamaleonCms
         return false unless string.match?(SANITIZER_SIGNIFICANT)
         return true if string.bytesize > MAX_GATED_VALUE_BYTES
 
-        texts = [string]
-        # A value with no marker has no translation, so the copy and the split are not necessary.
-        texts.concat(String.new(string).translations.values) if string.include?('<!--:')
-        texts.uniq.any? { |text| unsafe_text?(text, tags, attributes) }
+        [string, *shown_texts(string)].uniq.any? { |text| unsafe_text?(text, tags, attributes) }
+      end
+
+      # Each text that String#translate shows for the string: each translation, or the string itself
+      # when it has no translation. String#translations keeps its result on the String, and dup copies
+      # that result. So this method reads the translations of a String.new copy, which has no result of
+      # an earlier text. A string with no marker has no translation, so it needs no copy and no split.
+      def shown_texts(string)
+        return [string] unless string.include?('<!--:')
+
+        String.new(string).translations_array
       end
 
       # True when the value exceeds the parse-cost ceiling. Callers refuse it with a size-specific
@@ -117,12 +124,10 @@ module CamaleonCms
       # first marker of the locale on each line, so a shown text can keep a marker. A value with no
       # translation keeps each marker.
       # The check reads the value as unsafe_html? does, so a value in another encoding gets a verdict.
-      # String#translations keeps its result on the String, and dup copies that result. So the check
-      # reads the translations of a String.new copy, which has no result of an earlier text.
       def attribute_ending_url?(value)
         string = scannable_string(value)
         string.gsub(TRANSLATION_MARKER, '').match?(URL_ATTRIBUTE_END) ||
-          String.new(string).translations_array.any? do |url|
+          shown_texts(string).any? do |url|
             url.match?(URL_ATTRIBUTE_END) || url.rstrip.match?(HTML_WHITESPACE)
           end
       end
