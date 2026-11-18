@@ -52,6 +52,7 @@ what theme/plugin developers should know.
 | Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin or theme shortcode whose output holds a backslash, or the text of another shortcode | The output now shows as written, and the other shortcode in it stays as text ([details](#a-shortcode-output-shows-as-written)) |
 | Has plugin or theme code that calls `cama_replace_codes` with a value that holds a backslash or another code | The value now shows as written, and the code in it stays as text ([details](#cama_replace_codes-shows-each-value-as-written)) |
+| Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
 
 ---
 
