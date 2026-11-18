@@ -362,11 +362,14 @@ Changes that look free from inside this repository and are not:
   pass custom-field values through a submitted form.
 - **Replacing each shortcode at its place** (#1345) changes no surveyed consumer. `do_shortcode` shows
   each output as written, and it does not search an output for a later shortcode.
-  - `cama_contact_form`, `camaleon_editor`, `camaleon-download`, `cama_image_lightbox` and three
-    themes of `camaleon_website` register shortcodes. No callback or shortcode template of them
-    writes a backslash sequence or the text of another shortcode in its own code.
-  - None reads `args[:shortcode_content]` or calls the private `_cama_replace_shortcode`, which is
-    gone.
+  - `cama_contact_form`, `camaleon_editor`, `camaleon-download`, `cama_image_lightbox`,
+    `cama-stripe-donation` and three themes of `camaleon_website` register shortcodes. No callback or
+    shortcode template of them writes a backslash sequence or the text of another shortcode in its
+    own code.
+  - The `lightbox` callback of `cama_image_lightbox` reads `args[:shortcode_content]`. An enclosing
+    shortcode still gets its inner text there, as written. No other callback or shortcode template
+    of them reads it.
+  - None of them calls the private `_cama_replace_shortcode`, which is gone.
   - The `grid_editor` callback of `camaleon_editor` returns the Hash of `append_asset_libraries`. Its
     marker still shows nothing, because a Hash output goes in as `String#sub` put it.
 - **`cama_replace_codes` in one pass** (#1345) changes no surveyed consumer. It shows each value as
