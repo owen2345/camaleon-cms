@@ -399,7 +399,8 @@ module CamaleonCms
     end
 
     # The message in the current language, or in English when that language has no translation. Only
-    # en.yml has the messages value_too_large, value_rejected_uri and value_rejected_html.
+    # en.yml has the messages value_too_large, value_rejected_uri, value_rejected_html and
+    # value_rejected_url_characters.
     #
     # The English default keeps its placeholders, so I18n fills in the slug one time. A slug can
     # hold the placeholder syntax of I18n, and a second interpolation then raises an error.
