@@ -994,7 +994,8 @@ custom field values could join into one tag through the `data` shortcode. A clos
 `NoMethodError`, and the page gave a server error.
 
 A shortcode inside an enclosing shortcode now has a closing tag only before the closing tag of that
-shortcode. A later closing tag is text. Before, the inner shortcode took in the text up to that tag.
+shortcode. A later closing tag does not close the inner shortcode. Before, the inner shortcode took in
+the text up to that tag.
 
 These do not change:
 
