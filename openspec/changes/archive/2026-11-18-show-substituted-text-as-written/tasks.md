@@ -21,4 +21,4 @@
 ## 4. Shipping
 
 - [x] 4.1 Add a sentence to the CHANGELOG entry of PR #1345.
-- [ ] 4.2 `bin/rubocop -A`, then `bin/rspec` with the specs of this change and the adjacent specs, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` and `openspec validate --all --strict`. Archive this change on the branch.
+- [x] 4.2 `bin/rubocop -A`, then `bin/rspec` with the specs of this change and the adjacent specs, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` and `openspec validate --all --strict`. Archive this change on the branch.
