@@ -372,6 +372,10 @@ Changes that look free from inside this repository and are not:
   - None of them calls the private `_cama_replace_shortcode`, which is gone.
   - The `grid_editor` callback of `camaleon_editor` returns the Hash of `append_asset_libraries`. Its
     marker still shows nothing, because a Hash output goes in as `String#sub` put it.
+- **A shortcode with no closing tag gets no inner text** (#1345). This changes one surveyed consumer.
+  The `lightbox` shortcode of `cama_image_lightbox` shows `args[:shortcode_content]`, or its `title`
+  when that is `nil`. With no closing tag, it now shows its `title`, also after an enclosing
+  shortcode. Before, it showed the inner text of that shortcode.
 - **`cama_replace_codes` in one pass** (#1345) changes no surveyed consumer. It shows each value as
   written, and a value that holds another code keeps that code as text.
   - `cama_contact_form` gives it the values that a visitor sends, for the subject and the body of

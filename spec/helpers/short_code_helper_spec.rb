@@ -133,6 +133,17 @@ RSpec.describe 'CamaleonCms::ShortCodeHelper' do
       expect { helper.do_shortcode('a [nothing] b') }.to raise_error(TypeError)
     end
 
+    # One Hash holds the arguments of all shortcodes of a text. Before, a shortcode with no closing tag
+    # read the inner text of an earlier enclosing shortcode there.
+    it 'gives no inner text to a shortcode with no closing tag after an enclosing shortcode' do
+      expect(helper.do_shortcode('[title]First[/title] [title] [modal]'))
+        .to eq('<h1>First</h1> <h1></h1> modal body = ')
+    end
+
+    it 'gives a child with no closing tag no inner text of its parent' do
+      expect(helper.do_shortcode('[title]Name [modal][/title]')).to eq('<h1>Name modal body = </h1>')
+    end
+
     it 'gives an enclosing shortcode its inner text as written' do
       contents = []
       helper.shortcode_add('collect', lambda { |_attrs, args|

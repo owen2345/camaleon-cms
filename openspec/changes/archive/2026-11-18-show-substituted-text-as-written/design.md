@@ -13,6 +13,7 @@ See `proposal.md`, "Why". The markup scan of PR #1345 reads each custom field va
 
 - A shortcode before the closing tag of an enclosing shortcode is one of its children. A child that the output does not show is not replaced.
 - The inner text of the parent ends at its closing tag. So a child has a closing tag only before that tag, and a later closing tag does not close it.
+- A shortcode with no closing tag gets no inner text. Before, `args` kept the inner text of an earlier enclosing shortcode. The `lightbox` shortcode of `cama_image_lightbox` then showed that text, not its `title`.
 - Alternative: replace the inner shortcodes first, and give the enclosing shortcode the result. It changes what `args[:shortcode_content]` holds for each plugin. Rejected.
 
 **D3. A closing tag counts only after its shortcode.** A closing tag before a shortcode, or in an earlier output, is text. Before, it raised `NoMethodError`.

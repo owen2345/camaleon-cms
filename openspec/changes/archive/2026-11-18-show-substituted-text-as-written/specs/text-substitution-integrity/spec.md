@@ -2,7 +2,7 @@
 
 ### Requirement: Each shortcode output shows as the shortcode gives it
 
-`do_shortcode` and `render_shortcode` SHALL replace each shortcode of a text at its place, from left to right. They SHALL show each output as written, also a backslash sequence in it. They SHALL NOT search an output for a later shortcode. An enclosing shortcode SHALL get its inner text as written. The shortcodes of that text SHALL then be replaced in its output in the same way.
+`do_shortcode` and `render_shortcode` SHALL replace each shortcode of a text at its place, from left to right. They SHALL show each output as written, also a backslash sequence in it. They SHALL NOT search an output for a later shortcode. An enclosing shortcode SHALL get its inner text as written. The shortcodes of that text SHALL then be replaced in its output in the same way. A shortcode with no closing tag SHALL get no inner text.
 
 #### Scenario: A backslash sequence in an output shows as written
 
@@ -43,6 +43,11 @@
 - **THEN** it SHALL get `[hello name="Owen"]` as its inner text
 - **AND** the shortcodes of that inner text SHALL then be replaced in its output
 - **AND** the text SHALL show `<h1>Hello Owen</h1>` when the output of `[title]` is the inner text in an `h1` element
+
+#### Scenario: A shortcode with no closing tag gets no inner text
+
+- **WHEN** a shortcode with no closing tag is after an enclosing shortcode, or inside one
+- **THEN** `args[:shortcode_content]` SHALL hold no inner text for it
 
 ### Requirement: Each code value shows as written
 

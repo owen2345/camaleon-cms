@@ -182,9 +182,13 @@ module CamaleonCms
         stop = start + node[:shortcode].size
         close_code = "[/#{node[:code]}]"
         close_at = node[:close_at] && content.index(close_code, stop)
+        # args is one Hash for all shortcodes of the text. A shortcode with no closing tag has no inner
+        # text, so it must not read the inner text of an earlier enclosing shortcode there.
         if close_at
           args[:shortcode_content] = content[stop...close_at]
           stop = close_at + close_code.size
+        else
+          args.delete(:shortcode_content)
         end
         matched = content[start...stop]
         args[:shortcode] = matched

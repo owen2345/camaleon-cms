@@ -51,6 +51,7 @@ what theme/plugin developers should know.
 | Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value whose `owner` is a record of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin or theme shortcode whose output holds a backslash, or the text of another shortcode | The output now shows as written, and the other shortcode in it stays as text ([details](#a-shortcode-output-shows-as-written)) |
+| Has a plugin or theme shortcode that reads `args[:shortcode_content]` | A shortcode with no closing tag now reads `nil` there. Before, it read the inner text of an earlier enclosing shortcode ([details](#a-shortcode-output-shows-as-written)) |
 | Has plugin or theme code that calls `cama_replace_codes` with a value that holds a backslash or another code | The value now shows as written, and the code in it stays as text ([details](#cama_replace_codes-shows-each-value-as-written)) |
 | Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
 
@@ -996,6 +997,9 @@ custom field values could join into one tag through the `data` shortcode. A clos
 A shortcode inside an enclosing shortcode now has a closing tag only before the closing tag of that
 shortcode. A later closing tag does not close the inner shortcode. Before, the inner shortcode took in
 the text up to that tag.
+
+A shortcode with no closing tag now gets no inner text: `args[:shortcode_content]` is `nil` for it.
+Before, it read the inner text of an earlier enclosing shortcode of the same `do_shortcode` call.
 
 These do not change:
 
