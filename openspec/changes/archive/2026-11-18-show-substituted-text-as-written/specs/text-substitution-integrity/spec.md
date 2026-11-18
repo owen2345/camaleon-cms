@@ -79,7 +79,7 @@
 
 #### Scenario: A backslash sequence in a menu item name shows as written
 
-- **WHEN** the name of a menu item holds `\0`, `\'`, `` \` ``, `\\`, `\1` or `\k'x'`
+- **WHEN** the name of a menu item holds `\0`, `\'`, `` \` ``, `\\`, `\1` or `\k<b>`
 - **THEN** the menu SHALL show that name as written, and no error SHALL be raised
 
 #### Scenario: A site with no menu gets an empty container

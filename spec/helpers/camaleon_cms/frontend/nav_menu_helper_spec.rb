@@ -352,9 +352,9 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
     before { allow(helper).to receive(:current_site).and_return(@site) }
 
     # String#sub read a backslash sequence of the items: `\0` gave the placeholder `{__}`, `\'` the end of
-    # the container, and `\k` with a name raised an IndexError.
+    # the container, and `\k<b>` raised an IndexError, because `sub` read `b` as a group name.
     it 'shows a backslash sequence of an item name as written' do
-      name = %q(Sale \0 \' \` \\\\ \1 \k'x')
+      name = %q(Sale \0 \' \` \\\\ \1 \k<b>x</b>)
       shop = create(:nav_menu, name: 'Shop', slug: 'shop_menu', parent: @site)
       item = create(:nav_menu_item, name: name, url: '/sale', kind: 'external', target: '', parent: shop)
       expect(item.reload.name).to eq(name)
