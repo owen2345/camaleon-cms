@@ -125,7 +125,7 @@ The pieces that implement the rule:
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its
   field values); no request context means the gate applies. A holder of `settings` or `custom_fields` also
-  passes for the custom field values of each owner that is not a post. These two permissions give
+  passes for the field values of each owner except a post, another site and its themes. These two permissions give
   the trust of an administrator. A holder of `theme_settings` passes for those of a theme of the
   current site, the values of the theme settings save. For a site or a theme of another site, only
   an admin passes. Trusted server-side pipelines

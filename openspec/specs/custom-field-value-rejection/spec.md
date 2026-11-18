@@ -17,8 +17,9 @@ of the value:
 - For the fields of a post, a saver that holds `post_content_unfiltered_html` for the post type SHALL
   bypass the gate. The permission that governs the post body governs the fields of the post.
 - For the fields of an owner that is not a post, a saver that holds `settings` or `custom_fields`
-  SHALL bypass the gate. These two permissions give a role the trust of an administrator. Examples
-  are the current site, a theme, a category, a post tag, a user, a nav menu item and a post type.
+  SHALL bypass the gate. This SHALL NOT apply to another site or its themes (the last item). These
+  two permissions give a role the trust of an administrator. Examples are the current site, its theme,
+  a category, a post tag, a user, a nav menu item and a post type.
 - For the fields of a theme of the current site, a saver that holds `theme_settings` SHALL bypass
   the gate too. That permission allows the save of the theme settings, which holds these fields.
 - For the fields of another site or of its theme, only an admin SHALL bypass the gate. The same

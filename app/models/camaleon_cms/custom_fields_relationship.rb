@@ -24,8 +24,8 @@ module CamaleonCms
     # role that puts a shortcode of another kind inside a tag chooses that position (intended).
     URI_FIELD_KEYS = %w[url image audio video file].freeze
     # The settings and custom_fields permissions give a role the trust of an administrator
-    # (docs/security/permissions.md). So a holder of one of them is trusted for the values of an
-    # owner that is not a post (owner_trust_abilities).
+    # (docs/security/permissions.md). So a holder of one of them is trusted for the values of each
+    # owner except a post, another site and its themes (owner_trust_abilities).
     ADMIN_TRUST_ABILITIES = [%i[manage settings], %i[manage custom_fields]].freeze
     # An author can add a repeatable field group (is_repeat) to a post several times. For example, a
     # "Slide" group holds an image and a caption, and the author adds it one time for each slide.
