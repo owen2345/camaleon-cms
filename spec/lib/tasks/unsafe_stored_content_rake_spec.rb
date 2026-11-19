@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# The scan_content task must report every stored value today's gates would refuse -- field_attrs
-# values as well as editor/URI values, post summaries, templates and layouts outside the site's
+# The scan_content task must report every stored value today's gates would refuse -- custom field
+# values of every kind, post summaries, templates and layouts outside the site's
 # theme, options rows that are not JSON objects -- so an operator cleaning up pre-gate data is not
 # handed a false all-clear. Nothing stored is rewritten; listing is the only remedy for history.
 RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
@@ -50,6 +50,17 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
     row = post_record.custom_field_values.find_by(custom_field_slug: 'scan_ok')
 
     expect { task.invoke }.not_to output(/Custom-field value id=#{row.id}\b.*would be rejected/).to_stdout
+  end
+
+  it 'flags a stored text_box value that would fail the gate' do
+    field = group.add_manual_field({ name: 'Note', slug: 'scan_note' }, { field_key: 'text_box' })
+    post_record.set_field_value('scan_note', 'plain', field_id: field.id)
+    row = post_record.custom_field_values.find_by(custom_field_slug: 'scan_note')
+    # A value stored before the scan covered every field kind.
+    row.update_column(:value, '<script>alert(1)</script>') # rubocop:disable Rails/SkipsModelValidations
+
+    expect { task.invoke }
+      .to output(/Custom-field value id=#{row.id}\b.*text_box.*would be rejected/m).to_stdout
   end
 
   # A post type's decorator class option is checked at save; a value stored before the check is

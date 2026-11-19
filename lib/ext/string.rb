@@ -78,15 +78,29 @@ class String
 
   # parse all codes in current text to replace with values
   # sample: "Hello [c1]".cama_replace_codes({c1: 'World'}) ==> Hello World
+  # One pass replaces all codes, so a value is not searched for a later code. The block form shows a
+  # backslash sequence of a value as written.
+  # A Regexp raises an error on a text with invalid bytes, so the method matches such a text by its
+  # bytes. In UTF-8, the String pattern of the loop before found the same places. It never matches a
+  # valid text by its bytes: in an encoding such as Shift_JIS, a byte of a character can equal `[`.
+  # In a text with invalid bytes, the byte match also replaces a code that starts at such a byte, which
+  # the loop before did not (intended).
   def cama_replace_codes(values, format_code = '[')
-    res = self
+    opening, closing = { '[' => ['[', ']'], '{' => ['{', '}'], '%{' => ['%{', '}'] }[format_code]
+    return self unless opening
+
+    replacements = {}
     values.each do |k, v|
       v = v.join(',') if v.is_a?(Array)
-      res = res.gsub("[#{k}]", v.to_s) if format_code == '['
-      res = res.gsub("{#{k}}", v.to_s) if format_code == '{'
-      res = res.gsub("%{#{k}}", v.to_s) if format_code == '%{'
+      code = "#{opening}#{k}#{closing}"
+      replacements[code] = v.to_s unless replacements.key?(code)
     end
-    res
+    return self if replacements.empty?
+    return gsub(Regexp.union(replacements.keys)) { |code| replacements[code] } if valid_encoding?
+
+    # Two keys with the same bytes in two encodings are one code here, and its first value counts.
+    codes = replacements.each_with_object({}) { |(code, value), found| found[code.b] ||= value.b }
+    b.gsub(Regexp.union(codes.keys)) { |code| codes[code] }.force_encoding(encoding)
   end
 
   # remove double or more secuencial slashes, like: '/a//b/c/d///abs'.cama_fix_slash => /a/b/c/d/abs

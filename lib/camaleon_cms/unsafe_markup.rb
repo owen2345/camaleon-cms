@@ -54,6 +54,11 @@ module CamaleonCms
     # rejection message names.
     OPEN_ATTR_NAME = /\A(?:data|aria)-[a-zA-Z][-a-zA-Z0-9_.]*\z/
 
+    # A character that ends an HTML attribute value. A URL can encode each of them (%22 for `"`, %27 for `'`).
+    URL_ATTRIBUTE_END = /["'<>`]/
+    # The whitespace that ends an attribute value with no quotes, as the HTML parser reads it.
+    HTML_WHITESPACE = /[\t\n\f\r ]/
+
     # rails-html-sanitizer >= 1.6 exposes the scrubber under Rails::HTML (all caps); older releases
     # (valid with Rails 6.1/7.0, which this gem supports) expose only Rails::Html. Resolve whichever
     # the host bundled so the engine loads across the whole supported range.
@@ -81,10 +86,17 @@ module CamaleonCms
         return false unless string.match?(SANITIZER_SIGNIFICANT)
         return true if string.bytesize > MAX_GATED_VALUE_BYTES
 
-        texts = [string]
-        # A value with no marker has no translation, so the copy and the split are not necessary.
-        texts.concat(String.new(string).translations.values) if string.include?('<!--:')
-        texts.uniq.any? { |text| unsafe_text?(text, tags, attributes) }
+        [string, *shown_texts(string)].uniq.any? { |text| unsafe_text?(text, tags, attributes) }
+      end
+
+      # Each text that String#translate shows for the string: each translation, or the string itself
+      # when it has no translation. String#translations keeps its result on the String, and dup copies
+      # that result. So this method reads the translations of a String.new copy, which has no result of
+      # an earlier text. A string with no marker has no translation, so it needs no copy and no split.
+      def shown_texts(string)
+        return [string] unless string.include?('<!--:')
+
+        String.new(string).translations_array
       end
 
       # True when the value exceeds the parse-cost ceiling. Callers refuse it with a size-specific
@@ -98,6 +110,39 @@ module CamaleonCms
       # strips. For values a renderer emits into a URL position (href/src).
       def dangerous_uri?(value)
         CamaleonCms::ContentSecurity.blocked_scheme?(value.to_s)
+      end
+
+      # True when a URL value holds a character that ends an HTML attribute: a quote, an angle
+      # bracket, a backtick, or whitespace before another character. A page can put the value
+      # inside a tag, as in <img src="[data field='photo']">. Without quotes, as in
+      # <img src=https://cdn.test/[data field='photo']>, whitespace ends the value, and the characters
+      # after it become a new attribute. So leading whitespace is refused too. Whitespace at the end
+      # passes: no character of the value follows it.
+      # A translated value holds the translation markers that the admin form writes. The data shortcode
+      # shows one translation, without the markers that separate the translations. So those markers
+      # pass, and both rules read each text that String#translate shows. translate removes only the
+      # first marker of the locale on each line, so a shown text can keep a marker. A value with no
+      # translation keeps each marker.
+      # The check reads the value as unsafe_html? does, so a value in another encoding gets a verdict.
+      def attribute_ending_url?(value)
+        string = scannable_string(value)
+        string.gsub(TRANSLATION_MARKER, '').match?(URL_ATTRIBUTE_END) ||
+          shown_texts(string).any? do |url|
+            url.match?(URL_ATTRIBUTE_END) || url.rstrip.match?(HTML_WHITESPACE)
+          end
+      end
+
+      # The gate only reads, never stores. A value in another encoding, or with invalid bytes, makes
+      # a `match?` of the scan raise ArgumentError -- a 500 on save and an abort of the scan task --
+      # so the scan reads a UTF-8 copy. A database stores a valid String in another encoding, such
+      # as UTF-16, as UTF-8 text, so the copy converts it. Any other value is read as scrubbed bytes:
+      # invalid byte sequences cannot spell markup. The stored bytes are never touched (reject, don't
+      # transform).
+      def scannable_string(value)
+        string = value.to_s
+        return string if string.encoding == Encoding::UTF_8 && string.valid_encoding?
+
+        utf8_copy(string) || string.b.force_encoding(Encoding::UTF_8).scrub
       end
 
       private
@@ -146,15 +191,14 @@ module CamaleonCms
         nil
       end
 
-      # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding would
-      # make the `match?` below raise ArgumentError -- a 500 on save and an abort of the scan task --
-      # so scan a scrubbed UTF-8 copy instead. The stored bytes are never touched (reject, don't
-      # transform), and invalid byte sequences cannot spell markup anyway.
-      def scannable_string(value)
-        string = value.to_s
-        return string if string.encoding == Encoding::UTF_8 && string.valid_encoding?
+      # The UTF-8 copy of a valid String in another encoding, or nil when Ruby cannot convert it
+      # (UTF-7). A binary String keeps its bytes, which are often UTF-8 already.
+      def utf8_copy(string)
+        return if string.encoding == Encoding::BINARY || !string.valid_encoding?
 
-        string.b.force_encoding(Encoding::UTF_8).scrub
+        string.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+      rescue EncodingError
+        nil
       end
 
       def scrubber_for(tags, attributes)

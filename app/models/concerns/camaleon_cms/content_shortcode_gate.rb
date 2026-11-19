@@ -15,10 +15,10 @@ module CamaleonCms
     extend ActiveSupport::Concern
 
     class_methods do
-      # Gate the named attribute(s) on create/update. Each attribute is scanned in its RAW stored
-      # form -- which contains every locale of a translatable value at once, so a shortcode in any
-      # locale is caught -- and, if a registered shortcode is present and the actor is a
-      # non-administrator lacking `content_shortcodes`, the save is refused with a base error.
+      # Gate the named attribute(s) on create/update. The gate scans each attribute as stored and as
+      # each renderer gives it to do_shortcode (cama_shortcode_texts). If a registered shortcode is
+      # present and the actor is a non-administrator lacking `content_shortcodes`, the save is
+      # refused with a base error.
       def gate_content_shortcodes(*attributes, on: %i[create update])
         gated = attributes.map(&:to_sym)
         validate(on: on) { cama_reject_unauthorized_shortcodes(gated) }
@@ -34,16 +34,39 @@ module CamaleonCms
       errors.add(:base, cama_shortcode_rejection_message)
     end
 
-    # An attribute needs the gate only when it (a) changed on this save (or the record is new) -- so
-    # a title-only edit never re-gates pre-existing shortcode content, mirroring
-    # Post#reject_untrusted_dangerous_content -- and (b) actually contains a registered shortcode.
+    # The gate checks an attribute only when both of these are true:
+    # - The attribute changed on this save, or the record is new. So an edit of the title only does
+    #   not check the shortcode content that was stored before. Post#reject_untrusted_dangerous_content
+    #   does the same.
+    # - A text that a renderer gives to do_shortcode contains a registered shortcode.
     # A model that creates a row again for an unchanged value says so with cama_gate_unchanged?.
+    #
+    # The gate reads the value as it is, with no copy in UTF-8 (intended). On each Camaleon save, a
+    # String in UTF-16 or with invalid bytes makes the model code raise an encoding error before the
+    # gate, also for an administrator. Examples are NormalizeAttrs, String#squish and String#to_var.
+    # So nothing is stored, and a request cannot send such a String: Rails answers with a 400.
     def cama_shortcode_attr_gated?(attr)
       return false unless new_record? || cama_gate_attribute_changed?(attr)
       return false if cama_gate_unchanged?(attr)
 
       value = self[attr]
-      value.present? && CamaleonCms::ShortcodeRegistry.content_has_shortcode?(value.to_s)
+      return false if value.blank?
+
+      cama_shortcode_texts(attr, value.to_s).any? { |text| CamaleonCms::ShortcodeRegistry.content_has_shortcode?(text) }
+    end
+
+    # The texts that a renderer gives to do_shortcode: the stored text and each translation of it.
+    # String#translate removes the translation marker of a later line, so a translation can join a
+    # shortcode that the stored text does not contain. A model adds the texts that its own renderers
+    # decode.
+    def cama_shortcode_texts(_attr, text)
+      cama_text_with_translations(text)
+    end
+
+    # The stored text and each text that String#translate shows. A text with no translation shows as
+    # it is stored, so it is in the list once.
+    def cama_text_with_translations(text)
+      [text, *CamaleonCms::UnsafeMarkup.shown_texts(text)].uniq
     end
 
     # True when a new record holds a value that was already stored. False by default.

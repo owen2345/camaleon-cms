@@ -9,56 +9,27 @@ invalid group number is refused too, for each author.
 
 ## Requirements
 
-### Requirement: Dangerous custom-field values are rejected on save for untrusted authors
-
-The system SHALL validate every custom-field value row on save according to its rendered position.
-For `editor` values (rendered as markup), content containing anything outside the post-content
-allowlist — script elements, event-handler attributes, script-capable URI schemes, disallowed
-elements, non-translation-marker comments, structurally deceptive markup (tags the parser drops or
-that stay open, translation markers inside tags), or values beyond the parse size bound — SHALL be
-refused. For URI-type values (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
-(`javascript:`, `vbscript:`, non-raster `data:`) SHALL be refused. The value SHALL NOT be sanitized,
-escaped, or otherwise rewritten: it is stored exactly as written or not stored at all. Field types
-whose values render through escaping ERB as element content SHALL NOT be gated. The gate SHALL apply
-on every value-write path (including `update_field_value`), not only the admin form. The same
-per-field-type dispatch SHALL back the `scan_content` audit task, so it reports exactly the stored
-values the gate would refuse (editor, `field_attrs`, and URI types).
-
-#### Scenario: Untrusted author's script editor value is refused
-
-- **WHEN** a role without `post_content_unfiltered_html` saves an editor field value containing a
-  `<script>` element
-- **THEN** the save is refused with an error naming the field, and no value row is stored
-
-#### Scenario: Untrusted author's legitimate rich text is stored unchanged
-
-- **WHEN** the same role saves an editor value containing tables and formatting within the
-  post-content allowlist
-- **THEN** the value is stored byte-for-byte as written
-
-#### Scenario: Script-capable URL in a URI field is refused
-
-- **WHEN** an untrusted author saves a `url`-type field value of `javascript:alert(1)`
-- **THEN** the save is refused and no value row is stored
-
-#### Scenario: Escaped positions carry no gate
-
-- **WHEN** an untrusted author saves a `text_box` value containing markup
-- **THEN** the value is stored as written (its renderer escapes it as element content)
-
-#### Scenario: update_field_value routes through the gate
-
-- **WHEN** an untrusted author writes a dangerous value through `update_field_value`
-- **THEN** the gate refuses it and the value is not stored (the API SHALL NOT bypass validations)
-
 ### Requirement: Trusted authors and explicit pipelines bypass the gate
 
-Admins SHALL always be able to store any value. For fields attached to a post, a saver holding
-`post_content_unfiltered_html` for the post type SHALL bypass the gate (the capability that governs
-the post body governs the body's fields). Fields of non-post objects SHALL be admin-only for
-unfiltered values. When no request context exists the gate SHALL apply (fail closed), with
-`CustomFieldsRelationship#unfiltered_value!` — a reader plus bang enabler with no writer — as the
-explicit opt-out for trusted server-side pipelines.
+Admins SHALL always be able to store any value. The other trusted authors SHALL depend on the owner
+of the value:
+
+- For the fields of a post, a saver that holds `post_content_unfiltered_html` for the post type SHALL
+  bypass the gate. The permission that governs the post body governs the fields of the post.
+- For the fields of an owner that is not a post, a saver that holds `settings` or `custom_fields`
+  SHALL bypass the gate. This SHALL NOT apply to another site or its themes (the last item). These
+  two permissions give a role the trust of an administrator. Examples are the current site, its theme,
+  a category, a post tag, a user, a nav menu item and a post type.
+- For the fields of a theme of the current site, a saver that holds `theme_settings` SHALL bypass
+  the gate too. That permission allows the save of the theme settings, which holds these fields.
+- For the fields of another site or of its theme, only an admin SHALL bypass the gate. The same
+  applies to a value with no owner.
+
+The trust check SHALL find the owner of a value by its Camaleon class. This SHALL hold also when the
+host app has a top-level class of the same name, such as `Post`.
+
+When no request context exists, the gate SHALL apply (fail closed). A trusted server-side pipeline
+opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang enabler with no writer.
 
 #### Scenario: Admin stores a script editor value verbatim
 
@@ -70,6 +41,49 @@ explicit opt-out for trusted server-side pipelines.
 - **WHEN** a non-admin role holding `post_content_unfiltered_html` for the post type saves a script
   editor value on a post of that type
 - **THEN** the value is stored exactly as written
+
+#### Scenario: A settings holder is trusted for the fields of the site
+
+- **WHEN** a non-admin role that holds `settings` saves the site settings with a `text_box` site field
+  value that holds a `<script>` element
+- **THEN** the value is stored exactly as written
+
+#### Scenario: A theme_settings holder is trusted for the fields of a theme
+
+- **WHEN** a non-admin role that holds `theme_settings` saves the theme settings with a `text_box`
+  theme field value that holds a `<script>` element
+- **THEN** the value is stored exactly as written
+
+#### Scenario: A settings or custom_fields holder is trusted for the fields of other owners
+
+- **WHEN** a non-admin role that holds `settings` or `custom_fields` saves a theme field value and a
+  category field value that hold a `<script>` element
+- **THEN** each value is stored exactly as written
+
+#### Scenario: A settings or custom_fields holder is not trusted for the fields of a post
+
+- **WHEN** a non-admin role that holds `settings` or `custom_fields`, but not
+  `post_content_unfiltered_html`, saves a post field value that holds a `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: A settings holder is not trusted for the fields of another site
+
+- **WHEN** a non-admin role that holds `settings` saves a field value of another site that holds a
+  `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: A theme_settings holder is not trusted for the fields of another owner
+
+- **WHEN** a non-admin role that holds only `theme_settings` saves a site or a category field value
+  that holds a `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: A top-level Post model of the host app does not change the trust
+
+- **WHEN** the host app has a top-level `Post` model
+- **AND** a non-admin role that holds `settings`, but not `post_content_unfiltered_html`, saves a post
+  field value that holds a `<script>` element
+- **THEN** the save is refused, and no value row is stored
 
 #### Scenario: Missing request context fails closed
 
@@ -104,7 +118,7 @@ the field, as a refused admin save answers (the requirement "A refused admin sav
 
 For `field_attrs` values — stored as JSON whose string members the frontend emits as markup — the
 system SHALL parse the stored JSON and apply the markup gate to each **decoded** member of any JSON
-shape (object, array, or nested), so that
+shape (object, array, or nested), and to each key of an object, so that
 markup hidden by JSON unicode-escaping (\u003c stored instead of a literal `<`) is refused exactly like literal markup;
 a value that does not parse SHALL be scanned as stored. Trust, fail-closed and opt-out semantics
 SHALL be those of the custom-field gate. When the stored JSON is an object the renderer SHALL emit
@@ -119,7 +133,8 @@ value that is not an object (array or scalar) SHALL render nothing rather than r
 
 #### Scenario: Benign pairs are stored and rendered byte-for-byte
 
-- **WHEN** an untrusted author saves a pair whose members stay within the markup allowlist
+- **WHEN** an untrusted author saves a pair whose members, stored JSON and Ruby text of each object
+  or array member stay in the markup allowlist
 - **THEN** the pair is stored exactly as written and the frontend renders the attribute name and
   the value verbatim
 
@@ -159,27 +174,6 @@ actually changes SHALL be gated.
 - **THEN** the save succeeds and the legacy value is preserved
 - **AND WHEN** the author changes that value itself
 - **THEN** the gate re-runs and refuses it
-
-### Requirement: The gated field type is resolved from the slug, not a client-supplied id
-
-`set_field_values` SHALL resolve each value row's `custom_field_id` from the trusted field slug — the
-field registered under that slug on the object — not from the client-supplied `id`. Because the gate
-selects a value's rendered position from its field's `field_key`, a forged `id` naming a non-gated
-field MUST NOT let a value written under a gated slug (`editor`, URI types, `field_attrs`) skip the
-gate. When the slug names no field on the object the caller-supplied `id` MAY stand (trusted internal
-callers); permitted browser payloads always name registered slugs.
-
-#### Scenario: A forged non-gated id does not bypass the gate
-
-- **WHEN** an untrusted author submits a value for a gated `editor` slug carrying the `id` of a
-  different, non-gated `text_box` field, with dangerous markup as the value
-- **THEN** the value is gated as an `editor` value (its field resolved from the slug) and refused,
-  storing nothing
-
-#### Scenario: The stored row names the slug's field
-
-- **WHEN** a value is saved for a slug while a different field's `id` is submitted alongside it
-- **THEN** the stored row's `custom_field_id` is the id of the field the slug names
 
 ### Requirement: A custom-field value validates its group number
 
@@ -609,3 +603,212 @@ GET or HEAD request is no submitted save and SHALL be raised, not answered.
 
 - **WHEN** a category save by XHR carries `meta[]=x`
 - **THEN** the response is a 422 with the message as text, and no option is stored
+
+### Requirement: A custom-field value of every kind is scanned on save for untrusted authors
+
+The system SHALL validate every custom-field value row on save, for every field kind. The `data`
+shortcode puts a stored value of any kind into a page as markup. So no kind is safe without the scan.
+
+- For a value of any kind, content outside the post-content allowlist SHALL be refused. Examples are script elements, event-handler attributes, script-capable URI schemes and
+  disallowed elements. Comments that are not translation markers are refused too. So is deceptive
+  markup: tags that the parser drops or that stay open, and translation markers inside tags.
+- For a URI-type value (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
+  (`javascript:`, `vbscript:`, non-raster `data:`) SHALL also be refused.
+- For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace before
+  another character SHALL also be refused. A `data` shortcode inside a tag puts the value into an
+  attribute, and each of these characters ends the attribute. A URL can encode them, such as `%27` for `'`. Whitespace
+  at the end of the value SHALL pass: no character of the value follows it. The translation markers
+  of a translated value SHALL pass, because the shortcode shows one translation without them.
+- For a URI-type value, the scheme rule and the character rule SHALL also read each text that
+  `String#translate` shows. That text can keep a marker, or join a scheme across one.
+- For a value of any kind that parses as JSON, each key and decoded member SHALL be held to the
+  allowlist too. `the_json_field` parses a value of any kind. The scan SHALL also parse each
+  translation of the value, because the `field_attrs` template translates the value before it parses
+  it. The scan SHALL include each member of a key that occurs twice in an object. The parse keeps
+  only the last of them, but the stored JSON keeps each one.
+- For such a value, the `field_attrs` template and `the_json_field` show a member of the object with
+  `to_s`. So a member that is an object or an array SHALL also be held to the allowlist as its Ruby
+  text. That text writes each quote of a String as `\"`.
+- A `field_attrs` pair that code stores as a Hash keeps `<` and writes each attribute quote as `\"`.
+  So the scan of the stored value can refuse a tag with an attribute in such a pair, such as a link
+  (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
+- A value beyond the parse size bound SHALL be refused for every kind.
+
+The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or
+not stored at all. The gate SHALL apply on every value-write path (including `update_field_value`),
+not only the admin form. The same dispatch SHALL back the `scan_content` audit task, so it reports
+exactly the stored values of every kind that the gate refuses.
+
+A value of another kind gets no rule for a position inside a tag. Only an admin or a holder of
+`content_shortcodes` can place a shortcode, and that role chooses the position (intended).
+
+#### Scenario: Untrusted author's script editor value is refused
+
+- **WHEN** a role without `post_content_unfiltered_html` saves an editor field value containing a
+  `<script>` element
+- **THEN** the save is refused with an error naming the field, and no value row is stored
+
+#### Scenario: Untrusted author's legitimate rich text is stored unchanged
+
+- **WHEN** the same role saves an editor value containing tables and formatting within the
+  post-content allowlist
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: Script-capable URL in a URI field is refused
+
+- **WHEN** an untrusted author saves a `url`-type field value of `javascript:alert(1)`
+- **THEN** the save is refused and no value row is stored
+
+#### Scenario: Markup in a URI field is refused
+
+- **WHEN** an untrusted author saves a `url`-type field value of `https://example.com/"><script>alert(1)</script>`
+- **THEN** the save is refused and no value row is stored
+
+#### Scenario: A quote in a URL value is refused
+
+- **WHEN** an administrator puts `<img src="[data field='photo']">` in the content of a post
+- **AND** an untrusted author saves the `image` value `x" onerror="alert(1)` in the field `photo` of
+  that post
+- **THEN** the save is refused, and the page of the post holds no event handler of the author
+
+#### Scenario: A leading space in a URL value is refused
+
+- **WHEN** an administrator puts `<img src=https://cdn.example.test/[data field='photo']>`, with no
+  quotes, in the content of a post
+- **AND** an untrusted author saves the `image` value ` onerror=alert(1)` in the field `photo` of
+  that post
+- **THEN** the save is refused, and the page of the post holds no event handler of the author
+
+#### Scenario: A URL value with whitespace at its end is stored unchanged
+
+- **WHEN** an untrusted author saves a `url`-type value of `https://example.com/page` followed by a
+  space or a line break
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A translated URL value is stored unchanged
+
+- **WHEN** an untrusted author saves the translated `url`-type value
+  `<!--:en-->https://example.com/en<!--:--><!--:es-->https://example.com/es<!--:-->`
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A script URL that a translation joins is refused
+
+- **WHEN** an untrusted author saves a `url`-type value of `<!--:-->java<!--:en-->script:alert(1)`,
+  a line break and `<!--:en-->`
+- **THEN** the save is refused, because `translate` shows `javascript:alert(1)`, and no value row is
+  stored
+
+#### Scenario: A marker that the shortcode shows in a URL value is refused
+
+- **WHEN** an untrusted author saves an `image`-type value of `https://example.com/x<!--:-->y`
+- **THEN** the save is refused, because the shortcode shows the marker, and its `>` ends an attribute
+  with no quotes
+- **AND** no value row is stored
+
+#### Scenario: An encoded URL is stored unchanged
+
+- **WHEN** an untrusted author saves a `url`-type value of `https://example.com/a%20b?q=%22x%22`
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A quote in a text_box value is stored unchanged
+
+- **WHEN** an untrusted author saves a `text_box` value such as `She said "don't" twice`
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: A member that a duplicate key hides is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"<script>alert(1)</script>","attr":"Color"}`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: A script in a JSON comment is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"Color"} /* <script>alert(1)</script> */`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: An escaped quote that ends an attribute in the stored JSON is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"a","value":"<img src=x title=\"a onerror=alert(1);//\">"}`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: An object member whose Ruby text ends an attribute is refused
+
+- **WHEN** an untrusted author saves the `to_json` form of
+  `{ attr: 'a', value: { x: '<img src=x title="a onerror=alert(1);//">' } }` as a `field_attrs` value
+- **THEN** the save is refused, because the template of the field shows the member as
+  `{"x" => "<img src=x title=\"a onerror=alert(1);//\">"}`, and no value row is stored
+
+#### Scenario: A pair that code stores as a Hash with a quoted attribute is refused
+
+- **WHEN** code saves the pair `{ attr: 'Link', value: '<a href="https://example.com/">Shop</a>' }`
+  as a Hash for an untrusted author
+- **THEN** the save is refused, because the stored JSON writes each quote of the attribute as `\"`
+- **AND WHEN** the code saves the `to_json` form of the pair, which escapes `<`
+- **THEN** the pair is stored exactly as written
+
+#### Scenario: An escaped script member after a quote in a comment is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{/* " */"value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: A member that a duplicate key hides after a quote in a comment is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{/* " */"value":S,"value":"x"}`, where
+  `S` is the `to_json` form of a String that holds a `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: An escaped script in a translation of the JSON is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `<!--:en-->{"attr":"a","value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}<!--:-->`
+- **THEN** the save is refused, and no value row is stored
+
+#### Scenario: Script in a text_box value is refused
+
+- **WHEN** an untrusted author saves a `text_box` value that holds a `<script>` element
+- **THEN** the save is refused with an error naming the field, and no value row is stored
+
+#### Scenario: An escaped script in a JSON member of a text_box value is refused
+
+- **WHEN** an untrusted author saves, as a `text_box` value, the `to_json` form of
+  `{ label: '<script>alert(1)</script>' }`, which escapes `<`
+- **THEN** the save is refused, because `the_json_field` shows the decoded member, and no value row
+  is stored
+
+#### Scenario: A plain text_box value is stored unchanged
+
+- **WHEN** an untrusted author saves a `text_box` value such as `a < b & c` or `<b>bold</b>`
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: The data shortcode shows no script of an untrusted author
+
+- **WHEN** an administrator puts `[data field='note']` in the content of a post
+- **AND** an editor without `post_content_unfiltered_html` saves a `<script>` in the `text_box` field
+  `note` of that post
+- **THEN** the save is refused, and the page of the post holds no script of the editor
+
+#### Scenario: update_field_value routes through the gate
+
+- **WHEN** an untrusted author writes a dangerous value through `update_field_value`
+- **THEN** the gate refuses it and the value is not stored (the API SHALL NOT bypass validations)
+
+### Requirement: The rules for a value are resolved from the slug, not a client-supplied id
+
+`set_field_values` SHALL resolve the `custom_field_id` of each value row from the trusted field slug.
+That is the field that the object registers under the slug, not the client-supplied `id`. The gate selects
+the rules for a value from the `field_key` of its field. So a forged `id` that names a field of
+another kind MUST NOT change the rules for a value written under a slug. An example is a `text_box`
+id on a `url` slug, which skips the URI rule.
+
+When the slug names no field on the object, the caller-supplied `id` MAY stand (trusted internal
+callers). Permitted browser payloads always name registered slugs.
+
+#### Scenario: A forged id of another kind does not change the rules
+
+- **WHEN** an untrusted author submits a value for a `url` slug carrying the `id` of a `text_box`
+  field, with `javascript:alert(1)` as the value
+- **THEN** the value is gated as a `url` value (its field resolved from the slug) and refused,
+  storing nothing
+
+#### Scenario: The stored row names the slug's field
+
+- **WHEN** a value is saved for a slug while a different field's `id` is submitted alongside it
+- **THEN** the stored row's `custom_field_id` is the id of the field the slug names

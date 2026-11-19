@@ -15,15 +15,18 @@ module CamaleonCms
     # validates :objectid, :custom_field_id, presence: true
     validates :custom_field_id, presence: true # error on clone model
 
-    # Rendered positions that need a save-time gate (audit M17, scan-and-reject policy). An
-    # `editor` value is emitted as markup (`raw`); a `field_attrs` value is a JSON pair whose
-    # members are emitted as markup; the URI field types are emitted into href/src. Every other
-    # field type's value renders through escaping ERB as element content, where markup cannot
-    # execute, so it needs no gate.
-    MARKUP_FIELD_KEYS = %w[editor].freeze
-    JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
+    # The save scans the value of every field kind (scan-and-reject policy). The data shortcode puts
+    # a value of any kind into the page as markup, so each value is held to the post-content
+    # allowlist. The field_attrs template and the_json_field show the decoded members of a JSON value,
+    # so the scan also reads the decoded members and keys of a value of each kind. A URI kind
+    # also goes into href and src, so it is held to the URI rule too. A shortcode inside a tag puts a
+    # URI value into an attribute, so the scan also refuses a character that ends the attribute. The
+    # role that puts a shortcode of another kind inside a tag chooses that position (intended).
     URI_FIELD_KEYS = %w[url image audio video file].freeze
-    GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
+    # The settings and custom_fields permissions give a role the trust of an administrator
+    # (docs/security/permissions.md). So a holder of one of them is trusted for the values of each
+    # owner except a post, another site and its themes (owner_trust_abilities).
+    ADMIN_TRUST_ABILITIES = [%i[manage settings], %i[manage custom_fields]].freeze
     # An author can add a repeatable field group (is_repeat) to a post several times. For example, a
     # "Slide" group holds an image and a caption, and the author adds it one time for each slide.
     # group_number is the index of the slide that a value belongs to: 0 for the first slide, 1 for
@@ -34,6 +37,10 @@ module CamaleonCms
     # casts only the first 16 bytes of a String to an Integer. So Rails can store a longer String as
     # another number than the validated one.
     MAX_GROUP_NUMBER_DIGITS = 16
+
+    # A JSON string literal (a key or a String member of a JSON value, with its escapes), or a
+    # comment, which the parse skips.
+    JSON_LITERAL_OR_COMMENT = %r{"(?:[^"\\]|\\.)*"|/\*.*?\*/|//[^\n]*}m
 
     # The Rails integer type with one change. The integer cast of Rails raises ArgumentError for a
     # String in an invalid encoding. For a String in an encoding such as UTF-16, a lookup raises an
@@ -131,8 +138,7 @@ module CamaleonCms
     before_save :raise_group_number_refusal, if: :group_number_unreadable?
     # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
     # and friends), regardless of field type, so gate a shortcode in ANY value behind
-    # content_shortcodes -- broader than the HTML gate above, which only covers markup/URI field
-    # types.
+    # content_shortcodes.
     gate_content_shortcodes :value
 
     after_save :set_parent_slug
@@ -202,27 +208,22 @@ module CamaleonCms
         valid_group_number?(given)
       end
 
-      # Whether this field type's value is emitted into a markup or URL position (so it is gated).
-      def gated_field_key?(field_key)
-        GATED_FIELD_KEYS.include?(field_key.to_s)
-      end
-
       # Why the save-time gate would refuse this value for the field type, or nil if it passes:
-      # :too_large (over the parse ceiling), :html (disallowed markup), :uri (script-capable URL).
+      # :too_large (over the parse ceiling), :html (disallowed markup), :uri (script-capable URL),
+      # :url_characters (a URL with a character that ends an attribute).
       # Ignores author trust, so the validation (trust-gated) and the scan_content rake task (which
       # reports every stored row) share one dispatch and cannot drift.
       def gate_rejection_reason(field_key, value)
         return if value.blank?
+        return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
 
         key = field_key.to_s
-        if MARKUP_FIELD_KEYS.include?(key)
-          markup_rejection_reason(value)
-        elsif JSON_MARKUP_FIELD_KEYS.include?(key)
-          return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
-
-          :html if json_member_values(value).any? { |member| markup_unsafe?(member) }
-        elsif URI_FIELD_KEYS.include?(key)
-          :uri if CamaleonCms::UnsafeMarkup.dangerous_uri?(value)
+        if URI_FIELD_KEYS.include?(key) && script_url?(value)
+          :uri
+        elsif json_member_values(value).any? { |member| markup_unsafe?(member) }
+          :html
+        elsif URI_FIELD_KEYS.include?(key) && CamaleonCms::UnsafeMarkup.attribute_ending_url?(value)
+          :url_characters
         end
       end
 
@@ -239,12 +240,6 @@ module CamaleonCms
         given.match?(/\A\d+\z/) && given.to_i <= MAX_GROUP_NUMBER
       end
 
-      def markup_rejection_reason(value)
-        return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
-
-        :html if markup_unsafe?(value)
-      end
-
       def markup_unsafe?(value)
         CamaleonCms::UnsafeMarkup.unsafe_html?(
           value, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
@@ -252,41 +247,88 @@ module CamaleonCms
         )
       end
 
-      # A field_attrs value stores JSON whose string members render verbatim. Scan every DECODED
-      # member (Hash, Array or nested), not the stored bytes: the Rails JSON encoder unicode-escapes
-      # angle brackets (storing the escape instead of a literal bracket), so a byte-level scan of the
-      # stored string would pass markup that JSON.parse restores at render. Unparseable values are
-      # scanned as-is (fail closed on whatever the renderer would fall back to).
-      def json_member_values(value)
-        flatten_json_strings(JSON.parse(value))
-      rescue JSON::ParserError
-        [value.to_s]
+      # The URI rule reads the stored text and each text that String#translate shows. translate removes
+      # the first marker of the locale on each line, so a translation can join a script URL, such as
+      # `javascript:`, that a marker splits in the stored text.
+      def script_url?(value)
+        texts = [value, *CamaleonCms::UnsafeMarkup.shown_texts(CamaleonCms::UnsafeMarkup.scannable_string(value))]
+        texts.any? { |text| CamaleonCms::UnsafeMarkup.dangerous_uri?(text) }
       end
 
-      def flatten_json_strings(node)
+      # The texts that the markup scan reads for a value of each kind. A value that parses as JSON is
+      # read as each renderer shows it:
+      # - The data shortcode shows the value as stored, where `\"` does not escape a quote. So the
+      #   scan reads the value as stored. A field_attrs pair that code stores as a Hash keeps `<` and
+      #   `\"`, so a tag with an attribute in it, such as a link, can be refused (intended). Its
+      #   to_json form escapes `<`.
+      # - The field_attrs template translates the value, parses the JSON and shows its keys and
+      #   members. the_json_field parses the value of any kind. The Rails JSON encoder escapes `<`,
+      #   so only the decoded strings show such markup. So the scan reads each key and String member
+      #   of the parse of each translation. A value with no translation is its own translation.
+      # - The field_attrs template and the_json_field show a member of the object with to_s. A
+      #   member that is an object or an array then shows as Ruby text, which writes each quote of a
+      #   String in it as `\"`. So the scan also reads that text.
+      # - The parse keeps only the last member of a key that occurs twice, but the stored value keeps
+      #   each one. So the scan also decodes each string literal of each translation.
+      # A value that does not parse adds no text.
+      def json_member_values(value)
+        source = value.to_s
+        texts = CamaleonCms::UnsafeMarkup.shown_texts(CamaleonCms::UnsafeMarkup.scannable_string(source))
+        [source, *texts.flat_map { |text| json_strings(text) }]
+      end
+
+      # The keys and String members of the parse of a JSON text, the Ruby text of each member of the
+      # object that is an object or an array, and the decoded string literals. A text that does not
+      # parse adds none.
+      def json_strings(text)
+        tree = JSON.parse(text)
+        json_tree_strings(tree) + json_member_texts(tree) + json_literal_strings(text)
+      rescue JSON::ParserError
+        []
+      end
+
+      def json_member_texts(tree)
+        return [] unless tree.is_a?(Hash)
+
+        tree.values.select { |member| member.is_a?(Hash) || member.is_a?(Array) }.map(&:to_s)
+      end
+
+      def json_tree_strings(node)
         case node
-        when Hash then node.values.flat_map { |member| flatten_json_strings(member) }
-        when Array then node.flat_map { |member| flatten_json_strings(member) }
-        else [node.to_s]
+        when Hash then node.flat_map { |key, member| [key, *json_tree_strings(member)] }
+        when Array then node.flat_map { |member| json_tree_strings(member) }
+        when String then [node]
+        else []
         end
+      end
+
+      # The decoded string literals of a text that parses. The scan skips each comment, as the parse
+      # does, so a quote or a literal in a comment does not change the literals.
+      def json_literal_strings(text)
+        literals = text.scan(JSON_LITERAL_OR_COMMENT).select { |token| token.start_with?('"') }
+        JSON.parse("[#{literals.join(',')}]")
+      rescue JSON::ParserError
+        []
       end
     end
 
     private
 
-    # Security (audit M17): the frontend renders an `editor`/`field_attrs` value verbatim and
-    # URI-type values into URL positions, so a value an untrusted author may not write is refused --
-    # never rewritten. Stored values therefore always equal authored values. The scan/dispatch lives
-    # in the class-level gate_rejection_reason so the scan_content rake task reuses it verbatim.
+    # A value that an untrusted author may not write is refused, never rewritten. So a stored value
+    # always equals the authored value. The dispatch is the class-level gate_rejection_reason, which
+    # the scan_content rake task calls too.
+    #
+    # The scan comes before the trust check of a non-admin, because that check loads the role and
+    # its metas for each value. Most values pass the scan, so most saves load no role. An admin
+    # skips the scan, as before.
     def reject_untrusted_dangerous_value
       return if value.blank? || unfiltered_value || previously_stored
+      return if request_admin?
 
       field_key = custom_field&.options&.[](:field_key).to_s
-      return unless self.class.gated_field_key?(field_key)
-      return if author_trusted_for_unfiltered_value?
-
       reason = self.class.gate_rejection_reason(field_key, value)
       return unless reason
+      return if author_trusted_for_unfiltered_value?
 
       errors.add(:base, cama_rejection_message(rejection_message_key(reason)))
     end
@@ -296,10 +338,32 @@ module CamaleonCms
       attr == :value && previously_stored
     end
 
+    # The content_shortcodes gate also scans the texts that the_json_field gives to do_shortcode.
+    # parse_html_json of CustomFieldsConcern parses the value as a JSON object, and translates the
+    # to_s of each member. There a JSON escape shows a bracket, and a member that is an object or an
+    # array shows as Ruby text on one line. A theme can call the_json_field for a field of each kind.
+    def cama_shortcode_texts(attr, text)
+      texts = super
+      return texts unless attr == :value
+
+      members = JSON.parse(text)
+      return texts unless members.is_a?(Hash)
+
+      texts + members.with_indifferent_access.values.flat_map { |member| cama_text_with_translations(member.to_s) }
+    rescue JSON::ParserError
+      texts
+    end
+
+    # An admin in a request context. Without a user or a site, the gate applies to an admin too.
+    def request_admin?
+      CurrentRequest.site.present? && CurrentRequest.user.present? && CurrentRequest.user.admin?
+    end
+
     def rejection_message_key(reason)
       case reason
       when :too_large then 'value_too_large'
       when :uri then 'value_rejected_uri'
+      when :url_characters then 'value_rejected_url_characters'
       else 'value_rejected_html'
       end
     end
@@ -334,7 +398,8 @@ module CamaleonCms
     end
 
     # The message in the current language, or in English when that language has no translation. Only
-    # en.yml has the messages value_too_large, value_rejected_uri and value_rejected_html.
+    # en.yml has the messages value_too_large, value_rejected_uri, value_rejected_html and
+    # value_rejected_url_characters.
     #
     # The English default keeps its placeholders, so I18n fills in the slug one time. A slug can
     # hold the placeholder syntax of I18n, and a second interpolation then raises an error.
@@ -354,19 +419,41 @@ module CamaleonCms
       slug.b.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
     end
 
-    # Trust follows the post-content model: an admin may write anything; a post's field values may
-    # skip the gate when the saver holds post_content_unfiltered_html for the post type. Fails
-    # closed (the gate applies) without a request context — benign values still pass the scan.
+    # The trust of a non-admin: reject_untrusted_dangerous_value lets an admin pass before this check.
+    # A role is trusted through one of the abilities that owner_trust_abilities gives for the owner.
+    # Fails closed (the gate applies) without a request context — benign values still pass the scan.
     def author_trusted_for_unfiltered_value?
       user = CurrentRequest.user
       site = CurrentRequest.site
       return false if user.blank? || site.blank?
-      return true if user.admin?
 
+      abilities = owner_trust_abilities(site)
+      return false if abilities.empty?
+
+      ability = CamaleonCms::Ability.new(user, site)
+      abilities.any? { |args| ability.can?(*args) }
+    end
+
+    # The abilities that trust a role for the values of the owner. An empty list means that only an
+    # admin is trusted:
+    # - a post: post_content_unfiltered_html for its post type, the permission of the post body.
+    # - the current site: the abilities of ADMIN_TRUST_ABILITIES.
+    # - a theme of the current site: those abilities and theme_settings, the permission of the
+    #   theme settings save.
+    # - a site or a theme of another site, and a row with no owner: none.
+    # - each other owner, such as a category or a post type: the abilities of ADMIN_TRUST_ABILITIES.
+    def owner_trust_abilities(site)
       parent = owner
-      return false unless parent.is_a?(CamaleonCms::Post) && parent.post_type.present?
-
-      CamaleonCms::Ability.new(user, site).can?(:post_content_unfiltered_html, parent.post_type)
+      case parent
+      when nil then []
+      when CamaleonCms::Post
+        parent.post_type.present? ? [[:post_content_unfiltered_html, parent.post_type]] : []
+      when CamaleonCms::Site
+        parent.id == site.id ? ADMIN_TRUST_ABILITIES : []
+      when CamaleonCms::Theme
+        parent.parent_id == site.id ? ADMIN_TRUST_ABILITIES + [%i[manage theme_settings]] : []
+      else ADMIN_TRUST_ABILITIES
+      end
     end
 
     def set_parent_slug

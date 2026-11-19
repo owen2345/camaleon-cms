@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Security fix:** The save of a custom field value now scans every field kind for an untrusted author. `settings` and `custom_fields` now trust a role for the fields outside posts, and `theme_settings` for theme fields. The `content_shortcodes` gate now also finds a shortcode that a translation or a JSON member of a value shows. A shortcode output, a `cama_replace_codes` value and a menu item name now show as written. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
+  - **Breaking change:** an untrusted author is refused markup outside the content allowlist in any field. In a URL value, a quote or whitespace before its end is refused too.
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-custom-field-value-of-every-kind-is-scanned-at-save).
+
 - **Bug fix:** A role without `content_shortcodes` can save a post or another owner whose field value holds a shortcode of an administrator. This holds while the role leaves that value unchanged. A changed value is still checked. [#1351](https://github.com/owen2345/camaleon-cms/pull/1351).
 
 - **Security fix:** The content scan now also reads each translation of a value. A role without `post_content_unfiltered_html` is refused content when one of its translations fails the scan. `rake camaleon_cms:security:scan_content` lists such stored values. [#1348](https://github.com/owen2345/camaleon-cms/pull/1348).

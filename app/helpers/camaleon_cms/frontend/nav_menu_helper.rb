@@ -60,13 +60,10 @@ module CamaleonCms
         args = args_def.merge!(args)
         nav_menu = current_site.nav_menus.find_by_slug(args[:menu_slug]) # rubocop:disable Rails/DynamicFindBy
         nav_menu ||= current_site.nav_menus.first
-        html = "<#{args[:container]} class='#{args[:container_class]}' "\
-          "id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{args[:container_append]}</#{args[:container]}>"
-        if nav_menu.present?
-          html.sub('{__}', cama_menu_draw_items(args, nav_menu.children.reorder(:term_order)))
-        else
-          html.sub('{__}', '')
-        end
+        # The items go in by interpolation, so a backslash sequence of an item name shows as written.
+        items = nav_menu.present? ? cama_menu_draw_items(args, nav_menu.children.reorder(:term_order)) : ''
+        "<#{args[:container]} class='#{args[:container_class]}' id='#{args[:container_id]}'>" \
+          "#{args[:container_prepend]}#{items}#{args[:container_append]}</#{args[:container]}>"
       end
 
       # draw menu items

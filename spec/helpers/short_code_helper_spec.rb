@@ -71,6 +71,116 @@ RSpec.describe 'CamaleonCms::ShortCodeHelper' do
     end
   end
 
+  describe 'Shortcode output' do
+    shortcode_tests
+    let(:backslashes) { %q(\0 \& \' \` \\\\ \1 \k<x>) }
+
+    before do
+      text = backslashes
+      helper.shortcode_add('backslashes', ->(_attrs, _args) { text })
+      helper.shortcode_add('mirror', ->(_attrs, _args) { "<i title='[hello_world]'></i>" })
+      helper.shortcode_add('closer', ->(_attrs, _args) { '[/title]' })
+    end
+
+    it 'shows a backslash sequence of an output as written' do
+      expect(helper.do_shortcode('a [backslashes] b')).to eq("a #{backslashes} b")
+    end
+
+    it 'shows a backslash sequence as written when render_shortcode replaces the shortcode' do
+      expect(helper.render_shortcode('a [backslashes] b', 'backslashes')).to eq("a #{backslashes} b")
+    end
+
+    it 'does not replace the text of a later shortcode inside the output of an earlier one' do
+      expect(helper.do_shortcode('[mirror] and [hello_world]'))
+        .to eq("<i title='[hello_world]'></i> and Hello World")
+    end
+
+    it 'does not replace the text of a later shortcode inside an earlier output in an enclosing shortcode' do
+      expect(helper.do_shortcode('[title][mirror][hello_world][/title]'))
+        .to eq("<h1><i title='[hello_world]'></i>Hello World</h1>")
+    end
+
+    it 'reads a closing tag in an earlier output as text' do
+      expect(helper.do_shortcode('[closer] [title]Name')).to eq('[/title] <h1></h1>Name')
+    end
+
+    it 'reads a closing tag before the shortcode as text' do
+      expect(helper.do_shortcode('[/title] [title]Name')).to eq('[/title] <h1></h1>Name')
+    end
+
+    # The inner text of an enclosing shortcode ends at its closing tag. A closing tag after it belongs
+    # to no child of that shortcode, so a later shortcode is no child of such a child.
+    it 'replaces a shortcode after an enclosing shortcode whose child has a later closing tag' do
+      expect(helper.do_shortcode('[title][hello_world][/title] [hello name="Owen"] [/hello_world]'))
+        .to eq('<h1>Hello World</h1> Hello Owen [/hello_world]')
+    end
+
+    it 'does not replace the text of a later shortcode in the output of such a child' do
+      expect(helper.do_shortcode('[title][mirror][/title] [hello_world] [/mirror]'))
+        .to eq("<h1><i title='[hello_world]'></i></h1> Hello World [/mirror]")
+    end
+
+    it 'reads a Hash output by the shortcode text, as String#sub did' do
+      helper.shortcode_add('assets', ->(_attrs, _args) { { front_grid_editor: { css: ['basic.css'] } } })
+      helper.shortcode_add('keyed', ->(_attrs, _args) { { '[keyed]' => 'Value' } })
+
+      expect(helper.do_shortcode('a [assets] b [keyed] c')).to eq('a  b Value c')
+    end
+
+    # The output of an enclosing shortcode can show its inner text without a child, or without the
+    # closing tag of a child. Before, the shortcodes of that child stayed as text in the output.
+    it 'replaces the shortcodes of a child that the output of its parent shows without the child' do
+      helper.shortcode_add('bare', ->(_attrs, args) { args[:shortcode_content].gsub(%r{\[/?title\]}, '') })
+      helper.shortcode_add('open', ->(_attrs, args) { args[:shortcode_content].gsub('[/title]', '') })
+
+      expect(helper.do_shortcode('[bare][title]A [hello_world] B[/title] [hello name="Owen"][/bare]'))
+        .to eq('A Hello World B Hello Owen')
+      expect(helper.do_shortcode('[open][title]A [hello_world] B[/title][/open] [hello name="Owen"]'))
+        .to eq('<h1></h1>A Hello World B Hello Owen')
+    end
+
+    # The value of the Hash is a String of the callback. The replacement of the inner shortcodes
+    # changed it in place, and a frozen value raised a FrozenError.
+    it 'replaces the inner shortcodes of a Hash output, and does not change its value' do
+      frozen = 'Frozen [hello_world] end'
+      value = +'Value [hello_world] end'
+      helper.shortcode_add('frozen', ->(_attrs, args) { { args[:shortcode] => frozen } })
+      helper.shortcode_add('keyed', ->(_attrs, args) { { args[:shortcode] => value } })
+
+      expect(helper.do_shortcode('[frozen][hello_world][/frozen] [keyed][hello_world][/keyed]'))
+        .to eq('Frozen Hello World end Value Hello World end')
+      expect(value).to eq('Value [hello_world] end')
+    end
+
+    it 'raises a TypeError for an output that is no String, as String#sub did' do
+      helper.shortcode_add('nothing', ->(_attrs, _args) {})
+
+      expect { helper.do_shortcode('a [nothing] b') }.to raise_error(TypeError)
+    end
+
+    # One Hash holds the arguments of all shortcodes of a text. Before, a shortcode with no closing tag
+    # read the inner text of an earlier enclosing shortcode there.
+    it 'gives no inner text to a shortcode with no closing tag after an enclosing shortcode' do
+      expect(helper.do_shortcode('[title]First[/title] [title] [modal]'))
+        .to eq('<h1>First</h1> <h1></h1> modal body = ')
+    end
+
+    it 'gives a child with no closing tag no inner text of its parent' do
+      expect(helper.do_shortcode('[title]Name [modal][/title]')).to eq('<h1>Name modal body = </h1>')
+    end
+
+    it 'gives an enclosing shortcode its inner text as written' do
+      contents = []
+      helper.shortcode_add('collect', lambda { |_attrs, args|
+        contents << args[:shortcode_content]
+        args[:shortcode_content]
+      })
+
+      expect(helper.do_shortcode('[collect][hello name="Owen"][/collect]')).to eq('Hello Owen')
+      expect(contents).to eq(['[hello name="Owen"]'])
+    end
+  end
+
   describe 'CurrentRequest-backed shortcode state' do
     it 'stores shortcode registrations in CurrentRequest' do
       helper.shortcodes_init

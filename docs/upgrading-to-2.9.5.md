@@ -41,6 +41,8 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
+| Has a role other than an administrator that stores markup in a plain custom field (`text_box`, `text_area`) or a quote or a space in a URL field, or a role with `settings`, `custom_fields` or `theme_settings` | Such a role is now refused markup outside the content allowlist in a field of any kind, unless it is trusted for the owner of the field. In a URL field, it is also refused a quote, an angle bracket, a backtick and whitespace before the end of the value. A role with `settings` or `custom_fields` can store any markup in the fields of each owner except a post, another site and its themes, and a role with `theme_settings` in the theme fields. Run the scan task ([details](#a-custom-field-value-of-every-kind-is-scanned-at-save)) |
+| Has plugin or theme code that saves a `field_attrs` pair as a Hash for a role other than an administrator | A tag with an attribute in the pair, such as a link, can now be refused. Pass `pair.to_json`, which escapes `<` ([details](#a-custom-field-value-of-every-kind-is-scanned-at-save)) |
 | Has a role that opens the custom field group pages with no `custom_fields` permission | That role now gets a redirect to the dashboard. Give it the permission ([details](#the-custom-field-group-pages-check-the-custom_fields-permission)) |
 | Has authors who saw a server error on a save of deeply nested content, or of an element with many attributes | Nothing. The save is now refused with the message for disallowed markup ([details](#content-past-the-limits-of-the-markup-parser-is-refused)) |
 | Runs a server with more than one thread, or has its own Rack middleware or code that reloads the routes | A reload of the routes now waits until the requests that run are done, for 10 seconds at most. Camaleon adds the `CamaleonCms::RouteReloadLock` middleware for it ([details](#a-reload-of-the-routes-waits-for-the-requests)) |
@@ -48,6 +50,10 @@ what theme/plugin developers should know.
 | Has a top-level model, other than the configured user class, with the short name of a Camaleon model, such as `Post`, `Category`, `Site`, `User` or `Main` | The `owner` of a Camaleon meta or custom-field row is now the Camaleon record, not a record of your model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin or host model with custom-field values and an `after_touch` callback | Each save of a value whose `owner` is a record of that model now touches the record and runs the callback ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
 | Has a plugin model that inherits `CamaleonRecord`, with a polymorphic association to a top-level host model, other than the configured user class, with the short name of a Camaleon model | That association now gives the Camaleon record of the same id. Define `polymorphic_class_for` in the plugin model ([details](#a-short-owner-name-resolves-to-the-camaleon-class)) |
+| Has a plugin or theme shortcode whose output holds a backslash, or the text of another shortcode | The output now shows as written, and the other shortcode in it stays as text ([details](#a-shortcode-output-shows-as-written)) |
+| Has a plugin or theme shortcode that reads `args[:shortcode_content]` | A shortcode with no closing tag now reads `nil` there. Before, it read the inner text of an earlier enclosing shortcode ([details](#a-shortcode-output-shows-as-written)) |
+| Has plugin or theme code that calls `cama_replace_codes` with a value that holds a backslash or another code | The value now shows as written, and the code in it stays as text ([details](#cama_replace_codes-shows-each-value-as-written)) |
+| Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
 
 ---
 
@@ -220,6 +226,29 @@ again. Code that calls `set_field_value` or `save_field_value` stored its values
 
 ---
 
+## A custom field value of every kind is scanned at save
+
+Before, the save scanned only the values of the `editor`, `field_attrs` and URL kinds. So a `text_box` value, or a value of another kind, could hold a `<script>`. The `data` shortcode puts such a value into a page as markup, and the script ran there.
+
+Now the save scans the value of every kind for an author who is not trusted. A value with markup outside the post-content allowlist is refused, and the author sees an error that names the field. A `<` before a letter starts a tag. So `x<y`, `John <john@example.com>` and `Fish & Chips <today>` are refused, because their tags are outside the allowlist. A `<` that starts no tag, as in `a < b & c`, and allowed formatting, such as `<b>bold</b>`, are stored as written.
+
+A value of a URL kind (`url`, `image`, `audio`, `video`, `file`) is also refused when it holds a quote, an angle bracket or a backtick. Whitespace at the start or inside the value is refused too, but whitespace at its end passes. Encode such a character, for example `%20` for a space. In a translated value, the translation markers pass. The URL rules also read each translation, as the page shows it.
+
+A value of any kind that parses as JSON is also scanned by its decoded members and keys, because `the_json_field` shows them. So a `text_area` value that is the `to_json` form of `{ label: '<script>alert(1)</script>' }` is refused, although the JSON escapes `<`.
+
+A `field_attrs` value is also scanned as stored, because the `data` shortcode shows the stored JSON. Code that saves a pair as a Hash stores `<` as it is and writes each quote of an attribute as `\"`. So a tag with an attribute in such a pair, such as a link, can be refused. Pass `pair.to_json` instead, which escapes `<` as the admin form does. The template of the field shows a member that is an object or an array as Ruby text, which also writes each quote as `\"`. So a tag with an attribute in such a member, such as a link, can be refused, also in the `to_json` form.
+
+These authors are trusted:
+
+- An administrator, for each value.
+- A role with `post_content_unfiltered_html` for a post type, for the fields of its posts.
+- A role with `settings` or `custom_fields`, for the fields of each owner that is not a post, except another site and its themes. Examples are the current site, its theme and a category. This is new.
+- A role with `theme_settings`, for the fields of a theme of the current site. This is new.
+
+**Action:** run `bundle exec rake camaleon_cms:security:scan_content`. It now lists a stored value of any kind that the scan refuses. Stored values do not change. A plugin that saves such a value from a job or a rake task sets the request context first. [Background jobs and console usage](security/permissions.md#background-jobs-and-console-usage) shows how.
+
+---
+
 ## The `$current_site` global is no longer read
 
 `current_site` resolved the `$current_site` global ahead of everything but an explicit argument, and
@@ -333,15 +362,17 @@ a site create, not 8 times. For a site delete, it runs one time, not 3 times.
 
 ## Content past the limits of the markup parser is refused
 
-The markup scan reads post content, the post summary and the values of `editor` and `field_attrs`
-custom fields that a non-admin user saves. It skips post content, the summary and the custom-field
-values of a post for a role with the `post_content_unfiltered_html` permission. Its HTML5 parser
-raises an error past 400 nested elements, or past 400 attributes on one element. Before, a save of
-such content gave a server error. Now the save is refused with the message for disallowed markup.
-Content that the scan skips does not change.
+The markup scan reads post content, the post summary and the custom-field values of each kind that
+a non-admin user saves. It skips post content and the summary for a role with the
+`post_content_unfiltered_html` permission. It skips a custom-field value for a role that it trusts
+for the owner of the field ([details](#a-custom-field-value-of-every-kind-is-scanned-at-save)).
 
-The scan also reads post content and `editor` and `field_attrs` values that code saves with no
-request, such as an import. Such code skips the scan only when it calls `unfiltered_content!` or
+Its HTML5 parser raises an error past 400 nested elements, or past 400 attributes on one element.
+Before, a save of such content gave a server error. Now the save is refused with the message for
+disallowed markup. Content that the scan skips does not change.
+
+The scan also reads post content and custom-field values that code saves with no request, such as
+an import. Such code skips the scan only when it calls `unfiltered_content!` or
 `unfiltered_value!`. Before, such a save raised `ArgumentError`. Now the record is invalid, and
 `save` returns false.
 
@@ -949,6 +980,58 @@ end
 The method tries the top-level class first, so a name with a top-level class, such as `User`,
 gives the host record. A name with no top-level class, such as `Main`, resolves through the
 Camaleon lookup.
+
+### A shortcode output shows as written
+
+`do_shortcode` and `render_shortcode` now replace each shortcode at its place, from left to right.
+Before, they gave each output to `String#sub` as the replacement text, and `sub` read a backslash
+sequence in it. `\\` showed one backslash, `\'` the text after the shortcode and `\0` the shortcode
+itself. A group name, as in `\k<x>`, raised an `IndexError`. Now each output shows as written.
+
+The search for the next shortcode now starts after the last output. Before, the text of a later
+shortcode in an earlier output was replaced there, and the later shortcode stayed as text. So two
+custom field values could join into one tag through the `data` shortcode. A closing tag, such as
+`[/title]`, before its shortcode or in an earlier output is now text. Before, it raised
+`NoMethodError`, and the page gave a server error.
+
+A shortcode inside an enclosing shortcode now has a closing tag only before the closing tag of that
+shortcode. A later closing tag does not close the inner shortcode. Before, the inner shortcode took in
+the text up to that tag.
+
+A shortcode with no closing tag now gets no inner text: `args[:shortcode_content]` is `nil` for it.
+Before, it read the inner text of an earlier enclosing shortcode of the same `do_shortcode` call.
+
+These do not change:
+
+- An enclosing shortcode gets its inner text as written in `args[:shortcode_content]`. The
+  shortcodes of that text are then replaced in its output.
+- A callback that returns a Hash shows the value of the shortcode text in it, or nothing. The
+  `grid_editor` shortcode of `camaleon_editor` returns such a Hash.
+- A callback that returns something other than a String or a Hash raises a `TypeError`.
+
+**Action:** a shortcode that writes two backslashes to show one must now write one.
+
+### `cama_replace_codes` shows each value as written
+
+`String#cama_replace_codes` now replaces all codes in one pass, and it shows each value as written.
+Before, it gave each value to `String#gsub` as the replacement text. So `\\` in a value showed one
+backslash, and `\'` the text after the code. A value that held a later code, such as `[c2]`, got
+the value of that code. The `cama_contact_form` plugin gives the method the values that a visitor
+sends.
+
+A text with invalid bytes still gets its codes replaced. The method matches such a text by its
+bytes. So in an encoding such as Shift_JIS, it also replaces a code whose `[` is the second byte of a
+character.
+
+**Action:** code that puts a code into a value, to have it replaced, must replace it in a second
+call.
+
+### A menu item name shows as written
+
+`draw_menu` now puts the rendered menu items into the menu container with no replacement. Before,
+`String#sub` read a backslash sequence of an item name: `\0` showed the placeholder `{__}`, and `\k`
+with a group name raised an `IndexError`. A `{__}` in the `container_prepend` or `container_append`
+option is now text.
 
 ---
 

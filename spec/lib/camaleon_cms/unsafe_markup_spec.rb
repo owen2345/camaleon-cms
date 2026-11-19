@@ -75,6 +75,73 @@ RSpec.describe CamaleonCms::UnsafeMarkup do
     end
   end
 
+  # Without quotes, whitespace ends an attribute value. Whitespace at the end of the URL value is
+  # followed by no character of the value, so it passes. Whitespace before a character is refused.
+  describe '.attribute_ending_url? and whitespace' do
+    it 'refuses whitespace at the start or inside the value' do
+      [' onerror=alert(1)', "\tx", "\fx", "\rx", 'a b', "a\nb"].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(true), value.inspect
+      end
+    end
+
+    it 'passes whitespace at the end of the value' do
+      ['https://x.test/a ', "https://x.test/a\n", "https://x.test/a\t\r\n"].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(false), value.inspect
+      end
+    end
+  end
+
+  # The data shortcode shows one translation of a translated value, without the markers that separate
+  # the translations. So those markers pass, and the rules read each text that String#translate shows.
+  describe '.attribute_ending_url? and translations' do
+    it 'passes the markers of a translated URL' do
+      translated = { en: 'https://x.test/en ', es: 'https://x.test/es' }.to_translate
+
+      expect(described_class.attribute_ending_url?(translated)).to be false
+    end
+
+    it 'refuses a character that ends an attribute in a translation or after the markers' do
+      [{ en: 'https://x.test/a b' }.to_translate, { en: 'x" onerror="alert(1)' }.to_translate,
+       { en: 'https://x.test/<b>' }.to_translate, "#{{ en: 'https://x.test/' }.to_translate}\" onerror=\"alert(1)",
+       "  #{{ en: 'https://x.test/' }.to_translate}"].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(true), value.inspect
+      end
+    end
+
+    # String#translate shows a marker that is not at the start of a translation, and the `>` of the
+    # marker ends an attribute with no quotes.
+    it 'refuses a marker that an untranslated value or a translation shows' do
+      ['https://x.test/a<!--:-->b', '<!--:en-->https://x.test/a<!--:es-->b<!--:-->'].each do |value|
+        expect(described_class.attribute_ending_url?(value)).to be(true), value.inspect
+      end
+    end
+  end
+
+  # The scan of a URL value reads the value as the other checks do, also in invalid UTF-8 or in UTF-16.
+  describe '.attribute_ending_url? with mis-encoded input' do
+    it 'returns a verdict instead of raising on invalid UTF-8' do
+      expect(described_class.attribute_ending_url?((+"https://x.test/\xFF").force_encoding('UTF-8'))).to be false
+      expect(described_class.attribute_ending_url?((+"https://x.test/\xFF\" y").force_encoding('UTF-8'))).to be true
+    end
+
+    it 'returns a verdict instead of raising on UTF-16' do
+      expect(described_class.attribute_ending_url?('https://x.test/a b'.encode('UTF-16LE'))).to be true
+    end
+  end
+
+  # SQLite and PostgreSQL store a String in another encoding, such as UTF-16, as UTF-8 text, so the
+  # page shows its tags. The scan reads such a String as UTF-8.
+  describe '.unsafe_html? with a String in another encoding' do
+    it 'reads a UTF-16 String as UTF-8' do
+      expect(unsafe?('<script>alert(1)</script>'.encode('UTF-16LE'))).to be true
+      expect(unsafe?('<b>bold</b>'.encode('UTF-16BE'))).to be false
+    end
+
+    it 'reads a String that Ruby cannot convert as its bytes, with no error' do
+      expect(unsafe?((+'a+ADw-b').force_encoding('UTF-7'))).to be false
+    end
+  end
+
   describe '.too_large? (M16)' do
     it 'is true above the ceiling and false below it' do
       expect(described_class.too_large?('a' * (described_class::MAX_GATED_VALUE_BYTES + 1))).to be true

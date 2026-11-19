@@ -2,8 +2,9 @@
 
 # The image field of the custom-field form shows a preview of its URL. The preview code put the URL
 # into the HTML of the preview. So a value with a quote and a tag added that tag to the admin form,
-# and its event handler ran. The save of an image value refuses only a script URL, so an author who
-# is not an administrator can store such a value. The preview must set the URL as attribute values.
+# and its event handler ran. The save of an untrusted author now refuses such a value. A value stored
+# before that scan, or by a trusted author, still reaches the form. An example is a role with
+# post_content_unfiltered_html. The preview must set the URL as attribute values.
 RSpec.describe 'the image preview of a custom field', :js do
   init_site
 
@@ -16,8 +17,10 @@ RSpec.describe 'the image preview of a custom field', :js do
     admin_sign_in
   end
 
+  # The value is written to the stored row, as a value from before the scan of every field kind.
   def open_edit_form_with(url)
-    @post.set_field_value('photo', url)
+    @post.set_field_value('photo', data_url)
+    @post.custom_field_values.find_by(custom_field_slug: 'photo').update_column(:value, url) # rubocop:disable Rails/SkipsModelValidations
     visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
   end
 
