@@ -62,19 +62,23 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
 
   # A category with the slug of another category of the post type fails its validation.
   # The note field in the body shows that the form rendered the custom-fields partial.
-  param_shapes.merge(group_shapes).each do |shape, field_options|
-    it "renders the category form again when the category is invalid and #{shape}" do
+  context 'with a field group of the category' do
+    before do
       add_note_field('Category')
       post_type.categories.create!(name: 'Taken', slug: 'taken')
+    end
 
-      post "/admin/post_type/#{post_type.id}/categories",
-           params: "category[name]=Taken+again&category[slug]=taken&#{field_options}",
-           headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
+    param_shapes.merge(group_shapes).each do |shape, field_options|
+      it "renders the category form again when the category is invalid and #{shape}" do
+        post "/admin/post_type/#{post_type.id}/categories",
+             params: "category[name]=Taken+again&category[slug]=taken&#{field_options}",
+             headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
-      expect(response.body).to include('data-field-key="note"')
-      expect(post_type.categories.where(slug: 'taken').count).to eq(1)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
+        expect(response.body).to include('data-field-key="note"')
+        expect(post_type.categories.where(slug: 'taken').count).to eq(1)
+      end
     end
   end
 end
