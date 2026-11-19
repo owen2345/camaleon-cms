@@ -1,15 +1,11 @@
 # frozen_string_literal: true
 
 # The custom-fields partial of the admin forms reads `params[:field_options]` as a set of groups, each
-# a set of fields, to show the submitted values again after a refused or a failed save. Before, each
-# of these shapes raised in the view, a 500, as soon as the record had a field group:
-# - a param that is a scalar or a list (`field_options=foo`, `field_options[]=x`),
-# - a group that is a scalar or a list (`field_options[0]=x`, `field_options[0][]=x`),
-# - a field entry that is a list (`field_options[0][note][]=x`).
-# The post save refuses a malformed container before any write and renders the form again
-# (meta_container_refusal_spec.rb), so the refusal itself reached the 500. A failed validation
-# renders the form again too, on every form with the partial; the category form stands in for them.
-# The partial now leaves out what is not a set of fields, and the form renders.
+# a set of fields, to show the submitted values again after a refused or a failed save. The partial
+# leaves out each part that has the wrong shape, so a malformed param gives no 500 in the view.
+# The post save refuses a `field_options` that is not a set of groups, before any write, and renders
+# its form again (meta_container_refusal_spec.rb). A failed validation renders the form again on every
+# form with the partial. The category form stands in for those forms.
 RSpec.describe 'Security: the admin form renders again with a malformed field_options', type: :request do
   include_context 'with the post editor'
 
