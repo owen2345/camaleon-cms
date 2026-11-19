@@ -1,9 +1,13 @@
 ## Context
 
-See `proposal.md`, "Why". `get_fields_grouped` gives the stored instances of a group as a list, in
-the order of their group numbers, without the numbers. `build_custom_field_group` built the instances
-from that list. Its `update_custom_group_number` handler wrote the position of each instance into
-its group number, after each add, delete and drag.
+See `proposal.md`, "Why". `get_fields_grouped` gave the stored instances of a group as a list,
+without the numbers. It sorted the values by their order first (D5). So the instances came in the
+order of their group numbers only when each instance had a value with the order 0. An admin save
+stores such a value.
+
+`build_custom_field_group` built the instances from that list. Its
+`update_custom_group_number` handler wrote the position of each instance into its group number,
+after each add, delete and drag.
 
 A checkbox, a checkboxes field and a radio field with no choice submit no `values` key.
 `set_field_values` stores no row for them. A text field stores `''` as a row. So only an instance
