@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** `set_field_value` and `save_field_value` now give each item of an Array its own order, so the items are read in the order of the Array. Before, PostgreSQL and MySQL could read them in any order. [#1352](https://github.com/owen2345/camaleon-cms/pull/1352).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#set_field_value-stores-the-items-of-an-array-in-order).
+
 - **Security fix:** The save of a custom field value now scans every field kind for an untrusted author. `settings` and `custom_fields` now trust a role for the fields outside posts, and `theme_settings` for theme fields. The `content_shortcodes` gate now also finds a shortcode that a translation or a JSON member of a value shows. A shortcode output, a `cama_replace_codes` value and a menu item name now show as written. [#1345](https://github.com/owen2345/camaleon-cms/pull/1345).
   - **Breaking change:** an untrusted author is refused markup outside the content allowlist in any field. In a URL value, a quote or whitespace before its end is refused too.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-custom-field-value-of-every-kind-is-scanned-at-save).
