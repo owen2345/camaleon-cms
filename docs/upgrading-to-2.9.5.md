@@ -871,7 +871,8 @@ and PostgreSQL and MySQL could read the items in any order. One value keeps the 
 - It appends an Array with `clear: false`. To read the new items after the stored items, give an
   order after the last stored order.
 - It reads a list that it stored before the upgrade. Such a list keeps the orders that it has. Save
-  the list again to store it in order.
+  the list again from its source to store it in order. Do not save the values that a read of the
+  stored list gives: that read can give the items in any order.
 
 ### Parameters in a Hash or an Array are stored as JSON objects
 
