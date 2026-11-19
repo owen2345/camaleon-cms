@@ -37,8 +37,9 @@ module CamaleonCms
         # A group is the value of a key of digits only (`field_options[<index>]`), and it holds one
         # entry for each field slug. The helper reads these two levels itself, and Rails permits one
         # entry at a time. With a nested filter for the groups, Rails reads a group that holds a numeric
-        # key with a hash value as nested attributes, and keeps only its numeric keys. A field slug of
-        # digits only, such as `2020`, is such a key.
+        # key with a hash value as nested attributes, and keeps only its numeric keys. From Rails 7.0,
+        # Rails does not do this when the filter names a numeric key. A field slug of digits only, such
+        # as `2020`, is such a key.
         #
         # A group with no entry of an allowed slug is not in the result: set_field_values deletes each
         # stored value before it writes, so a payload that holds only such groups must stay blank.
