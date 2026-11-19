@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A save in the admin no longer moves the values of a repeatable custom field group to other group numbers. Before, an instance with no stored value, such as an unchecked checkbox, or a deleted instance moved the later instances to lower numbers. [#1353](https://github.com/owen2345/camaleon-cms/pull/1353).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-repeatable-field-group-keeps-its-group-numbers-in-the-editor).
+
 - **Bug fix:** `set_field_value` and `save_field_value` now give each item of an Array its own order, so the items are read in the order of the Array. Before, PostgreSQL and MySQL could read them in any order. [#1352](https://github.com/owen2345/camaleon-cms/pull/1352).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#set_field_value-stores-the-items-of-an-array-in-order).
 
