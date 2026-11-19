@@ -389,6 +389,9 @@ module CamaleonCms
     # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
     #   not permitted to save. The record keeps its stored values, with the limits that
     #   _cama_write_field_values names.
+    # - ActiveModel::RangeError when an order is more than 2147483647, the maximum of the column. The
+    #   last item of an array gets the order + the number of items - 1. The record keeps its stored
+    #   values, with the same limits.
     # sample: my_post.set_field_value('subtitle', 'Sub Title')
     # sample: set values for a field (for fields that support multiple values)
     # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
