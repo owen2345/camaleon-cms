@@ -196,6 +196,15 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
       expect(helper.cama_form_field_values(@site, %w[note color]).size).to eq(2)
     end
 
+    # The default scope sorts the rows by their order first. Code can store the values of a lower
+    # group number with a higher order.
+    it 'gives the stored group numbers in ascending order, also when code stores a higher order' do
+      @site.set_field_value('note', 'three', group_number: 3)
+      @site.set_field_value('note', 'two', group_number: 2, order: 4)
+
+      expect(numbers_for('GET')).to eq([2, 3])
+    end
+
     it 'gives no group number for a record with no stored value' do
       expect(numbers_for('GET')).to eq([])
     end
