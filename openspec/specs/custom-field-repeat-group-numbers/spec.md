@@ -79,7 +79,7 @@ group numbers MUST be Integers from 0 to 2147483647 in ascending order.
 
 `cama_form_field_group_numbers` SHALL give one group number for each instance that
 `cama_form_field_values` gives, in the same order. For a GET request it SHALL give the stored group
-numbers. For a form that renders again after a failed save it SHALL give the submitted group
+numbers in ascending order. For a form that renders again after a failed save it SHALL give the submitted group
 numbers, with nil for an invalid group number. A GET request SHALL read the stored values and their
 group numbers with one query.
 
@@ -88,6 +88,13 @@ group numbers with one query.
 - **WHEN** a post stores values of the group with the group numbers 1 and 3
 - **AND** an admin opens the form with a GET request
 - **THEN** the helper gives `[1, 3]`
+
+#### Scenario: Code stores a lower group number with a higher order
+
+- **WHEN** code stores a value with the group number 3 and the order 0
+- **AND** code stores a value with the group number 2 and the order 4
+- **AND** an admin opens the form with a GET request
+- **THEN** the helper gives `[2, 3]`
 
 #### Scenario: A form that renders again after a failed save
 

@@ -468,6 +468,16 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect(post.get_fields_grouped(['note'])).to eq([{ 'note' => ['zero'] }, { 'note' => ['one'] },
                                                        { 'note' => ['three'] }])
     end
+
+    # The default scope sorts the rows by their order first. Code can store the values of a lower
+    # group number with a higher order.
+    it 'gives the groups in ascending order of the group number, also when code stores a higher order' do
+      post.set_field_value('note', 'three', group_number: 3)
+      post.set_field_value('note', 'two', group_number: 2, order: 4)
+
+      expect(post.get_fields_grouped_by_number(['note']).map(&:first)).to eq([0, 1, 2, 3])
+      expect(post.get_fields_grouped(['note']).last).to eq({ 'note' => ['three'] })
+    end
   end
 
   # The method validates the current group number, not the errors of an earlier validation.
