@@ -36,4 +36,6 @@ None.
 - `CustomFieldsHelper`, the custom-fields partial and `build_custom_field_group` in
   `_custom_fields.js`.
 - A delete of an instance no longer moves the values of the later instances to lower group numbers.
-- `get_fields_grouped`, `set_field_values` and the stored data do not change.
+- `set_field_values` and the stored data do not change. `get_fields_grouped` gives its groups in
+  ascending order of the group number. The new `get_fields_grouped_by_number` gives the same groups
+  with their group numbers.

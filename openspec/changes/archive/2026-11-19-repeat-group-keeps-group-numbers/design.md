@@ -40,6 +40,14 @@ The editor numbers the instances by their position, as before, in these cases:
 **D4. A group that is not repeatable does not change.** Its one instance keeps the group number 0
 of the partial.
 
+**D5. `get_fields_grouped` gives its groups in ascending order of the group number.** The default
+scope sorts the values by their order first. So a group with a higher order came after a higher group
+number, and the editor then numbered the instances by position.
+
+The read now sorts by the group number first, and by the order in each group. The new
+`get_fields_grouped_by_number` gives the same groups with their numbers, so the partial reads both
+with one query.
+
 Alternatives:
 
 - Store a placeholder row with `''` for each field with no value. Each unchecked checkbox of each
