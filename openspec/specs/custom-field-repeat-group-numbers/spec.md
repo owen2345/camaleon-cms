@@ -4,8 +4,8 @@
 
 An admin can add a repeatable field group to a record several times. Each copy is an instance, and
 its values have the group number of the instance. A theme reads one instance by its group number.
-The custom-field editor keeps the group number of each instance. So a save does not move a stored
-value to another group number, unless a stored group number of the group is below 0.
+The custom-field editor keeps the group number of each instance. So a save with no drag does not
+move a stored value to another group number. A stored group number below 0 is the exception.
 
 ## Requirements
 
