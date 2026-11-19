@@ -35,6 +35,7 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
         expect(response).to have_http_status(:ok)
         expect(response.body).to include(I18n.t('camaleon_cms.admin.post.message.malformed_group',
                                                 group: 'field_options'))
+        expect(response.body).to include('data-field-key="note"')
         expect(stored_post.title).not_to eq('Changed')
       end
     end
@@ -46,6 +47,7 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
         expect(response).to have_http_status(:ok)
         expect(response.body)
           .to include(I18n.t('camaleon_cms.admin.post.message.status_not_offered', field: 'post[status]'))
+        expect(response.body).to include('data-field-key="note"')
         expect(stored_post.title).not_to eq('Changed')
       end
     end
