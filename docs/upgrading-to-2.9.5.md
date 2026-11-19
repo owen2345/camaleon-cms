@@ -923,8 +923,7 @@ The next save stores these numbers.
 
 - A theme reads one instance with `get_field_values(key, number)` and expects the later instances to
   move to lower numbers after a delete. Read all instances with `get_fields_grouped` or
-  `the_fields_grouped` instead. These give the same groups as before, in ascending order of the
-  group number.
+  `the_fields_grouped` instead. These give all instances, in ascending order of the group number.
 - A plugin renders its own copy of the custom-fields partial. Pass the numbers of
   `cama_form_field_group_numbers` as the sixth argument of `build_custom_field_group`. Without them,
   the editor numbers the instances by their position when the form renders, as before. So a save
