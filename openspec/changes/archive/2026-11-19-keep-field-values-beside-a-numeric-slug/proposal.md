@@ -43,7 +43,7 @@ None.
 
 - `custom-field-value-filtering`: the shared permit keeps the entries of the allowed slugs of a group
   that holds a numeric key. A field entry keeps its values beside a key that the permit does not
-  know.
+  know. The permit reports only the unknown keys of a field entry as unpermitted parameters.
 
 ## Impact
 

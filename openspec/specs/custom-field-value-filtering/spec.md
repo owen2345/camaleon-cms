@@ -275,3 +275,23 @@ value, which MUST NOT remove the values of the entry.
 - **WHEN** a save submits the entry of a registered field with its values and with a numeric key that
   holds a hash
 - **THEN** the values of the field are stored
+
+### Requirement: The shared permit reports only the unknown keys of a field entry
+
+The shared permit SHALL NOT report a group, a slug or a top-level key that it drops as an
+unpermitted parameter. The post editor posts the slugs of the post itself and of its categories in
+each save, and the post save drops them. The permit SHALL report an unknown key inside the entry of
+an allowed slug, as the `action_on_unpermitted_parameters` setting of the host app says.
+
+#### Scenario: A host that raises for an unpermitted parameter gets no error for a dropped slug
+
+- **WHEN** the host app sets `action_on_unpermitted_parameters` to `:raise`
+- **AND** a save submits an allowed slug and a slug outside the scope of the permit
+- **AND** the save submits a top-level key that is not a group index, and a group that is a scalar
+- **THEN** the permit raises no error, and its result holds only the entry of the allowed slug
+
+#### Scenario: A host that raises for an unpermitted parameter gets an error for an unknown key of an entry
+
+- **WHEN** the host app sets `action_on_unpermitted_parameters` to `:raise`, and a save submits the
+  entry of an allowed slug with an unknown key
+- **THEN** the permit raises `ActionController::UnpermittedParameters`
