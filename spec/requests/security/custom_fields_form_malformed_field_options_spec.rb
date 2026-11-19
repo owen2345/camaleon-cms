@@ -3,9 +3,11 @@
 # The custom-fields partial of the admin forms reads `params[:field_options]` as a set of groups, each
 # a set of fields, to show the submitted values again after a refused or a failed save. The partial
 # leaves out each part that has the wrong shape, so a malformed param gives no 500 in the view.
-# The post save refuses a `field_options` that is not a set of groups, before any write, and renders
-# its form again (meta_container_refusal_spec.rb). A failed validation renders the form again on every
-# form with the partial. The category form stands in for those forms.
+# The post save refuses a `field_options` param that is not a set, such as a scalar or a list, before
+# any write, and renders its form again (meta_container_refusal_spec.rb). A failed validation renders
+# the form again on every form with the partial. The category form stands in for those forms.
+# The examples of a malformed shape find the note field in the body. This shows that the form
+# rendered the partial.
 RSpec.describe 'Security: the admin form renders again with a malformed field_options', type: :request do
   include_context 'with the post editor'
 
@@ -61,7 +63,6 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
   end
 
   # A category with the slug of another category of the post type fails its validation.
-  # The note field in the body shows that the form rendered the custom-fields partial.
   context 'with a field group of the category' do
     before do
       add_note_field('Category')
