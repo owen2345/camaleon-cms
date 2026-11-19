@@ -284,8 +284,15 @@ Changes that look free from inside this repository and are not:
   `camaleon_cms` 2.9.5 or later. The plugins and themes that pass raw params to `set_field_values` always
   stored the list.
 - **Dropping a field-options entry under a key that names no allowed slug** (#1315) changes no surveyed
-  consumer. Rails passes such an entry through the permit when a group holds a numeric key. No form of
-  a surveyed consumer sends that shape.
+  consumer. On 2.9.2 to 2.9.4, Rails passed such an entry through the permit when a group held a
+  numeric key. No form of a surveyed consumer sends that shape.
+- **Permitting each field entry on its own** in `cama_permitted_field_options` (#1354) changes no
+  surveyed consumer. For each payload that a form sends, the result is the same as before.
+  - The helper no longer reports a group or a slug that it drops as an unpermitted parameter. No
+    surveyed host sets `action_on_unpermitted_parameters` to `:raise`. `camaleon-cms-seo` sets it only
+    in a spec of the category save, which posts no field options.
+  - `camaleon-post-clone` PR #3 re-keys a list of values in the request parameters before the call,
+    and keeps only the hashes of the result. Both steps still work.
 - **The validation of the group number of a custom-field value** (#1318) changes no surveyed
   consumer for a group number that Camaleon stores. A valid group number is nil, or an integer from
   0 to 2147483647 (an Integer, or a String of 1 to 16 digits). Any other number raises

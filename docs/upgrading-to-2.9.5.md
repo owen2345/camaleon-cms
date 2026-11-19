@@ -24,6 +24,7 @@ what theme/plugin developers should know.
 | Has plugins or themes that submit post template or layout values, non-ASCII meta keys or a status other than published/pending/draft, or relies on a non-publisher reaching `published` | Offer templates through the hooks; a user without the publish permission now stays at `pending` on create, update and restore; run the scan task for stored values ([details](#post-templates-reserved-keys-and-restore)) |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 | Has **checkboxes** custom fields | Admin saves store them again. Check the options again on the records that a user saved through an admin form since 2.9.2 ([details](#admin-saves-store-checkboxes-custom-fields-again)) |
+| Has a custom field whose slug is a number, such as `2020` | Admin saves store the fields beside it again. Review the records that a user saved through an admin form on 2.9.2 to 2.9.4 ([details](#a-field-with-a-numeric-slug-no-longer-removes-the-values-beside-it)) |
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
@@ -225,6 +226,31 @@ This release stores the checked options.
 **Action:** this release does not restore the options that those saves removed. Review the records
 with a checkboxes field that a user saved through an admin form on 2.9.2 to 2.9.4. Check their options
 again. Code that calls `set_field_value` or `save_field_value` stored its values correctly.
+
+---
+
+## A field with a numeric slug no longer removes the values beside it
+
+A custom field can have a slug that is a number, such as `2020`. Releases 2.9.2 to 2.9.4 had a defect
+in the admin save of a form that shows such a field. The save dropped the other fields that the form
+posted in the same group, and it removed their stored values. The defect applied in two cases:
+
+- The save of a post or a draft, when a field group of the post or of its categories holds such a
+  field.
+- Each admin save of a form that shows such a field, when the host app runs Rails 6.1.
+
+This release stores the fields beside such a field.
+
+**Action:** this release does not restore the values that those saves removed. Find the fields with
+such a slug in a Rails console:
+
+```ruby
+CamaleonCms::CustomField.where(object_class: '_fields').select { |field| field.slug.to_s.match?(/\A-?\d+\z/) }
+```
+
+Review the records whose form shows one of these fields, and that a user saved through an admin form
+on 2.9.2 to 2.9.4. Code that calls `set_field_value` or `save_field_value` stored its values
+correctly.
 
 ---
 
@@ -659,6 +685,13 @@ the checkboxes field submits) and the `values` keyed by index. It drops a list t
 as before. A plugin that re-keyed the list by index before the `cama_permitted_field_options` call can
 remove that step when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9.4
 `cama_permitted_field_options` drops the list.
+
+`cama_permitted_field_options` no longer reports a group or a slug that it drops as an unpermitted
+parameter. Before, with `config.action_controller.action_on_unpermitted_parameters = :raise`, a save
+that posted a slug outside the scope of the permit raised `ActionController::UnpermittedParameters`.
+The post editor posts such slugs, for the field groups of the post itself and of its categories. The
+helper still reports an unknown key inside the entry of a field. `cama_custom_field_allowed_slugs`
+gives the slugs that the helper keeps.
 
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;

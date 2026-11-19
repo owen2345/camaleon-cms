@@ -47,8 +47,8 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     expect(post_type.categories.find_by(slug: 'array-fields')).to be_present
   end
 
-  # A group or a slug entry given as a list of hashes passes the permit as an Array, which has no slug
-  # or [:id] to read.
+  # A group or a slug entry given as a list of hashes is not a hash, so the permit helper skips it. A
+  # list has no slug and no id to read.
   { 'a slug entry' => { '0' => { 'subtitle' => [{ 'id' => '1', 'values' => { '0' => 'x' } }] } },
     'a group' => { '0' => [{ 'subtitle' => { 'id' => '1', 'values' => { '0' => 'x' } } }] } }.each do |shape, payload|
     it "saves the category and writes no field values when #{shape} is a list" do
@@ -63,8 +63,8 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     end
   end
 
-  # Rails reads a group that holds a numeric key as nested attributes, so the entry under that key
-  # passes the permit. The key names no field.
+  # The numeric key names no allowed field, so the permit helper does not read the entry under it.
+  # The group then holds no entry, and the save keeps the stored values.
   it 'saves the category and keeps its field values when a group holds its fields under a numeric key' do
     category = post_type.categories.create!(name: 'Nested field', slug: 'nested-field')
     category.set_field_value('subtitle', 'kept')
