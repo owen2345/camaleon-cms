@@ -148,8 +148,8 @@ module CamaleonCms
       def cama_form_field_group_numbers(record, slugs, field_name = :field_options)
         return cama_submitted_instances(slugs, field_name).map(&:first) if cama_form_submitted_values?(field_name)
 
-        # The query and the uniq give the order of the groups of get_fields_grouped: its group_by keeps
-        # the first row of each group number.
+        # The query and the uniq give the order of the groups of get_fields_grouped: its group_by puts
+        # each group number in the order of its first row.
         record.custom_field_values.where(custom_field_slug: slugs).order(group_number: :asc).pluck(:group_number).uniq
       end
 
