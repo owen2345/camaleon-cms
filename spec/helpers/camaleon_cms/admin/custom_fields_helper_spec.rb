@@ -168,6 +168,49 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
     end
   end
 
+  describe '#cama_form_field_group_numbers' do
+    init_site
+
+    let(:group) do
+      @site.custom_field_groups.create!(name: 'Notes', slug: '_notes', object_class: 'Site', objectid: @site.id,
+                                        is_repeat: true)
+    end
+
+    before do
+      group.add_manual_field({ 'name' => 'Note', 'slug' => 'note' }, { 'field_key' => 'text_box' })
+      group.add_manual_field({ 'name' => 'Color', 'slug' => 'color' }, { 'field_key' => 'text_box' })
+    end
+
+    def numbers_for(verb, params = {})
+      helper.request.request_method = verb
+      controller.params = ActionController::Parameters.new(params)
+      helper.cama_form_field_group_numbers(@site, %w[note color])
+    end
+
+    it 'gives the stored group numbers of the fields of the group for a GET request' do
+      @site.set_field_value('note', 'one', group_number: 1)
+      @site.set_field_value('color', 'red', group_number: 1)
+      @site.set_field_value('color', 'blue', group_number: 3)
+
+      expect(numbers_for('GET')).to eq([1, 3])
+      expect(helper.cama_form_field_values(@site, %w[note color]).size).to eq(2)
+    end
+
+    it 'gives no group number for a record with no stored value' do
+      expect(numbers_for('GET')).to eq([])
+    end
+
+    it 'gives the submitted group numbers in the order of the submitted values, with nil for an invalid number' do
+      submitted = { '0' => { 'note' => { 'group_number' => '3', 'values' => ['three'] } },
+                    '1' => { 'note' => { 'group_number' => '1', 'values' => ['one'] } },
+                    '2' => { 'note' => { 'group_number' => 'x', 'values' => ['invalid'] } } }
+
+      expect(numbers_for('POST', field_options: submitted)).to eq([1, 3, nil])
+      expect(helper.cama_form_field_values(@site, %w[note color]))
+        .to eq([{ 'note' => ['one'] }, { 'note' => ['three'] }, { 'note' => ['invalid'] }])
+    end
+  end
+
   describe '#cama_form_submitted_values?' do
     # With no field_name, the helper reads its default param.
     def submitted_for(verb, params = {}, *field_name)
