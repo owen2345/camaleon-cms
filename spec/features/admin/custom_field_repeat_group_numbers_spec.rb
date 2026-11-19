@@ -118,4 +118,40 @@ RSpec.describe 'the group numbers of a repeatable field group', :js do
 
     expect(stored('note')).to eq([[0, 'old'], [1, 'one']])
   end
+
+  # A failed save renders the form again with the submitted values. The example submits the slug of
+  # another category, so the save fails on the server.
+  context 'when a save fails' do
+    let(:post_type) { @site.post_types.find_by!(slug: 'post') }
+    let(:category) { post_type.categories.create!(name: 'Notes', slug: 'notes-category') }
+    let(:taken_slug) { post_type.categories.where.not(id: category.id).pick(:slug) }
+
+    before do
+      group = @site.custom_field_groups.create!(name: 'Category Notes', slug: '_category-notes',
+                                                object_class: 'PostType_Category', objectid: post_type.id,
+                                                is_repeat: true)
+      group.add_manual_field({ 'name' => 'Remark', 'slug' => 'remark' }, { 'field_key' => 'text_box' })
+      category.set_field_value('remark', 'one', group_number: 1)
+      category.set_field_value('remark', 'three', group_number: 3)
+    end
+
+    def submit_category(slug)
+      within('#form-category') do
+        fill_in 'category_slug', with: slug
+        click_button 'Submit'
+      end
+    end
+
+    it 'keeps the submitted group numbers in the form that renders again' do
+      visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/categories/#{category.id}/edit"
+      submit_category(taken_slug)
+      expect(page).to have_text(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
+
+      submit_category('notes-category')
+      expect(page).to have_css('.alert-success')
+
+      expect(category.custom_field_values.where(custom_field_slug: 'remark').order(:group_number)
+                     .pluck(:group_number, :value)).to eq([[1, 'one'], [3, 'three']])
+    end
+  end
 end
