@@ -73,10 +73,11 @@ field-options param into a 500.
 
 #### Scenario: A form renders again with a malformed field_options
 
-- **WHEN** a save that renders its form again, after a refusal or a failed validation, submits
-  `field_options` as a scalar, a group that is not a set of fields or a field entry that is a list,
-  while the record has registered fields
-- **THEN** the form renders with no submitted value and the request completes normally (no 500)
+- **WHEN** a save renders its form again, after a refusal or a failed validation, while the record
+  has registered fields
+- **AND** the save submits a `field_options`, a group or a field entry that is a scalar or a list
+- **THEN** the form renders its custom fields with no submitted value, and the request completes
+  normally (no 500)
 
 ### Requirement: The bundled theme's custom save answers with the standard response
 

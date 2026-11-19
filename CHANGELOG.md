@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The request spec of an admin form with a malformed `field_options` now sends a list param, a list group and a scalar field entry. The post form and the category form get each shape. Each example of a malformed shape checks that the form rendered its custom fields. Development-only. [#1355](https://github.com/owen2345/camaleon-cms/pull/1355).
+
 - **Bug fix:** An admin save now stores the custom fields that its form posts beside a field with a numeric slug, such as `2020`. Before, the save dropped those fields, and on 2.9.2 to 2.9.4 it removed their stored values. [#1354](https://github.com/owen2345/camaleon-cms/pull/1354).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-field-with-a-numeric-slug-no-longer-removes-the-values-beside-it).
 
