@@ -127,7 +127,7 @@ module CamaleonCms
       # fields of two groups. The helper gives a group only the entries that hold one of its fields, as
       # with the values of the record. A repeat group shows only its own instances.
       # The admin can drag an instance of a repeat group to a new place. The JavaScript of the form keeps
-      # the index of the instance and writes the new place into its group number. The helper sorts the
+      # the index of the instance and gives it the group number of its new place. The helper sorts the
       # instances of the group by their group numbers, as get_fields_grouped sorts the stored values.
       # record: the record of the form
       # slugs: the slugs of the fields of the group
@@ -135,12 +135,18 @@ module CamaleonCms
       def cama_form_field_values(record, slugs, field_name = :field_options)
         return record.get_fields_grouped(slugs) unless cama_form_submitted_values?(field_name)
 
-        instances = cama_submitted_groups(params[field_name]).filter_map do |group|
-          instance = group.slice(*slugs)
-          values = cama_submitted_group_values(instance).presence
-          [cama_submitted_group_number(instance), values] if values
-        end
-        instances.sort_by.with_index { |(number, _values), index| [number || Float::INFINITY, index] }.map(&:last)
+        cama_submitted_instances(slugs, field_name).map(&:last)
+      end
+
+      # The group number of each instance that cama_form_field_values gives, in the same order. The
+      # editor keeps these numbers, so a save does not move a value to another group number. A GET
+      # request gives the stored numbers. A form that renders again after a failed save gives the
+      # submitted numbers, with nil for an invalid number.
+      # record: the record of the form
+      # slugs: the slugs of the fields of the group
+      # field_name: the param that holds the values, the fields_name local of the partial
+      def cama_form_field_group_numbers(record, slugs, field_name = :field_options)
+        cama_form_field_instances(record, slugs, field_name).map(&:first)
       end
 
       # Whether the custom-fields partial shows the submitted values: a request that is not a GET and
@@ -162,6 +168,27 @@ module CamaleonCms
       end
 
       private
+
+      # The instances of a group, as pairs of a group number and the values: the instances of
+      # cama_form_field_values and the numbers of cama_form_field_group_numbers. The custom-fields
+      # partial calls it once for both, so a GET request reads the stored values with one query.
+      # get_fields_grouped_by_number gives the groups of get_fields_grouped with their numbers.
+      def cama_form_field_instances(record, slugs, field_name)
+        return record.get_fields_grouped_by_number(slugs) unless cama_form_submitted_values?(field_name)
+
+        cama_submitted_instances(slugs, field_name)
+      end
+
+      # The submitted instances of a group, as pairs of a group number and the values, sorted by the
+      # group number. An instance with an invalid group number comes last.
+      def cama_submitted_instances(slugs, field_name)
+        instances = cama_submitted_groups(params[field_name]).filter_map do |group|
+          instance = group.slice(*slugs)
+          values = cama_submitted_group_values(instance).presence
+          [cama_submitted_group_number(instance), values] if values
+        end
+        instances.sort_by.with_index { |(number, _values), index| [number || Float::INFINITY, index] }
+      end
 
       # The groups of a submitted param that are sets of fields. A param that is not a set of groups
       # gives no group.

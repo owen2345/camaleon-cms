@@ -57,8 +57,12 @@
                     <% end %>
                 </div>
                 <%
-                  # The helper gives the submitted values of a failed save, or the values of the record.
-                  field_options_json = cama_form_field_values(record, group_field_data.keys, field_name).to_json
+                  # The helper gives the submitted values of a failed save, or the values of the record, with
+                  # the group number of each instance.
+                  instances = cama_form_field_instances(record, group_field_data.keys, field_name)
+                  field_options_json = instances.map(&:last).to_json
+                  # The editor keeps the group number of each instance of a repeatable group.
+                  group_numbers_json = group.is_repeat ? instances.map(&:first).to_json : 'null'
                 %>
                 <script>
                     jQuery(function () {
@@ -67,7 +71,8 @@
                             '<%= group.id %>',
                             <%= json_escape(group_field_data.to_json).html_safe %>,
                             <%= group.is_repeat %>,
-                            '<%= field_name %>'
+                            '<%= field_name %>',
+                            <%= json_escape(group_numbers_json).html_safe %>
                         );
                     });
                 </script>

@@ -41,6 +41,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes an Array to `set_field_value` or `save_field_value` | The items are now read in the order of the Array. To append an Array after the stored items (`clear: false`), give an order after the last stored order ([details](#set_field_value-stores-the-items-of-an-array-in-order)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
+| Has a theme that reads one instance of a repeatable field group by its group number, a plugin with its own copy of the custom-fields partial, or code that reads `get_fields_grouped` for values that code stored with an `order` | A save in the admin no longer moves values to other group numbers, also after a delete of an instance. A plugin copy of the partial must pass the group numbers to the editor. `get_fields_grouped` gives its groups in ascending order of the group number ([details](#a-repeatable-field-group-keeps-its-group-numbers-in-the-editor)) |
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
 | Has a role other than an administrator that stores markup in a plain custom field (`text_box`, `text_area`) or a quote or a space in a URL field, or a role with `settings`, `custom_fields` or `theme_settings` | Such a role is now refused markup outside the content allowlist in a field of any kind, unless it is trusted for the owner of the field. In a URL field, it is also refused a quote, an angle bracket, a backtick and whitespace before the end of the value. A role with `settings` or `custom_fields` can store any markup in the fields of each owner except a post, another site and its themes, and a role with `theme_settings` in the theme fields. Run the scan task ([details](#a-custom-field-value-of-every-kind-is-scanned-at-save)) |
 | Has plugin or theme code that saves a `field_attrs` pair as a Hash for a role other than an administrator | A tag with an attribute in the pair, such as a link, can now be refused. Pass `pair.to_json`, which escapes `<` ([details](#a-custom-field-value-of-every-kind-is-scanned-at-save)) |
@@ -901,6 +902,35 @@ preview.
 query, to fill the form. Store the values on the record first, then link to its form. For the form of
 a new record, create the record with the values first, for example as a draft post. Then link to its
 edit form.
+
+### A repeatable field group keeps its group numbers in the editor
+
+An admin can add a repeatable field group to a record several times. Each copy is an instance, and
+its values have the group number of the instance. Before, the custom-field editor gave each instance
+the number of its position. A checkbox, a checkboxes field or a radio field with no choice stores no
+value. So an instance with only such fields left a gap, and the next save moved the values of the
+later instances to lower group numbers.
+
+Now the editor keeps the group number of each instance. A new instance gets the highest number of
+the group plus 1. A delete of an instance keeps the numbers of the other instances. Only a drag
+changes the numbers, in the new order of the instances. The upgrade changes no stored value.
+
+A group that stores a group number below 0, from an earlier release, is the exception. The save
+refuses such a number, so the editor numbers the instances of that group from 0 by their position.
+The next save stores these numbers.
+
+**Who must act:** nobody, in most cases. Check these cases:
+
+- A theme reads one instance with `get_field_values(key, number)` and expects the later instances to
+  move to lower numbers after a delete. Read all instances with `get_fields_grouped` or
+  `the_fields_grouped` instead. These give all instances, in ascending order of the group number.
+- A plugin renders its own copy of the custom-fields partial. Pass the numbers of
+  `cama_form_field_group_numbers` as the sixth argument of `build_custom_field_group`. Without them,
+  the editor numbers the instances by their position when the form renders, as before. So a save
+  can still move the values of an instance to a lower group number.
+- Code stores values with `set_field_value` and an `order`, and reads them with `get_fields_grouped`
+  or `the_fields_grouped`. These now give the groups in ascending order of the group number. Before,
+  a group whose values had a higher order could come after a group with a higher group number.
 
 ### The admin JavaScript shows a value as text
 

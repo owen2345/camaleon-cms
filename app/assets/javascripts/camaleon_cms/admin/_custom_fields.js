@@ -1,15 +1,34 @@
 // build custom field groups with values recovered from DB received in field_values
-function build_custom_field_group(field_values, group_id, fields_data, is_repeat, field_name_group){
+// group_numbers (optional): the group number of each instance of a repeatable group, in the order of
+// field_values. The editor keeps these numbers, so a save does not move a value to another group
+// number. Only a drag changes the number of an instance, unless cama_custom_group_numbers gives
+// the positions of the instances in place of the numbers.
+function build_custom_field_group(field_values, group_id, fields_data, is_repeat, field_name_group, group_numbers){
     if(field_values.length == 0) field_values = [{}];
+    group_numbers = cama_custom_group_numbers(group_numbers, field_values.length);
     var group_panel = $('#custom_field_group_'+group_id);
     var group_panel_body = group_panel.find(' > .panel-body');
     var group_clone = group_panel_body.children('.custom_sortable_grouped').clone().removeClass('hidden');
     var field_group_counter = 0;
     group_panel_body.children('.custom_sortable_grouped').remove();
 
-    function add_group(values){
+    function instance_numbers(){
+        return group_panel_body.children('.custom_sortable_grouped').map(function(){
+            return parseInt($(this).find('input.cama_custom_group_number').first().val(), 10);
+        }).get();
+    }
+
+    // A new instance gets the highest group number of the group plus 1.
+    function next_group_number(){
+        var max = -1;
+        $.each(instance_numbers(), function(i, number){ if(number > max) max = number; });
+        return max + 1;
+    }
+
+    function add_group(values, group_number){
         var clone = group_clone.clone();
         clone.find('input, textarea, select').not('.code_style').each(function(){ $(this).attr('name', $(this).attr('name').replace(field_name_group, field_name_group+'['+field_group_counter+']')) });
+        if(is_repeat) clone.find('input.cama_custom_group_number').val(group_number === undefined ? next_group_number() : group_number);
         group_panel_body.append(clone);
         group_panel.trigger('update_custom_group_number');
         for(var k in fields_data){
@@ -33,18 +52,40 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
                     tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
                 });
             }});
-        group_panel.find('.btn.duplicate_cutom_group').click(add_group);
+        group_panel.find('.btn.duplicate_cutom_group').click(function(){ return add_group({}); });
         group_panel_body.on('click', '.header-field-grouped .del', function(){ if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); }); return false; });
         group_panel_body.on('click', '.header-field-grouped .toggleable', function(){
             if($(this).hasClass('fa-angle-down')) $(this).removeClass('fa-angle-down').addClass('fa-angle-up').closest('.header-field-grouped').next().slideUp();
             else $(this).removeClass('fa-angle-up').addClass('fa-angle-down').closest('.header-field-grouped').next().slideDown();
             return false;
         });
-        group_panel.bind('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('input.cama_custom_group_number').val(index); }); });
-        $.each(field_values, function(field_val, key){ add_group(this); });
+        // Gives the group numbers of the group, in ascending order, to the instances in their order on
+        // the page. After a drag, the numbers follow the new order. After an add or a delete, the
+        // instances are already in the order of their numbers, so no number changes.
+        group_panel.bind('update_custom_group_number', function(){
+            var numbers = instance_numbers().sort(function(a, b){ return a - b; });
+            group_panel_body.children('.custom_sortable_grouped').each(function(index){ $(this).find('input.cama_custom_group_number').val(numbers[index]); });
+        });
+        $.each(field_values, function(index, values){ add_group(values, group_numbers[index]); });
     }else{
         add_group(field_values[0]);
     }
+}
+
+// The group numbers of the instances of a group. The save refuses a group number below 0, so the
+// function gives the positions of the instances (0, 1, 2, ...) when group_numbers does not hold one
+// ascending Integer from 0 to 2147483647 for each instance.
+function cama_custom_group_numbers(group_numbers, count){
+    var valid = $.isArray(group_numbers) && group_numbers.length == count;
+    for(var i = 0; valid && i < count; i++){
+        var number = group_numbers[i];
+        valid = typeof number == 'number' && number % 1 === 0 && number >= 0 && number <= 2147483647 &&
+            (i == 0 || number > group_numbers[i - 1]);
+    }
+    if(valid) return group_numbers;
+    var positions = [];
+    for(var position = 0; position < count; position++) positions.push(position);
+    return positions;
 }
 
 function cama_build_custom_field(panel, field_data, values){

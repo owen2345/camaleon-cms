@@ -115,7 +115,7 @@ module CamaleonCms
     end
     alias get_fields get_field_values
 
-    # return the values of custom fields grouped by group_number
+    # return the values of custom fields grouped by group_number, in ascending order of the group number
     # field_keys: (array of keys), each a String or a Symbol. Each group gives its values under the
     #             key as given: get_fields_grouped([:my_slug1]) gives [{ my_slug1: ["val 1"] }].
     # samples: my_object.get_fields_grouped(['my_slug1', 'my_slug2'])
@@ -132,19 +132,28 @@ module CamaleonCms
     #
     #   puts res[0]['my_slug1'].first ==> "val 1"
     def get_fields_grouped(field_keys)
-      res = []
+      get_fields_grouped_by_number(field_keys).map(&:last)
+    end
+
+    # The groups of get_fields_grouped, each as a pair of its group number and its values, in the same
+    # order. One query reads both.
+    # sample: my_object.get_fields_grouped_by_number(['my_slug1'])
+    #   return: [[0, { 'my_slug1' => ['val 1'] }], [3, { 'my_slug1' => ['val2 for slug1'] }]]
+    def get_fields_grouped_by_number(field_keys)
       # The query below reads a Symbol key or an Integer key as its String, and a Range key as each
       # slug in the Range. KeySlugs gives the comparison the same rules.
       key_slugs = field_keys.map { |field_key| [field_key, CamaleonCms::CustomFieldsRelationship::KeySlugs.new(field_key)] }
+      # The default scope sorts by the order of the value first. reorder gives the groups in ascending
+      # order of the group number, and the values of each group in their order.
       custom_field_values.where(custom_field_slug: field_keys)
-                         .order(group_number: :asc).group_by(&:group_number).each_value do |group_fields|
+                         .reorder(group_number: :asc, term_order: :asc)
+                         .group_by(&:group_number).map do |group_number, group_fields|
         group = key_slugs.each_with_object({}) do |(field_key, slugs), hsh|
           _tmp = group_fields.select { |field| slugs.include?(field.custom_field_slug) }.map(&:value)
           hsh[field_key] = _tmp if _tmp.present?
         end
-        res << group
+        [group_number, group]
       end
-      res
     end
 
     # return all values
