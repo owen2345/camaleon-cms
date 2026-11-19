@@ -926,7 +926,8 @@ The next save stores these numbers.
   `the_fields_grouped` instead. These give the same list as before.
 - A plugin renders its own copy of the custom-fields partial. Pass the numbers of
   `cama_form_field_group_numbers` as the sixth argument of `build_custom_field_group`. Without them,
-  the editor numbers the instances by their position, as before.
+  the editor numbers the instances by their position when the form renders, as before. So a save
+  can still move the values of an instance to a lower group number.
 
 ### The admin JavaScript shows a value as text
 
