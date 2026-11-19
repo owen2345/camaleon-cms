@@ -80,5 +80,14 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
         expect(post_type.categories.where(slug: 'taken').count).to eq(1)
       end
     end
+
+    it 'shows the submitted value again in the category form' do
+      post "/admin/post_type/#{post_type.id}/categories",
+           params: 'category[name]=Taken+again&category[slug]=taken&field_options[0][note][values][0]=kept+note',
+           headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('{"note":["kept note"]}')
+    end
   end
 end
