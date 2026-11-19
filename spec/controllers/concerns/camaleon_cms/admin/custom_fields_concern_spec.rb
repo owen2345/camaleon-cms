@@ -90,6 +90,74 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
       end
     end
 
+    # Rails reads a hash that holds a numeric key with a hash value as nested attributes, when a
+    # nested filter permits that hash. It then keeps only the numeric keys. The permit helper gives
+    # Rails one field entry at a time, so Rails reads no group and no entry that way.
+    context 'with a numeric key that holds a hash' do
+      let(:own_id) { CamaleonCms::CustomField.find_by!(slug: 'own_setting').id }
+
+      it 'keeps the entry of an allowed slug beside a numeric slug outside the scope' do
+        controller.params = ActionController::Parameters.new(
+          field_options: { '0' => { 'own_setting' => { 'id' => own_id.to_s, 'values' => { '0' => 'own' } },
+                                    '2020' => { 'id' => '2', 'values' => { '0' => 'a year' } } } }
+        )
+        permitted = controller.send(:cama_permitted_field_options, 'Plugin')
+
+        expect(permitted).to eq('0' => { 'own_setting' => { 'id' => own_id, 'values' => { '0' => 'own' } } })
+      end
+
+      it 'keeps the entry of an allowed numeric slug and the entry beside it' do
+        year_id = register(plugin.get_field_groups.first, '2020').id
+        controller.params = ActionController::Parameters.new(
+          field_options: { '0' => { 'own_setting' => { 'id' => own_id.to_s, 'values' => { '0' => 'own' } },
+                                    '2020' => { 'id' => year_id.to_s, 'values' => { '0' => 'a year' } } } }
+        )
+        permitted = controller.send(:cama_permitted_field_options, 'Plugin', field_groups: plugin.get_field_groups)
+
+        expect(permitted).to eq('0' => { 'own_setting' => { 'id' => own_id, 'values' => { '0' => 'own' } },
+                                         '2020' => { 'id' => year_id, 'values' => { '0' => 'a year' } } })
+      end
+
+      it 'keeps the id, the group number and the values of an entry that holds such a key' do
+        entry = { '0' => { 'id' => '9' }, 'id' => own_id.to_s, 'group_number' => '2', 'values' => { '0' => 'own' } }
+        controller.params = ActionController::Parameters.new(field_options: { '0' => { 'own_setting' => entry } })
+        permitted = controller.send(:cama_permitted_field_options, 'Plugin')
+
+        expect(permitted['0']['own_setting']).to eq('id' => own_id, 'group_number' => '2', 'values' => { '0' => 'own' })
+      end
+    end
+
+    # The permit helper drops a group or a slug outside its scope itself, so Rails does not report
+    # them as unpermitted parameters (intended). The post editor posts such slugs in each save.
+    context 'when the host app raises an error for an unpermitted parameter' do
+      around do |example|
+        setting = ActionController::Parameters.action_on_unpermitted_parameters
+        ActionController::Parameters.action_on_unpermitted_parameters = :raise
+        example.run
+      ensure
+        ActionController::Parameters.action_on_unpermitted_parameters = setting
+      end
+
+      def permit(field_options)
+        controller.params = ActionController::Parameters.new(field_options: field_options)
+        controller.send(:cama_permitted_field_options, 'Plugin', field_groups: plugin.get_field_groups)
+      end
+
+      it 'drops a slug outside the scope, a key that is no group index and a group that is a scalar' do
+        entry = { 'id' => '1', 'values' => { '0' => 'own' } }
+        permitted = permit('0' => { 'own_setting' => entry, 'other_setting' => entry, '2020' => entry },
+                           'extra' => { 'own_setting' => entry }, '1' => 'scalar')
+
+        expect(permitted.keys).to eq(['0'])
+        expect(permitted['0'].keys).to eq(['own_setting'])
+      end
+
+      it 'raises the error for an unknown key in the entry of an allowed slug' do
+        expect { permit('0' => { 'own_setting' => { 'id' => '1', 'unknown' => 'x' } }) }
+          .to raise_error(ActionController::UnpermittedParameters, /unknown/)
+      end
+    end
+
     # The permit helper keeps a group number that is a list or a hash, with its content removed, so
     # the custom-field value fails its validation. Before, Rails dropped such a group number, and
     # the value went to group 0 with no error.

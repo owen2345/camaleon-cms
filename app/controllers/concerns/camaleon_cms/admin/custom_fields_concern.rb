@@ -3,6 +3,17 @@ module CamaleonCms
     module CustomFieldsConcern
       extend ActiveSupport::Concern
 
+      # The filter of one field entry (`field_options[<index>][<slug>]`). `values` arrives keyed by
+      # index (`values[<index>]`, as the admin JavaScript renames the inputs of most fields) or as a
+      # list of scalars (`values[]`, the checkboxes field). A `values` filter that does not match the
+      # shape leaves the result of the other one in place.
+      #
+      # `{ group_number: [{}] }` keeps a group number that the request sends as a list or a hash, with
+      # its content removed. The value then fails its validation. With `:group_number` alone, Rails
+      # drops such a group number, and the value goes to group 0 with no error.
+      FIELD_ENTRY_FILTER = [:id, :group_number, { values: {} }, { values: [] }, { group_number: [{}] }].freeze
+      private_constant :FIELD_ENTRY_FILTER
+
       private
 
       # Only permit field values whose slug is registered under object_class. param_key selects
@@ -21,42 +32,42 @@ module CamaleonCms
         return {} unless cama_hash_param?(field_options) && field_options.respond_to?(:permit)
 
         field_ids = cama_custom_field_ids_by_slug(object_class, field_groups: field_groups)
-        allowed_keys = field_ids.keys
-        return {} if allowed_keys.blank?
+        return {} if field_ids.blank?
 
-        # values arrives keyed by index (`values[<index>]`, as the admin JavaScript renames most fields'
-        # inputs) or as a list of scalars (`values[]`, the checkboxes field). A `values` filter that does
-        # not match the shape leaves the result of the other one in place. Rails converts a plain filter
-        # again for each group. `group_filter` has indifferent access, so Rails does not convert it.
+        # A group is the value of a key of digits only (`field_options[<index>]`), and it holds one
+        # entry for each field slug. The helper reads these two levels itself, and Rails permits one
+        # entry at a time. With a nested filter for the groups, Rails reads a group that holds a numeric
+        # key with a hash value as nested attributes, and keeps only its numeric keys. A field slug of
+        # digits only, such as `2020`, is such a key.
         #
-        # `{ group_number: [{}] }` keeps a group number that the request sends as a list or a hash, with
-        # its content removed. The value then fails its validation. With `:group_number` alone, Rails
-        # drops such a group number, and the value goes to group 0 with no error.
-        entry_filter = [:id, :group_number, { values: {} }, { values: [] }, { group_number: [{}] }]
-        group_filter = allowed_keys.index_with { entry_filter }.with_indifferent_access
-        group_keys = field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }
-        permitted = field_options.permit(group_keys.index_with { group_filter }).to_h
-        # Keep only hash-shaped groups and slug entries: a list of hashes passes the permit too and
-        # carries no slug or id to read. Rails reads a group that holds a numeric key as nested attributes,
-        # so the entry under that key passes the permit. That key names no field. Drop groups left empty
-        # after filtering: set_field_values deletes every existing value before writing, so handing it a
-        # non-blank-but-empty payload (a group whose submitted slugs were all unregistered) would wipe the
-        # stored values and write nothing.
-        permitted.select! { |_group, fields| fields.is_a?(Hash) }
-        permitted.each_value { |fields| fields.select! { |slug, data| data.is_a?(Hash) && field_ids.key?(slug) } }
-        permitted.reject! { |_group, fields| fields.blank? }
-        # The value gate picks its check from the field the row points at, and set_field_values falls
-        # back to this id where the groups it resolves slugs in hold no field of that slug (a caller that
-        # permits against other groups than it saves with, a class-only permit among them). Hold it to
-        # the slug's own fields, so a forged id naming another field (a text box for a url slug)
-        # cannot change the rules of the gate.
-        permitted.each_value do |fields|
-          fields.each do |slug, data|
-            ids = field_ids[slug]
-            data[:id] = ids.find { |id| id.to_s == data[:id].to_s } || ids.first
-          end
+        # A group with no entry of an allowed slug is not in the result: set_field_values deletes each
+        # stored value before it writes, so a payload that holds only such groups must stay blank.
+        permitted = ActiveSupport::HashWithIndifferentAccess.new
+        field_options.each_pair do |index, group|
+          next unless index.to_s.match?(/\A\d+\z/) && group.is_a?(ActionController::Parameters)
+
+          fields = cama_permitted_field_entries(group, field_ids)
+          permitted[index] = fields if fields.present?
         end
         permitted
+      end
+
+      # The entry of each allowed slug of one group, in the order of field_ids. An entry that is a
+      # scalar or a list has no id and no values to read, so it is not in the result.
+      def cama_permitted_field_entries(group, field_ids)
+        field_ids.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |(slug, ids), fields|
+          entry = group[slug]
+          next unless entry.is_a?(ActionController::Parameters)
+
+          data = entry.permit(FIELD_ENTRY_FILTER).to_h
+          # The value gate picks its check from the field the row points at, and set_field_values falls
+          # back to this id where the groups it resolves slugs in hold no field of that slug (a caller that
+          # permits against other groups than it saves with, a class-only permit among them). Hold it to
+          # the slug's own fields, so a forged id naming another field (a text box for a url slug)
+          # cannot change the rules of the gate.
+          data[:id] = ids.find { |id| id.to_s == data[:id].to_s } || ids.first
+          fields[slug] = data
+        end
       end
 
       # The allow-list covers fields registered directly under object_class. For a post
