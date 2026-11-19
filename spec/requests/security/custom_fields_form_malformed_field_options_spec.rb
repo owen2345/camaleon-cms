@@ -20,7 +20,8 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
                    'field_options is a list' => 'field_options[]=x' }
   group_shapes = { 'a group is a scalar' => 'field_options[0]=x',
                    'a group is a list' => 'field_options[0][]=x',
-                   'a field entry is a list' => 'field_options[0][note][]=x' }
+                   'a field entry is a list' => 'field_options[0][note][]=x',
+                   'a field entry is a scalar' => 'field_options[0][note]=x' }
 
   before { sign_in_as(admin, site: current_site) }
 
@@ -38,7 +39,7 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
       end
     end
 
-    group_shapes.merge('a field entry is a scalar' => 'field_options[0][note]=x').each do |shape, field_options|
+    group_shapes.each do |shape, field_options|
       it "renders the refused post form with an unknown status when #{shape}" do
         update_post("post[status]=nope&#{field_options}")
 
