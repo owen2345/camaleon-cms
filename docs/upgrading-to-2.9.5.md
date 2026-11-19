@@ -913,7 +913,11 @@ later instances to lower group numbers.
 
 Now the editor keeps the group number of each instance. A new instance gets the highest number of
 the group plus 1. A delete of an instance keeps the numbers of the other instances. Only a drag
-changes the numbers, in the new order of the instances. Stored values do not change.
+changes the numbers, in the new order of the instances. The upgrade changes no stored value.
+
+A group that stores a group number below 0, from an earlier release, is the exception. The save
+refuses such a number, so the editor numbers the instances of that group from 0 by their position.
+The next save stores these numbers.
 
 **Who must act:** nobody, in most cases. Check these cases:
 

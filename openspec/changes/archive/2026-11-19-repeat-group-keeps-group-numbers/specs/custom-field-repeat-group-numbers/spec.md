@@ -3,8 +3,9 @@
 ### Requirement: A save from the editor keeps the group number of each instance
 
 The custom-field editor SHALL submit each instance of a repeatable field group with the group number
-that the instance had when the form rendered. A save that the admin makes with no drag MUST NOT move
-a stored value to another group number.
+that the instance had when the form rendered. A group number from 0 to 2147483647 is valid. When
+each stored group number of the group is valid, a save with no drag MUST NOT move a stored value to
+another group number.
 
 #### Scenario: An instance after an instance with no value
 

@@ -1,7 +1,8 @@
 // build custom field groups with values recovered from DB received in field_values
 // group_numbers (optional): the group number of each instance of a repeatable group, in the order of
 // field_values. The editor keeps these numbers, so a save does not move a value to another group
-// number. Only a drag changes the number of an instance.
+// number. Only a drag changes the number of an instance, unless cama_custom_group_numbers gives
+// the positions of the instances in place of the numbers.
 function build_custom_field_group(field_values, group_id, fields_data, is_repeat, field_name_group, group_numbers){
     if(field_values.length == 0) field_values = [{}];
     group_numbers = cama_custom_group_numbers(group_numbers, field_values.length);
