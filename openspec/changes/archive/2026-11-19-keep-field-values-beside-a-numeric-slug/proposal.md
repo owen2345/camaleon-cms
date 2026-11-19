@@ -6,7 +6,8 @@ A custom field can have a slug of digits only, such as `2020`. An admin form pos
 `field_options[<index>][<slug>]`, so such a field gives a numeric key with a hash value.
 `CamaleonCms::Admin::CustomFieldsConcern#cama_permitted_field_options` gives Rails one nested filter
 for all groups. Rails reads a hash with such a key as nested attributes when a nested filter permits
-it. Rails then keeps only the numeric keys of the group and drops the other fields.
+it. Rails then keeps only the numeric keys of the group and drops the other fields. From Rails 7.0,
+Rails does not do this when the filter names a numeric key (design, Context).
 
 The post editor shows the field groups of the post type, of the post itself and of its categories. It
 gives index 0 to the first instance of each group, so their fields arrive in one `field_options[0]`.

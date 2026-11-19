@@ -91,7 +91,8 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
     end
 
     # Rails reads a hash that holds a numeric key with a hash value as nested attributes, when a
-    # nested filter permits that hash. It then keeps only the numeric keys. The permit helper gives
+    # nested filter permits that hash. It then keeps only the numeric keys. From Rails 7.0, Rails does
+    # not read the hash that way when the filter names a numeric key. The permit helper gives
     # Rails one field entry at a time, so Rails reads no group and no entry that way.
     context 'with a numeric key that holds a hash' do
       let(:own_id) { CamaleonCms::CustomField.find_by!(slug: 'own_setting').id }

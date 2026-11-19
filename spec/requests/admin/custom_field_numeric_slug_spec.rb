@@ -4,6 +4,7 @@
 # `field_options[<index>][<slug>]`, so such a field gives a numeric key with a hash value. Rails
 # reads a hash with such a key as nested attributes when a nested filter permits it. The permit that
 # all admin saves share then kept only the numeric keys of the group and dropped its other fields.
+# From Rails 7.0, Rails does not do this when the filter names a numeric key.
 RSpec.describe 'Admin custom field values beside a field with a numeric slug', type: :request do
   init_site
 
