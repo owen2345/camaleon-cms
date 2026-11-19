@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** An admin save now stores the custom fields that its form posts beside a field with a numeric slug, such as `2020`. Before, the save dropped those fields, and on 2.9.2 to 2.9.4 it removed their stored values. [#1354](https://github.com/owen2345/camaleon-cms/pull/1354).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-field-with-a-numeric-slug-no-longer-removes-the-values-beside-it).
+
 - **Bug fix:** A save in the admin no longer moves the values of a repeatable custom field group to other group numbers. Before, an instance with no stored value, such as an unchecked checkbox, or a deleted instance moved the later instances to lower numbers. [#1353](https://github.com/owen2345/camaleon-cms/pull/1353).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-repeatable-field-group-keeps-its-group-numbers-in-the-editor).
 
