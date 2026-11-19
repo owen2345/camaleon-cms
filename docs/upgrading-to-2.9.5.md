@@ -38,6 +38,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
+| Has plugin or theme code that passes an Array to `set_field_value` or `save_field_value` | The items are now read in the order of the Array. To append an Array after the stored items (`clear: false`), give an order after the last stored order ([details](#set_field_value-stores-the-items-of-an-array-in-order)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
 | Has plugin or theme code that links to an admin form with `field_options` values in the query, to fill the form | A GET request now shows the values of the record. Store the values on the record, or create a record with them, then link to its edit form ([details](#a-get-request-shows-the-values-of-the-record-in-the-custom-field-form)) |
 | Has plugin or theme code that calls `tagEditor` | A tag name is now text, not HTML, in each value that the editor gets or gives ([details](#the-admin-javascript-shows-a-value-as-text)) |
@@ -857,6 +858,21 @@ reads the stored String:
 
 Values stored before the upgrade do not change. Code that reads such a value must also read the old
 form.
+
+### `set_field_value` stores the items of an Array in order
+
+`set_field_value` and `save_field_value` now give each item of an Array its own order, from the
+order of the call upward: `order`, `order + 1`, and so on. The reads then give the items in the
+order of the Array, as for a list that an admin form saves. Before, each item got the same order,
+and PostgreSQL and MySQL could read the items in any order. One value keeps the order of the call.
+
+**Who must act:** plugin or theme code that does one of these:
+
+- It appends an Array with `clear: false`. To read the new items after the stored items, give an
+  order after the last stored order.
+- It reads a list that it stored before the upgrade. Such a list keeps the orders that it has. Save
+  the list again from its source to store it in order. Do not save the values that a read of the
+  stored list gives: that read can give the items in any order.
 
 ### Parameters in a Hash or an Array are stored as JSON objects
 

@@ -388,6 +388,14 @@ Changes that look free from inside this repository and are not:
   stored as its Ruby inspect String, and Parameters as the inspect String of its Hash. `true` or
   `false` was stored as `"t"` or `"f"`. The only surveyed
   caller is the `product_item_decorator.rb` of `camaleon-ecommerce`, which passes an Integer.
+- **`set_field_value` gives each item of an Array its own order** breaks no surveyed consumer. The
+  items get the order of the call and the next ones, so the reads give them in the order of the
+  Array. One value keeps the order of the call.
+  - `camaleon-cms-efashion`, `cama-ecommerce-theme` and the `e_shop` and `sky` themes of
+    `camaleon_website` pass an Array to `save_field_value` with `clear` true. Their lists are now
+    read in order.
+  - `camaleon_export_import` is the only consumer that passes `clear: false`. It passes one stored
+    value in each call, with the stored order of that value, so its orders do not change.
 
 ## APIs with no surveyed consumer
 

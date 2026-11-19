@@ -373,7 +373,10 @@ module CamaleonCms
     #                         string: uniq value for the custom field
     # args (a Hash with String or Symbol keys):
     #   field_id: (integer optional) identifier of the custom field
-    #   order: order or position of the field value
+    #   order: order or position of the field value. The items of an array get this order and the
+    #          next ones (order, order + 1, ...), so they are read in the order of the array. To
+    #          append an array after the stored values (clear: false), give an order after the
+    #          last stored order.
     #   group_number: number of the group (only for custom field group with is_repeat enabled).
     #                 nil, an Integer from 0 to 2147483647, or a String of 1 to 16 digits with such a
     #                 number ('5').
@@ -386,6 +389,9 @@ module CamaleonCms
     # - ActiveRecord::RecordInvalid for an invalid group number, and for content that the author is
     #   not permitted to save. The record keeps its stored values, with the limits that
     #   _cama_write_field_values names.
+    # - ActiveModel::RangeError when an order is more than 2147483647, the maximum of the column. The
+    #   last item of an array gets the order + the number of items - 1. The record keeps its stored
+    #   values, with the same limits.
     # sample: my_post.set_field_value('subtitle', 'Sub Title')
     # sample: set values for a field (for fields that support multiple values)
     # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
@@ -408,11 +414,8 @@ module CamaleonCms
 
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
-      v = {
-        custom_field_id: args[:field_id], custom_field_slug: key,
-        value: CamaleonCms::Metas.text_column_value(value), term_order: args[:order],
-        group_number: args[:group_number]
-      }
+      v = { custom_field_id: args[:field_id], custom_field_slug: key, term_order: args[:order],
+            group_number: args[:group_number] }
       # One transaction deletes the old values (the clear option) and creates the new ones. When a
       # new value is invalid, the delete rolls back, and the old values stay.
       _cama_write_field_values do
@@ -421,11 +424,15 @@ module CamaleonCms
         _cama_refuse_invalid_group_number!(key, args[:group_number])
         _cama_delete_field_values(_cama_stored_field_values(key, args[:group_number])) if args[:clear]
         if value.is_a?(Array)
-          value.each do |val|
-            custom_field_values.create!(v.merge({ value: CamaleonCms::Metas.text_column_value(val) }))
+          # The reads sort by term_order only. So each item gets its own order, from the order of
+          # the call upward, as the items of a set_field_values save get theirs. The cast gives the
+          # number that the column stores for the order ('3' is 3). An order of nil starts at 0.
+          first = CamaleonCms::CustomFieldsRelationship.type_for_attribute('term_order').cast(args[:order]) || 0
+          value.each.with_index(first) do |val, order|
+            custom_field_values.create!(v.merge(value: CamaleonCms::Metas.text_column_value(val), term_order: order))
           end
         else
-          custom_field_values.create!(v)
+          custom_field_values.create!(v.merge(value: CamaleonCms::Metas.text_column_value(value)))
         end
       end
     end
