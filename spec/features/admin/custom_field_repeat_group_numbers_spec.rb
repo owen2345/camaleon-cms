@@ -120,17 +120,19 @@ RSpec.describe 'the group numbers of a repeatable field group', :js do
   end
 
   # A failed save renders the form again with the submitted values. The example submits the slug of
-  # another category, so the save fails on the server.
+  # another category, so the save fails on the server. The added instance is not stored, so only the
+  # submitted group numbers hold its number.
   context 'when a save fails' do
     let(:post_type) { @site.post_types.find_by!(slug: 'post') }
     let(:category) { post_type.categories.create!(name: 'Notes', slug: 'notes-category') }
     let(:taken_slug) { post_type.categories.where.not(id: category.id).pick(:slug) }
+    let(:remarks_group) do
+      @site.custom_field_groups.create!(name: 'Category Notes', slug: '_category-notes',
+                                        object_class: 'PostType_Category', objectid: post_type.id, is_repeat: true)
+    end
 
     before do
-      group = @site.custom_field_groups.create!(name: 'Category Notes', slug: '_category-notes',
-                                                object_class: 'PostType_Category', objectid: post_type.id,
-                                                is_repeat: true)
-      group.add_manual_field({ 'name' => 'Remark', 'slug' => 'remark' }, { 'field_key' => 'text_box' })
+      remarks_group.add_manual_field({ 'name' => 'Remark', 'slug' => 'remark' }, { 'field_key' => 'text_box' })
       category.set_field_value('remark', 'one', group_number: 1)
       category.set_field_value('remark', 'three', group_number: 3)
     end
@@ -144,6 +146,8 @@ RSpec.describe 'the group numbers of a repeatable field group', :js do
 
     it 'keeps the submitted group numbers in the form that renders again' do
       visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/categories/#{category.id}/edit"
+      within("#custom_field_group_#{remarks_group.id}") { find('.duplicate_cutom_group').click }
+      within(instances(remarks_group)[2]) { find('input.input-value').set('four') }
       submit_category(taken_slug)
       expect(page).to have_text(I18n.t('camaleon_cms.admin.post.message.requires_different_slug'))
 
@@ -151,7 +155,7 @@ RSpec.describe 'the group numbers of a repeatable field group', :js do
       expect(page).to have_css('.alert-success')
 
       expect(category.custom_field_values.where(custom_field_slug: 'remark').order(:group_number)
-                     .pluck(:group_number, :value)).to eq([[1, 'one'], [3, 'three']])
+                     .pluck(:group_number, :value)).to eq([[1, 'one'], [3, 'three'], [4, 'four']])
     end
   end
 end
