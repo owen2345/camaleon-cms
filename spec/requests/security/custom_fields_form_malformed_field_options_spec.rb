@@ -15,13 +15,20 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
           headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
   end
 
+  # The malformed shapes of the param, and of a group or a field entry inside it.
+  param_shapes = { 'field_options is a scalar' => 'field_options=foo',
+                   'field_options is a list' => 'field_options[]=x' }
+  group_shapes = { 'a group is a scalar' => 'field_options[0]=x',
+                   'a group is a list' => 'field_options[0][]=x',
+                   'a field entry is a list' => 'field_options[0][note][]=x' }
+
   before { sign_in_as(admin, site: current_site) }
 
   context 'with a field group of the post' do
     before { add_note_field('Post') }
 
-    { 'a scalar' => 'field_options=foo', 'a list' => 'field_options[]=x' }.each do |shape, field_options|
-      it "renders the refused post form when field_options is #{shape}" do
+    param_shapes.each do |shape, field_options|
+      it "renders the refused post form when #{shape}" do
         update_post("post[status]=published&#{field_options}")
 
         expect(response).to have_http_status(:ok)
@@ -31,11 +38,8 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
       end
     end
 
-    { 'a group is a scalar' => 'field_options[0]=x',
-      'a group is a list' => 'field_options[0][]=x',
-      'a field entry is a list' => 'field_options[0][note][]=x',
-      'a field entry is a scalar' => 'field_options[0][note]=x' }.each do |shape, field_options|
-      it "renders the refused post form when #{shape}" do
+    group_shapes.merge('a field entry is a scalar' => 'field_options[0][note]=x').each do |shape, field_options|
+      it "renders the refused post form with an unknown status when #{shape}" do
         update_post("post[status]=nope&#{field_options}")
 
         expect(response).to have_http_status(:ok)
@@ -55,11 +59,7 @@ RSpec.describe 'Security: the admin form renders again with a malformed field_op
 
   # A category with the slug of another category of the post type fails its validation.
   # The note field in the body shows that the form rendered the custom-fields partial.
-  { 'field_options is a scalar' => 'field_options=foo',
-    'field_options is a list' => 'field_options[]=x',
-    'a group is a scalar' => 'field_options[0]=x',
-    'a group is a list' => 'field_options[0][]=x',
-    'a field entry is a list' => 'field_options[0][note][]=x' }.each do |shape, field_options|
+  param_shapes.merge(group_shapes).each do |shape, field_options|
     it "renders the category form again when the category is invalid and #{shape}" do
       add_note_field('Category')
       post_type.categories.create!(name: 'Taken', slug: 'taken')
