@@ -12,7 +12,7 @@ a stored value to another group number.
 - **AND** an admin saves the form of the post with no change
 - **THEN** the post stores `mon` with the group number 1 and no value with the group number 0
 
-#### Scenario: The admin adds an instance with no value before an instance with a value
+#### Scenario: The admin adds an instance with a value after an instance with no value
 
 - **WHEN** an admin leaves the first instance of a checkboxes field empty
 - **AND** the admin adds a second instance, checks `mon` in it and saves the form two times
