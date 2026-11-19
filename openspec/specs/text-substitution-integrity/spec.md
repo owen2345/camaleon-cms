@@ -56,7 +56,7 @@ A renderer that puts a value into a text shows the value as written. It does not
 
 ### Requirement: Each code value shows as written
 
-`String#cama_replace_codes` SHALL replace all codes of the text in one pass. It SHALL show each value as written, also a backslash sequence in it. It SHALL NOT search a value that it put in for another code. For a text with invalid bytes, it SHALL replace the codes by their bytes and raise no error.
+`String#cama_replace_codes` SHALL replace all codes of the text in one pass. It SHALL show each value as written, also a backslash sequence in it. It SHALL NOT search a value that it put in for another code. For a text with invalid bytes, it SHALL replace the codes by their bytes and raise no error. That match SHALL NOT read the characters of the text. So in an encoding such as Shift_JIS, it also replaces a code whose `[` is the second byte of a character.
 
 #### Scenario: A backslash sequence in a value shows as written
 

@@ -83,6 +83,8 @@ class String
   # A Regexp raises an error on a text with invalid bytes, so the method matches such a text by its
   # bytes. In UTF-8, the String pattern of the loop before found the same places. It never matches a
   # valid text by its bytes: in an encoding such as Shift_JIS, a byte of a character can equal `[`.
+  # In a text with invalid bytes, the byte match also replaces a code that starts at such a byte, which
+  # the loop before did not (intended).
   def cama_replace_codes(values, format_code = '[')
     opening, closing = { '[' => ['[', ']'], '{' => ['{', '}'], '%{' => ['%{', '}'] }[format_code]
     return self unless opening

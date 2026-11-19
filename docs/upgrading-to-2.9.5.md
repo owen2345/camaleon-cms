@@ -1019,6 +1019,10 @@ backslash, and `\'` the text after the code. A value that held a later code, suc
 the value of that code. The `cama_contact_form` plugin gives the method the values that a visitor
 sends.
 
+A text with invalid bytes still gets its codes replaced. The method matches such a text by its
+bytes. So in an encoding such as Shift_JIS, it also replaces a code whose `[` is the second byte of a
+character.
+
 **Action:** code that puts a code into a value, to have it replaced, must replace it in a second
 call.
 

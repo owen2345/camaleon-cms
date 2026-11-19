@@ -28,6 +28,7 @@ See `proposal.md`, "Why". The markup scan of PR #1345 reads each custom field va
 - Alternative: the block form in each `gsub` of the loop. A later `gsub` still searches the values that an earlier one put in. Rejected.
 - A text with invalid bytes is matched by its bytes. A Regexp raises `ArgumentError` on such a text, and the loop before replaced its codes with a String pattern. The maintainer chose to keep that result on 2026-11-18. No surveyed caller gives such a text: each call runs `translate` first, which raises on it.
 - A valid text is never matched by its bytes. In an encoding such as Shift_JIS, a byte of a character can equal `[`.
+- The byte match does not read the characters of a text with invalid bytes. In Shift_JIS, it also replaces a code whose `[` is the second byte of a character, which the loop before did not. The maintainer chose to keep this on 2026-11-19.
 - Alternative: let the method raise, and say so in the upgrade note. A plugin that reads a template file in Latin-1 then gets an error in place of a mail. Rejected.
 - Alternative: rescue the error and run the loop before. That loop reads a backslash sequence and searches each value again. Rejected.
 
