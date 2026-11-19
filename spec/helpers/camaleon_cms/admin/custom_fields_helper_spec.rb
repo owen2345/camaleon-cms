@@ -200,6 +200,21 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
       expect(numbers_for('GET')).to eq([])
     end
 
+    # The custom-fields partial calls the private helper once for the values and the numbers.
+    it 'reads the stored values and their group numbers with one query for the partial' do
+      @site.set_field_value('note', 'one', group_number: 1)
+      @site.set_field_value('color', 'blue', group_number: 3)
+      helper.request.request_method = 'GET'
+
+      instances = nil
+      queries = sql_queries(matching: /custom_fields_relationships/) do
+        instances = helper.send(:cama_form_field_instances, @site, %w[note color], :field_options)
+      end
+
+      expect(instances).to eq([[1, { 'note' => ['one'] }], [3, { 'color' => ['blue'] }]])
+      expect(queries.size).to eq(1)
+    end
+
     it 'gives the submitted group numbers in the order of the submitted values, with nil for an invalid number' do
       submitted = { '0' => { 'note' => { 'group_number' => '3', 'values' => ['three'] } },
                     '1' => { 'note' => { 'group_number' => '1', 'values' => ['one'] } },

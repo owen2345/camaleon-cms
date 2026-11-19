@@ -459,6 +459,15 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     it 'gives the values of the slugs in a Range key for each group, under that key' do
       expect(post.get_fields_grouped(['n'..'o'])).to eq([{ ('n'..'o') => ['zero'] }, { ('n'..'o') => ['one'] }])
     end
+
+    it 'gives the group number of each group with get_fields_grouped_by_number, in the same order' do
+      post.set_field_value('note', 'three', group_number: 3)
+
+      expect(post.get_fields_grouped_by_number(['note']))
+        .to eq([[0, { 'note' => ['zero'] }], [1, { 'note' => ['one'] }], [3, { 'note' => ['three'] }]])
+      expect(post.get_fields_grouped(['note'])).to eq([{ 'note' => ['zero'] }, { 'note' => ['one'] },
+                                                       { 'note' => ['three'] }])
+    end
   end
 
   # The method validates the current group number, not the errors of an earlier validation.

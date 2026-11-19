@@ -53,7 +53,7 @@ RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', typ
     allow(view).to receive(:hooks_run)
 
     allow(record).to receive(:get_option).with('skip_fields', []).and_return([])
-    allow(record).to receive(:get_fields_grouped).with([field_slug]).and_return({})
+    allow(record).to receive(:get_fields_grouped_by_number).with([field_slug]).and_return([])
   end
 
   # get_option reads the same options as field.options, so the two agree for each key that a caller sets.

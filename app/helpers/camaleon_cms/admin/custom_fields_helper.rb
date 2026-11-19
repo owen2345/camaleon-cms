@@ -146,11 +146,7 @@ module CamaleonCms
       # slugs: the slugs of the fields of the group
       # field_name: the param that holds the values, the fields_name local of the partial
       def cama_form_field_group_numbers(record, slugs, field_name = :field_options)
-        return cama_submitted_instances(slugs, field_name).map(&:first) if cama_form_submitted_values?(field_name)
-
-        # The query and the uniq give the order of the groups of get_fields_grouped: its group_by puts
-        # each group number in the order of its first row.
-        record.custom_field_values.where(custom_field_slug: slugs).order(group_number: :asc).pluck(:group_number).uniq
+        cama_form_field_instances(record, slugs, field_name).map(&:first)
       end
 
       # Whether the custom-fields partial shows the submitted values: a request that is not a GET and
@@ -172,6 +168,16 @@ module CamaleonCms
       end
 
       private
+
+      # The instances of a group, as pairs of a group number and the values: the instances of
+      # cama_form_field_values and the numbers of cama_form_field_group_numbers. The custom-fields
+      # partial calls it once for both, so a GET request reads the stored values with one query.
+      # get_fields_grouped_by_number gives the groups of get_fields_grouped with their numbers.
+      def cama_form_field_instances(record, slugs, field_name)
+        return record.get_fields_grouped_by_number(slugs) unless cama_form_submitted_values?(field_name)
+
+        cama_submitted_instances(slugs, field_name)
+      end
 
       # The submitted instances of a group, as pairs of a group number and the values, sorted by the
       # group number. An instance with an invalid group number comes last.
