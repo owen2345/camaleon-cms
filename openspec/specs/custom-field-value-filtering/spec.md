@@ -208,10 +208,14 @@ permit to one record requires the caller to pass the field groups its form rende
 
 ### Requirement: A permitted slug's values are kept in both shapes the admin forms submit
 
-The shared permit SHALL keep the values of a permitted slug whether they are submitted as a hash keyed
-by index, as the admin forms submit most fields, or as a list of scalars, as the checkboxes field
-submits them. A list of scalars MUST be stored in the order submitted and read back from the saved
+The shared permit SHALL keep the values of a permitted slug in both shapes that the admin forms
+submit. Most fields submit a hash keyed by index, and the checkboxes field submits a list of scalars.
+A list of scalars MUST be stored in the order submitted and read back from the saved
 record. A list holding anything other than scalars MUST NOT create a value row.
+
+No admin form submits a list that holds a hash. The `field_attrs` field names its inputs
+`values[][attr]` and `values[][value]`. The admin JavaScript renames them to `values[<index>][attr]`
+and `values[<index>][value]`, a hash keyed by index, before the form submits.
 
 #### Scenario: A checkboxes field's checked options are stored
 
