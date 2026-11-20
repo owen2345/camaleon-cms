@@ -236,7 +236,7 @@ and `values[<index>][value]`, a hash keyed by index, before the form submits.
 #### Scenario: A list of non-scalars is dropped
 
 - **WHEN** a save submits a registered field's values as a list of hashes
-- **THEN** no value row is stored for that field
+- **THEN** the save is refused, and no value row is stored for that field
 
 ### Requirement: A field with a numeric slug does not remove the other fields of its group
 
@@ -300,3 +300,73 @@ an allowed slug, as the `action_on_unpermitted_parameters` setting of the host a
 - **WHEN** the host app sets `action_on_unpermitted_parameters` to `:raise`, and a save submits the
   entry of an allowed slug with an unknown key
 - **THEN** the permit raises `ActionController::UnpermittedParameters`
+
+### Requirement: A save with field values that the permit does not keep is refused
+
+The shared permit keeps the `values` of an allowed slug as a hash keyed by index or as a list of
+scalars. A save that submits the `values` of an allowed slug in any other shape SHALL be refused.
+The stored custom-field values of the record MUST stay. A list of hashes, a nested list and a scalar
+are such shapes.
+
+A save that submits the entry of an allowed slug as a non-empty scalar or as a list SHALL be refused
+in the same way.
+
+A submitted form SHALL get the refusal as a flash message with a redirect back. An XHR SHALL get the
+refusal as text with a 422. The refusal SHALL name the slug of the field.
+
+An entry with no `values`, with `nil` or with an empty `String` holds no value, and it SHALL NOT be
+refused. The form submits such an entry for a checkboxes field with no option checked. The save MUST
+then remove the stored values of that field, as before.
+
+The permit SHALL NOT refuse an entry under a slug that it does not allow. It drops that entry, as
+before.
+
+#### Scenario: A save with a list of hashes keeps the stored values
+
+- **WHEN** a record holds values of two fields
+- **AND** a save submits valid values for one field and a list of hashes as the `values` of the other
+  field
+- **THEN** the save answers with the refusal, and the record holds the same values of both fields
+  after the save
+
+#### Scenario: A save with a nested list or a scalar keeps the stored values
+
+- **WHEN** a save submits a nested list or a scalar as the `values` of an allowed slug
+- **THEN** the save answers with the refusal, and the stored values of the record stay
+
+#### Scenario: A save with a field entry that is a scalar or a list keeps the stored values
+
+- **WHEN** a record holds values of two fields
+- **AND** a save submits valid values for one field, and a scalar or a list as the entry of the other
+  field
+- **THEN** the save answers with the refusal, and the record holds the same values of both fields
+  after the save
+
+#### Scenario: A category create with a list as a field entry keeps the category
+
+- **WHEN** a category create submits a list as the entry of an allowed slug
+- **THEN** the save answers with the refusal, the category is stored, and it holds no custom-field
+  value
+
+#### Scenario: An XHR gets the refusal with a 422
+
+- **WHEN** an XHR without the `cama_ajax_request` param submits a scalar as the `values` of an allowed
+  slug
+- **THEN** the answer is the refusal as text with a 422, and the stored values of the record stay
+
+#### Scenario: A refused post save stores nothing
+
+- **WHEN** a post save submits a new title and a list of hashes as the `values` of a post type field
+- **THEN** the save answers with the refusal, and the post keeps its title and its stored values
+
+#### Scenario: A checkboxes field with no option checked is cleared
+
+- **WHEN** a record holds values of a checkboxes field, and a save submits the entry of that field
+  with no `values`
+- **THEN** the save reports no error, stores the other fields, and removes the stored values of the
+  checkboxes field
+
+#### Scenario: An empty String clears the field
+
+- **WHEN** a save submits an empty `String` as the `values` of an allowed slug
+- **THEN** the save reports no error, and removes the stored values of that field
