@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Security:** The development lockfile moves Brakeman to 8.1.1, which adds a check for the Ruby versions that have CVE-2026-132825. The gemspec does not change. Development-only. [#1359](https://github.com/owen2345/camaleon-cms/pull/1359).
+- **Security:** The development Ruby moves to 3.4.13 in `.tool-versions`, because Ruby 3.4.12 and earlier has CVE-2026-132825. The development lockfile moves Brakeman to 8.1.1, which adds a check for that advisory, and the CI workflows move `ruby/setup-ruby` to v1.343.0. The gemspec does not change. Development-only. [#1359](https://github.com/owen2345/camaleon-cms/pull/1359).
 
 - **Docs:** The agent documents now describe the check that each enrolled ecosystem member runs against Camaleon `master`, on its own pull requests and pushes. No behavior change. [#1358](https://github.com/owen2345/camaleon-cms/pull/1358).
 
