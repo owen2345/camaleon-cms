@@ -8,6 +8,10 @@ module CamaleonCms
       # list of scalars (`values[]`, the checkboxes field). A `values` filter that does not match the
       # shape leaves the result of the other one in place.
       #
+      # A list that holds a hash (`values[][attr]`) matches no filter, so the entry keeps no values
+      # (intended). No admin form sends that list: the admin JavaScript renames the inputs of the
+      # field_attrs field to `values[<index>][attr]`.
+      #
       # `{ group_number: [{}] }` keeps a group number that the request sends as a list or a hash, with
       # its content removed. The value then fails its validation. With `:group_number` alone, Rails
       # drops such a group number, and the value goes to group 0 with no error.
