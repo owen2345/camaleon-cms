@@ -14,5 +14,5 @@
 ## 2. Verification and shipping
 
 - [x] 2.1 Run `openspec validate --all --strict`. Verify: the change is valid
-- [ ] 2.2 Add the `CHANGELOG.md` entry with the link of the PR, and archive this change on the
+- [x] 2.2 Add the `CHANGELOG.md` entry with the link of the PR, and archive this change on the
   branch. Verify: `openspec validate --archived` passes

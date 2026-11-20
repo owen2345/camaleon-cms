@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Docs:** A comment and an OpenSpec requirement now say why an admin custom-field save drops a `values` list that holds a hash. No form sends that list. No behavior change. [#1356](https://github.com/owen2345/camaleon-cms/pull/1356).
+
 - **Tooling:** The request spec of an admin form with a malformed `field_options` now sends a list param, a list group and a scalar field entry. The post form and the category form get each shape. Each example of a malformed shape checks that the form rendered its custom fields. Development-only. [#1355](https://github.com/owen2345/camaleon-cms/pull/1355).
 
 - **Bug fix:** An admin save now stores the custom fields that its form posts beside a field with a numeric slug, such as `2020`. Before, the save dropped those fields, and on 2.9.2 to 2.9.4 it removed their stored values. [#1354](https://github.com/owen2345/camaleon-cms/pull/1354).
