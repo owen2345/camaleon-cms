@@ -115,6 +115,8 @@ unset CAMALEON_CMS_PATH && git checkout Gemfile.lock spec/dummy/db/schema.rb && 
 
 The last line matters: the member's committed lock belongs to the released gem. `camaleon_editor` has `:js` specs, so clear `spec/dummy/tmp/cache` and `spec/dummy/public/assets` first. `florsan` is a host app on Postgres that copies the engines' migrations: run `bin/rails railties:install:migrations`, `bin/rails db:test:prepare` and `bin/rails db:migrate` from its root instead, and restore `db/schema.rb` (and delete any migration the first command copied) afterwards.
 
+The same steps reproduce the member's own `Camaleon master / Suite / RSpec` check: point `CAMALEON_CMS_PATH` at a checkout of `master`.
+
 ## Security Vulnerability Reproduction
 
 A vulnerability fix starts with a failing spec that reproduces it (`AGENTS.md` Ground rules); whether the report is legit is decided first by the triage protocol in `docs/ai/workflows.md` Phase 2A. Reproductions live in `spec/requests/security/`, driven through the real endpoint so the request context the permission decision reads is the real one. `repro_markup_and_script_upload_scanning_spec.rb` is the model: state the gap in the header comment, exercise it as the attacker would, and assert the safe outcome so the spec fails while the vulnerability is present.

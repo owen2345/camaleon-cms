@@ -54,7 +54,26 @@ Each shows on the core PR as its own check, `<member> / RSpec`, with the member'
      newly requires move; and core migrations newer than the member's schema are applied before the
      suite;
   3. one more literal job in `ecosystem.yml` (`uses:` takes neither an expression nor a matrix value)
-     and its name in the spec's enrolled-member list.
+     and its name in the spec's enrolled-member list;
+  4. a `camaleon_master.yml` for the member's own check against Camaleon `master` (below), copied
+     from `camaleon_editor` (plugin) or `florsan` (host app, whose CI runs on pushes only). Its
+     `if:` guard names the member's repository.
+- **The member's own check.** Each member also runs its suite against Camaleon `master`, on its own
+  pull requests and pushes. `.github/workflows/camaleon_master.yml` in the member calls the member's
+  `core_compat.yml` with the member commit under test. The check is
+  `Camaleon master / Suite / RSpec`.
+  - The check is advisory. It is a workflow of its own, and the member's Release workflow reads
+    only `ci.yml`.
+  - A first job, `Is master ahead of the release?`, reads the `camaleon_cms` version of the
+    member's `Gemfile.lock` and counts the `master` commits after the tag of that version. The
+    suite is skipped when the count is 0, because the member's `ci.yml` tests that same code then.
+    The tag of a release is its version, on a `master` commit, so the count is exact.
+  - After a new Camaleon release, the suite runs until the member's `Gemfile.lock` pins that
+    release.
+  - A pull request from a fork runs the same jobs with a token that can only read. The run writes
+    only the caches of its own pull request.
+  - A run on a push to the member's default branch writes the caches of that branch. The code that
+    it runs is the pushed commit and Camaleon `master`, never a free-form ref.
 - **Not enrolled.** `camaleon_website` is private and under a different owner than core, so calling it
   needs a stored credential, which fork PRs never receive; it stays on local verification. Every other
   repository below has no suite to run.
