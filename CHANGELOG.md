@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security:** The development lockfile moves Brakeman to 8.1.1, which adds a check for the Ruby versions that have CVE-2026-132825. The gemspec does not change. Development-only. [#1359](https://github.com/owen2345/camaleon-cms/pull/1359).
+
 - **Docs:** The agent documents now describe the check that each enrolled ecosystem member runs against Camaleon `master`, on its own pull requests and pushes. No behavior change. [#1358](https://github.com/owen2345/camaleon-cms/pull/1358).
 
 - **Docs:** A comment and an OpenSpec requirement now say why an admin custom-field save drops a `values` list that holds a hash. No form sends that list. No behavior change. [#1356](https://github.com/owen2345/camaleon-cms/pull/1356).
