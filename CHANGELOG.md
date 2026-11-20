@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** Camaleon now refuses an admin save, with a message, when the `values` of a custom field have a shape that it cannot read. It also refuses a field entry that is a scalar or a list. Before, the save removed the stored values of that field and reported success. [#1357](https://github.com/owen2345/camaleon-cms/pull/1357).
+- **Bug fix:** Camaleon now refuses an admin save, with a message, when the `values` of a custom field have a shape that it cannot read. It also refuses a field entry that is a non-empty scalar or a list. Before, the save removed the stored values of that field and reported success. [#1357](https://github.com/owen2345/camaleon-cms/pull/1357).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-save-with-custom-field-values-in-an-unknown-shape-is-refused).
 
 - **Docs:** A comment and an OpenSpec requirement now say why an admin custom-field save drops a `values` list that holds a hash. No form sends that list. No behavior change. [#1356](https://github.com/owen2345/camaleon-cms/pull/1356).
