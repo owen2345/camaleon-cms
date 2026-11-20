@@ -63,11 +63,14 @@ module CamaleonCms
 
       def save_theme
         theme_groups = current_theme.get_field_groups
-        current_theme.set_field_values(cama_permitted_field_options('Theme', param_key: :theme_fields,
-                                                                             field_groups: theme_groups))
+        # Each permit can refuse the save (UnusableFieldValues). Both run before the first write, so a
+        # refusal comes before set_field_values deletes the stored values.
+        theme_fields = cama_permitted_field_options('Theme', param_key: :theme_fields, field_groups: theme_groups)
+        field_options = cama_permitted_field_options('Theme', field_groups: theme_groups)
+        current_theme.set_field_values(theme_fields)
         current_theme.set_options(params[:theme_option]) if params[:theme_option].present?
         current_theme.set_metas(params[:theme_meta]) if params[:theme_meta].present?
-        current_theme.set_field_values(cama_permitted_field_options('Theme', field_groups: theme_groups))
+        current_theme.set_field_values(field_options)
 
         # permit saving extra/custom values by this hook
         hook_run(current_theme.settings, 'on_theme_settings', current_theme)

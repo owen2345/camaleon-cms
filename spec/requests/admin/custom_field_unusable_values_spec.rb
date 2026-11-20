@@ -108,6 +108,27 @@ RSpec.describe 'Admin custom field values submitted in a shape that the permit d
     expect(record.get_field_values('sizes')).to eq(%w[2])
   end
 
+  # The theme save writes the theme_fields payload before the field_options payload. The permit of
+  # both payloads must come before the first write, or the refusal comes after a delete.
+  it 'refuses a theme save with usable theme_fields, and keeps each stored value of the theme' do
+    theme = current_site.get_theme
+    theme_group = theme.add_field_group({ name: 'Theme Group', slug: '_theme-group' })
+    footer = theme_group.add_manual_field({ 'name' => 'Footer', 'slug' => 'footer' }, { 'field_key' => 'text_box' })
+    tones = theme_group.add_manual_field({ 'name' => 'Tones', 'slug' => 'tones' }, checkboxes_options)
+    theme.set_field_value('footer', 'stored footer')
+    theme.set_field_value('tones', %w[2])
+
+    post '/admin/settings/save_theme', params: Rack::Utils.build_nested_query(
+      'theme_fields' => { '0' => { 'footer' => { 'id' => footer.id.to_s, 'values' => { '0' => 'new footer' } } } },
+      'field_options' => { '0' => { 'tones' => { 'id' => tones.id.to_s, 'values' => [{ 'attr' => 'a' }] } } }
+    )
+
+    expect(flash[:error]).to eq(refusal_of(tones))
+    theme = CamaleonCms::Theme.find(theme.id)
+    expect(theme.get_field_values('footer')).to eq(['stored footer'])
+    expect(theme.get_field_values('tones')).to eq(%w[2])
+  end
+
   it 'removes the stored values of a checkboxes field that the form submits with no option checked' do
     site = save_site('0' => { 'title' => title_entry('new title'),
                               'colors' => { 'id' => colors.id.to_s, 'group_number' => '0' } })
