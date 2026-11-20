@@ -8,15 +8,28 @@ module CamaleonCms
       # list of scalars (`values[]`, the checkboxes field). A `values` filter that does not match the
       # shape leaves the result of the other one in place.
       #
-      # A list that holds a hash (`values[][attr]`) matches no filter, so the entry keeps no values
-      # (intended). No admin form sends that list: the admin JavaScript renames the inputs of the
-      # field_attrs field to `values[<index>][attr]`.
+      # A list that holds a hash (`values[][attr]`) matches no filter (intended), and the helper then
+      # refuses the save (UnusableFieldValues). No admin form sends that list: the admin JavaScript
+      # renames the inputs of the field_attrs field to `values[<index>][attr]`.
       #
       # `{ group_number: [{}] }` keeps a group number that the request sends as a list or a hash, with
       # its content removed. The value then fails its validation. With `:group_number` alone, Rails
       # drops such a group number, and the value goes to group 0 with no error.
       FIELD_ENTRY_FILTER = [:id, :group_number, { values: {} }, { values: [] }, { group_number: [{}] }].freeze
       private_constant :FIELD_ENTRY_FILTER
+
+      # cama_permitted_field_options raises this error for the entry of an allowed slug that the
+      # permit cannot read. Such an entry is a scalar or a list, or it has `values` in a shape that the
+      # permit does not keep, for example a list of hashes or a scalar. AdminController answers the
+      # error as refuse_admin_save says.
+      class UnusableFieldValues < ArgumentError
+        attr_reader :slug
+
+        def initialize(slug)
+          @slug = slug
+          super("the permit cannot read the values of the custom field '#{slug}'")
+        end
+      end
 
       private
 
@@ -58,13 +71,17 @@ module CamaleonCms
       end
 
       # The entry of each allowed slug of one group, in the order of field_ids. An entry that is a
-      # scalar or a list has no id and no values to read, so it is not in the result.
+      # scalar or a list has no id and no values to read, so the helper refuses the save.
       def cama_permitted_field_entries(group, field_ids)
         field_ids.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |(slug, ids), fields|
           entry = group[slug]
-          next unless entry.is_a?(ActionController::Parameters)
+          unless entry.is_a?(ActionController::Parameters)
+            cama_refuse_unusable_field_values!(slug, entry)
+            next
+          end
 
           data = entry.permit(FIELD_ENTRY_FILTER).to_h
+          cama_refuse_unusable_field_values!(slug, entry[:values]) unless data.key?(:values)
           # The value gate picks its check from the field the row points at, and set_field_values falls
           # back to this id where the groups it resolves slugs in hold no field of that slug (a caller that
           # permits against other groups than it saves with, a class-only permit among them). Hold it to
@@ -73,6 +90,19 @@ module CamaleonCms
           data[:id] = ids.find { |id| id.to_s == data[:id].to_s } || ids.first
           fields[slug] = data
         end
+      end
+
+      # Refuses the save for a field entry, or for the `values` of an entry, that the permit cannot
+      # read. set_field_values deletes each stored value of the record before it writes. Such an entry
+      # then removes the stored values of its field, so the save fails here, before the delete.
+      #
+      # nil and '' hold no value, and they raise no error. The form sends an entry with no `values`
+      # for a checkboxes field with no option checked, and the save removes the stored values of that
+      # field (intended).
+      def cama_refuse_unusable_field_values!(slug, submitted)
+        return if submitted.nil? || (submitted.is_a?(String) && submitted.empty?)
+
+        raise UnusableFieldValues, slug
       end
 
       # The allow-list covers fields registered directly under object_class. For a post
