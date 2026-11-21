@@ -108,10 +108,13 @@ module CamaleonCms
       theme_key ||= site.get_theme_slug
       _s = current_site
       current_site(site)
+      # The site gets its theme before the plugins, so the hooks of the plugin installs go to that theme.
+      current_site.set_option('_theme', theme_key)
       # The plugins and the theme share one draw of the routes, when the routes already have them.
       PluginRoutes.reload_once do
         PluginRoutes.system_info['default_plugins'].each { |p| plugin_install(p) } # auto install plugins
-        site_install_theme(theme_key)
+        # A new site has no theme to uninstall, so no on_inactive hook runs.
+        cama_activate_theme(theme_key)
       end
       current_site(_s) if _s.present?
     end
@@ -122,13 +125,7 @@ module CamaleonCms
       site_uninstall_theme
 
       # new theme
-      current_site.set_option('_theme', key)
-      theme = PluginRoutes.theme_info(key)
-      current_site.themes.update_all(status: 'inactive') # rubocop:disable Rails/SkipsModelValidations
-      theme_model = current_site.themes.where(slug: key).first_or_create! { |t| t.name = theme[:name] }
-      theme_model.update(status: nil)
-      cama_with_current_theme(theme_model) { hook_run(theme, 'on_active', theme_model) }
-      PluginRoutes.request_reload
+      cama_activate_theme(key)
     end
 
     # uninstall current theme form current site
@@ -157,6 +154,20 @@ module CamaleonCms
     end
 
     private
+
+    # Makes the theme the theme of the current site, and runs the on_active hook of the theme.
+    def cama_activate_theme(key)
+      current_site.set_option('_theme', key)
+      theme = PluginRoutes.theme_info(key)
+      current_site.themes.update_all(status: 'inactive') # rubocop:disable Rails/SkipsModelValidations
+      theme_model = current_site.themes.where(slug: key).first_or_create! { |t| t.name = theme[:name] }
+      attrs = { status: nil }
+      # A read of current_theme before the install creates the record with its slug as its name.
+      attrs[:name] = theme[:name] if theme_model.name.blank? || theme_model.name == key
+      theme_model.update(attrs)
+      cama_with_current_theme(theme_model) { hook_run(theme, 'on_active', theme_model) }
+      PluginRoutes.request_reload
+    end
 
     # Runs the block with theme_model as the current theme of the request. The request read its
     # current theme before the install, so a hook that an on_active or on_inactive handler fires would

@@ -58,6 +58,7 @@ what theme/plugin developers should know.
 | Has plugin or theme code that calls `cama_replace_codes` with a value that holds a backslash or another code | The value now shows as written, and the code in it stays as text ([details](#cama_replace_codes-shows-each-value-as-written)) |
 | Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
 | Has a theme whose `on_active` handler installs a plugin, fires another hook, or reads `current_theme` or a theme helper | The handler now gets its own theme, and the theme gets the hooks that the handler fires. A handler that the theme also calls directly now runs two times ([details](#a-theme-is-the-current-theme-in-its-on_active-hook)) |
+| Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 
 ---
 
@@ -1132,6 +1133,26 @@ Check these points in a theme:
 
 In a request with a theme preview (`ccc_theme_preview`), each of the two hooks also gets its own
 theme. The preview theme is the current theme again after each hook.
+
+### A site create gives its hooks to the theme of the site
+
+The create of a site installs the default plugins and then the theme of the site. This holds for
+the installer, for a site create in the admin panel and for a call of `site_after_install`. Three
+things change:
+
+- **The theme of the site gets the hooks of the plugin installs**, such as `plugin_after_install`.
+  The site now has its theme before the plugins are installed. Before, the installer sent those
+  hooks to the default theme (`default_template`) when the user selected another theme. A handler of
+  your theme for such a hook runs before its `on_active` handler. An error in it stops the create.
+- **The create runs no `on_inactive` hook.** Before, it ran the `on_inactive` hook of the theme of
+  the site, or of the default theme, before `on_active`. If your `on_active` handler needs a reset,
+  do the reset in that handler. A theme switch in the admin panel still runs `on_inactive`, and so
+  does an install of the current theme.
+- **The site gets one theme record.** Before, the installer also made a record for the default
+  theme. The record now has the name of the theme config, not the slug of the theme.
+
+`site_after_install` no longer calls `site_install_theme`. Code that replaces `site_install_theme`
+does not run for a site create.
 
 ---
 
