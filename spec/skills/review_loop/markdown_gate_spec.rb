@@ -9,7 +9,7 @@ RSpec.describe 'scripts/markdown-gate.rb' do
 
   # A unified diff that adds the lines. A line that starts with a space (context), an at sign (hunk header), a
   # backslash (a marker such as the one for no newline at the end) or a plus (added) is given as is. A line that
-  # starts with a minus and a non-space (removed) is given as is too.
+  # starts with a minus and a non-space, or a lone minus (removed), is given as is too.
   # A line of "- " is an added list item. The match reads bytes, so a line with an invalid UTF-8 byte does not
   # raise. The symbol :empty gives an empty line, the blank context line of some diff tools. Each hunk header gets
   # the counts of the lines of its hunk, as a diff tool writes them.
@@ -17,7 +17,7 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     body = lines.map do |l|
       next '' if l == :empty
 
-      l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}"
+      l.b.match?(/\A(?:[ @+\\]|-(?:\S|\z))/) ? l : "+#{l}"
     end
     "--- a/doc.md\n+++ b/doc.md\n#{with_counts(['@@ -1 +1 @@', *body]).join("\n")}\n"
   end
@@ -190,8 +190,14 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     end
 
     # A removed heading or a removed blank line between two paragraphs joins them, with no added line.
-    it 'counts a paragraph that a removed line joined' do
+    it 'counts a paragraph that a removed heading joined' do
       result = gate(diff(*context(1..3), '-## Old heading', *context(4..7)))
+      expect(result.out).to eq("7 sentences: #{sentences(1..7).join(' ')[0, 70]}\n")
+      expect(result.status).to eq(1)
+    end
+
+    it 'counts a paragraph that a removed blank line joined' do
+      result = gate(diff(*context(1..3), '-', *context(4..7)))
       expect(result.out).to eq("7 sentences: #{sentences(1..7).join(' ')[0, 70]}\n")
       expect(result.status).to eq(1)
     end
