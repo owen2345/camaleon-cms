@@ -10,6 +10,6 @@
 ## 2. Verification and shipping
 
 - [x] 2.1 Run `openspec validate --all --strict`. Verify: the change is valid
-- [ ] 2.2 Add the `CHANGELOG.md` entry with the link of the PR. Name the member check in the
+- [x] 2.2 Add the `CHANGELOG.md` entry with the link of the PR. Name the member check in the
   Purpose of the main spec. Archive this change on the branch. Verify:
   `openspec validate --archived` passes
