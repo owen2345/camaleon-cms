@@ -1164,7 +1164,8 @@ does not run for a site create.
 
 `site_install_theme` and `site_after_install` now raise `ArgumentError` for a theme key that no
 installed theme has. They raise before their first write, so the site keeps its theme. Before, the
-install stored the key and then raised `NoMethodError`, and the frontend of the site failed.
+install stored the key, and the frontend of the site failed. When the site had no theme record for
+the key, the install also raised `NoMethodError`.
 
 The theme page of the admin panel shows an error for such a key. The installer shows its form again
 with an error, and it creates no site. If your code passes a key from a request, check the key with
