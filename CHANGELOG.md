@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Developer tooling:** The Markdown gate of the review loop now counts each paragraph that a change touches, with its context lines. Before, it did not report a paragraph that an edit took past six sentences. It also refuses a code fence in a hunk that does not start at line 1. [#1361](https://github.com/owen2345/camaleon-cms/pull/1361).
+- **Developer tooling:** The Markdown gate of the review loop now counts each paragraph that a change touches, with its context lines. Before, it did not report a paragraph that an edit took past six sentences. It also refuses a code fence line that a hunk adds or keeps, when the hunk does not start at line 1. [#1361](https://github.com/owen2345/camaleon-cms/pull/1361).
 
 - **Docs:** The OpenSpec spec `ecosystem-cross-testing` now holds the requirements of the check that each enrolled ecosystem member runs against Camaleon `master`. No behavior change. [#1360](https://github.com/owen2345/camaleon-cms/pull/1360).
 

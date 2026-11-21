@@ -7,8 +7,8 @@
 # files that it gets as arguments. It prints each added sentence over 25 words. It also prints each paragraph
 # that holds an added line, or a removed line between two of its lines, and has more than six sentences. It
 # counts the context lines of such a paragraph too. A hunk that starts after line 1 can start inside a fenced
-# block, so the gate prints the start line of such a hunk when it holds a fence line: the diff needs more
-# context (-U99999). A code span counts as one word. It does not test a table row, a heading or a fenced block.
+# block, so the gate prints the start line of such a hunk when it adds or keeps a fence line: the diff needs
+# more context (-U99999). A code span counts as one word. It does not test a table row, a heading or a fenced block.
 # It exits with 1 when it printed a line, else with 0, and with 2 for a file that it cannot read.
 
 require_relative 'prose'
