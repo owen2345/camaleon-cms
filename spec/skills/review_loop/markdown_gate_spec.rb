@@ -11,9 +11,10 @@ RSpec.describe 'scripts/markdown-gate.rb' do
   # backslash (a marker such as the one for no newline at the end) or a plus (added) is given as is. A line that
   # starts with a minus and a non-space (removed) is given as is too.
   # A line of "- " is an added list item. The match reads bytes, so a line with an invalid UTF-8 byte does not
-  # raise. Each hunk header gets the counts of the lines of its hunk, as a diff tool writes them.
+  # raise. The symbol :empty gives an empty line, the blank context line of some diff tools. Each hunk header gets
+  # the counts of the lines of its hunk, as a diff tool writes them.
   def diff(*lines)
-    body = lines.map { |l| l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}" }
+    body = lines.map { |l| l == :empty ? '' : l }.map { |l| l.empty? || l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}" }
     "--- a/doc.md\n+++ b/doc.md\n#{with_counts(['@@ -1 +1 @@', *body]).join("\n")}\n"
   end
 
@@ -194,10 +195,12 @@ RSpec.describe 'scripts/markdown-gate.rb' do
       expect(gate(diff(*context(1..4), ' ', sentences(5..7).join(' '))).status).to eq(0)
     end
 
+    # A gate that read the empty line as a header would end the hunk and print nothing. A gate that read it as
+    # text would count eleven sentences.
     it 'ends the paragraph at an empty line, the blank context line of some diff tools' do
-      text = diff(*context(1..4), sentences(5..7).join(' '))
-             .sub("\n+Sentence 5", "\n\n+Sentence 5").sub('@@ -1,4 +1,5 @@', '@@ -1,5 +1,6 @@')
-      expect(gate(text).status).to eq(0)
+      result = gate(diff(*context(1..4), :empty, sentences(5..11).join(' ')))
+      expect(result.out).to eq("7 sentences: #{sentences(5..11).join(' ')[0, 70]}\n")
+      expect(result.status).to eq(1)
     end
 
     # A diff tool that compares two files writes no line before the header of the next diff.
