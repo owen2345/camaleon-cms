@@ -54,19 +54,25 @@ end
 
 # The kind of a line of the diff: :added, :context (an empty line too, which some diff tools write for a blank
 # context line), :removed, :marker for a line such as "\ No newline at end of file", or :other for a header. A
-# hunk header starts the lines of a hunk, and any other header ends them. Only a line outside the lines of a
-# hunk is a header, so a removed "-- x" (the diff line "--- x") is a removed line.
-in_hunk = false
+# hunk holds the count of old and new lines that its header gives. Only a line outside a hunk is a header, so a
+# removed "-- x" (the diff line "--- x") is a removed line, and the header of the next diff ends the hunk.
+KINDS = { '+' => :added, ' ' => :context, nil => :context, '-' => :removed }.freeze
+old_left = new_left = 0
 kind_of = lambda do |line|
-  if in_hunk
-    case line[0]
-    when '+' then next :added
-    when ' ', nil then next :context
-    when '-' then next :removed
-    when '\\' then next :marker
-    end
+  next :marker if line.start_with?('\\')
+
+  if old_left > 0 || new_left > 0
+    type = KINDS[line[0]]
+    old_left -= 1 unless type == :added
+    new_left -= 1 unless type == :removed
+    next type if type
+
+    old_left = new_left = 0
   end
-  in_hunk = line.start_with?('@@')
+  if (counts = line.match(/\A@@ -\d+(?:,(\d+))? \+\d+(?:,(\d+))? @@/))
+    old_left = (counts[1] || 1).to_i
+    new_left = (counts[2] || 1).to_i
+  end
   :other
 end
 

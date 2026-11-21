@@ -11,10 +11,19 @@ RSpec.describe 'scripts/markdown-gate.rb' do
   # backslash (a marker such as the one for no newline at the end) or a plus (added) is given as is. A line that
   # starts with a minus and a non-space (removed) is given as is too.
   # A line of "- " is an added list item. The match reads bytes, so a line with an invalid UTF-8 byte does not
-  # raise.
+  # raise. Each hunk header gets the counts of the lines of its hunk, as a diff tool writes them.
   def diff(*lines)
-    body = lines.map { |l| l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}" }.join("\n")
-    "--- a/doc.md\n+++ b/doc.md\n@@ -1 +1 @@\n#{body}\n"
+    body = lines.map { |l| l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}" }
+    "--- a/doc.md\n+++ b/doc.md\n#{with_counts(['@@ -1 +1 @@', *body]).join("\n")}\n"
+  end
+
+  def with_counts(lines)
+    lines.slice_before { |l| l.start_with?('@@') }.flat_map do |header, *hunk|
+      old = hunk.count { |l| l.empty? || l.b.match?(/\A[ -]/) }
+      new = hunk.count { |l| l.empty? || l.b.match?(/\A[ +]/) }
+      [header.sub(/\A@@ -(\d+)\S* \+(\d+)\S*/) { "@@ -#{Regexp.last_match(1)},#{old} +#{Regexp.last_match(2)},#{new}" },
+       *hunk]
+    end
   end
 
   def gate(text, env: {})
@@ -186,7 +195,14 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     end
 
     it 'ends the paragraph at an empty line, the blank context line of some diff tools' do
-      text = diff(*context(1..4), sentences(5..7).join(' ')).sub("\n+Sentence 5", "\n\n+Sentence 5")
+      text = diff(*context(1..4), sentences(5..7).join(' '))
+             .sub("\n+Sentence 5", "\n\n+Sentence 5").sub('@@ -1,4 +1,5 @@', '@@ -1,5 +1,6 @@')
+      expect(gate(text).status).to eq(0)
+    end
+
+    # A diff tool that compares two files writes no line before the header of the next diff.
+    it 'ends a hunk after its last line, before the header of the next diff' do
+      text = "#{diff('One added sentence.', ' ', *context(1..6))}--- a/b.md\n+++ b/b.md\n@@ -1 +1 @@\n-x\n+y\n"
       expect(gate(text).status).to eq(0)
     end
 
