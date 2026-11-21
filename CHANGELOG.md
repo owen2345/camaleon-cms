@@ -14,7 +14,7 @@
 
 - **Bug fix:** The theme page of the admin panel now shows its notice after a theme install. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
 
-- **Bug fix:** When the installer shows its form again, the form now keeps the domain that the operator typed. Before, it showed the domain of the request. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+- **Bug fix:** When the installer form shows again, it now keeps the domain that the operator typed and the theme that the operator selected. Before, it showed the domain of the request and the first theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
 
 - **Developer tooling:** The Markdown gate of the review loop now counts each paragraph that a change touches, with its context lines. Before, it did not report a paragraph that an edit took past six sentences. It also refuses a code fence line that a hunk adds or keeps, when the hunk does not start at line 1. [#1361](https://github.com/owen2345/camaleon-cms/pull/1361).
 
