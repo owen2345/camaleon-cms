@@ -92,3 +92,6 @@ None.
   explicitly, and it keeps its behavior.
 - Ecosystem, site create: no theme of the sibling checkouts registers a handler for the hook of a
   default plugin. No `on_inactive` handler of those themes needs a run on a new site (design D7).
+  The `demo_manage` plugin of `camaleon_website` calls `site_after_install` after it saves a demo
+  site. Its default theme, `default`, is installed and has no `on_inactive` handler. So the refusal
+  of D10 does not stop that create, and its hooks do not change.
