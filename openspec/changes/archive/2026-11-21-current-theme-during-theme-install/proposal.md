@@ -59,7 +59,7 @@ None.
 ## Impact
 
 - `app/helpers/camaleon_cms/site_helper.rb`: `site_after_install`, `site_install_theme`,
-  `site_uninstall_theme` and two new private methods.
+  `site_uninstall_theme` and four new private methods.
 - Specs: a new request spec for the theme install in the admin panel and in a theme preview.
 - Specs: a new request spec for the site create in the installer and in the admin panel.
 - `docs/upgrading-to-2.9.5.md` and `CHANGELOG.md`.
