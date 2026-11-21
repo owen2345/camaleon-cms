@@ -79,7 +79,7 @@ RSpec.describe 'Admin custom field values submitted in a shape that the permit d
     end
   end
 
-  it 'answers an XHR with the refusal as text and a 422' do
+  it 'answers an XHR without cama_ajax_request with the refusal as text and a 422' do
     patch '/admin/settings/site_saved', xhr: true, params: Rack::Utils.build_nested_query(
       'site' => { 'name' => current_site.name, 'slug' => current_site.slug },
       'field_options' => { '0' => { 'colors' => colors_entry('foo') } }
