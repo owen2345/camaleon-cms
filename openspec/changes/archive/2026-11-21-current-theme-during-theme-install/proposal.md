@@ -17,9 +17,9 @@ The theme helpers have the same fault in that handler. `theme_asset_path`, `them
 The create of a site has two related faults. `site_after_install` installs the default plugins
 before it stores the theme of the site:
 
-- The installer lets the user select a theme. The after-install hooks of the default plugins go to
-  the default theme (`default_template`), not to the selected theme. The site also gets a theme
-  record for the default theme, which it never used.
+- The installer lets the operator select a theme. The after-install hooks of the default plugins
+  go to the default theme (`default_template`), not to the selected theme. The site also gets a
+  theme record for the default theme, which it never used.
 - Each site create runs an `on_inactive` hook before `on_active`, although a new site has no theme
   to uninstall. With the default theme selected, this is the `on_inactive` hook of that theme.
 

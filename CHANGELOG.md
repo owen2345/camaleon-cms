@@ -5,7 +5,7 @@
 - **Bug fix:** A theme is now the current theme while its `on_active` hook runs. Before, an install in the admin panel left the old theme as the current theme. A hook that the handler fired, such as `plugin_ecommerce_after_install`, went to the old theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-theme-is-the-current-theme-in-its-on_active-hook).
 
-- **Bug fix:** On a site create, the theme of the site now gets the hooks of the default plugin installs. Before, the installer sent them to the default theme when the user selected another theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+- **Bug fix:** On a site create, the theme of the site now gets the hooks of the default plugin installs. Before, the installer sent them to the default theme when the operator selected another theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
   - **Breaking change:** a site create runs no `on_inactive` hook, and it no longer calls `site_install_theme`.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-site-create-gives-its-hooks-to-the-theme-of-the-site).
 
