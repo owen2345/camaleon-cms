@@ -20,8 +20,8 @@ then remove the stored values of that field, as before.
 When the host app sets `action_on_unpermitted_parameters` to `:raise`, Rails SHALL raise
 `ActionController::UnpermittedParameters` for each `values` that the permit does not keep, as before.
 Such `values` are `nil`, an empty `String`, a list that holds a hash or a list, and a non-empty
-scalar. That error comes in place of the refusal, and in place of the removal for `nil` and an empty
-`String`. The save then removes no stored value.
+scalar. That error comes in place of the refusal, and in place of the removal for a `values` of `nil`
+or an empty `String`. The save then removes no stored value.
 
 The permit SHALL NOT refuse an entry under a slug that it does not allow. It drops that entry, as
 before.
