@@ -6,10 +6,10 @@
 # The Markdown gate of docs/ai/prose.md. It reads a unified diff as UTF-8, on its standard input or from the
 # files that it gets as arguments. It prints each added sentence over 25 words, and each paragraph that holds
 # an added line and has more than six sentences. It counts the context lines of such a paragraph too. A hunk
-# that starts after line 1 can start inside a fenced block, so the gate prints such a hunk when it holds a
-# fence line: the diff needs more context (-U99999). A code span counts as one word. It does not test a table
-# row, a heading or a fenced block. It exits with 1 when it printed a line, else with 0, and with 2 for a file
-# that it cannot read.
+# that starts after line 1 can start inside a fenced block, so the gate prints the start line of such a hunk
+# when it holds a fence line: the diff needs more context (-U99999). A code span counts as one word. It does
+# not test a table row, a heading or a fenced block. It exits with 1 when it printed a line, else with 0, and
+# with 2 for a file that it cannot read.
 
 require_relative 'prose'
 
@@ -54,14 +54,20 @@ end
 
 # The kind of a line of the diff: :added, :context (an empty line too, which some diff tools write for a blank
 # context line), :removed, :marker for a line such as "\ No newline at end of file", or :other for a header. A
-# file header has a space after its three marks, so a removed rule line ("----") is a removed line.
+# hunk header starts the lines of a hunk, and any other header ends them. Only a line outside the lines of a
+# hunk is a header, so a removed "-- x" (the diff line "--- x") is a removed line.
+in_hunk = false
 kind_of = lambda do |line|
-  if line.match?(/\A\+(?!\+\+ )/) then :added
-  elsif line.empty? || line.start_with?(' ') then :context
-  elsif line.match?(/\A-(?!-- )/) then :removed
-  elsif line.start_with?('\\') then :marker
-  else :other
+  if in_hunk
+    case line[0]
+    when '+' then next :added
+    when ' ', nil then next :context
+    when '-' then next :removed
+    when '\\' then next :marker
+    end
   end
+  in_hunk = line.start_with?('@@')
+  :other
 end
 
 begin

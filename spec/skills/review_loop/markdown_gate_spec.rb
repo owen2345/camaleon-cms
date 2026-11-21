@@ -165,6 +165,18 @@ RSpec.describe 'scripts/markdown-gate.rb' do
       expect(gate(diff(' ```text', '----', "#{words(30)}.", ' ```')).status).to eq(0)
     end
 
+    # The diff line of a removed "-- x" starts like the header of the old file.
+    it 'counts the paragraph after a fenced block that lost a line that starts with "-- "' do
+      result = gate(diff(' ```sql', '--- old comment', ' ```', sentences(1..7).join(' ')))
+      expect(result.out).to start_with('7 sentences: ')
+      expect(result.status).to eq(1)
+    end
+
+    # The diff line of an added "++ x" starts like the header of the new file.
+    it 'keeps a fenced block across an added line that starts with "++ "' do
+      expect(gate(diff(' ```text', '+++ x', "#{words(30)}.", ' ```')).status).to eq(0)
+    end
+
     it 'does not count a paragraph with no added line' do
       expect(gate(diff(*context(1..7), ' ', 'One added sentence.')).status).to eq(0)
     end
