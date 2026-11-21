@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Bug fix:** A theme is now the current theme while its `on_active` hook runs. Before, an install in the admin panel left the old theme as the current theme. A hook that the handler fired, such as `plugin_ecommerce_after_install`, went to the old theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-theme-is-the-current-theme-in-its-on_active-hook).
+
+- **Bug fix:** On a site create, the theme of the site now gets the hooks of the default plugin installs. Before, the installer sent them to the default theme when the operator selected another theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+  - **Breaking change:** a site create runs no `on_inactive` hook, and it no longer calls `site_install_theme`.
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-site-create-gives-its-hooks-to-the-theme-of-the-site).
+
+- **Bug fix:** An install of a theme that is not installed is now refused before it changes the site. Before, it stored the theme, and the frontend of the site failed. The installer also raised `NoMethodError`, left a half-installed site and did not show the admin password. A site create also refuses such a default theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#an-install-refuses-a-theme-that-is-not-installed).
+
+- **Bug fix:** The theme page of the admin panel now shows its notice after a theme install. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+
+- **Bug fix:** When the installer form shows again, it now keeps the domain that the operator typed and the theme that the operator selected. Before, it showed the domain of the request and the first theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+
 - **Developer tooling:** The Markdown gate of the review loop now counts each paragraph that a change touches, with its context lines. Before, it did not report a paragraph that an edit took past six sentences. It also refuses a code fence line that a hunk adds or keeps, when the hunk does not start at line 1. [#1361](https://github.com/owen2345/camaleon-cms/pull/1361).
 
 - **Docs:** The OpenSpec spec `ecosystem-cross-testing` now holds the requirements of the check that each enrolled ecosystem member runs against Camaleon `master`. No behavior change. [#1360](https://github.com/owen2345/camaleon-cms/pull/1360).
