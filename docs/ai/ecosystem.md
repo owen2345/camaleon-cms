@@ -313,7 +313,7 @@ Changes that look free from inside this repository and are not:
   or a non-empty scalar under `values`, where it dropped them. It raises the same error for the entry
   of an allowed slug that is a non-empty scalar or a list. Before, it left that entry out of its
   result. `CamaleonCms::AdminController` answers the error with a flash and a redirect back, or a 422
-  for an XHR.
+  for an XHR without the `cama_ajax_request` param.
   - No surveyed form sends such `values` (the item above) or such an entry.
   - `camaleon-post-clone` PR #3 re-keys each list of `values` by index before the call. So only a
     scalar under `values`, and a scalar or a list as an entry, raise there. Its controller inherits

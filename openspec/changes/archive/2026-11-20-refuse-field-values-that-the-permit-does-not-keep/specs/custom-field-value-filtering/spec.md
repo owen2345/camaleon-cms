@@ -10,8 +10,8 @@ are such shapes.
 A save that submits the entry of an allowed slug as a non-empty scalar or as a list SHALL be refused
 in the same way.
 
-A submitted form SHALL get the refusal as a flash message with a redirect back. An XHR SHALL get the
-refusal as text with a 422. The refusal SHALL name the slug of the field.
+The refusal SHALL answer as the requirement "A refused admin save answers by the kind of the
+request" of `custom-field-value-rejection` says. The refusal SHALL name the slug of the field.
 
 An entry with no `values`, with `nil` or with an empty `String` holds no value, and it SHALL NOT be
 refused. The form submits such an entry for a checkboxes field with no option checked. The save MUST

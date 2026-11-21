@@ -23,7 +23,8 @@ with a defect can send them.
   allowed slug with `values` in a shape that it does not keep.
 - The permit raises the same error for the entry of an allowed slug that is a scalar or a list.
 - `CamaleonCms::AdminController` answers that error as it answers a refused custom-field value. A
-  submitted form gets a flash message and a redirect back. An XHR gets the message as text and a 422.
+  submitted form, and an XHR with the `cama_ajax_request` param, get a flash message and a redirect
+  back. Any other XHR gets the message as text and a 422.
 - The stored values of the record stay.
 - An entry with no `values`, with `nil` or with an empty `String` still removes the stored values of
   its field. The form sends such an entry for a checkboxes field with no option checked.
