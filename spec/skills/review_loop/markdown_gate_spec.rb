@@ -14,7 +14,11 @@ RSpec.describe 'scripts/markdown-gate.rb' do
   # raise. The symbol :empty gives an empty line, the blank context line of some diff tools. Each hunk header gets
   # the counts of the lines of its hunk, as a diff tool writes them.
   def diff(*lines)
-    body = lines.map { |l| l == :empty ? '' : l }.map { |l| l.empty? || l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}" }
+    body = lines.map do |l|
+      next '' if l == :empty
+
+      l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}"
+    end
     "--- a/doc.md\n+++ b/doc.md\n#{with_counts(['@@ -1 +1 @@', *body]).join("\n")}\n"
   end
 
@@ -233,8 +237,8 @@ RSpec.describe 'scripts/markdown-gate.rb' do
       expect(gate(diff(*context(1..4), ' ', sentences(5..7).join(' '))).status).to eq(0)
     end
 
-    # A gate that read the empty line as a header would end the hunk and print nothing. A gate that read it as
-    # text would count eleven sentences.
+    # A gate that reads the empty line as a header ends the hunk and prints nothing. A gate that reads it as text
+    # counts eleven sentences.
     it 'ends the paragraph at an empty line, the blank context line of some diff tools' do
       result = gate(diff(*context(1..4), :empty, sentences(5..11).join(' ')))
       expect(result.out).to eq("7 sentences: #{sentences(5..11).join(' ')[0, 70]}\n")
