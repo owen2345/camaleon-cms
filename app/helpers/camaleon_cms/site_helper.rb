@@ -137,9 +137,8 @@ module CamaleonCms
     def site_uninstall_theme
       key = current_site.get_theme_slug
       theme = PluginRoutes.theme_info(key)
+      # Site#get_theme creates a missing record, so the record is always there.
       theme_model = current_site.get_theme(key)
-      return if theme_model.blank?
-
       cama_with_current_theme(theme_model) { hook_run(theme, 'on_inactive', theme_model) }
       # theme_model.destroy
     end
