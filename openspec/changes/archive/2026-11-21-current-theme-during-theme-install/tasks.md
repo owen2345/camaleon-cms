@@ -65,5 +65,5 @@
   calls `site_after_install`. Then run `bin/brakeman --no-pager` and
   `(cd spec/dummy && bin/rails zeitwerk:check)`. Verify: each check passes
 - [x] 5.2 Run `openspec validate --all --strict`. Verify: the change is valid
-- [ ] 5.3 Open the PR, add the `CHANGELOG.md` entries with the link of the PR, and archive this
+- [x] 5.3 Open the PR, add the `CHANGELOG.md` entries with the link of the PR, and archive this
   change on the branch. Verify: `openspec validate --archived` passes
