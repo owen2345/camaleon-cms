@@ -90,6 +90,18 @@ RSpec.describe 'Admin custom field values submitted in a shape that the permit d
     expect(CamaleonCms::Site.find(current_site.id).get_field_values('colors')).to eq(%w[1 3])
   end
 
+  # A GET or HEAD request submits no form, so the admin panel raises the error again and answers no
+  # refusal. No admin GET action calls the permit, so the stub stands in for one.
+  %w[get head].each do |verb|
+    it "raises the error again for a #{verb.upcase} request" do
+      allow_any_instance_of(CamaleonCms::Admin::SettingsController).to receive(:site)
+        .and_raise(CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues, 'colors')
+
+      expect { send(verb, '/admin/settings/site') }
+        .to raise_error(CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues, /'colors'/)
+    end
+  end
+
   it 'refuses a post save, and stores no attribute of the post' do
     post_type = current_site.post_types.where(slug: 'post').first
     sizes = post_type.add_field({ 'name' => 'Sizes', 'slug' => 'sizes' }, checkboxes_options)
