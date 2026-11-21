@@ -3,7 +3,7 @@
 require 'shared_specs/prose_gate'
 
 # The Markdown gate of docs/ai/prose.md: 25 words at most in an added sentence of a unified diff, and six
-# sentences at most in a paragraph that holds an added line.
+# sentences at most in a paragraph that holds an added line, or a removed line between two of its lines.
 RSpec.describe 'scripts/markdown-gate.rb' do
   include ReviewLoopScripts
 
@@ -183,6 +183,17 @@ RSpec.describe 'scripts/markdown-gate.rb' do
       result = gate(diff(*context(1..3), '-Old text.', sentences(4..7).join(' ')))
       expect(result.out).to start_with('7 sentences: ')
       expect(result.status).to eq(1)
+    end
+
+    # A removed heading or a removed blank line between two paragraphs joins them, with no added line.
+    it 'counts a paragraph that a removed line joined' do
+      result = gate(diff(*context(1..3), '-## Old heading', *context(4..7)))
+      expect(result.out).to eq("7 sentences: #{sentences(1..7).join(' ')[0, 70]}\n")
+      expect(result.status).to eq(1)
+    end
+
+    it 'does not count a paragraph after a removed paragraph' do
+      expect(gate(diff(*context(1..2), ' ', '-Old paragraph.', '-## Old heading', *context(3..9))).status).to eq(0)
     end
 
     it 'counts the last paragraph across the marker of no newline at the end' do

@@ -4,12 +4,12 @@
 # Usage: <unified diff> | markdown-gate.rb
 #
 # The Markdown gate of docs/ai/prose.md. It reads a unified diff as UTF-8, on its standard input or from the
-# files that it gets as arguments. It prints each added sentence over 25 words, and each paragraph that holds
-# an added line and has more than six sentences. It counts the context lines of such a paragraph too. A hunk
-# that starts after line 1 can start inside a fenced block, so the gate prints the start line of such a hunk
-# when it holds a fence line: the diff needs more context (-U99999). A code span counts as one word. It does
-# not test a table row, a heading or a fenced block. It exits with 1 when it printed a line, else with 0, and
-# with 2 for a file that it cannot read.
+# files that it gets as arguments. It prints each added sentence over 25 words. It also prints each paragraph
+# that holds an added line, or a removed line between two of its lines, and has more than six sentences. It
+# counts the context lines of such a paragraph too. A hunk that starts after line 1 can start inside a fenced
+# block, so the gate prints the start line of such a hunk when it holds a fence line: the diff needs more
+# context (-U99999). A code span counts as one word. It does not test a table row, a heading or a fenced block.
+# It exits with 1 when it printed a line, else with 0, and with 2 for a file that it cannot read.
 
 require_relative 'prose'
 
@@ -21,9 +21,12 @@ bad = false
 # The added lines since the last line that is not added. Their sentences have the limit of 25 words.
 added = []
 # The lines of the paragraph in the new text, the context lines included. The paragraph has the limit of six
-# sentences when it holds an added line (touched).
+# sentences when it holds an added line, or a removed line between two of its lines (touched).
 paragraph = []
 touched = false
+# True after a removed line that follows a line of the paragraph. The removed line can join two paragraphs (a
+# blank line or a heading), so the next line of the paragraph touches it.
+joined = false
 # The opening fence of the fenced block that the line is in, else nil.
 fence = nil
 # The line of the new text where the hunk starts. A hunk that starts after line 1 can start inside a fenced
@@ -45,7 +48,7 @@ check = lambda do
   text = paragraph.join(' ')
   counted = touched
   paragraph = []
-  touched = false
+  touched = joined = false
   next unless counted
 
   sentences = ReviewLoopProse.sentences(text)
@@ -90,7 +93,10 @@ begin
     # A removed line is not in the new text: it ends the added lines, not the paragraph. A header ends the
     # paragraph and any fenced block, because the diff does not hold the lines between two hunks.
     check_added.call unless kind == :added
-    next if kind == :removed
+    if kind == :removed
+      joined = true unless paragraph.empty?
+      next
+    end
 
     if kind == :other
       check.call
@@ -128,6 +134,7 @@ begin
     check.call if s.sub!(LIST_MARK, '')
     s = ReviewLoopProse.spans_as_words(s)
     paragraph << s
+    touched ||= joined
     next unless kind == :added
 
     added << s
