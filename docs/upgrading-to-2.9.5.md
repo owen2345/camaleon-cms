@@ -865,7 +865,7 @@ shows the refusal in its alert and keeps the post on the form, as it does for a 
 option. Before, it showed "The draft could not be saved".
 
 A refused draft save now stores nothing, as a refused post save does. Before, it stored the draft
-row and its metas, without the custom-field values and the options. The editor of a new post got no
+row and its metas, without the custom-field values. The editor of a new post got no
 draft id, so each later draft save of that editor stored one more draft row. The Drafts list of the
 post type shows the rows that those refusals left, and a user can delete them there.
 
