@@ -844,8 +844,8 @@ The admin panel refuses a save in these cases:
   slug that names no custom field
 - a `cama_post_decorator_class` option that names no post decorator
 - a meta or options container that is not a set of fields
-- custom-field `values`, or a field entry, in a shape that the shared permit cannot read
-  ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused))
+- custom-field `values`, or a field entry, in a shape that the shared permit cannot read, a refusal
+  that is new in this release ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused))
 
 Before, each refused save answered with a redirect
 back and the message in a flash. A script that posted the save by XHR followed the redirect and got
