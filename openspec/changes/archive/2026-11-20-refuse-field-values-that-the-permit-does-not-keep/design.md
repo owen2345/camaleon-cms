@@ -67,8 +67,9 @@ save is refused.
 
 **D4. A refused save keeps what the action stored before the permit.** This is the rule of a refused
 custom-field value (the comment of `rescue_from ActiveRecord::RecordInvalid` in `AdminController`).
-The post save calls the permit inside its transaction, so it stores nothing. Each other save keeps
-the attributes, metas and options that it stored before the custom-field values.
+The post save calls the permit inside its transaction, so it stores nothing. Each other save, a
+draft save included, keeps the attributes, metas and options that it stored before the custom-field
+values.
 
 The theme save writes two payloads, `theme_fields` and then `field_options`. Each write deletes the
 stored values of the theme first. So the theme save runs both permits before its first write, and a

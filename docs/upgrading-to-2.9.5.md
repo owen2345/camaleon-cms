@@ -880,8 +880,8 @@ values of that field. The save reported success.
 Now the helper raises `CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues`. Each admin
 controller answers that error as a refused save, with a message that names the field
 ([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The stored custom-field values of the
-record stay. A post save stores nothing. Each other save keeps the attributes, metas and options that
-it stored before the custom-field values.
+record stay. A post save stores nothing. Each other save, a draft save included, keeps the
+attributes, metas and options that it stored before the custom-field values.
 
 An entry with no `values`, or with an empty `values`, still removes the stored values of its field.
 The form sends such an entry for a checkboxes field with no option checked. A host app that sets
