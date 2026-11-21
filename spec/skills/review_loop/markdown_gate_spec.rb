@@ -2,8 +2,8 @@
 
 require 'shared_specs/prose_gate'
 
-# The Markdown gate of docs/ai/prose.md: the added sentences of a unified diff, 25 words and six sentences a
-# paragraph at most.
+# The Markdown gate of docs/ai/prose.md: 25 words at most in an added sentence of a unified diff, and six
+# sentences at most in a paragraph that holds an added line.
 RSpec.describe 'scripts/markdown-gate.rb' do
   include ReviewLoopScripts
 
@@ -85,10 +85,63 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     expect(gate(diff(words(13), "-#{words(30)}.", "#{words(13, first: 'x14')}.")).status).to eq(0)
   end
 
-  it 'leaves a fenced block at a line that is not added' do
-    result = gate(diff('```text', words(30), ' context', "#{words(26)}."))
+  it 'leaves a fenced block at a hunk header' do
+    result = gate(diff('```text', words(30), '@@ -9 +9 @@', "#{words(26)}."))
     expect(result.out).to start_with('26 words: ')
     expect(result.status).to eq(1)
+  end
+
+  it 'keeps a fenced block across a context line' do
+    expect(gate(diff('```text', ' context', "#{words(30)}.", '```')).status).to eq(0)
+  end
+
+  it 'reads a fence on a context line' do
+    expect(gate(diff(' ```text', "#{words(30)}.", ' ```')).status).to eq(0)
+  end
+
+  describe 'a paragraph with context lines' do
+    def sentences(range)
+      range.map { |i| "Sentence #{i} is here." }
+    end
+
+    def context(range)
+      sentences(range).map { |s| " #{s}" }
+    end
+
+    # An edit that splits one sentence in a paragraph of six sentences gives it seven. The added lines alone
+    # hold two of them.
+    it 'counts the context lines of a paragraph that holds an added line' do
+      result = gate(diff(*context(1..5), sentences(6..7).join(' ')))
+      expect(result.out).to eq("7 sentences: #{sentences(1..7).join(' ')[0, 70]}\n")
+      expect(result.status).to eq(1)
+    end
+
+    it 'counts the paragraph across a removed line' do
+      result = gate(diff(*context(1..3), '-Old text.', sentences(4..7).join(' ')))
+      expect(result.out).to start_with('7 sentences: ')
+      expect(result.status).to eq(1)
+    end
+
+    it 'does not count a paragraph with no added line' do
+      expect(gate(diff(*context(1..7), ' ', 'One added sentence.')).status).to eq(0)
+    end
+
+    it 'ends the paragraph at a blank context line' do
+      expect(gate(diff(*context(1..4), ' ', sentences(5..7).join(' '))).status).to eq(0)
+    end
+
+    it 'ends the paragraph at an empty line, the blank context line of some diff tools' do
+      text = diff(*context(1..4), sentences(5..7).join(' ')).sub("\n+Sentence 5", "\n\n+Sentence 5")
+      expect(gate(text).status).to eq(0)
+    end
+
+    it 'ends the paragraph at a hunk header' do
+      expect(gate(diff(*context(1..4), '@@ -9 +9 @@', sentences(5..7).join(' '))).status).to eq(0)
+    end
+
+    it 'prints no sentence of a context line over 25 words' do
+      expect(gate(diff(" #{words(30)}.", 'One added sentence.')).status).to eq(0)
+    end
   end
 
   it 'tests only the added lines' do

@@ -4,44 +4,76 @@
 # Usage: <unified diff> | markdown-gate.rb
 #
 # The Markdown gate of docs/ai/prose.md. It reads a unified diff as UTF-8, on its standard input or from the
-# files that it gets as arguments. It prints each added sentence over 25 words and each added paragraph over
-# six sentences. A code span counts as one word. It does not test a table row, a heading or a fenced block. It
-# exits with 1 when it printed a line, else with 0, and with 2 for a file that it cannot read.
+# files that it gets as arguments. It prints each added sentence over 25 words, and each paragraph over six
+# sentences that holds an added line. It counts the context lines of such a paragraph too, so a diff with no
+# context (-U0) gives it only the added lines. A code span counts as one word. It does not test a table row, a
+# heading or a fenced block. It exits with 1 when it printed a line, else with 0, and with 2 for a file that it
+# cannot read.
 
 require_relative 'prose'
 
 LIST_MARK = /\A\s*(?:[-*+]|\d+\.)\s+/
 
 bad = false
+# The added lines since the last line that is not added. Their sentences have the limit of 25 words.
+added = []
+# The lines of the paragraph in the new text, the context lines included. The paragraph has the limit of six
+# sentences when it holds an added line (touched).
 paragraph = []
+touched = false
 fenced = false
 
-check = lambda do
-  next if paragraph.empty?
+check_added = lambda do
+  next if added.empty?
 
-  text = paragraph.join(' ')
-  paragraph = []
-  sentences = ReviewLoopProse.sentences(text)
-  lines = ReviewLoopProse.report(sentences, ' words: ', width: 70)
+  lines = ReviewLoopProse.report(ReviewLoopProse.sentences(added.join(' ')), ' words: ', width: 70)
+  added = []
   puts lines
   bad ||= lines.any?
+end
+
+check = lambda do
+  check_added.call
+  text = paragraph.join(' ')
+  counted = touched
+  paragraph = []
+  touched = false
+  next unless counted
+
+  sentences = ReviewLoopProse.sentences(text)
   next if sentences.size <= 6
 
   bad = true
   puts "#{sentences.size} sentences: #{text[0, 70]}"
 end
 
+# The kind of a line of the diff: :added, :context (an empty line too, which some diff tools write for a blank
+# context line), :removed, or :other for a header.
+kind_of = lambda do |line|
+  if line.match?(/\A\+(?!\+\+)/) then :added
+  elsif line.empty? || line.start_with?(' ') then :context
+  elsif line.match?(/\A-(?!--)/) then :removed
+  else :other
+  end
+end
+
 begin
   ARGF.set_encoding(Encoding::UTF_8)
   ARGF.each_line do |line|
-    line = line.scrub
-    unless line.match?(/\A\+(?!\+\+)/)
+    line = line.scrub.chomp
+    kind = kind_of.call(line)
+    # A removed line is not in the new text: it ends the added lines, not the paragraph. A header ends the
+    # paragraph and any fenced block, because the diff does not hold the lines between two hunks.
+    check_added.call unless kind == :added
+    next if kind == :removed
+
+    if kind == :other
       check.call
       fenced = false
       next
     end
 
-    s = line[1..].chomp.sub(/\A\s*>\s?/, '')
+    s = line[1..].to_s.sub(/\A\s*>\s?/, '')
     if s.match?(/\A\s*(```|~~~)/)
       check.call
       fenced = !fenced
@@ -54,7 +86,12 @@ begin
       next
     end
     check.call if s.sub!(LIST_MARK, '')
-    paragraph << ReviewLoopProse.spans_as_words(s)
+    s = ReviewLoopProse.spans_as_words(s)
+    paragraph << s
+    next unless kind == :added
+
+    added << s
+    touched = true
   end
 rescue SystemCallError => e
   warn e.message
