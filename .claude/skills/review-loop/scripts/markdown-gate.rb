@@ -48,11 +48,13 @@ check = lambda do
 end
 
 # The kind of a line of the diff: :added, :context (an empty line too, which some diff tools write for a blank
-# context line), :removed, or :other for a header.
+# context line), :removed, :marker for a line such as "\ No newline at end of file", or :other for a header. A
+# file header has a space after its three marks, so a removed rule line ("----") is a removed line.
 kind_of = lambda do |line|
-  if line.match?(/\A\+(?!\+\+)/) then :added
+  if line.match?(/\A\+(?!\+\+ )/) then :added
   elsif line.empty? || line.start_with?(' ') then :context
-  elsif line.match?(/\A-(?!--)/) then :removed
+  elsif line.match?(/\A-(?!-- )/) then :removed
+  elsif line.start_with?('\\') then :marker
   else :other
   end
 end
@@ -62,6 +64,9 @@ begin
   ARGF.each_line do |line|
     line = line.scrub.chomp
     kind = kind_of.call(line)
+    # A marker line is not in the text: it ends nothing.
+    next if kind == :marker
+
     # A removed line is not in the new text: it ends the added lines, not the paragraph. A header ends the
     # paragraph and any fenced block, because the diff does not hold the lines between two hunks.
     check_added.call unless kind == :added

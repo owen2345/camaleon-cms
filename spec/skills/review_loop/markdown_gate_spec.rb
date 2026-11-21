@@ -7,12 +7,13 @@ require 'shared_specs/prose_gate'
 RSpec.describe 'scripts/markdown-gate.rb' do
   include ReviewLoopScripts
 
-  # A unified diff that adds the lines. A line that starts with a space (context), an at sign (hunk header) or a
-  # plus (added) is given as is. A line that starts with a minus and a non-space (removed) is given as is too.
+  # A unified diff that adds the lines. A line that starts with a space (context), an at sign (hunk header), a
+  # backslash (a marker such as the one for no newline at the end) or a plus (added) is given as is. A line that
+  # starts with a minus and a non-space (removed) is given as is too.
   # A line of "- " is an added list item. The match reads bytes, so a line with an invalid UTF-8 byte does not
   # raise.
   def diff(*lines)
-    body = lines.map { |l| l.b.match?(/\A(?:[ @+]|-\S)/) ? l : "+#{l}" }.join("\n")
+    body = lines.map { |l| l.b.match?(/\A(?:[ @+\\]|-\S)/) ? l : "+#{l}" }.join("\n")
     "--- a/doc.md\n+++ b/doc.md\n@@ -1 +1 @@\n#{body}\n"
   end
 
@@ -120,6 +121,23 @@ RSpec.describe 'scripts/markdown-gate.rb' do
       result = gate(diff(*context(1..3), '-Old text.', sentences(4..7).join(' ')))
       expect(result.out).to start_with('7 sentences: ')
       expect(result.status).to eq(1)
+    end
+
+    it 'counts the last paragraph across the marker of no newline at the end' do
+      marker = '\ No newline at end of file'
+      result = gate(diff(*context(1..5), '-Old end.', marker, sentences(6..7).join(' '), marker))
+      expect(result.out).to start_with('7 sentences: ')
+      expect(result.status).to eq(1)
+    end
+
+    it 'counts the paragraph across a removed rule line' do
+      result = gate(diff(*context(1..3), '----', sentences(4..7).join(' ')))
+      expect(result.out).to start_with('7 sentences: ')
+      expect(result.status).to eq(1)
+    end
+
+    it 'keeps a fenced block across a removed rule line' do
+      expect(gate(diff(' ```text', '----', "#{words(30)}.", ' ```')).status).to eq(0)
     end
 
     it 'does not count a paragraph with no added line' do
