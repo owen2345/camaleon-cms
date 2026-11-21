@@ -57,6 +57,14 @@ RSpec.describe 'An install of a theme that is not installed', type: :request do
       end
     end
 
+    # The form showed the domain of the request in place of the domain that the operator typed.
+    it 'keeps the domain that the operator typed when it shows the form again' do
+      post save_cama_admin_installers_path,
+           params: { site: { name: 'First site', slug: 'typed.example.org' }, theme: missing_theme }
+
+      expect(response.body).to include('value="typed.example.org"')
+    end
+
     it 'refuses a default theme that is not installed before it creates the site, for a request with no theme' do
       stub_default_template(missing_theme)
 

@@ -13,7 +13,8 @@ module CamaleonCms
         # below. Local installs are exempt (require_setup_token), so no token is generated for them.
         CamaleonCms::SetupToken.value if CamaleonCms::SetupToken.required? && !request.local?
         @site ||= CamaleonCms::Site.new
-        @site.slug = request.original_url.to_s.parse_domain
+        # A form that shows again keeps the domain that the operator typed.
+        @site.slug = request.original_url.to_s.parse_domain if @site.slug.blank?
         render 'form'
       end
 
