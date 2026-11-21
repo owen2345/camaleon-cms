@@ -165,7 +165,7 @@ SHALL also hold for that theme.
 - **WHEN** the system config names a default theme that is not installed
 - **AND** an administrator creates a site in the admin panel, or the installer gets a request with
   no theme
-- **THEN** the form shows again with an error, and no site is created
+- **THEN** the form shows again with an error, and the create makes no site
 
 #### Scenario: Code installs a theme that is not installed
 

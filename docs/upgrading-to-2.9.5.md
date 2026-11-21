@@ -1175,7 +1175,7 @@ with an error, and it creates no site. If your code passes a key from a request,
 
 A site create in the admin panel installs the default theme of `config/system.json`
 (`default_template`), and so does an installer request with no theme. When that theme is not
-installed, the form now shows again with an error, and no site is created. Before, the create made
+installed, the form now shows again with an error, and the create makes no site. Before, the create made
 a site with a theme that had no config. If your code saves a site and then calls
 `site_after_install`, check the theme before the save.
 
