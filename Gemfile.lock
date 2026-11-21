@@ -134,7 +134,7 @@ GEM
     bigdecimal (4.1.3)
     binding_of_caller (2.0.0)
       debug_inspector (>= 1.2.0)
-    brakeman (8.1.0)
+    brakeman (8.1.1)
       racc
     breadcrumbs_on_rails (4.1.0)
       railties (>= 5.0)
