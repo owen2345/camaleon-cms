@@ -133,7 +133,12 @@ the theme before the install. This includes the install of the theme that the si
 An install of a theme and a site create SHALL refuse a theme key that no installed theme has. The
 refusal SHALL come before the first write, so the site keeps its theme and its theme records. The
 install helpers SHALL raise `ArgumentError`. The theme page of the admin panel SHALL show an error.
-The installer SHALL show its form again with an error, and it SHALL create no site.
+The installer and the site create of the admin panel SHALL show their form again with an error,
+and they SHALL create no site.
+
+A site create with no theme of its own installs the default theme of the system config
+(`default_template`). A host can name a theme there that is not installed, and the rules above
+SHALL also hold for that theme.
 
 #### Scenario: An administrator installs a theme that is not installed
 
@@ -144,6 +149,13 @@ The installer SHALL show its form again with an error, and it SHALL create no si
 
 - **WHEN** the installer gets a theme key that no installed theme has
 - **THEN** it shows its form again with an error, and it creates no site
+
+#### Scenario: The default theme of the system config is not installed
+
+- **WHEN** the system config names a default theme that is not installed
+- **AND** an administrator creates a site in the admin panel, or the installer gets a request with
+  no theme
+- **THEN** the form shows again with an error, and no site is created
 
 #### Scenario: Code installs a theme that is not installed
 

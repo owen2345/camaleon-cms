@@ -7,6 +7,14 @@
 RSpec.describe 'An install of a theme that is not installed', type: :request do
   let(:missing_theme) { 'missing_theme' }
 
+  # A host config/system.json can name a default theme that is not installed. A site create with no
+  # theme of its own installs that theme.
+  def stub_default_template(key)
+    allow(PluginRoutes).to receive(:system_info).and_wrap_original do |original|
+      original.call.merge('default_template' => key)
+    end
+  end
+
   describe 'the theme page of the admin panel' do
     init_site
 
@@ -47,6 +55,40 @@ RSpec.describe 'An install of a theme that is not installed', type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('The selected theme is not installed.')
       end
+    end
+
+    it 'refuses a default theme that is not installed before it creates the site, for a request with no theme' do
+      stub_default_template(missing_theme)
+
+      expect do
+        post save_cama_admin_installers_path, params: { site: { name: 'First site', slug: 'first-site' } }
+      end.not_to change(CamaleonCms::Site, :count).from(0)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('The selected theme is not installed.')
+    end
+  end
+
+  describe 'the site create of the admin panel' do
+    init_site
+
+    let(:admin_user) do
+      create(
+        :user, username: 'admin', password: 'admin123', password_confirmation: 'admin123', role: 'admin', site: @site
+      )
+    end
+
+    before { sign_in_as(admin_user, site: @site) }
+
+    it 'refuses a default theme that is not installed before it creates the site' do
+      stub_default_template(missing_theme)
+
+      expect do
+        post cama_admin_settings_sites_path, params: { site: { name: 'Second site', slug: 'second-site' } }
+      end.not_to change(CamaleonCms::Site, :count)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('The theme of the site is not installed.')
     end
   end
 

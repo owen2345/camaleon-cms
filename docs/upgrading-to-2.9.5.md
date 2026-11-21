@@ -59,7 +59,7 @@ what theme/plugin developers should know.
 | Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
 | Has a theme whose `on_active` handler installs a plugin, fires another hook, or reads `current_theme` or a theme helper | The handler now gets its own theme, and the theme gets the hooks that the handler fires. A handler that the theme also calls directly now runs two times ([details](#a-theme-is-the-current-theme-in-its-on_active-hook)) |
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
-| Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request | A key that no installed theme has now raises `ArgumentError` before the install changes the site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
+| Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 
 ---
 
@@ -1170,6 +1170,12 @@ the key, the install also raised `NoMethodError`.
 The theme page of the admin panel shows an error for such a key. The installer shows its form again
 with an error, and it creates no site. If your code passes a key from a request, check the key with
 `PluginRoutes.theme_info`, or rescue `ArgumentError`.
+
+A site create in the admin panel installs the default theme of `config/system.json`
+(`default_template`), and so does an installer request with no theme. When that theme is not
+installed, the form now shows again with an error, and no site is created. Before, the create made
+a site with a theme that had no config. If your code saves a site and then calls
+`site_after_install`, check the theme before the save.
 
 ---
 

@@ -62,7 +62,14 @@ module CamaleonCms
         private
 
         # Saves and installs the site. The site, its plugins and its theme share one draw of the routes.
+        # The site is saved before its theme is installed, so the theme is checked first.
         def create_site
+          if PluginRoutes.theme_info(@site.get_theme_slug).blank?
+            @site.errors.add(:base, t('camaleon_cms.admin.sites.message.theme_not_installed',
+                                      default: 'The theme of the site is not installed.'))
+            return false
+          end
+
           PluginRoutes.reload_once do
             next false unless @site.save
 

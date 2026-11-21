@@ -520,6 +520,7 @@ en:
           created_with_admin: 'Site created. New administrator password: %{password}. Change it after signing in.'
           updated: 'The site has been updated.'
           deleted: 'Correct Deleted'
+          theme_not_installed: 'The theme of the site is not installed.'
           enter_key_domain: 'Enter a key or a domain'
           enter_key_domain_empty: 'Enter a key (site2) or a domain (my_domain.com). Key will be the name of your subdomain.'
       installer:
