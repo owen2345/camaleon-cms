@@ -98,7 +98,9 @@ module CamaleonCms
       #
       # nil and '' hold no value, and they raise no error. The form sends an entry with no `values`
       # for a checkboxes field with no option checked, and the save removes the stored values of that
-      # field (intended).
+      # field (intended). In a host app that sets action_on_unpermitted_parameters to :raise,
+      # entry.permit raises ActionController::UnpermittedParameters for a `values` of nil or '' before
+      # this check (intended).
       def cama_refuse_unusable_field_values!(slug, submitted)
         return if submitted.nil? || (submitted.is_a?(String) && submitted.empty?)
 

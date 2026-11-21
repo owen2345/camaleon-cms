@@ -100,3 +100,5 @@ A list or a scalar names no slug, so the permit cannot tell which fields the gro
   gives the two shapes that the permit keeps.
 - [The host app raises for an unpermitted parameter] → Rails raises
   `ActionController::UnpermittedParameters` for such `values` first. The delete does not run either.
+  Rails also raises that error for a `values` of `nil` or an empty `String`, so such a host app
+  clears no field (intended, as before).
