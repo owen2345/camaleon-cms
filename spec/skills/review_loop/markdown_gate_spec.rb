@@ -82,7 +82,7 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     expect(result.out).to eq("26 words: #{"#{words(26)}."[0, 70]}\n")
   end
 
-  it 'ends a paragraph at a removed line' do
+  it 'ends an added sentence at a removed line' do
     expect(gate(diff(words(13), "-#{words(30)}.", "#{words(13, first: 'x14')}.")).status).to eq(0)
   end
 

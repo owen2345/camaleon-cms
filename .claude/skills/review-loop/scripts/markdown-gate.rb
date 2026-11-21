@@ -4,8 +4,8 @@
 # Usage: <unified diff> | markdown-gate.rb
 #
 # The Markdown gate of docs/ai/prose.md. It reads a unified diff as UTF-8, on its standard input or from the
-# files that it gets as arguments. It prints each added sentence over 25 words, and each paragraph over six
-# sentences that holds an added line. It counts the context lines of such a paragraph too, so a diff with no
+# files that it gets as arguments. It prints each added sentence over 25 words, and each paragraph that holds
+# an added line and has more than six sentences. It counts the context lines of such a paragraph too, so a diff with no
 # context (-U0) gives it only the added lines. A code span counts as one word. It does not test a table row, a
 # heading or a fenced block. It exits with 1 when it printed a line, else with 0, and with 2 for a file that it
 # cannot read.

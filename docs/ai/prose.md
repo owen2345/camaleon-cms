@@ -43,7 +43,7 @@ Apply the standard to the prose that you add or change. These limits apply:
 
 ## The Markdown gate
 
-The gate reads a unified diff and prints each added sentence over 25 words. It also prints each paragraph over six sentences that holds an added line, and it counts the context lines of that paragraph too. A paragraph that you change counts whole, also when it had more than six sentences before. It does not test a table row or a heading. It exits with 1 when it printed a line.
+The gate reads a unified diff and prints each added sentence over 25 words. It also prints each paragraph that holds an added line and has more than six sentences. It counts the context lines of that paragraph too. A paragraph that you change counts whole, also when it had more than six sentences before. It does not test a table row or a heading. It exits with 1 when it printed a line.
 
 Run it on the staged Markdown files before a commit: `git add -A && git diff --cached -U1000 -- '*.md' | .claude/skills/review-loop/scripts/markdown-gate.rb`. The 1000 lines of context give the gate each whole paragraph. With no context (`-U0`), it counts only the added lines of a paragraph.
 
