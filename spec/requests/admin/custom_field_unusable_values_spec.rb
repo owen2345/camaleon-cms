@@ -120,6 +120,28 @@ RSpec.describe 'Admin custom field values submitted in a shape that the permit d
     expect(record.get_field_values('sizes')).to eq(%w[2])
   end
 
+  # The draft save writes the draft before the permit, with no transaction, so the draft keeps the
+  # submitted title. The post editor posts the draft save by XHR, without cama_ajax_request.
+  it 'refuses a draft update by XHR with a 422, and keeps the stored values of the draft' do
+    post_type = current_site.post_types.where(slug: 'post').first
+    sizes = post_type.add_field({ 'name' => 'Sizes', 'slug' => 'sizes' }, checkboxes_options)
+    parent = create(:post, post_type: post_type, owner: admin, slug: 'unusable-values-parent', status: 'published')
+    draft = post_type.posts.create!(title: 'Stored draft title', slug: 'unusable-values-draft', user_id: admin.id,
+                                    status: 'draft_child', post_parent: parent.id)
+    draft.set_field_value('sizes', %w[2])
+
+    patch "/admin/post_type/#{post_type.id}/drafts/#{draft.id}", xhr: true, params: Rack::Utils.build_nested_query(
+      'post' => { 'title' => 'New draft title' },
+      'field_options' => { '0' => { 'sizes' => { 'id' => sizes.id.to_s, 'values' => [{ 'attr' => 'a' }] } } }
+    )
+
+    expect(response).to have_http_status(422) # rubocop:disable RSpecRails/HttpStatus
+    expect(response.body).to eq(refusal_of(sizes))
+    draft = CamaleonCms::Post.find(draft.id)
+    expect(draft.title).to eq('New draft title')
+    expect(draft.get_field_values('sizes')).to eq(%w[2])
+  end
+
   # The theme save writes the theme_fields payload before the field_options payload. The permit of
   # both payloads must come before the first write, or the refusal comes after a delete.
   it 'refuses a theme save with usable theme_fields, and keeps each stored value of the theme' do
