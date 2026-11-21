@@ -1151,6 +1151,9 @@ things change:
 - **The site gets one theme record.** Before, the installer also made a record for the default
   theme. The record now has the name of the theme config, not the slug of the theme.
 
+In a request with a theme preview (`ccc_theme_preview`), these hooks also go to the theme of the
+new site. The preview theme is the current theme again after the create.
+
 `site_after_install` no longer calls `site_install_theme`. Code that replaces `site_install_theme`
 does not run for a site create.
 

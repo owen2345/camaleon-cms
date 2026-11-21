@@ -107,16 +107,19 @@ module CamaleonCms
     def site_after_install(site, theme_key = nil)
       theme_key ||= site.get_theme_slug
       _s = current_site
-      current_site(site)
-      # The site gets its theme before the plugins, so the hooks of the plugin installs go to that theme.
-      current_site.set_option('_theme', theme_key)
-      # The plugins and the theme share one draw of the routes, when the routes already have them.
-      PluginRoutes.reload_once do
-        PluginRoutes.system_info['default_plugins'].each { |p| plugin_install(p) } # auto install plugins
-        # A new site has no theme to uninstall, so no on_inactive hook runs.
-        cama_activate_theme(theme_key)
+      # A theme preview is a theme of the site of the request, so the hooks of the new site do not go to it.
+      cama_without_preview_theme do
+        current_site(site)
+        # The site gets its theme before the plugins, so the hooks of the plugin installs go to that theme.
+        current_site.set_option('_theme', theme_key)
+        # The plugins and the theme share one draw of the routes, when the routes already have them.
+        PluginRoutes.reload_once do
+          PluginRoutes.system_info['default_plugins'].each { |p| plugin_install(p) } # auto install plugins
+          # A new site has no theme to uninstall, so no on_inactive hook runs.
+          cama_activate_theme(theme_key)
+        end
+        current_site(_s) if _s.present?
       end
-      current_site(_s) if _s.present?
     end
 
     # install theme for current site
@@ -172,12 +175,20 @@ module CamaleonCms
     # Runs the block with theme_model as the current theme of the request. The request read its
     # current theme before the install, so a hook that an on_active or on_inactive handler fires would
     # go to that theme, and the theme helpers would give its paths. The theme stays the current theme
-    # after the block. A request with a theme preview (ccc_theme_preview) gets its preview theme back,
-    # also in CurrentRequest, which the view lookup reads directly.
+    # after the block. A request with a theme preview (ccc_theme_preview) gets its preview theme back.
     def cama_with_current_theme(theme_model)
+      cama_without_preview_theme do
+        CurrentRequest.frontend_current_theme = theme_model.decorate
+        yield
+      end
+    end
+
+    # Runs the block with no theme preview. After the block, also when it raises, a request with a
+    # theme preview (ccc_theme_preview) gets its preview theme back. This includes CurrentRequest, which
+    # the view lookup reads directly.
+    def cama_without_preview_theme
       preview_theme = (instance_variable_get(:@_current_theme) if instance_variable_defined?(:@_current_theme))
       instance_variable_set(:@_current_theme, nil) if preview_theme
-      CurrentRequest.frontend_current_theme = theme_model.decorate
       yield
     ensure
       if preview_theme

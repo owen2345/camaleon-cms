@@ -74,6 +74,10 @@ theme.
 The create SHALL make one theme record for the site, for the theme that the create names. That
 record SHALL have the name that the config of the theme gives.
 
+A theme preview is a theme of the site of the request. The rules above SHALL also hold in a request
+with a theme preview. No hook of the create SHALL go to the preview theme. After the create, the
+current theme of that request SHALL be the preview theme again.
+
 #### Scenario: The installer creates a site with a theme that is not the default theme
 
 - **WHEN** the installer creates the first site with a theme that is not the default theme
@@ -91,6 +95,13 @@ record SHALL have the name that the config of the theme gives.
 
 - **WHEN** an administrator creates a site in the admin panel
 - **THEN** the theme record of the site has the name that the config of the default theme gives
+
+#### Scenario: A request with a theme preview creates a site
+
+- **WHEN** a request previews a theme, and code of that request creates a site
+- **THEN** the hooks of the default plugin installs go to the theme of the new site, and not to the
+  preview theme
+- **AND** after the create, the current theme is the preview theme, and the page shows that theme
 
 ### Requirement: The create of a site runs no on_inactive hook
 

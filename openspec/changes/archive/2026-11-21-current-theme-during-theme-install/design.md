@@ -152,6 +152,22 @@ empty or is the slug. The custom field group form shows that name.
 - *Alternative A: `Theme` reads the name of its config when its name is empty.* Rejected for this
   change: it changes each record that a read creates, also the record of a theme preview.
 
+**D9. A site create also sets the preview theme aside.** The maintainer chose this remedy on
+2026-11-21. A preview theme is a theme record of the site of the request. `current_site(site)`
+clears the stored theme, but `current_theme` reads `@_current_theme` first.
+
+So in a theme preview, the hooks of the default plugin installs went to the preview theme of the
+other site. A handler then wrote to the record of that site. `site_after_install` now runs the whole
+create through the method that sets the preview aside for D5.
+
+`cama_with_current_theme` uses the same method. After the block, that method also writes the
+preview theme back to `CurrentRequest`, which the view lookup reads directly.
+
+- *Alternative A: name the exception in the requirement.* Rejected: it is the exception that D5
+  rejected for a theme install, and the write to the record of the other site stays.
+- *Alternative B: `current_site(site)` clears the preview when it changes the site.* Rejected:
+  many callers use `current_site(site)`, and the switch back cannot restore the preview.
+
 ## Risks / Trade-offs
 
 - [A handler that a theme also calls directly runs two times] → The upgrade note names the case and

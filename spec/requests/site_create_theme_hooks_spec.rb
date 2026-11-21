@@ -33,6 +33,15 @@ RSpec.describe 'The theme hooks of a site create', type: :request do
           log << [:on_active, slug, theme.get_option('probe_stored')]
         end
       end
+      define_method(:probe_preview_plugin_after_install) do |args|
+        log << [:plugin_after_install, 'camaleon_first', args[:plugin].slug]
+      end
+      # No request of Camaleon creates a site in a theme preview, so a handler of the preview theme
+      # does it. The stored theme is read first, before current_theme can write it again.
+      define_method(:probe_preview_before_load) do
+        site_after_install(CamaleonCms::Site.create!(name: 'Second site', slug: 'second-site'), 'new')
+        log << [:after_create, CurrentRequest.frontend_current_theme&.slug, current_theme.slug]
+      end
     end
   end
 
@@ -89,6 +98,29 @@ RSpec.describe 'The theme hooks of a site create', type: :request do
       get cama_admin_appearances_themes_path, params: { set: 'default' }
 
       expect(lifecycle).to eq(%i[on_inactive on_active])
+    end
+
+    # A user who can manage themes sees the site with another theme when the URL has ccc_theme_preview.
+    # The preview theme is a theme record of the site of the request, not of the new site.
+    describe 'a site create in a request with a theme preview' do
+      let(:hooks) do
+        super().merge('camaleon_first' => { 'plugin_after_install' => ['probe_preview_plugin_after_install'],
+                                            'front_before_load' => ['probe_preview_before_load'] })
+      end
+      let(:plugin_hook_themes) { hook_log.select { |entry| entry.first == :plugin_after_install }.map(&:second) }
+
+      before { get '/', params: { ccc_theme_preview: 'camaleon_first' } }
+
+      it 'sends the hooks of the default plugins to the theme of the new site' do
+        expect(hook_log).to include(*default_plugins.map { |plugin| [:plugin_after_install, 'new', plugin] })
+        expect(plugin_hook_themes.uniq).to eq(['new'])
+      end
+
+      it 'shows the preview theme after the create' do
+        expect(hook_log.last).to eq([:after_create, 'camaleon_first', 'camaleon_first'])
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('themes/camaleon_first/')
+      end
     end
   end
 end
