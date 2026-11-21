@@ -18,8 +18,9 @@ refused. The form submits such an entry for a checkboxes field with no option ch
 then remove the stored values of that field, as before.
 
 When the host app sets `action_on_unpermitted_parameters` to `:raise`, Rails SHALL raise
-`ActionController::UnpermittedParameters` for a `values` of `nil` or an empty `String`, as before.
-The save then removes no stored value.
+`ActionController::UnpermittedParameters` for each `values` that the permit does not keep, as before.
+Such `values` include `nil`, an empty `String` and each shape that this requirement refuses. The save
+then answers with that error, not with the refusal, and it removes no stored value.
 
 The permit SHALL NOT refuse an entry under a slug that it does not allow. It drops that entry, as
 before.

@@ -888,7 +888,8 @@ An entry with no `values`, or with an empty `values`, still removes the stored v
 The form sends such an entry for a checkboxes field with no option checked. A field entry that is
 `nil` or `''`, beside a valid entry, also removes the stored values of its field. A host app that sets
 `action_on_unpermitted_parameters` to `:raise` still gets `ActionController::UnpermittedParameters`
-for a `values` of `nil` or `''`, and the save removes no stored value.
+for each `values` that the helper does not keep, `nil` and `''` included. That error comes in place
+of the refusal, and the save removes no stored value.
 
 No form of Camaleon sends `values` in an unknown shape: the admin JavaScript renames `values[][attr]`
 to `values[<index>][attr]`.
