@@ -57,6 +57,9 @@ what theme/plugin developers should know.
 | Has a plugin or theme shortcode that reads `args[:shortcode_content]` | A shortcode with no closing tag now reads `nil` there. Before, it read the inner text of an earlier enclosing shortcode ([details](#a-shortcode-output-shows-as-written)) |
 | Has plugin or theme code that calls `cama_replace_codes` with a value that holds a backslash or another code | The value now shows as written, and the code in it stays as text ([details](#cama_replace_codes-shows-each-value-as-written)) |
 | Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
+| Has a theme whose `on_active` handler installs a plugin, fires another hook, or reads `current_theme` or a theme helper | The handler now gets its own theme, and the theme gets the hooks that the handler fires. A handler that the theme also calls directly now runs two times ([details](#a-theme-is-the-current-theme-in-its-on_active-hook)) |
+| Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
+| Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 
 ---
 
@@ -1111,6 +1114,70 @@ call.
 `String#sub` read a backslash sequence of an item name: `\0` showed the placeholder `{__}`, and `\k`
 with a group name raised an `IndexError`. A `{__}` in the `container_prepend` or `container_append`
 option is now text.
+
+### A theme is the current theme in its `on_active` hook
+
+The install of a theme runs the `on_active` hook of that theme. While that hook runs,
+`current_theme` is now the theme that is installed. Before, an install in the admin panel left the
+old theme as the current theme. So a hook that the handler fired went to the old theme. An example
+is `plugin_ecommerce_after_install`, which `plugin_install('ecommerce')` fires. `theme_asset_path`,
+`theme_view` and `theme_layout` with no theme name gave the paths of the old theme.
+
+Check these points in a theme:
+
+- A handler of the theme now runs for a hook that its `on_active` handler fires. If the `on_active`
+  handler also calls that handler directly, the handler runs two times. Remove the direct call, or
+  make the handler safe for a second run.
+- Code in the `on_active` handler that read the old theme from `current_theme` now reads the new
+  theme. Read the old theme in its `on_inactive` handler.
+- A handler that uses the theme record of its argument needs no change.
+
+In a request with a theme preview (`ccc_theme_preview`), each of the two hooks also gets its own
+theme. The preview theme is the current theme again after each hook.
+
+### A site create gives its hooks to the theme of the site
+
+The create of a site installs the default plugins and then the theme of the site. This holds for
+the installer, for a site create in the admin panel and for a call of `site_after_install`. Four
+things change:
+
+- **The theme of the site gets the hooks of the plugin installs**, such as `plugin_after_install`.
+  The site now has its theme before the plugins are installed. Before, the installer sent those
+  hooks to the default theme (`default_template`) when the operator selected another theme. A
+  handler of your theme for such a hook runs before its `on_active` handler. An error in it stops
+  the install, and the request fails. The site is saved before its install, so it stays, but the
+  rest of its install does not run.
+- **The create runs no `on_inactive` hook.** Before, it ran the `on_inactive` hook of the theme of
+  the site, or of the default theme, before `on_active`. If your `on_active` handler needs a reset,
+  do the reset in that handler. A theme switch in the admin panel still runs `on_inactive`, and so
+  does an install of the current theme.
+- **The site gets one theme record.** Before, the installer also made a record for the default
+  theme. The record now has the name of the theme config, not the slug of the theme.
+- **The request gets its site back after an error.** Code that rescues an error of the create now
+  has the site of the request as the current site. Before, the new site stayed the current site.
+
+In a request with a theme preview (`ccc_theme_preview`), these hooks also go to the theme of the
+new site. The preview theme is the current theme again after the create.
+
+`site_after_install` no longer calls `site_install_theme`. Code that replaces `site_install_theme`
+does not run for a site create.
+
+### An install refuses a theme that is not installed
+
+`site_install_theme` and `site_after_install` now raise `ArgumentError` for a theme key that no
+installed theme has. They raise before their first write, so the site keeps its theme. Before, the
+install stored the key, and the frontend of the site failed. When the site had no theme record for
+the key, the install also raised `NoMethodError`.
+
+The theme page of the admin panel shows an error for such a key. The installer shows its form again
+with an error, and it creates no site. If your code passes a key from a request, check the key with
+`PluginRoutes.theme_info`, or rescue `ArgumentError`.
+
+A site create in the admin panel installs the default theme of `config/system.json`
+(`default_template`), and so does an installer request with no theme. When that theme is not
+installed, the form now shows again with an error, and the create makes no site. Before, the create made
+a site with a theme that had no config. If your code saves a site and then calls
+`site_after_install`, check the theme before the save.
 
 ---
 

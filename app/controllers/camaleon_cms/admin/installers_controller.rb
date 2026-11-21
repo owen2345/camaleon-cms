@@ -13,13 +13,21 @@ module CamaleonCms
         # below. Local installs are exempt (require_setup_token), so no token is generated for them.
         CamaleonCms::SetupToken.value if CamaleonCms::SetupToken.required? && !request.local?
         @site ||= CamaleonCms::Site.new
-        @site.slug = request.original_url.to_s.parse_domain
+        # A form that shows again keeps the domain that the operator typed.
+        @site.slug = request.original_url.to_s.parse_domain if @site.slug.blank?
         render 'form'
       end
 
       def save
         @site = CamaleonCms::Site.new(params[:site].permit(:slug, :name)).decorate
-        if @site.save
+        # This action saves the site before it installs the theme, so it checks the theme first. A request
+        # with no theme gets the default theme. An empty theme is a key too: site_after_install installs
+        # the default theme only for nil.
+        if PluginRoutes.theme_info(params.key?(:theme) ? params[:theme] : @site.get_theme_slug).blank?
+          @site.errors.add(:base, t('camaleon_cms.admin.installer.theme_not_installed',
+                                    default: 'The selected theme is not installed.'))
+          index
+        elsif @site.save
           site_after_install(@site, params[:theme])
           CamaleonCms::SetupToken.clear! # single-use: the installer is closed now that a site exists
           # Carry the generated admin password to the welcome page for a single, session-scoped display.
