@@ -105,7 +105,7 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     expect(gate(diff((1..6).map { |i| "Sentence #{i} is here." }.join(' '))).status).to eq(0)
   end
 
-  it 'ends a paragraph at a context line and a list item' do
+  it 'ends an added sentence at a context line and at a list item' do
     result = gate(diff(words(13), " #{words(20)}", "#{words(13)}.", "- #{words(13)}", "- #{words(13)}."))
     expect(result.status).to eq(0)
   end
