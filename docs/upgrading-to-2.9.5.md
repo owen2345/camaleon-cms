@@ -884,7 +884,8 @@ record stay. A post save stores nothing. Each other save, a draft save included,
 attributes, metas and options that it stored before the custom-field values.
 
 An entry with no `values`, or with an empty `values`, still removes the stored values of its field.
-The form sends such an entry for a checkboxes field with no option checked. A host app that sets
+The form sends such an entry for a checkboxes field with no option checked. A field entry that is
+`nil` or `''`, beside a valid entry, also removes the stored values of its field. A host app that sets
 `action_on_unpermitted_parameters` to `:raise` still gets `ActionController::UnpermittedParameters`
 for a `values` of `nil` or `''`, and the save removes no stored value.
 
