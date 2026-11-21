@@ -302,12 +302,25 @@ Changes that look free from inside this repository and are not:
   by index before the call, and that step still works. The plugin can remove the step when it requires
   `camaleon_cms` 2.9.5 or later. The plugins and themes that pass raw params to `set_field_values` always
   stored the list.
-- **Dropping a list of hashes under `values`** in `cama_permitted_field_options` breaks no surveyed
-  consumer, because no form sends that list. The `my_slider` field of `cama-ecommerce-theme`,
+- **No filter for a list of hashes under `values`** in `cama_permitted_field_options` breaks no
+  surveyed consumer, because no form sends that list. The item below gives the refusal of that list. The `my_slider` field of `cama-ecommerce-theme`,
   `camaleon-cms-efashion` and the `e_shop` theme of `camaleon_website` names its inputs
   `values[][title]`, `values[][descr]` and `values[][image]`. The admin JavaScript renames them to
   `values[<index>][title]` and the like, a hash that the helper keeps. A change of the `values` filter
   must keep a hash with any key there.
+- **The refusal of a save with `values` that `cama_permitted_field_options` does not keep** breaks
+  no surveyed consumer. The helper now raises `UnusableFieldValues` for a list that holds a hash or a
+  list, or a non-empty scalar, under `values`, where it dropped them. It raises the same error for the entry
+  of an allowed slug that is a non-empty scalar or a list. Before, it left that entry out of its
+  result. `CamaleonCms::AdminController` answers the error with a flash and a redirect back, or a 422
+  for an XHR without the `cama_ajax_request` param.
+  - No surveyed form sends such `values` (the item above) or such an entry.
+  - `camaleon-post-clone` PR #3 re-keys each list of `values` by index before the call. So only a
+    non-empty scalar under `values`, and a non-empty scalar or a list as an entry, raise there. Its controller inherits
+    `AdminController`.
+  - A plugin from the 2.9.3 or 2.9.4 generator template calls the helper in a controller that
+    inherits `AdminController`.
+  - The plugins and themes that pass raw params to `set_field_values` do not call the helper.
 - **Dropping a field-options entry under a key that names no allowed slug** (#1315) changes no surveyed
   consumer. On 2.9.2 to 2.9.4, Rails passed such an entry through the permit when a group held a
   numeric key. No form of a surveyed consumer sends that shape.

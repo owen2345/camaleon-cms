@@ -32,6 +32,15 @@ module CamaleonCms
 
       refuse_admin_save(cama_t('camaleon_cms.admin.message.malformed_fields'))
     end
+    # The shared permit of the custom-field saves refuses the entry of a field that it cannot read,
+    # for example an entry with a list of hashes as its `values` (UnusableFieldValues). The save
+    # answers as refuse_admin_save says, and the stored values of the record stay. The error is raised
+    # again for a GET or HEAD request, as for RecordInvalid above.
+    rescue_from CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues do |exception|
+      raise exception if request.get? || request.head?
+
+      refuse_admin_save(cama_t('camaleon_cms.admin.custom_field.message.values_unusable', slug: exception.slug))
+    end
     # layout 'camaleon_cms/admin'
     # Admin responses are user-specific and must never be served from a browser or shared cache;
     # without this a stale render (e.g. an editor that failed to initialize on a cold boot) can

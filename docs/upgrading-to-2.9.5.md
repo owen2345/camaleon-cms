@@ -38,6 +38,7 @@ what theme/plugin developers should know.
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
+| Has a plugin form, a script or a client that posts custom-field `values` to an admin save as a list that holds a hash or a list, or as a non-empty scalar, or the entry of a field as a non-empty scalar or a list | The save is now refused with a message, and the stored values stay. Before, such `values`, or such an entry beside a valid entry, removed the stored values of that field, and the save reported success. Send `values[<index>]` or a list of scalars ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes an Array to `set_field_value` or `save_field_value` | The items are now read in the order of the Array. To append an Array after the stored items (`clear: false`), give an order after the last stored order ([details](#set_field_value-stores-the-items-of-an-array-in-order)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
@@ -684,10 +685,11 @@ slugs through the record's `get_field_groups`, as before, matching field rows on
 the same slug.
 
 `cama_permitted_field_options` keeps the `values` of a slug sent as a list of scalars (`values[]`, what
-the checkboxes field submits) and the `values` keyed by index. It drops a list that holds a non-scalar,
-as before. A plugin that re-keyed the list by index before the `cama_permitted_field_options` call can
-remove that step when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9.4
-`cama_permitted_field_options` drops the list.
+the checkboxes field submits) and the `values` keyed by index. It refuses a save with a list that holds
+a non-scalar ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)). A plugin
+that re-keyed a list of scalars by index before the `cama_permitted_field_options` call can remove
+that step when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9.4
+`cama_permitted_field_options` drops a list of scalars.
 
 `cama_permitted_field_options` no longer reports a group or a slug that it drops as an unpermitted
 parameter. Before, with `config.action_controller.action_on_unpermitted_parameters = :raise`, a save
@@ -842,6 +844,8 @@ The admin panel refuses a save in these cases:
   slug that names no custom field
 - a `cama_post_decorator_class` option that names no post decorator
 - a meta or options container that is not a set of fields
+- custom-field `values`, or a field entry, in a shape that the shared permit cannot read
+  ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused))
 
 Before, each refused save answered with a redirect
 back and the message in a flash. A script that posted the save by XHR followed the redirect and got
@@ -863,6 +867,38 @@ option. Before, it showed "The draft could not be saved".
 **Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
 and reads the answer. Read a `text/plain` 422 as the refusal, with the message in the body. A 422
 of another type is an error page, for example of a CSRF failure.
+
+### A save with custom-field `values` in an unknown shape is refused
+
+`cama_permitted_field_options` keeps the `values` of a field in two shapes: a hash keyed by index
+(`values[0]=a`) and a list of scalars (`values[]=a`). It does not keep a list that holds a
+hash (`values[][attr]=a`) or a list (`values[][]=a`), or a non-empty scalar (`values=a`). It also
+cannot read the entry of a field that is a non-empty scalar or a list (`field_options[0][colors]=a`).
+
+Before, a save with such `values`, or with such an entry beside a valid entry, removed the stored
+values of that field. The save reported success.
+
+Now the helper raises `CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues`. Each admin
+controller answers that error as a refused save, with a message that names the field
+([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The stored custom-field values of the
+record stay. A post save stores nothing. Each other save, a draft save included, keeps the
+attributes, metas and options that it stored before the custom-field values.
+
+An entry with no `values`, or with an empty `values`, still removes the stored values of its field.
+The form sends such an entry for a checkboxes field with no option checked. A field entry that is
+`nil` or `''`, beside a valid entry, also removes the stored values of its field. A host app that sets
+`action_on_unpermitted_parameters` to `:raise` still gets `ActionController::UnpermittedParameters`
+for each `values` that the helper does not keep, `nil` and `''` included. That error comes in place
+of the refusal, and in place of the removal for a `values` of `nil` or `''`. The save removes no
+stored value.
+
+No form of Camaleon sends `values` in an unknown shape: the admin JavaScript renames `values[][attr]`
+to `values[<index>][attr]`.
+
+**Who must act:** a plugin form, a script or a client that posts such `values` or such an entry.
+Send `field_options[<group index>][<slug>][values]` as a hash keyed by index or as a list of
+scalars. A plugin controller that calls the helper and does not inherit
+`CamaleonCms::AdminController` must rescue the error.
 
 ### `update_field_value` stores a value as `set_field_value` stores one value
 

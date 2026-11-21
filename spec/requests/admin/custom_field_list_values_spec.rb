@@ -3,7 +3,8 @@
 # The admin JavaScript renames the `values[]` inputs of a custom field to `values[<index>]`. The
 # checkboxes field keeps the `values[]` name, so it submits a list of scalars. The permit that all
 # admin saves share keeps both shapes. Without the list filter, a save stores nothing for the
-# checkboxes field and removes its stored values. The permit drops a list that holds a non-scalar.
+# checkboxes field and removes its stored values. The permit refuses a list that holds a non-scalar
+# (custom_field_unusable_values_spec.rb).
 RSpec.describe 'Admin custom field values submitted as a list', type: :request do
   init_site
 
@@ -57,14 +58,6 @@ RSpec.describe 'Admin custom field values submitted as a list', type: :request d
 
     expect(site.get_field_values('title')).to eq(['a title'])
     expect(site.get_field_values('colors')).to eq(%w[2])
-  end
-
-  it 'stores nothing for a field whose list holds hashes' do
-    site = save_site('0' => { 'title' => { 'id' => title.id.to_s, 'values' => { '0' => 'a title' } },
-                              'colors' => { 'id' => colors.id.to_s, 'values' => [{ 'attr' => 'a', 'value' => 'b' }] } })
-
-    expect(site.get_field_values('title')).to eq(['a title'])
-    expect(site.custom_field_values.where(custom_field_slug: 'colors')).not_to exist
   end
 
   it "stores a post's checkboxes field" do
