@@ -187,8 +187,8 @@ saves the site. The error is a refusal, so no default theme takes the place of t
 
 The site create of the admin panel also saves the site before its install. It installs the default
 theme of the system config (`default_template`), and a host can name a theme there that is not
-installed. So the helper raised after the save, and the site stayed without its install. Before this
-change, that create made a site with a theme that had no config. The maintainer chose on 2026-11-21
+installed. With the check of the helpers only, the helper raised after the save, and the site stayed
+without its install. Before this change, that create made a site with a theme that had no config. The maintainer chose on 2026-11-21
 that this create also checks the theme before the save. The installer checks the default theme in
 the same way for a request with no theme.
 
