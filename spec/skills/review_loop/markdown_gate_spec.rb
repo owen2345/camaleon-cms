@@ -53,6 +53,33 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     expect(gate(diff('~~~', "#{words(30)}.", '~~~')).status).to eq(0)
   end
 
+  # Only a fence of the same character, at least as long and with no info string, closes a fenced block.
+  describe 'a fence line inside a fenced block' do
+    it 'keeps the block open at a fence of the other character' do
+      expect(gate(diff('```text', '~~~', "#{words(30)}.", '```')).status).to eq(0)
+    end
+
+    it 'keeps the block open at a shorter fence' do
+      expect(gate(diff('````text', '```', "#{words(30)}.", '````')).status).to eq(0)
+    end
+
+    it 'keeps the block open at a fence with an info string' do
+      expect(gate(diff('```text', '```ruby', "#{words(30)}.", '```')).status).to eq(0)
+    end
+
+    it 'closes the block at a longer fence' do
+      result = gate(diff('```text', '````', "#{words(26)}."))
+      expect(result.out).to start_with('26 words: ')
+      expect(result.status).to eq(1)
+    end
+  end
+
+  it 'reads a line that starts with a code span of three backticks as text' do
+    result = gate(diff("``` `x` ``` #{words(25)}."))
+    expect(result.out).to start_with('26 words: X ')
+    expect(result.status).to eq(1)
+  end
+
   it 'strips the blockquote marker before it counts' do
     expect(gate(diff("> #{words(25)}.")).status).to eq(0)
   end

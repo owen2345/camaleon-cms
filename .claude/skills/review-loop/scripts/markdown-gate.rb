@@ -14,6 +14,8 @@
 require_relative 'prose'
 
 LIST_MARK = /\A\s*(?:[-*+]|\d+\.)\s+/
+# A fence line: three or more backticks or tildes, then the info string.
+FENCE = /\A\s*(`{3,}|~{3,})(.*)/
 
 bad = false
 # The added lines since the last line that is not added. Their sentences have the limit of 25 words.
@@ -22,7 +24,8 @@ added = []
 # sentences when it holds an added line (touched).
 paragraph = []
 touched = false
-fenced = false
+# The opening fence of the fenced block that the line is in, else nil.
+fence = nil
 # The line of the new text where the hunk starts. A hunk that starts after line 1 can start inside a fenced
 # block, so a fence in it is refused once (warned).
 hunk_start = 1
@@ -91,7 +94,7 @@ begin
 
     if kind == :other
       check.call
-      fenced = false
+      fence = nil
       if (start = line[/\A@@ -\d+(?:,\d+)? \+(\d+)/, 1])
         hunk_start = start.to_i
         warned = false
@@ -100,16 +103,23 @@ begin
     end
 
     s = line[1..].to_s.sub(/\A\s*>\s?/, '')
-    if s.match?(/\A\s*(```|~~~)/)
-      if hunk_start > 1 && !warned
-        bad = warned = true
-        puts "fence in a hunk from line #{hunk_start}: run the diff with -U99999"
-      end
-      check.call
-      fenced = !fenced
+    mark = s.match(FENCE)
+    # A backtick fence with a backtick in its info string is a code span, not a fence (CommonMark).
+    mark = nil if mark && mark[1].start_with?('`') && mark[2].include?('`')
+    if mark && hunk_start > 1 && !warned
+      bad = warned = true
+      puts "fence in a hunk from line #{hunk_start}: run the diff with -U99999"
+    end
+    # Only a fence of the same character, at least as long and with no info string, closes the block.
+    if fence
+      fence = nil if mark && mark[1].start_with?(fence) && mark[2].strip.empty?
       next
     end
-    next if fenced
+    if mark
+      check.call
+      fence = mark[1]
+      next
+    end
 
     if s.strip.empty? || s.match?(/\A\s*(\||#+\s|---)/)
       check.call
