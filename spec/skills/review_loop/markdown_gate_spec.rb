@@ -92,6 +92,31 @@ RSpec.describe 'scripts/markdown-gate.rb' do
     expect(result.status).to eq(1)
   end
 
+  # A hunk that starts after line 1 can start inside a fenced block, so the gate cannot tell whether a fence of
+  # the hunk opens or closes a block.
+  describe 'a fence in a hunk that starts after line 1' do
+    it 'refuses a fence on an added line' do
+      result = gate(diff('@@ -74 +74 @@', '```', 'One added sentence.'))
+      expect(result.out).to eq("fence in a hunk from line 74: run the diff with -U99999\n")
+      expect(result.status).to eq(1)
+    end
+
+    it 'refuses a fence on a context line, once a hunk' do
+      result = gate(diff('@@ -74 +74 @@', ' ```', ' ```', 'One added sentence.'))
+      expect(result.out).to eq("fence in a hunk from line 74: run the diff with -U99999\n")
+      expect(result.status).to eq(1)
+    end
+
+    it 'ignores a removed fence' do
+      expect(gate(diff('@@ -74 +74 @@', '-```', 'One added sentence.')).status).to eq(0)
+    end
+
+    it 'passes a fence in the next hunk when it starts at line 1' do
+      expect(gate(diff('@@ -74 +74 @@', 'One added sentence.', '@@ -1 +1 @@', '```', "#{words(30)}.", '```')).status)
+        .to eq(0)
+    end
+  end
+
   it 'keeps a fenced block across a context line' do
     expect(gate(diff('```text', ' context', "#{words(30)}.", '```')).status).to eq(0)
   end

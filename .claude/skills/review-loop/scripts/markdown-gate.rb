@@ -5,10 +5,11 @@
 #
 # The Markdown gate of docs/ai/prose.md. It reads a unified diff as UTF-8, on its standard input or from the
 # files that it gets as arguments. It prints each added sentence over 25 words, and each paragraph that holds
-# an added line and has more than six sentences. It counts the context lines of such a paragraph too, so a diff with no
-# context (-U0) gives it only the added lines. A code span counts as one word. It does not test a table row, a
-# heading or a fenced block. It exits with 1 when it printed a line, else with 0, and with 2 for a file that it
-# cannot read.
+# an added line and has more than six sentences. It counts the context lines of such a paragraph too. A hunk
+# that starts after line 1 can start inside a fenced block, so the gate prints such a hunk when it holds a
+# fence line: the diff needs more context (-U99999). A code span counts as one word. It does not test a table
+# row, a heading or a fenced block. It exits with 1 when it printed a line, else with 0, and with 2 for a file
+# that it cannot read.
 
 require_relative 'prose'
 
@@ -22,6 +23,10 @@ added = []
 paragraph = []
 touched = false
 fenced = false
+# The line of the new text where the hunk starts. A hunk that starts after line 1 can start inside a fenced
+# block, so a fence in it is refused once (warned).
+hunk_start = 1
+warned = false
 
 check_added = lambda do
   next if added.empty?
@@ -75,11 +80,19 @@ begin
     if kind == :other
       check.call
       fenced = false
+      if (start = line[/\A@@ -\d+(?:,\d+)? \+(\d+)/, 1])
+        hunk_start = start.to_i
+        warned = false
+      end
       next
     end
 
     s = line[1..].to_s.sub(/\A\s*>\s?/, '')
     if s.match?(/\A\s*(```|~~~)/)
+      if hunk_start > 1 && !warned
+        bad = warned = true
+        puts "fence in a hunk from line #{hunk_start}: run the diff with -U99999"
+      end
       check.call
       fenced = !fenced
       next
