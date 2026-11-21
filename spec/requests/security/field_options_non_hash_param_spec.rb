@@ -47,20 +47,35 @@ RSpec.describe 'Security: non-hash field_options is ignored, not a 500', type: :
     expect(post_type.categories.find_by(slug: 'array-fields')).to be_present
   end
 
-  # A group or a slug entry given as a list of hashes is not a hash, so the permit helper skips it. A
-  # list has no slug and no id to read.
-  { 'a slug entry' => { '0' => { 'subtitle' => [{ 'id' => '1', 'values' => { '0' => 'x' } }] } },
-    'a group' => { '0' => [{ 'subtitle' => { 'id' => '1', 'values' => { '0' => 'x' } } }] } }.each do |shape, payload|
-    it "saves the category and writes no field values when #{shape} is a list" do
-      post "/admin/post_type/#{post_type.id}/categories", params: {
-        category: { name: 'Listed field', slug: 'listed-field' }, field_options: payload
-      }
+  # A group given as a list of hashes is not a hash, so the permit helper skips it. A list has no slug
+  # to read.
+  it 'saves the category and writes no field values when a group is a list' do
+    post "/admin/post_type/#{post_type.id}/categories", params: {
+      category: { name: 'Listed field', slug: 'listed-field' },
+      field_options: { '0' => [{ 'subtitle' => { 'id' => '1', 'values' => { '0' => 'x' } } }] }
+    }
 
-      expect(response).to have_http_status(:found)
-      category = post_type.categories.find_by(slug: 'listed-field')
-      expect(category).to be_present
-      expect(category.custom_field_values).to be_empty
-    end
+    expect(response).to have_http_status(:found)
+    expect(flash[:error]).to be_nil
+    category = post_type.categories.find_by(slug: 'listed-field')
+    expect(category).to be_present
+    expect(category.custom_field_values).to be_empty
+  end
+
+  # The entry of an allowed slug given as a list has no id and no values to read, so the permit helper
+  # refuses the save. The category save stored the category before the permit.
+  it 'refuses the field values and keeps the saved category when a slug entry is a list' do
+    post "/admin/post_type/#{post_type.id}/categories", params: {
+      category: { name: 'Listed field', slug: 'listed-field' },
+      field_options: { '0' => { 'subtitle' => [{ 'id' => '1', 'values' => { '0' => 'x' } }] } }
+    }
+
+    expect(response).to have_http_status(:found)
+    expect(flash[:error])
+      .to eq(I18n.t('camaleon_cms.admin.custom_field.message.values_unusable', slug: 'subtitle'))
+    category = post_type.categories.find_by(slug: 'listed-field')
+    expect(category).to be_present
+    expect(category.custom_field_values).to be_empty
   end
 
   # The numeric key names no allowed field, so the permit helper does not read the entry under it.

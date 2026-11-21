@@ -205,12 +205,49 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
         expect(permitted_values(%w[1 3])).to eq(%w[1 3])
       end
 
-      it 'drops a list of hashes' do
-        expect(permitted_values([{ 'attr' => 'a' }])).to be_nil
+      it 'raises an error for a list of hashes' do
+        expect { permitted_values([{ 'attr' => 'a' }]) }
+          .to raise_error(CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues, /'own_setting'/)
       end
 
-      it 'drops a list that holds a scalar and a hash' do
-        expect(permitted_values(['1', { 'attr' => 'a' }])).to be_nil
+      it 'raises an error for a list that holds a scalar and a hash' do
+        expect { permitted_values(['1', { 'attr' => 'a' }]) }.to raise_error(ArgumentError, /'own_setting'/)
+      end
+
+      it 'raises an error for a scalar' do
+        expect { permitted_values('foo') }.to raise_error(ArgumentError, /'own_setting'/)
+      end
+
+      it 'keeps the entry with no values for nil and for an empty String' do
+        expect(permitted_values(nil)).to be_nil
+        expect(permitted_values('')).to be_nil
+      end
+
+      it 'raises an error for an entry that is a scalar or a list' do
+        ['foo', %w[1 3], [{ 'values' => %w[1] }]].each do |entry|
+          controller.params = ActionController::Parameters.new(field_options: { '0' => { 'own_setting' => entry } })
+
+          expect { controller.send(:cama_permitted_field_options, 'Plugin') }
+            .to raise_error(ArgumentError, /'own_setting'/)
+        end
+      end
+
+      it 'leaves an entry that is an empty String out of the result' do
+        controller.params = ActionController::Parameters.new(
+          field_options: { '0' => { 'own_setting' => '', 'other_setting' => { 'id' => '2', 'values' => %w[1] } } }
+        )
+
+        expect(controller.send(:cama_permitted_field_options, 'Plugin')['0'].keys).to eq(%w[other_setting])
+      end
+
+      it 'raises no error for unusable values under a slug outside the scope' do
+        controller.params = ActionController::Parameters.new(
+          field_options: { '0' => { 'own_setting' => { 'id' => '1', 'values' => %w[1] },
+                                    'other_setting' => { 'id' => '2', 'values' => 'foo' } } }
+        )
+        permitted = controller.send(:cama_permitted_field_options, 'Plugin', field_groups: plugin.get_field_groups)
+
+        expect(permitted['0'].keys).to eq(%w[own_setting])
       end
 
       it 'keeps a hash keyed by index' do
