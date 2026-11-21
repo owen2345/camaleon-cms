@@ -67,3 +67,26 @@
 - [x] 5.2 Run `openspec validate --all --strict`. Verify: the change is valid
 - [x] 5.3 Open the PR, add the `CHANGELOG.md` entries with the link of the PR, and archive this
   change on the branch. Verify: `openspec validate --archived` passes
+
+## 6. Fix the faults that the review found
+
+- [x] 6.1 Set the theme preview aside for the whole site create (design D9). Give the preview theme
+  back to `CurrentRequest` after each hook (design D5). Verify: the preview examples of
+  `spec/requests/site_create_theme_hooks_spec.rb` and
+  `spec/requests/theme_install_current_theme_spec.rb` pass
+- [x] 6.2 Refuse an install of a theme that is not installed, before its first write (design D10).
+  Add `spec/requests/unknown_theme_install_spec.rb` for the theme page and the install helpers.
+  Verify: its examples pass
+- [x] 6.3 Make the installer refuse an empty theme key. Make the installer and the site create of
+  the admin panel check the default theme before they save the site (design D10). Verify: the
+  installer and site create examples of `spec/requests/unknown_theme_install_spec.rb` pass
+- [x] 6.4 Give the site of the request back in an `ensure` clause of `site_after_install` (design
+  D9). Verify: the example of `spec/requests/site_create_theme_hooks_spec.rb` with a handler that
+  raises passes
+- [x] 6.5 Show the notice of the theme page after the redirect. Keep the typed domain and the
+  selected theme when the installer form shows again. Verify: the examples of
+  `spec/requests/admin/appearances/themes_controller_spec.rb`,
+  `spec/requests/unknown_theme_install_spec.rb` and `spec/requests/admin/installers_controller_spec.rb`
+  pass
+- [x] 6.6 Name the changes of 6.1 to 6.5 in `docs/upgrading-to-2.9.5.md` or in `CHANGELOG.md`.
+  Verify: the Markdown gate prints no line

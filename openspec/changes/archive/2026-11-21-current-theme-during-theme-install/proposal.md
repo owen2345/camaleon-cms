@@ -41,6 +41,18 @@ before it stores the theme of the site:
   reinstall in the admin panel still run it (design D7).
 - The install gives the theme record the name of the theme config, when the record has its slug as
   its name (design D8).
+- In a request with a theme preview, `site_after_install` sets the preview aside for the whole
+  create. The hooks of the default plugins then go to the theme of the new site (design D9).
+- After the create, `site_after_install` gives the request its own site back, also when a handler
+  raises (design D9).
+- An install refuses a theme key that no installed theme has, before its first write. The install
+  helpers raise `ArgumentError`, and the theme page of the admin panel shows an error (design D10).
+- The installer and the site create of the admin panel check the theme before they save the site.
+  The installer also refuses an empty theme key. Each shows its form again with an error (design D10).
+- The theme page of the admin panel shows its notice after an install. Before, `index` wrote the
+  notice to `flash.now` and then redirected.
+- When the installer form shows again, it keeps the domain that the operator typed and the theme
+  that the operator selected.
 - `docs/upgrading-to-2.9.5.md` tells a theme developer what changes. A handler can now run two
   times, when the `on_active` handler also calls it directly. On a site create, a handler of a
   default plugin hook now runs for the theme of the site, before `on_active`.
@@ -60,8 +72,19 @@ None.
 
 - `app/helpers/camaleon_cms/site_helper.rb`: `site_after_install`, `site_install_theme`,
   `site_uninstall_theme` and four new private methods.
+- `app/controllers/camaleon_cms/admin/appearances/themes_controller.rb`: the error for a theme that
+  is not installed, and the notice after the redirect.
+- `app/controllers/camaleon_cms/admin/installers_controller.rb` and
+  `app/controllers/camaleon_cms/admin/settings/sites_controller.rb`: the theme check before the save.
+  The installer form also keeps the typed domain.
+- `app/views/camaleon_cms/admin/installers/form.html.erb`: the theme select keeps the selected theme.
+- `config/locales/camaleon_cms/admin/en.yml`: the three error messages of the refusal.
 - Specs: a new request spec for the theme install in the admin panel and in a theme preview.
 - Specs: a new request spec for the site create in the installer and in the admin panel.
+- Specs: a new request spec for the refusal of a theme that is not installed, and a new request spec
+  for the installer form. The spec of the theme page gets an example for its notice.
+- Specs: `spec/support/theme_hook_probes.rb` holds the hook probes that the specs of the theme
+  install and of the site create share.
 - `docs/upgrading-to-2.9.5.md` and `CHANGELOG.md`.
 - Ecosystem: `docs/ai/ecosystem.md` lists no consumer of the three helpers. A theme whose
   `on_active` handler fires a hook now gets that hook. A theme that reads `current_theme` or a theme
