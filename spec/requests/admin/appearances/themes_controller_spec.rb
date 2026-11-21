@@ -31,5 +31,13 @@ RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
       get cama_admin_appearances_themes_path, params: { set: 'default' }
       expect(response).to redirect_to(cama_admin_appearances_themes_path)
     end
+
+    # The notice was written to flash.now, which the redirect drops.
+    it 'shows the notice of the install on the page after the redirect' do
+      get cama_admin_appearances_themes_path, params: { set: 'default' }
+      follow_redirect!
+
+      expect(response.body).to include('Theme updated')
+    end
   end
 end

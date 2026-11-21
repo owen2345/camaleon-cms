@@ -16,7 +16,7 @@ module CamaleonCms
           end
 
           site_install_theme(params[:set])
-          flash.now[:notice] = t('camaleon_cms.admin.themes.message.updated')
+          flash[:notice] = t('camaleon_cms.admin.themes.message.updated')
           redirect_to action: :index
         end
 
