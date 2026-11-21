@@ -12,6 +12,10 @@
 - **Bug fix:** An install of a theme that is not installed is now refused before it changes the site. Before, it stored the theme, and the frontend of the site failed. The installer also raised `NoMethodError`, left a half-installed site and did not show the admin password. A site create also refuses such a default theme. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#an-install-refuses-a-theme-that-is-not-installed).
 
+- **Bug fix:** The theme page of the admin panel now shows its notice after a theme install. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+
+- **Bug fix:** When the installer shows its form again, the form now keeps the domain that the operator typed. Before, it showed the domain of the request. [#1362](https://github.com/owen2345/camaleon-cms/pull/1362).
+
 - **Developer tooling:** The Markdown gate of the review loop now counts each paragraph that a change touches, with its context lines. Before, it did not report a paragraph that an edit took past six sentences. It also refuses a code fence line that a hunk adds or keeps, when the hunk does not start at line 1. [#1361](https://github.com/owen2345/camaleon-cms/pull/1361).
 
 - **Docs:** The OpenSpec spec `ecosystem-cross-testing` now holds the requirements of the check that each enrolled ecosystem member runs against Camaleon `master`. No behavior change. [#1360](https://github.com/owen2345/camaleon-cms/pull/1360).
