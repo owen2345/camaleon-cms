@@ -57,6 +57,7 @@ what theme/plugin developers should know.
 | Has a plugin or theme shortcode that reads `args[:shortcode_content]` | A shortcode with no closing tag now reads `nil` there. Before, it read the inner text of an earlier enclosing shortcode ([details](#a-shortcode-output-shows-as-written)) |
 | Has plugin or theme code that calls `cama_replace_codes` with a value that holds a backslash or another code | The value now shows as written, and the code in it stays as text ([details](#cama_replace_codes-shows-each-value-as-written)) |
 | Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
+| Has a theme whose `on_active` handler installs a plugin, fires another hook, or reads `current_theme` or a theme helper | The handler now gets its own theme, and the theme gets the hooks that the handler fires. A handler that the theme also calls directly now runs two times ([details](#a-theme-is-the-current-theme-in-its-on_active-hook)) |
 
 ---
 
@@ -1111,6 +1112,26 @@ call.
 `String#sub` read a backslash sequence of an item name: `\0` showed the placeholder `{__}`, and `\k`
 with a group name raised an `IndexError`. A `{__}` in the `container_prepend` or `container_append`
 option is now text.
+
+### A theme is the current theme in its `on_active` hook
+
+The install of a theme runs the `on_active` hook of that theme. While that hook runs,
+`current_theme` is now the theme that is installed. Before, an install in the admin panel left the
+old theme as the current theme. So a hook that the handler fired went to the old theme. An example
+is `plugin_ecommerce_after_install`, which `plugin_install('ecommerce')` fires. `theme_asset_path`,
+`theme_view` and `theme_layout` with no theme name gave the paths of the old theme.
+
+Check these points in a theme:
+
+- A handler of the theme now runs for a hook that its `on_active` handler fires. If the `on_active`
+  handler also calls that handler directly, the handler runs two times. Remove the direct call, or
+  make the handler safe for a second run.
+- Code in the `on_active` handler that read the old theme from `current_theme` now reads the new
+  theme. Read the old theme in its `on_inactive` handler.
+- A handler that uses the theme record of its argument needs no change.
+
+In a request with a theme preview (`ccc_theme_preview`), each of the two hooks also gets its own
+theme. The preview theme is the current theme again after each hook.
 
 ---
 

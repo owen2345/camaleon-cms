@@ -127,7 +127,7 @@ module CamaleonCms
       current_site.themes.update_all(status: 'inactive') # rubocop:disable Rails/SkipsModelValidations
       theme_model = current_site.themes.where(slug: key).first_or_create! { |t| t.name = theme[:name] }
       theme_model.update(status: nil)
-      hook_run(theme, 'on_active', theme_model)
+      cama_with_current_theme(theme_model) { hook_run(theme, 'on_active', theme_model) }
       PluginRoutes.request_reload
     end
 
@@ -136,7 +136,9 @@ module CamaleonCms
       key = current_site.get_theme_slug
       theme = PluginRoutes.theme_info(key)
       theme_model = current_site.get_theme(key)
-      hook_run(theme, 'on_inactive', theme_model) if theme_model.present?
+      return if theme_model.blank?
+
+      cama_with_current_theme(theme_model) { hook_run(theme, 'on_inactive', theme_model) }
       # theme_model.destroy
     end
 
@@ -152,6 +154,21 @@ module CamaleonCms
     # check if the request created by draper or request is not defined
     def cama_is_test_request?
       (request && defined?(ActionController::TestRequest) && request.is_a?(ActionController::TestRequest)) || !request
+    end
+
+    private
+
+    # Runs the block with theme_model as the current theme of the request. The request read its
+    # current theme before the install, so a hook that an on_active or on_inactive handler fires would
+    # go to that theme, and the theme helpers would give its paths. The theme stays the current theme
+    # after the block. A request with a theme preview (ccc_theme_preview) gets its preview theme back.
+    def cama_with_current_theme(theme_model)
+      preview_theme = (instance_variable_get(:@_current_theme) if instance_variable_defined?(:@_current_theme))
+      instance_variable_set(:@_current_theme, nil) if preview_theme
+      CurrentRequest.frontend_current_theme = theme_model.decorate
+      yield
+    ensure
+      instance_variable_set(:@_current_theme, preview_theme) if preview_theme
     end
   end
 end
