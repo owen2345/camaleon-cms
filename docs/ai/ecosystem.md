@@ -302,8 +302,8 @@ Changes that look free from inside this repository and are not:
   by index before the call, and that step still works. The plugin can remove the step when it requires
   `camaleon_cms` 2.9.5 or later. The plugins and themes that pass raw params to `set_field_values` always
   stored the list.
-- **Dropping a list of hashes under `values`** in `cama_permitted_field_options` breaks no surveyed
-  consumer, because no form sends that list. The `my_slider` field of `cama-ecommerce-theme`,
+- **No filter for a list of hashes under `values`** in `cama_permitted_field_options` breaks no
+  surveyed consumer, because no form sends that list. The item below gives the refusal of that list. The `my_slider` field of `cama-ecommerce-theme`,
   `camaleon-cms-efashion` and the `e_shop` theme of `camaleon_website` names its inputs
   `values[][title]`, `values[][descr]` and `values[][image]`. The admin JavaScript renames them to
   `values[<index>][title]` and the like, a hash that the helper keeps. A change of the `values` filter
