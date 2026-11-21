@@ -36,14 +36,17 @@ RSpec.describe 'An install of a theme that is not installed', type: :request do
     # The installer is open only while no site exists.
     before { [CamaleonCms::Site, CamaleonCms::User].each(&:delete_all) }
 
-    it 'refuses the theme before it creates the site' do
-      expect do
-        post save_cama_admin_installers_path,
-             params: { site: { name: 'First site', slug: 'first-site' }, theme: missing_theme }
-      end.not_to change(CamaleonCms::Site, :count).from(0)
+    # An empty theme is a key too: site_after_install installs the default theme only for nil.
+    { 'a theme key' => 'missing_theme', 'an empty theme key' => '' }.each do |label, theme|
+      it "refuses #{label} that is not installed before it creates the site" do
+        expect do
+          post save_cama_admin_installers_path,
+               params: { site: { name: 'First site', slug: 'first-site' }, theme: theme }
+        end.not_to change(CamaleonCms::Site, :count).from(0)
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('The selected theme is not installed.')
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('The selected theme is not installed.')
+      end
     end
   end
 

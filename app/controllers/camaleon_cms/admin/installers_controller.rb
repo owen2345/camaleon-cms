@@ -19,8 +19,9 @@ module CamaleonCms
 
       def save
         @site = CamaleonCms::Site.new(params[:site].permit(:slug, :name)).decorate
-        # The site is saved before its theme is installed, so the theme is checked first.
-        if params[:theme].present? && PluginRoutes.theme_info(params[:theme]).blank?
+        # The site is saved before its theme is installed, so the theme is checked first. An empty
+        # theme is a key too: site_after_install installs the default theme only for nil.
+        if params.key?(:theme) && PluginRoutes.theme_info(params[:theme]).blank?
           @site.errors.add(:base, t('camaleon_cms.admin.installer.theme_not_installed',
                                     default: 'The selected theme is not installed.'))
           index
