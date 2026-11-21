@@ -308,8 +308,8 @@ Changes that look free from inside this repository and are not:
   `values[][title]`, `values[][descr]` and `values[][image]`. The admin JavaScript renames them to
   `values[<index>][title]` and the like, a hash that the helper keeps. A change of the `values` filter
   must keep a hash with any key there.
-- **Refusing a save with `values` that `cama_permitted_field_options` does not keep** breaks no
-  surveyed consumer. The helper now raises `UnusableFieldValues` for a list that holds a hash or a
+- **The refusal of a save with `values` that `cama_permitted_field_options` does not keep** breaks
+  no surveyed consumer. The helper now raises `UnusableFieldValues` for a list that holds a hash or a
   list, or a non-empty scalar, under `values`, where it dropped them. It raises the same error for the entry
   of an allowed slug that is a non-empty scalar or a list. Before, it left that entry out of its
   result. `CamaleonCms::AdminController` answers the error with a flash and a redirect back, or a 422
