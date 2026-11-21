@@ -199,7 +199,7 @@ saves the site. The error is a refusal, so no default theme takes the place of t
 - [In a preview request, code after the hooks reads the preview theme] → A preview request shows the
   site with the preview theme.
 - [On a site create, a plugin hook handler of the theme runs before `on_active`. An error in it
-  stops the create] → The default theme already has this order. The upgrade note names it.
+  stops the install, and the saved site stays without the rest of its install] → The default theme already has this order. The upgrade note names it.
 - [A theme used `on_inactive` as a reset before `on_active` on a new site] → A new site has nothing
   to reset. The upgrade note tells the developer to do such work in `on_active`.
 - [A host replaces `site_install_theme` to catch a site create] → `site_after_install` no longer

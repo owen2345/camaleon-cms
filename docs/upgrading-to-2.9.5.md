@@ -1144,7 +1144,9 @@ things change:
 - **The theme of the site gets the hooks of the plugin installs**, such as `plugin_after_install`.
   The site now has its theme before the plugins are installed. Before, the installer sent those
   hooks to the default theme (`default_template`) when the user selected another theme. A handler of
-  your theme for such a hook runs before its `on_active` handler. An error in it stops the create.
+  your theme for such a hook runs before its `on_active` handler. An error in it stops the install,
+  and the request fails. The site is saved before its install, so it stays, but the rest of its
+  install does not run.
 - **The create runs no `on_inactive` hook.** Before, it ran the `on_inactive` hook of the theme of
   the site, or of the default theme, before `on_active`. If your `on_active` handler needs a reset,
   do the reset in that handler. A theme switch in the admin panel still runs `on_inactive`, and so
