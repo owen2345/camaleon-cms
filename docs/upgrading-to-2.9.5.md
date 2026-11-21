@@ -685,9 +685,10 @@ slugs through the record's `get_field_groups`, as before, matching field rows on
 the same slug.
 
 `cama_permitted_field_options` keeps the `values` of a slug sent as a list of scalars (`values[]`, what
-the checkboxes field submits) and the `values` keyed by index. It drops a list that holds a non-scalar,
-as before. A plugin that re-keyed the list by index before the `cama_permitted_field_options` call can
-remove that step when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9.4
+the checkboxes field submits) and the `values` keyed by index. It refuses a save with a list that holds
+a non-scalar ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)). A plugin
+that re-keyed the list by index before the `cama_permitted_field_options` call can remove that step
+when it requires `camaleon_cms` 2.9.5 or later. On 2.9.2 to 2.9.4
 `cama_permitted_field_options` drops the list.
 
 `cama_permitted_field_options` no longer reports a group or a slug that it drops as an unpermitted
