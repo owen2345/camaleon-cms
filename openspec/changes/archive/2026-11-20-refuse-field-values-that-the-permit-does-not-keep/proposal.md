@@ -21,7 +21,8 @@ with a defect can send them.
 
 - The permit raises `CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues` for the entry of an
   allowed slug with `values` in a shape that it does not keep.
-- The permit raises the same error for the entry of an allowed slug that is a scalar or a list.
+- The permit raises the same error for the entry of an allowed slug that is a non-empty scalar or a
+  list.
 - `CamaleonCms::AdminController` answers that error as it answers a refused custom-field value. A
   submitted form, and an XHR with the `cama_ajax_request` param, get a flash message and a redirect
   back. Any other XHR gets the message as text and a 422.
