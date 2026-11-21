@@ -76,7 +76,10 @@ record SHALL have the name that the config of the theme gives.
 
 A theme preview is a theme of the site of the request. The rules above SHALL also hold in a request
 with a theme preview. No hook of the create SHALL go to the preview theme. After the create, the
-current theme of that request SHALL be the preview theme again.
+current theme of that request SHALL be the preview theme again, also when a handler raises.
+
+After the create, the current site of the request SHALL be the site that it had before the create,
+also when a handler raises.
 
 #### Scenario: The installer creates a site with a theme that is not the default theme
 
@@ -102,6 +105,13 @@ current theme of that request SHALL be the preview theme again.
 - **THEN** the hooks of the default plugin installs go to the theme of the new site, and not to the
   preview theme
 - **AND** after the create, the current theme is the preview theme, and the page shows that theme
+
+#### Scenario: A handler raises during a site create in a request with a theme preview
+
+- **WHEN** a request previews a theme, code of that request creates a site, and a handler of a
+  default plugin hook raises
+- **THEN** the caller gets that error, the current site is the site of the request, and the current
+  theme is the preview theme
 
 ### Requirement: The create of a site runs no on_inactive hook
 

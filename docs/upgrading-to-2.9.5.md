@@ -1138,7 +1138,7 @@ theme. The preview theme is the current theme again after each hook.
 ### A site create gives its hooks to the theme of the site
 
 The create of a site installs the default plugins and then the theme of the site. This holds for
-the installer, for a site create in the admin panel and for a call of `site_after_install`. Three
+the installer, for a site create in the admin panel and for a call of `site_after_install`. Four
 things change:
 
 - **The theme of the site gets the hooks of the plugin installs**, such as `plugin_after_install`.
@@ -1153,6 +1153,8 @@ things change:
   does an install of the current theme.
 - **The site gets one theme record.** Before, the installer also made a record for the default
   theme. The record now has the name of the theme config, not the slug of the theme.
+- **The request gets its site back after an error.** Code that rescues an error of the create now
+  has the site of the request as the current site. Before, the new site stayed the current site.
 
 In a request with a theme preview (`ccc_theme_preview`), these hooks also go to the theme of the
 new site. The preview theme is the current theme again after the create.

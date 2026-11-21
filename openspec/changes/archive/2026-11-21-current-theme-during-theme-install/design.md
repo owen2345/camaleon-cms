@@ -163,6 +163,10 @@ create through the method that sets the preview aside for D5.
 `cama_with_current_theme` uses the same method. After the block, that method also writes the
 preview theme back to `CurrentRequest`, which the view lookup reads directly.
 
+The create gives the site of the request back in an `ensure` clause. Before, a handler that raised
+left the new site as the current site of the request, with or without a preview. The maintainer
+chose this fix on 2026-11-21.
+
 - *Alternative A: name the exception in the requirement.* Rejected: it is the exception that D5
   rejected for a theme install, and the write to the record of the other site stays.
 - *Alternative B: `current_site(site)` clears the preview when it changes the site.* Rejected:

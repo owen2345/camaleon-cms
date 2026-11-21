@@ -119,6 +119,8 @@ module CamaleonCms
           # A new site has no theme to uninstall, so no on_inactive hook runs.
           cama_activate_theme(theme_key)
         end
+      ensure
+        # A handler that raises does not leave the new site as the current site of the request.
         current_site(_s) if _s.present?
       end
     end

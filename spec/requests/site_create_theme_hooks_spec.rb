@@ -7,6 +7,7 @@ RSpec.describe 'The theme hooks of a site create', type: :request do
   include_context 'with theme hook probes'
 
   let(:default_plugins) { PluginRoutes.system_info['default_plugins'] }
+  let(:plugin_hook_error) { nil }
   let(:hooks) do
     %w[default new].index_with do |slug|
       { 'plugin_after_install' => ["probe_#{slug}_plugin_after_install"],
@@ -19,9 +20,12 @@ RSpec.describe 'The theme hooks of a site create', type: :request do
   # theme does.
   def probe_helper
     log = hook_log
+    error = plugin_hook_error
     Module.new do
       %w[default new].each do |slug|
         define_method(:"probe_#{slug}_plugin_after_install") do |args|
+          raise error if error
+
           current_theme.set_option('probe_stored', 'by a plugin hook')
           log << [:plugin_after_install, slug, args[:plugin].slug]
         end
@@ -39,8 +43,12 @@ RSpec.describe 'The theme hooks of a site create', type: :request do
       # No request of Camaleon creates a site in a theme preview, so a handler of the preview theme
       # does it. The stored theme is read first, before current_theme can write it again.
       define_method(:probe_preview_before_load) do
-        site_after_install(CamaleonCms::Site.create!(name: 'Second site', slug: 'second-site'), 'new')
-        log << [:after_create, CurrentRequest.frontend_current_theme&.slug, current_theme.slug]
+        begin
+          site_after_install(CamaleonCms::Site.create!(name: 'Second site', slug: 'second-site'), 'new')
+        rescue RuntimeError => e
+          log << [:create_error, e.message]
+        end
+        log << [:after_create, CurrentRequest.frontend_current_theme&.slug, current_theme.slug, current_site.slug]
       end
     end
   end
@@ -117,9 +125,20 @@ RSpec.describe 'The theme hooks of a site create', type: :request do
       end
 
       it 'shows the preview theme after the create' do
-        expect(hook_log.last).to eq([:after_create, 'camaleon_first', 'camaleon_first'])
+        expect(hook_log.last).to eq([:after_create, 'camaleon_first', 'camaleon_first', @site.slug])
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('themes/camaleon_first/')
+      end
+
+      # The create gave the site of the request back only when no handler raised.
+      context 'when a handler of a default plugin hook raises' do
+        let(:plugin_hook_error) { 'plugin hook failed' }
+
+        it 'gives the error to the caller and keeps the site and the preview theme of the request' do
+          expect(hook_log).to include([:create_error, 'plugin hook failed'])
+          expect(hook_log.last).to eq([:after_create, 'camaleon_first', 'camaleon_first', @site.slug])
+          expect(response.body).to include('themes/camaleon_first/')
+        end
       end
     end
   end
