@@ -40,6 +40,7 @@ None.
 
 - `custom-field-value-filtering`: a new requirement gives the refusal. The scenario of a list of
   non-scalars says that the save is refused.
+- `custom-field-value-rejection`: the list of the cases of a refused admin save names the refusal.
 
 ## Impact
 
