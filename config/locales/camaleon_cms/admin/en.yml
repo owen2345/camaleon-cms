@@ -526,6 +526,7 @@ en:
         setup_token: 'Setup token'
         setup_token_hint: 'Required for remote installations; leave blank when installing locally. Printed in the server log and saved to tmp/camaleon_setup_token on first run.'
         invalid_setup_token: 'A valid setup token is required to install. See the server log or tmp/camaleon_setup_token.'
+        theme_not_installed: 'The selected theme is not installed.'
         welcome_title: 'Your site was created successfully.'
         visit_frontend: 'Visit Frontend:'
         visit_admin: 'Visit Admin panel'
@@ -655,6 +656,7 @@ en:
 
         message:
           updated: 'Theme updated'
+          not_installed: 'The theme is not installed.'
       users:
         impersonate: 'Impersonate'
         all_users: 'All Users'

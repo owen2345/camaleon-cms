@@ -106,6 +106,7 @@ module CamaleonCms
     # theme_key: theme slug of the theme for site
     def site_after_install(site, theme_key = nil)
       theme_key ||= site.get_theme_slug
+      cama_require_theme(theme_key)
       _s = current_site
       # A theme preview is a theme of the site of the request, so the hooks of the new site do not go to it.
       cama_without_preview_theme do
@@ -124,6 +125,7 @@ module CamaleonCms
 
     # install theme for current site
     def site_install_theme(key)
+      cama_require_theme(key)
       # uninstall previous theme
       site_uninstall_theme
 
@@ -157,6 +159,14 @@ module CamaleonCms
     end
 
     private
+
+    # Raises ArgumentError when no installed theme has the key. An install calls it before its first
+    # write, so an unknown key leaves the site as it was.
+    def cama_require_theme(key)
+      return if PluginRoutes.theme_info(key).present?
+
+      raise ArgumentError, "Camaleon CMS - Theme not installed: #{key.inspect}"
+    end
 
     # Makes the theme the theme of the current site, and runs the on_active hook of the theme.
     def cama_activate_theme(key)

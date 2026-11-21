@@ -127,3 +127,25 @@ the theme before the install. This includes the install of the theme that the si
 
 - **WHEN** an administrator installs the current theme of the site again in the admin panel
 - **THEN** the `on_inactive` handler of that theme runs, and then its `on_active` handler runs
+
+### Requirement: An install refuses a theme that is not installed
+
+An install of a theme and a site create SHALL refuse a theme key that no installed theme has. The
+refusal SHALL come before the first write, so the site keeps its theme and its theme records. The
+install helpers SHALL raise `ArgumentError`. The theme page of the admin panel SHALL show an error.
+The installer SHALL show its form again with an error, and it SHALL create no site.
+
+#### Scenario: An administrator installs a theme that is not installed
+
+- **WHEN** an administrator opens the theme page with a theme key that no installed theme has
+- **THEN** the page shows an error, and the site keeps its theme and its theme records
+
+#### Scenario: The installer gets a theme that is not installed
+
+- **WHEN** the installer gets a theme key that no installed theme has
+- **THEN** it shows its form again with an error, and it creates no site
+
+#### Scenario: Code installs a theme that is not installed
+
+- **WHEN** code calls `site_install_theme` or `site_after_install` with such a key
+- **THEN** the helper raises `ArgumentError` before its first write

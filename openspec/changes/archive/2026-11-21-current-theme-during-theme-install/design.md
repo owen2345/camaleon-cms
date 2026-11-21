@@ -168,6 +168,24 @@ preview theme back to `CurrentRequest`, which the view lookup reads directly.
 - *Alternative B: `current_site(site)` clears the preview when it changes the site.* Rejected:
   many callers use `current_site(site)`, and the switch back cannot restore the preview.
 
+**D10. An install refuses a theme that is not installed.** The maintainer chose this remedy on
+2026-11-21. The install stored the theme key and made each theme record inactive before it read
+the config of the theme. With no config, it then raised `NoMethodError`. The site kept a theme with
+no config, and its frontend failed until an administrator installed another theme.
+
+The installer saved the site before that error. So the installer closed, and the operator did not
+see the generated admin password. The fault was there before this change. This change added the
+error for a record that has its slug as its name (D8).
+
+Now `site_install_theme` and `site_after_install` raise `ArgumentError` before their first write.
+The theme page of the admin panel shows an error, and the installer checks the theme before it
+saves the site. The error is a refusal, so no default theme takes the place of the key.
+
+- *Alternative A: fall back to the default theme.* Rejected: it hides a wrong key or a missing gem.
+- *Alternative B: guard the controllers only.* Rejected: a direct call still stores the key.
+- *Alternative C: make the name line safe for a missing config.* Rejected: the site then has a
+  theme with no config, and no error says so.
+
 ## Risks / Trade-offs
 
 - [A handler that a theme also calls directly runs two times] → The upgrade note names the case and

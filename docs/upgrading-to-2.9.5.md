@@ -59,6 +59,7 @@ what theme/plugin developers should know.
 | Has a menu item name with a backslash sequence, such as `\0`, or theme code that passes `{__}` in the `container_prepend` or `container_append` option of `draw_menu` | The menu now shows the name and the `{__}` as written ([details](#a-menu-item-name-shows-as-written)) |
 | Has a theme whose `on_active` handler installs a plugin, fires another hook, or reads `current_theme` or a theme helper | The handler now gets its own theme, and the theme gets the hooks that the handler fires. A handler that the theme also calls directly now runs two times ([details](#a-theme-is-the-current-theme-in-its-on_active-hook)) |
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
+| Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request | A key that no installed theme has now raises `ArgumentError` before the install changes the site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 
 ---
 
@@ -1156,6 +1157,16 @@ new site. The preview theme is the current theme again after the create.
 
 `site_after_install` no longer calls `site_install_theme`. Code that replaces `site_install_theme`
 does not run for a site create.
+
+### An install refuses a theme that is not installed
+
+`site_install_theme` and `site_after_install` now raise `ArgumentError` for a theme key that no
+installed theme has. They raise before their first write, so the site keeps its theme. Before, the
+install stored the key and then raised `NoMethodError`, and the frontend of the site failed.
+
+The theme page of the admin panel shows an error for such a key. The installer shows its form again
+with an error, and it creates no site. If your code passes a key from a request, check the key with
+`PluginRoutes.theme_info`, or rescue `ArgumentError`.
 
 ---
 

@@ -19,7 +19,12 @@ module CamaleonCms
 
       def save
         @site = CamaleonCms::Site.new(params[:site].permit(:slug, :name)).decorate
-        if @site.save
+        # The site is saved before its theme is installed, so the theme is checked first.
+        if params[:theme].present? && PluginRoutes.theme_info(params[:theme]).blank?
+          @site.errors.add(:base, t('camaleon_cms.admin.installer.theme_not_installed',
+                                    default: 'The selected theme is not installed.'))
+          index
+        elsif @site.save
           site_after_install(@site, params[:theme])
           CamaleonCms::SetupToken.clear! # single-use: the installer is closed now that a site exists
           # Carry the generated admin password to the welcome page for a single, session-scoped display.

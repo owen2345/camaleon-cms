@@ -10,6 +10,11 @@ module CamaleonCms
           authorize! :manage, :themes
           return if params[:set].blank?
 
+          if PluginRoutes.theme_info(params[:set]).blank?
+            flash[:error] = t('camaleon_cms.admin.themes.message.not_installed', default: 'The theme is not installed.')
+            return redirect_to action: :index
+          end
+
           site_install_theme(params[:set])
           flash.now[:notice] = t('camaleon_cms.admin.themes.message.updated')
           redirect_to action: :index
