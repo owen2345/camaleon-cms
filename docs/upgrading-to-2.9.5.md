@@ -871,6 +871,7 @@ cannot read the entry of a field that is a non-empty scalar or a list (`field_op
 
 Before, a save with such `values`, or with such an entry beside a valid entry, removed the stored
 values of that field. The save reported success.
+
 Now the helper raises `CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues`. Each admin
 controller answers that error as a refused save, with a message that names the field
 ([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The stored custom-field values of the
