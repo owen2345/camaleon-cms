@@ -14,8 +14,8 @@ redirect and its success notice. The admin sees no sign that the field is now em
 A field entry that is a scalar or a list has the same effect. The permit leaves it out of the
 payload, and a save with another valid entry removes the stored values of that field.
 
-No admin form of Camaleon sends such `values` or such an entry. A plugin form, a script or a client with a defect can
-send them.
+No admin form of Camaleon sends such `values` or such an entry. A plugin form, a script or a client
+with a defect can send them.
 
 ## What Changes
 

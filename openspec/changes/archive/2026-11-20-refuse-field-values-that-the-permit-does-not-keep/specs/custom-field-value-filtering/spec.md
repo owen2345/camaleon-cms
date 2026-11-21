@@ -99,7 +99,7 @@ and `values[<index>][value]`, a hash keyed by index, before the form submits.
   scalars
 - **THEN** both fields' values are stored
 
-#### Scenario: A list of non-scalars is dropped
+#### Scenario: A save with a list of non-scalars is refused
 
 - **WHEN** a save submits a registered field's values as a list of hashes
 - **THEN** the save is refused, and no value row is stored for that field
