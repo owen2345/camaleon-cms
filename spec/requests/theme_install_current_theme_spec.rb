@@ -39,6 +39,8 @@ RSpec.describe 'The current theme while a theme is installed', type: :request do
         rescue RuntimeError => e
           log << [:install_error, e.message]
         end
+        # The stored theme is read first, before current_theme can write it again.
+        log << [:stored_theme, CurrentRequest.frontend_current_theme&.slug]
         log << [:after_install_theme, current_theme.slug]
       end
     end
@@ -94,7 +96,7 @@ RSpec.describe 'The current theme while a theme is installed', type: :request do
     end
 
     it 'shows the preview theme after the install' do
-      expect(hook_log).to include([:after_install_theme, 'camaleon_first'])
+      expect(hook_log).to include([:stored_theme, 'camaleon_first'], [:after_install_theme, 'camaleon_first'])
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('themes/camaleon_first/')
       expect(response.body).not_to include('themes/new/')
@@ -104,7 +106,11 @@ RSpec.describe 'The current theme while a theme is installed', type: :request do
       let(:on_active_error) { 'on_active failed' }
 
       it 'gives the error to the caller and keeps the preview theme' do
-        expect(hook_log).to include([:install_error, 'on_active failed'], [:after_install_theme, 'camaleon_first'])
+        expect(hook_log).to include(
+          [:install_error, 'on_active failed'],
+          [:stored_theme, 'camaleon_first'],
+          [:after_install_theme, 'camaleon_first']
+        )
         expect(response.body).to include('themes/camaleon_first/')
       end
     end

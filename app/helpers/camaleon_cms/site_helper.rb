@@ -172,14 +172,18 @@ module CamaleonCms
     # Runs the block with theme_model as the current theme of the request. The request read its
     # current theme before the install, so a hook that an on_active or on_inactive handler fires would
     # go to that theme, and the theme helpers would give its paths. The theme stays the current theme
-    # after the block. A request with a theme preview (ccc_theme_preview) gets its preview theme back.
+    # after the block. A request with a theme preview (ccc_theme_preview) gets its preview theme back,
+    # also in CurrentRequest, which the view lookup reads directly.
     def cama_with_current_theme(theme_model)
       preview_theme = (instance_variable_get(:@_current_theme) if instance_variable_defined?(:@_current_theme))
       instance_variable_set(:@_current_theme, nil) if preview_theme
       CurrentRequest.frontend_current_theme = theme_model.decorate
       yield
     ensure
-      instance_variable_set(:@_current_theme, preview_theme) if preview_theme
+      if preview_theme
+        instance_variable_set(:@_current_theme, preview_theme)
+        CurrentRequest.frontend_current_theme = preview_theme
+      end
     end
   end
 end
