@@ -38,7 +38,7 @@ what theme/plugin developers should know.
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
-| Has a plugin form, a script or a client that posts custom-field `values` to an admin save as a list of hashes, a nested list or a scalar, or the entry of a field as a scalar or a list | The save is now refused with a message, and the stored values stay. Before, the save removed the stored values of that field and reported success. Send `values[<index>]` or a list of scalars ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)) |
+| Has a plugin form, a script or a client that posts custom-field `values` to an admin save as a list of hashes, a nested list or a scalar, or the entry of a field as a non-empty scalar or a list | The save is now refused with a message, and the stored values stay. Before, the save removed the stored values of that field and reported success. Send `values[<index>]` or a list of scalars ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes an Array to `set_field_value` or `save_field_value` | The items are now read in the order of the Array. To append an Array after the stored items (`clear: false`), give an order after the last stored order ([details](#set_field_value-stores-the-items-of-an-array-in-order)) |
 | Has plugin or theme code that passes a Hash or an Array that holds `ActionController::Parameters` to a meta, option or custom-field writer | Each Parameters object in it is stored as a JSON object, not as the inspect String of its Hash ([details](#parameters-in-a-hash-or-an-array-are-stored-as-json-objects)) |
@@ -887,7 +887,8 @@ No form of Camaleon sends `values` in an unknown shape: the admin JavaScript ren
 to `values[<index>][attr]`.
 
 **Who must act:** a plugin form, a script or a client that posts such `values` or such an entry.
-Send `field_options[<group index>][<slug>][values]` as a hash keyed by index or as a list of scalars. A plugin controller that calls the helper and does not inherit
+Send `field_options[<group index>][<slug>][values]` as a hash keyed by index or as a list of
+scalars. A plugin controller that calls the helper and does not inherit
 `CamaleonCms::AdminController` must rescue the error.
 
 ### `update_field_value` stores a value as `set_field_value` stores one value
