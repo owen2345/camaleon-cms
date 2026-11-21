@@ -43,7 +43,9 @@ Apply the standard to the prose that you add or change. These limits apply:
 
 ## The Markdown gate
 
-The gate reads a unified diff and prints each added sentence over 25 words and each paragraph over six sentences. It does not test a table row or a heading. It exits with 1 when it printed a line. Run it on the staged Markdown files before a commit: `git add -A && git diff --cached -U0 -- '*.md' | .claude/skills/review-loop/scripts/markdown-gate.rb`.
+The gate reads a unified diff and prints each added sentence over 25 words. It also prints each paragraph that holds an added line, or a removed line between two of its lines, and has more than six sentences. The gate counts the sentences of the whole paragraph, with its context lines, also when the paragraph had more than six sentences before the change. It does not test a table row or a heading. It exits with 1 when it printed a line.
+
+Run it on the staged Markdown files before a commit: `git add -A && git diff --cached -U99999 -- '*.md' | .claude/skills/review-loop/scripts/markdown-gate.rb`. The 99999 lines of context give the gate each whole file, so it reads each fence from the start of the file. With less context, a hunk can start after line 1 and inside a fenced block. When such a hunk adds or keeps a fence line, the gate prints the start line of the hunk and exits with 1.
 
 Judge its output. A template line, a fragment of a changelog entry and a line of a fenced block without its fence are no sentences. A code span counts as one word. The gate joins a sentence that starts with a lower-case word to the sentence before it. An abbreviation stays in its sentence only when a lower-case word follows it. Write a name such as `trace.md` in a code span.
 
