@@ -864,6 +864,11 @@ The nav menu item settings modal shows the refusal and stays open. The draft sav
 shows the refusal in its alert and keeps the post on the form, as it does for a refused meta or
 option. Before, it showed "The draft could not be saved".
 
+A refused draft save now stores nothing, as a refused post save does. Before, it stored the draft
+row and its metas, without the custom-field values and the options. The editor of a new post got no
+draft id, so each later draft save of that editor stored one more draft row. The Drafts list of the
+post type shows the rows that those refusals left, and a user can delete them there.
+
 **Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
 and reads the answer. Read a `text/plain` 422 as the refusal, with the message in the body. A 422
 of another type is an error page, for example of a CSRF failure.
@@ -881,8 +886,8 @@ values of that field. The save reported success.
 Now the helper raises `CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues`. Each admin
 controller answers that error as a refused save, with a message that names the field
 ([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The stored custom-field values of the
-record stay. A post save stores nothing. Each other save, a draft save included, keeps the
-attributes, metas and options that it stored before the custom-field values.
+record stay. A post save and a draft save store nothing. Each other save keeps the attributes, metas
+and options that it stored before the custom-field values.
 
 An entry with no `values`, or with an empty `values`, still removes the stored values of its field.
 The form sends such an entry for a checkboxes field with no option checked. A field entry that is

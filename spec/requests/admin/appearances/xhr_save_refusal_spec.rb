@@ -102,8 +102,8 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
   end
 
   # The draft save of the post editor sends an XHR too. Its script shows the refusal of a plain-text
-  # 422 (post_draft_refused_value_spec). The draft buffer keeps what the save stored before the
-  # custom-field values.
+  # 422 (post_draft_refused_value_spec). The refused draft save stores nothing
+  # (refused_draft_save_spec).
   describe 'the draft save of the post editor' do
     let(:post_type) { current_site.post_types.find_by(slug: 'post') }
     let(:editor) { create(:user, role: 'editor', site: current_site) }
@@ -130,9 +130,7 @@ RSpec.describe 'An admin save that is refused answers an XHR with a 422', type: 
       expect(response.status).to eq(422)
       expect(response.body).to eq(refusal_of(field))
       expect(flash[:error]).to be_nil
-      buffer = post_type.posts.drafts.find_by(post_parent: parent.id)
-      expect(buffer).to be_present
-      expect(buffer.get_field_value(field.slug)).to be_blank
+      expect(post_type.posts.drafts.where(post_parent: parent.id)).not_to exist
     end
   end
 end

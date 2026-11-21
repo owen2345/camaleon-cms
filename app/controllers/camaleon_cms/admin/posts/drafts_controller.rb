@@ -21,7 +21,7 @@ module CamaleonCms
           end
 
           # A draft save is held to the same meta and option rules as the post save (see PostsController),
-          # before anything is written -- the buffer lookup below persists draft_status through set_option.
+          # before anything is written. The save below also stores draft_status on a buffer that it finds.
           refusals = post_params_refusals
           return render(json: { error: refusals }) if refusals.any?
 
@@ -30,7 +30,7 @@ module CamaleonCms
                                                         user_id: cama_current_user.id).first
           end
           if @post_draft
-            @post_draft.set_option('draft_status', @post_draft.status)
+            draft_status = @post_draft.status
             @post_draft.attributes = @post_data
           else
             @post_draft = @post_type.posts.new(@post_data)
@@ -39,12 +39,7 @@ module CamaleonCms
 
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('create_post_draft', r)
-          if @post_draft.save(validate: false)
-            # Security (audit M8): confine field values to slugs actually registered on the post type,
-            # through the post save's own PostsController#save_post_params -- raw params[:field_options]
-            # let a caller write custom_field_values with attacker-chosen slugs/ids/group numbers. Options
-            # are stored from params[:options], as #update does (the check above reads the same params).
-            save_post_params(@post_draft)
+          if save_draft_with_fields(@post_draft, draft_status: draft_status)
             msg = { draft: { id: @post_draft.id },
                     _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft) }
             r = { post: @post_draft, post_type: @post_type }
@@ -65,9 +60,7 @@ module CamaleonCms
           @post_draft.attributes = @post_data
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('update_post_draft', r)
-          if @post_draft.save(validate: false)
-            # Security (audit M8): confine field values to the post type's registered slugs (see #create).
-            save_post_params(@post_draft)
+          if save_draft_with_fields(@post_draft)
             hooks_run('updated_post_draft', { post: @post_draft, post_type: @post_type })
             msg = { draft: { id: @post_draft.id } }
           else
@@ -84,6 +77,31 @@ module CamaleonCms
         def destroy; end
 
         private
+
+        # Stores the draft with its metas, field values and options in one transaction, as
+        # PostsController#save_post_with_fields stores a post. Before, the draft row and its metas were
+        # stored before the custom-field values, and a refused value left a new draft row. The post
+        # editor got no id of that row, so each later save of that editor created one more row. Now a
+        # refusal rolls the whole draft save back, and it reaches the rescue_from of AdminController.
+        #
+        # `draft_status` is the stored status of a buffer that #create found. The buffer keeps that
+        # status as an option.
+        #
+        # Security: PostsController#save_post_params confines the field values to the slugs that the
+        # post type registers. Raw params[:field_options] let a caller write custom_field_values with
+        # slugs, ids and group numbers of its choice. The options come from params[:options], which
+        # post_params_refusals checks.
+        #
+        # Returns true on success, and nil when a callback of the draft stops the save.
+        def save_draft_with_fields(draft, draft_status: nil)
+          ActiveRecord::Base.transaction do
+            draft.set_option('draft_status', draft_status) if draft_status
+            raise ActiveRecord::Rollback unless draft.save(validate: false)
+
+            save_post_params(draft)
+            true
+          end
+        end
 
         def set_post_data_params
           post_data = params
