@@ -19,9 +19,10 @@ module CamaleonCms
       private_constant :FIELD_ENTRY_FILTER
 
       # cama_permitted_field_options raises this error for the entry of an allowed slug that the
-      # permit cannot read. Such an entry is a scalar or a list, or it has `values` in a shape that the
-      # permit does not keep, for example a list of hashes or a scalar. AdminController answers the
-      # error as refuse_admin_save says.
+      # permit cannot read. Such an entry is a non-empty scalar or a list, or it has `values` in a shape
+      # that the permit does not keep. Such shapes are a list that holds a hash or a list, and a
+      # non-empty scalar. nil and '' hold no value, and they raise no error. AdminController answers
+      # the error as refuse_admin_save says.
       class UnusableFieldValues < ArgumentError
         attr_reader :slug
 
@@ -71,7 +72,8 @@ module CamaleonCms
       end
 
       # The entry of each allowed slug of one group, in the order of field_ids. An entry that is a
-      # scalar or a list has no id and no values to read, so the helper refuses the save.
+      # non-empty scalar or a list has no id and no values to read, so the helper refuses the save. An
+      # entry of nil or '' is not in the result.
       def cama_permitted_field_entries(group, field_ids)
         field_ids.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |(slug, ids), fields|
           entry = group[slug]

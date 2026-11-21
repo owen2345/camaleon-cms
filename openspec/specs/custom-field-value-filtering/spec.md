@@ -305,8 +305,8 @@ an allowed slug, as the `action_on_unpermitted_parameters` setting of the host a
 
 The shared permit keeps the `values` of an allowed slug as a hash keyed by index or as a list of
 scalars. A save that submits the `values` of an allowed slug in any other shape SHALL be refused.
-The stored custom-field values of the record MUST stay. A list of hashes, a nested list and a scalar
-are such shapes.
+The stored custom-field values of the record MUST stay. A list that holds a hash or a list, and a
+non-empty scalar, are such shapes.
 
 A save that submits the entry of an allowed slug as a non-empty scalar or as a list SHALL be refused
 in the same way.
@@ -333,16 +333,16 @@ before.
 - **THEN** the save answers with the refusal, and the record holds the same values of both fields
   after the save
 
-#### Scenario: A save with a nested list or a scalar keeps the stored values
+#### Scenario: A save with a nested list or a non-empty scalar keeps the stored values
 
-- **WHEN** a save submits a nested list or a scalar as the `values` of an allowed slug
+- **WHEN** a save submits a nested list or a non-empty scalar as the `values` of an allowed slug
 - **THEN** the save answers with the refusal, and the stored values of the record stay
 
-#### Scenario: A save with a field entry that is a scalar or a list keeps the stored values
+#### Scenario: A save with a field entry that is a non-empty scalar or a list keeps the stored values
 
 - **WHEN** a record holds values of two fields
-- **AND** a save submits valid values for one field, and a scalar or a list as the entry of the other
-  field
+- **AND** a save submits valid values for one field, and a non-empty scalar or a list as the entry
+  of the other field
 - **THEN** the save answers with the refusal, and the record holds the same values of both fields
   after the save
 
@@ -354,8 +354,8 @@ before.
 
 #### Scenario: An XHR gets the refusal with a 422
 
-- **WHEN** an XHR without the `cama_ajax_request` param submits a scalar as the `values` of an allowed
-  slug
+- **WHEN** an XHR without the `cama_ajax_request` param submits a non-empty scalar as the `values` of
+  an allowed slug
 - **THEN** the answer is the refusal as text with a 422, and the stored values of the record stay
 
 #### Scenario: A refused post save stores nothing
