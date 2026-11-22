@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-# The draft save stored the draft row and its metas before the custom-field values, with no
-# transaction. A refused custom-field value then answered the XHR with a 422 and no draft id, and the
-# row stayed. The post editor had no draft id, so each later save of a new post created one more
-# draft row. Now the draft save writes in one transaction, as the post save does, and a refused
-# draft save stores nothing.
+# The draft save stored the draft row, its metas, its categories and its tags before the
+# custom-field values, with no transaction. A refused custom-field value then answered the XHR with
+# a 422 and no draft id, and the row stayed. The post editor had no draft id, so each later save of
+# a new post created one more draft row. Now the draft save writes in one transaction, as the post
+# save does, and a refused draft save stores nothing.
 RSpec.describe 'A refused draft save stores nothing', type: :request do
   include_context 'with the post editor'
 

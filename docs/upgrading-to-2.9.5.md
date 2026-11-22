@@ -865,9 +865,10 @@ shows the refusal in its alert and keeps the post on the form, as it does for a 
 option. Before, it showed "The draft could not be saved".
 
 A refused draft save now stores nothing, as a refused post save does. Before, it stored the draft
-row and its metas, without the custom-field values. The editor of a new post got no
-draft id, so each later draft save of that editor stored one more draft row. The Drafts list of the
-post type shows the rows that those refusals left, and a user can delete them there.
+row with its metas, its categories and its tags, without the custom-field values. The editor of a
+new post got no draft id, so each later draft save of that editor stored one more draft row. The
+Drafts list of the post type shows the rows that those refusals left. There, a user with the delete
+permission of the post type moves them to the trash, and then deletes them in the Trash list.
 
 **Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
 and reads the answer. Read a `text/plain` 422 as the refusal, with the message in the body. A 422

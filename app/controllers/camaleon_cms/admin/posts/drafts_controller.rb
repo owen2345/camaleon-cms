@@ -79,10 +79,11 @@ module CamaleonCms
         private
 
         # Stores the draft with its metas, field values and options in one transaction, as
-        # PostsController#save_post_with_fields stores a post. Before, the draft row and its metas were
-        # stored before the custom-field values, and a refused value left a new draft row. The post
-        # editor got no id of that row, so each later save of that editor created one more row. Now a
-        # refusal rolls the whole draft save back, and it reaches the rescue_from of AdminController.
+        # PostsController#save_post_with_fields stores a post. Before, the draft row, its metas, its
+        # categories and its tags were stored before the custom-field values. A refused value then left
+        # a new draft row. The post editor got no id of that row, so each later save of that editor
+        # created one more row. Now a refusal rolls the whole draft save back, and it reaches the
+        # rescue_from of AdminController.
         #
         # `draft_status` is the stored status of a buffer that #create found. The buffer keeps that
         # status as an option.
