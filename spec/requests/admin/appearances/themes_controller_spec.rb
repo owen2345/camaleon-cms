@@ -55,6 +55,14 @@ RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
       expect(response).to have_http_status(:success)
     end
 
+    it 'logs the error of the route file when the routes cannot be drawn' do
+      break_the_routes
+      allow(Rails.logger).to receive(:error)
+      expect(Rails.logger).to receive(:error).with(/the routes cannot be drawn.*ArgumentError: broken plugin routes/m)
+
+      get cama_admin_appearances_themes_path, params: { set: 'default' }
+    end
+
     # The switch stores the theme before the on_active hook of the theme. A save of that hook can draw
     # the routes in its transaction, and a draw that fails rolls only that save back.
     it 'says that the routes stay as they were when a save of the on_active hook fails the draw' do
