@@ -63,7 +63,9 @@ SHALL log the error. For a GET or HEAD request, the controller SHALL raise the e
 
 The theme switch of the admin is a GET request. Its controller SHALL answer the error with a
 redirect to the list of the themes and a flash error, and it SHALL log the error. That list draws no
-routes.
+routes. The flash error SHALL say that Camaleon kept the routes as they were, also when a
+transaction was open at the failure. The switch stores the theme before the `on_active` hook of
+the theme, so the theme stays switched.
 
 #### Scenario: A site settings save with a new slug
 
@@ -84,6 +86,13 @@ routes.
   raises an error
 - **THEN** the response redirects to the list of the themes with a flash error
 - **AND** the flash error says that the routes stay as they were, and the list answers with a 200
+
+#### Scenario: A theme switch whose hook fails the draw
+
+- **WHEN** an admin switches the theme of a site, and a save of the `on_active` hook of the theme
+  fails the draw in its transaction
+- **THEN** the response redirects to the list of the themes with a flash error
+- **AND** the flash error says that the routes stay as they were, and the site has the new theme
 
 #### Scenario: A change that is stored before the draw
 

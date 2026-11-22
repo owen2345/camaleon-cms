@@ -148,7 +148,9 @@ logs the error with its backtrace. The admin shows a flash as HTML, so the handl
 of the route file error for the flash.
 
 The theme switch is a GET request, so `ThemesController` rescues the error itself. It redirects to
-the list of the themes with the flash, and that list draws no routes.
+the list of the themes with the flash, and that list draws no routes. Its message is always the
+message for no open transaction. The switch stores the theme before the `on_active` hook, so the
+theme stays switched when a save of that hook rolls back.
 
 `config/locales/camaleon_cms/admin/en.yml` gets two messages:
 

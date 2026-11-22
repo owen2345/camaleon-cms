@@ -165,9 +165,11 @@ module CamaleonCms
     # failure rolled back, so the change of the request is not stored. With no transaction, the change
     # can be stored, and only the routes stay as they were. The flash shows its message as HTML, so
     # the text of the route file error is escaped for it.
-    def route_draw_error_message(exception, as_text: refusal_as_text?)
+    #
+    # A caller that stored its change before that transaction gives `rolled_back: false`.
+    def route_draw_error_message(exception, as_text: refusal_as_text?, rolled_back: exception.in_transaction?)
       error = as_text ? exception.message : ERB::Util.html_escape(exception.message)
-      if exception.in_transaction?
+      if rolled_back
         cama_t('camaleon_cms.admin.message.route_draw_failed_change_not_saved', error: error)
       else
         cama_t('camaleon_cms.admin.message.route_draw_failed_routes_kept', error: error)
