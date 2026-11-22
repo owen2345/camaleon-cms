@@ -416,6 +416,20 @@ markers took about 27 s to scan, and now takes about 3 s.
 
 ---
 
+## A refused draft save stores nothing
+
+The post editor saves a draft by XHR: for Save Draft and Preview, and each minute after a change of
+the form. A draft save that Camaleon refuses for a custom-field value now stores nothing, as a
+refused post save does. Before, it stored the draft row with its metas, its categories and its
+tags, without the custom-field values. The editor of a new post got no draft id. So each later
+draft save of that editor stored one more draft row, up to the first save that passed.
+
+**Who must act.** Nobody. The Drafts list of the post type shows the draft rows that the earlier
+refusals left. There, their author, with the Delete permission of the post type, moves them to the
+trash, and then deletes them in the Trash list.
+
+---
+
 ## Notes for theme & plugin developers
 
 ### `public_media` / `private_media` / `is_public` now mean what they say
@@ -868,18 +882,6 @@ option. Before, it showed "The draft could not be saved".
 **Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
 and reads the answer. Read a `text/plain` 422 as the refusal, with the message in the body. A 422
 of another type is an error page, for example of a CSRF failure.
-
-### A refused draft save stores nothing
-
-The post editor saves a draft by XHR: each minute, and for Save Draft and Preview. A draft save that
-Camaleon refuses for a custom-field value now stores nothing, as a refused post save does. Before,
-it stored the draft row with its metas, its categories and its tags, without the custom-field
-values. The editor of a new post got no draft id, so each later draft save of that editor stored
-one more draft row.
-
-**Who must act:** nobody. The Drafts list of the post type shows the draft rows that the earlier
-refusals left. There, their author, with the Delete permission of the post type, moves them to the
-trash, and then deletes them in the Trash list.
 
 ### A save with custom-field `values` in an unknown shape is refused
 
