@@ -323,7 +323,7 @@ class PluginRoutes
     end
 
     # The list of get_sites when it is loaded, else nil. It reads no site. A list that is not loaded
-    # holds no old data: the next call of get_sites reads the stored sites.
+    # holds no old data: the next call of get_sites reads the sites from the database.
     def loaded_sites
       @all_sites
     end
