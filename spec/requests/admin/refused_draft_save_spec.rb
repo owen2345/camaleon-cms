@@ -144,6 +144,21 @@ RSpec.describe 'A refused draft save stores nothing', type: :request do
     end
   end
 
+  # A callback of the draft that stops the save makes `save` return false.
+  it 'keeps the buffer as stored when its save returns false on a draft create under its post' do
+    save_draft({ '0' => 'stored value' }, title: 'Stored title', summary: 'stored summary', post_id: parent.id)
+    buffer_id = drafts_of_editor.find_by!(post_parent: parent.id).id
+    allow_any_instance_of(CamaleonCms::Post).to receive(:save).and_return(false)
+
+    save_draft({ '0' => 'new value' }, title: 'New title', summary: 'new summary', post_id: parent.id)
+
+    expect(response.parsed_body).not_to have_key('draft')
+    buffer = stored_draft(buffer_id)
+    expect(buffer.get_option('draft_status')).to be_blank
+    expect(buffer.get_meta('summary')).to eq('stored summary')
+    expect(buffer.get_field_values(field.slug)).to eq(['stored value'])
+  end
+
   it 'stores the draft, its meta, its option and its field value when no value is refused' do
     post "/admin/post_type/#{post_type.id}/drafts", xhr: true, params: {
       post_id: parent.id, post: { title: 'Draft title' }, meta: { summary: 'stored summary' },
