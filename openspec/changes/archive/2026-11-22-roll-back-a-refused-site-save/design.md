@@ -91,8 +91,9 @@ callback later in the same transaction finds the route helper.
 ## Risks / Trade-offs
 
 - In a transaction that changes the slug of a site, or destroys a site, the site no longer reloads
-  the routes. A loaded list of `PluginRoutes.get_sites` keeps the stored sites until the commit.
-  Before, code in that transaction read the change at once.
+  the routes. A loaded list of `PluginRoutes.get_sites` keeps the stored sites until the commit,
+  unless other code there loads it again, such as a new post type. Before, code in that transaction
+  read the change at once.
   Camaleon has no such code, and no surveyed plugin or theme has it. The upgrade guide names
   `PluginRoutes.reload` for that case.
 - An error of the reload now comes after the commit, so it does not roll the change back.
