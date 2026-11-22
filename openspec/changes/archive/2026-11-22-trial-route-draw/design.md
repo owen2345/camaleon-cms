@@ -110,15 +110,15 @@ production does.
 - The data object keeps the state object of its transaction. It also keeps the state object of
   the outermost such transaction of the connection. A `requires_new` transaction is a savepoint,
   and only the commit of the outermost transaction stores its changes. The transaction rolled back
-  when one of the two states says `rolledback?`.
+  when one of the two states says `rolledback?`. A commit that loses the connection leaves the
+  state as `invalidated?`, from Rails 7.1. The database can then hold the change or not, so that
+  state counts as rolled back.
 - The transaction committed when the outer state says `fully_committed?`. It also committed when
   that state says `committed?` and the connection has no open transaction as defined above. Rails
   takes a transaction from its stack before it sends COMMIT. In that window, the state of a
   savepoint says `committed?`, and the connection has no open transaction.
 - Rails has no public reader for the outermost transaction. The data object reads the stack of
   the transaction manager. With no such stack, it reads only the state of its own transaction.
-  A commit that loses the connection leaves the state as `invalidated?`, from Rails 7.1. The
-  database can then hold the change or not, so that state counts as rolled back.
 - After the commit, `PluginRoutes` drops the data object. It clears the shared data when the data
   object came from a clear.
 - After the rollback, `PluginRoutes` drops the data object. It reloads the routes when a draw of the
