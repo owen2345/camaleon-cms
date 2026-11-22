@@ -309,7 +309,7 @@ module CamaleonCms
     # The routes also hold the slug of the main site, as their default host. So the main site asks
     # for the reload too when the last reload drew another default host than its stored slug. A
     # list that is not loaded holds no old slug. With no such list and no such host, the method
-    # reads nothing and asks for no reload.
+    # reads no slug and asks for no reload.
     def refresh_routes_for_new_slug
       sites = PluginRoutes.loaded_sites
       drawn_host = drawn_host_of_main_site
