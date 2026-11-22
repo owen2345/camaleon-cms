@@ -446,7 +446,8 @@ site is stored before the draw. The message then says that Camaleon kept the rou
 Before, such a request gave a server error.
 
 A theme switch that fails the trial redirects to the list of the themes with that message. The
-theme stays switched, so switch back or repair its route file.
+theme stays switched. Repair the route file that raises the error, or switch back when that file
+belongs to the new theme.
 
 The trial loads `config/routes.rb`, `config/routes/admin.rb` and `config/routes/frontend.rb` of
 Camaleon. Those files read the `routes_*.txt` files of the enabled plugins and themes. The trial
