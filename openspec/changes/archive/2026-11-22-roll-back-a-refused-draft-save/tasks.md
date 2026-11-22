@@ -19,9 +19,10 @@
 
 ## 3. Documentation
 
-- [x] 3.1 Change the comment of `rescue_from ActiveRecord::RecordInvalid` in `AdminController`, and
-  the two sections of `docs/upgrading-to-2.9.5.md` that name the draft save. Verify: the Markdown
-  gate prints no line
+- [x] 3.1 Change the comment of `rescue_from ActiveRecord::RecordInvalid` in `AdminController`. Add
+  the section "A refused draft save stores nothing" and its at-a-glance row to
+  `docs/upgrading-to-2.9.5.md`. Change the draft save sentence of the section on custom-field
+  `values` in an unknown shape. Verify: the Markdown gate prints no line
 
 ## 4. Verification and shipping
 
