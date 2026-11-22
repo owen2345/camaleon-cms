@@ -102,6 +102,8 @@ production does.
 - The data object keeps the state object of its transaction. The transaction rolled back when the
   state says `rolledback?`. It committed when the state says `fully_committed?`. It also committed
   when the state says `committed?` and the connection has no open transaction as defined above.
+  A commit that loses the connection leaves the state as `invalidated?`, from Rails 7.1. The
+  database can then hold the change or not, so that state counts as rolled back.
 - After the commit, `PluginRoutes` drops the data object. It clears the shared data when the data
   object came from a clear.
 - After the rollback, `PluginRoutes` drops the data object. It reloads the routes when a draw of the

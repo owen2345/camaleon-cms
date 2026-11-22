@@ -41,8 +41,12 @@ module CamaleonCms
       # is released, and a transaction around it can still roll back. That rollback marks the state as
       # rolled back. So a state that is committed, and not fully committed, counts only when its
       # connection has no open transaction.
+      #
+      # A commit that loses the connection leaves the state invalidated (Rails 7.1 and later). The
+      # database can hold the change or not, so that state counts as rolled back. The thread then
+      # drops the data of the transaction, and a draw that used the data runs again.
       def outcome
-        return :rolled_back if @state.rolledback?
+        return :rolled_back if @state.rolledback? || @state.try(:invalidated?)
         if @state.fully_committed? || (@state.committed? && !@connection.current_transaction.joinable?)
           return :committed
         end

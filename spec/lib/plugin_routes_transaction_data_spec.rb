@@ -115,6 +115,26 @@ RSpec.describe PluginRoutes do
     end
   end
 
+  # Rails marks the state of a transaction as invalidated when its commit loses the connection. That
+  # state says neither committed? nor rolledback?.
+  describe 'a transaction whose commit loses the connection' do
+    it 'leaves no data of the transaction with its thread' do
+      connection = ActiveRecord::Base.connection
+      allow(connection).to receive(:release_savepoint).and_raise(ActiveRecord::ConnectionFailed, 'gone')
+      # Rails throws the connection away after such a commit, and the example still needs it.
+      allow(connection).to receive(:throw_away!)
+
+      expect do
+        ActiveRecord::Base.transaction do
+          connection.materialize_transactions
+          described_class.cache_variable('probe', 'in the transaction')
+        end
+      end.to raise_error(ActiveRecord::ConnectionFailed)
+
+      expect(described_class.cache_variable('probe')).to be_nil
+    end
+  end
+
   describe '.reload_after_commit' do
     let(:draws) { [] }
 
