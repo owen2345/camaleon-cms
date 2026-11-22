@@ -10,8 +10,9 @@ module CamaleonCms
     #   a slug that names no custom field.
     # - A post type: a decorator class option that names no post decorator.
     #
-    # A failed save of a post, or of a draft of the post editor, stores nothing of that record. Each
-    # other save keeps what it stored before the custom-field values, and the old values stay.
+    # A failed save of a post, of a draft of the post editor or of the site settings stores nothing of
+    # that record. Each other save keeps what it stored before the custom-field values, and the old
+    # values stay.
     #
     # The error is raised again for any other record, and for a GET or HEAD request. A GET or HEAD
     # request submits no form, and a redirect leads to a page that fails the same way.
@@ -39,6 +40,16 @@ module CamaleonCms
       raise exception if request.get? || request.head?
 
       refuse_admin_save(cama_t('camaleon_cms.admin.custom_field.message.values_unusable', slug: exception.slug))
+    end
+    # A trial draw of the routes failed, because a route file raises an error (CamaleonCms::RouteDrawError).
+    # The routes of the app did not change. The request answers as refuse_admin_save says, and the
+    # message names the error of the route file. The error is raised again for a GET or HEAD request,
+    # as for RecordInvalid above.
+    rescue_from CamaleonCms::RouteDrawError do |exception|
+      raise exception if request.get? || request.head?
+
+      log_route_draw_error(exception)
+      refuse_admin_save(route_draw_error_message(exception))
     end
     # layout 'camaleon_cms/admin'
     # Admin responses are user-specific and must never be served from a browser or shared cache;
@@ -136,13 +147,38 @@ module CamaleonCms
     # as text with a 422, and no flash. Such a script, for example the nav menu item settings modal,
     # reads the answer itself. A redirect gives it only the admin page, and that page uses up the flash.
     def refuse_admin_save(message)
-      if request.xhr? && params[:cama_ajax_request].blank?
+      if refusal_as_text?
         # A number: Rack 3.1 deprecates :unprocessable_entity, and earlier Rack has no :unprocessable_content.
         render plain: message, status: 422 # rubocop:disable Rails/HttpStatus
       else
         flash[:error] = message
         redirect_back fallback_location: cama_admin_dashboard_path
       end
+    end
+
+    # Whether refuse_admin_save answers with the message as text, and not with a flash.
+    def refusal_as_text?
+      request.xhr? && params[:cama_ajax_request].blank?
+    end
+
+    # The message for a trial draw of the routes that failed. A transaction that was open at the
+    # failure rolled back, so the change of the request is not stored. With no transaction, the change
+    # can be stored, and only the routes stay as they were. The flash shows its message as HTML, so
+    # the text of the route file error is escaped for it.
+    #
+    # A caller that stored its change before that transaction gives `rolled_back: false`.
+    def route_draw_error_message(exception, as_text: refusal_as_text?, rolled_back: exception.in_transaction?)
+      error = as_text ? exception.message : ERB::Util.html_escape(exception.message)
+      if rolled_back
+        cama_t('camaleon_cms.admin.message.route_draw_failed_change_not_saved', error: error)
+      else
+        cama_t('camaleon_cms.admin.message.route_draw_failed_routes_kept', error: error)
+      end
+    end
+
+    def log_route_draw_error(exception)
+      backtrace = (exception.cause || exception).backtrace&.first(10)&.join("\n")
+      Rails.logger.error("Camaleon CMS: the routes cannot be drawn: #{exception.message}\n#{backtrace}")
     end
 
     # Send `Cache-Control: no-store` on every admin response so no admin page is ever cached by the

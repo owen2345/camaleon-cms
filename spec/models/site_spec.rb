@@ -52,4 +52,70 @@ RSpec.describe CamaleonCms::Site, type: :model do
       expect(site.get_languages).not_to include(:xx)
     end
   end
+
+  # The memo of main_site stayed for the life of the process. After a new slug of the main site it
+  # returned the old slug, and a read in a transaction kept a site that a rollback removed.
+  describe '.main_site' do
+    it 'returns the new slug of the main site after its save' do
+      main = described_class.reorder(id: :asc).first || create(:site)
+      expect(described_class.main_site.slug).to eq(main.slug)
+
+      main.update!(slug: 'renamed-main.example.test')
+
+      expect(described_class.main_site.slug).to eq('renamed-main.example.test')
+    end
+
+    # The routes hold the slug of the main site as their default host. A draw in the transaction reads
+    # the old slug: from the memo, or before the save of the new slug. So the commit draws again.
+    describe 'the default host of the routes' do
+      let(:main) { described_class.reorder(id: :asc).first || create(:site) }
+      let(:default_host) { Rails.application.routes.default_url_options[:host] }
+
+      before do
+        main
+        PluginRoutes.reload
+      end
+
+      it 'is the new slug after a transaction that saves the slug and then draws the routes' do
+        ActiveRecord::Base.transaction do
+          main.update!(slug: 'renamed-main.example.test')
+          main.post_types.create!(name: 'Books', slug: 'books')
+        end
+
+        expect(default_host).to eq('renamed-main.example.test')
+      end
+
+      it 'is the new slug after a transaction that draws the routes and then saves the slug' do
+        ActiveRecord::Base.transaction do
+          main.post_types.create!(name: 'Books', slug: 'books')
+          main.update!(slug: 'renamed-main.example.test')
+        end
+
+        expect(default_host).to eq('renamed-main.example.test')
+      end
+    end
+
+    it 'is the site with the lowest id, also when no site has the id 1' do
+      described_class.delete_all
+      described_class.instance_variable_set(:@main_site, nil)
+      create(:site, id: 1_000_140)
+      create(:site, id: 1_000_132)
+
+      expect(described_class.main_site.id).to eq(1_000_132)
+      expect(PluginRoutes.get_sites.first.id).to eq(1_000_132)
+    end
+
+    it 'returns nil after the create of the first site rolls back' do
+      described_class.delete_all
+      described_class.instance_variable_set(:@main_site, nil)
+
+      ActiveRecord::Base.transaction do
+        create(:site)
+        expect(described_class.main_site).to be_present
+        raise ActiveRecord::Rollback
+      end
+
+      expect(described_class.main_site).to be_nil
+    end
+  end
 end

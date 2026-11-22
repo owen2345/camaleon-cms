@@ -1,4 +1,5 @@
-Rails.application.routes.draw do
+# The route set of the app, or the empty route set of a trial draw (CamaleonCms::RouteTrial).
+PluginRoutes.route_set.draw do
   scope PluginRoutes.system_info['relative_url_root'], as: 'cama' do
     # root "application#index"
     default_url_options PluginRoutes.default_url_options

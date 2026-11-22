@@ -22,10 +22,7 @@ module CamaleonCms
       def site_saved
         @site = current_site
         cache_slug = @site.slug
-        if @site.update(params.require(:site).permit(:name, :slug, :description))
-          @site.set_options(params[:options]) if params[:options].present?
-          @site.set_metas(params[:metas]) if params[:metas].present?
-          @site.set_field_values(cama_permitted_field_options('Site', field_groups: @site.get_field_groups))
+        if save_site_with_fields(@site)
           flash[:notice] = t('camaleon_cms.admin.settings.message.site_updated')
           args = { action: :site }
           args[:host], args[:port] = @site.get_domain.to_s.split(':') if cache_slug != @site.slug
@@ -88,6 +85,26 @@ module CamaleonCms
       end
 
       private
+
+      # Stores the site with its options, metas and custom-field values in one transaction, as
+      # PostsController#save_post_with_fields stores a post. A refusal of an option, a meta or a
+      # custom-field value rolls the whole save back and reaches the rescue_from of AdminController.
+      #
+      # With more than one site, the slug of a site is the host of its requests. Without the
+      # transaction, a refused save keeps a new slug. The answer of the refusal then redirects back to
+      # the old host, which names no site.
+      #
+      # Returns true on success, and nil when the site is not valid.
+      def save_site_with_fields(site)
+        ActiveRecord::Base.transaction do
+          raise ActiveRecord::Rollback unless site.update(params.require(:site).permit(:name, :slug, :description))
+
+          site.set_options(params[:options]) if params[:options].present?
+          site.set_metas(params[:metas]) if params[:metas].present?
+          site.set_field_values(cama_permitted_field_options('Site', field_groups: site.get_field_groups))
+          true
+        end
+      end
 
       def validate_role
         authorize! :manage, :settings

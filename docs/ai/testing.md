@@ -80,9 +80,15 @@ BEGIN, SAVEPOINT and COMMIT statements unless you pass `include_transactions: tr
 `rolled_back_transaction { … }` runs a block in a savepoint of its own and rolls it back, for specs of what a
 rollback leaves on the records the block wrote.
 
+`break_the_routes` gives the app an enabled plugin whose route file raises an error, so a trial draw of the
+routes fails (`spec/support/broken_route_file.rb`). Give it the text of the route file to raise another error.
+The file removes that plugin after each example. `app_route_names` returns the names of the routes of the app.
+
 ### The shared site (`spec/support/shared_site.rb`)
 
 Installing a site costs ~0.6s, so one canonical site is installed per suite run, committed outside the per-example transactions, and reused everywhere: `init_site`, `Cama::Site.first` and the `post`/`post_type`/`user` factories resolve to it, and example-level mutations roll back. Create another site only when the test is about multi-site behavior (`create(:site)` installs a real one). Installation already claims the default slugs — roles `admin`/`editor`/`contributor`/`client`, post types `post`/`page` — and slugs are unique per parent and taxonomy, so reuse those records (`site.user_roles.find_by!(slug: 'admin')`) instead of creating same-slug duplicates.
+
+Before each example, that file clears the data that `PluginRoutes` caches. That data is the site list, the cached values, the memo of `Site.main_site`, the record of the last reload and the data of the transactions. An example that needs a loaded site list or that record calls `PluginRoutes.reload` first.
 
 ## Conventions
 

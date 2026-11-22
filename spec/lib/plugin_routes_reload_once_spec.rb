@@ -292,4 +292,176 @@ RSpec.describe PluginRoutes do
       expect(draws.size).to eq(1)
     end
   end
+
+  # A site asks for the reload after the commit of its transaction. A reload in the transaction reads
+  # data that a rollback removes, and the list of get_sites keeps that data.
+  describe 'a site that changes in a transaction' do
+    let(:other_site) { create(:site) }
+
+    def cached_site(site)
+      described_class.get_sites.find { |cached| cached.id == site.id }
+    end
+
+    before do
+      other_site
+      described_class.reload
+      draws.clear
+    end
+
+    it 'draws the routes one time for a new slug outside a transaction' do
+      other_site.update!(slug: 'renamed.example.test')
+
+      expect(draws.size).to eq(1)
+      expect(cached_site(other_site).slug).to eq('renamed.example.test')
+    end
+
+    it 'draws no routes for a new slug that the transaction rolls back, and the list keeps the stored slug' do
+      stored_slug = other_site.slug
+
+      ActiveRecord::Base.transaction do
+        other_site.update!(slug: 'renamed.example.test')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(draws).to be_empty
+      expect(cached_site(other_site).slug).to eq(stored_slug)
+    end
+
+    it 'draws the routes one time, after the commit, when a second save follows the save of the new slug' do
+      ActiveRecord::Base.transaction do
+        other_site.update!(slug: 'renamed.example.test')
+        other_site.update!(name: 'Renamed site')
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+      expect(cached_site(other_site)).to have_attributes(slug: 'renamed.example.test', name: 'Renamed site')
+    end
+
+    # For each row of a transaction, Rails runs the commit callbacks of one instance.
+    it 'draws the routes one time when another instance saves the site after the save of the new slug' do
+      ActiveRecord::Base.transaction do
+        other_site.update!(slug: 'renamed.example.test')
+        CamaleonCms::Site.find(other_site.id).update!(name: 'Renamed site')
+      end
+
+      expect(draws.size).to eq(1)
+      expect(cached_site(other_site)).to have_attributes(slug: 'renamed.example.test', name: 'Renamed site')
+    end
+
+    it 'draws no routes for a second commit that changes no slug' do
+      other_site.update!(slug: 'renamed.example.test')
+      draws.clear
+
+      other_site.update!(name: 'Renamed site')
+
+      expect(draws).to be_empty
+    end
+
+    # The list is not loaded before the first read of get_sites in a process, or after a read that failed.
+    it 'neither loads the list nor draws the routes for a new slug when the list is not loaded' do
+      described_class.instance_variable_set(:@all_sites, nil)
+
+      other_site.update!(slug: 'renamed.example.test')
+
+      expect(draws).to be_empty
+      expect(described_class.loaded_sites).to be_nil
+      expect(cached_site(other_site).slug).to eq('renamed.example.test')
+    end
+
+    # The routes hold the slug of the main site as their default host, so the list is not the only
+    # place with an old slug.
+    it 'draws the routes one time for a new slug of the main site when the list is not loaded' do
+      described_class.instance_variable_set(:@all_sites, nil)
+
+      @site.update!(slug: 'renamed-main.example.test')
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'neither loads the list nor draws the routes for a save of the main site that keeps its slug' do
+      described_class.instance_variable_set(:@all_sites, nil)
+
+      @site.update!(name: 'Renamed site')
+
+      expect(draws).to be_empty
+      expect(described_class.loaded_sites).to be_nil
+    end
+
+    it 'draws no routes for a delete that the transaction rolls back, and the list keeps the site' do
+      ActiveRecord::Base.transaction do
+        other_site.destroy
+        raise ActiveRecord::Rollback
+      end
+
+      expect(draws).to be_empty
+      expect(cached_site(other_site)).to be_present
+    end
+  end
+
+  # A new post type adds a route helper that a hook later in the transaction can call, so its draw
+  # runs in the transaction. A new slug and a delete add no helper, so their draw waits for the commit.
+  describe 'a post type that changes in a transaction' do
+    it 'draws the routes one time, after the commit, for a new slug in a transaction' do
+      ActiveRecord::Base.transaction do
+        post_type.update!(slug: 'articles')
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'draws the routes one time, right after the save, for a new slug outside a transaction' do
+      post_type.update!(slug: 'articles')
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'has the route of the new slug after the commit' do
+      allow(Rails.application).to receive(:reload_routes!).and_call_original
+
+      ActiveRecord::Base.transaction { post_type.update!(slug: 'articles') }
+
+      route = Rails.application.routes.recognize_path('/articles')
+      expect(route).to include(action: 'post_type', post_type_id: post_type.id)
+    end
+
+    it 'draws no routes for a new slug that the transaction rolls back' do
+      ActiveRecord::Base.transaction do
+        post_type.update!(slug: 'articles')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(draws).to be_empty
+    end
+
+    it 'draws no routes for a delete that the transaction rolls back, and the app keeps the route' do
+      allow(Rails.application).to receive(:reload_routes!).and_wrap_original do |draw|
+        draws << :draw
+        draw.call
+      end
+      created = @site.post_types.create!(name: 'Books', slug: 'books')
+      draws.clear
+
+      ActiveRecord::Base.transaction do
+        created.destroy
+        raise ActiveRecord::Rollback
+      end
+
+      expect(draws).to be_empty
+      expect(Rails.application.routes.url_helpers).to be_method_defined("cama_post_type_#{created.id}_path")
+    end
+
+    it 'draws the routes one time, after the commit, for a delete in a transaction' do
+      created = @site.post_types.create!(name: 'Books', slug: 'books')
+      draws.clear
+
+      ActiveRecord::Base.transaction do
+        created.destroy
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+    end
+  end
 end

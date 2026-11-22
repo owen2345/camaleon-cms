@@ -28,11 +28,16 @@ module CamaleonCms
     before_destroy :destroy_field_groups
     after_create :fill_default_options
     after_create :set_default_site_user_roles
+    # A new post type adds a route helper that a hook later in the transaction can call, so its draw
+    # runs in the transaction. A new slug and a delete add no helper, so their draw waits for the commit.
     after_create :refresh_routes
     # The site asks for the draw after its own delete, when it destroys this post type.
-    after_destroy :refresh_routes, if: proc { |obj| obj.destroyed_by_association.blank? }
-    after_update :refresh_routes,
+    after_destroy :refresh_routes_after_commit, if: proc { |obj| obj.destroyed_by_association.blank? }
+    after_update :refresh_routes_after_commit,
                  if: proc { |obj| obj.destroyed_by_association.blank? && obj.saved_change_to_attribute?(:slug) }
+    # PluginRoutes drops the data that it read in the transaction, and does the reload that waited.
+    after_commit :settle_routes
+    after_rollback :settle_routes_quietly
     before_update :default_category
 
     validate :refuse_unknown_decorator_class_in_queued_options
@@ -320,6 +325,19 @@ module CamaleonCms
     # In a PluginRoutes.reload_once block, the draw for a delete waits for the end of the block.
     def refresh_routes
       PluginRoutes.request_reload
+    end
+
+    def refresh_routes_after_commit
+      PluginRoutes.reload_after_commit
+    end
+
+    def settle_routes
+      PluginRoutes.settle_route_data
+    end
+
+    # An error of a reload after a rollback can hide the error that caused the rollback.
+    def settle_routes_quietly
+      PluginRoutes.settle_route_data(quiet: true)
     end
   end
 end

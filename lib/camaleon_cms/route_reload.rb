@@ -3,25 +3,29 @@
 module CamaleonCms
   # The reload of the routes. PluginRoutes extends this module.
   #
-  # `reload` clears the caches of PluginRoutes and draws the routes now. Code that makes more than one
-  # change runs in a `reload_once` block and calls `request_reload` for each change. A draw that adds
-  # no route then waits for the end of the block, and the block draws the routes one time.
+  # `reload` draws the routes on trial (CamaleonCms::RouteTrial), and then draws the routes of the app
+  # from the data of that trial. Code that makes more than one change runs in a `reload_once` block
+  # and calls `request_reload` for each change. A draw that adds no route then waits for the end of
+  # the block, and the block draws the routes one time.
   module RouteReload
     # The Thread.current key for the state of a reload_once block.
     BLOCK_KEY = :cama_route_reload_block
     private_constant :BLOCK_KEY
 
-    # Reloads the routes now. The reload waits until the other requests are done, and new requests
-    # wait until it is done (CamaleonCms::RouteReloadLock).
+    # Reloads the routes now. A trial that fails raises CamaleonCms::RouteDrawError, and the routes and
+    # the cached data stay as they were. The draw of the app routes waits until the other requests are
+    # done, and new requests wait until it is done (CamaleonCms::RouteReloadLock). The trial does not
+    # wait, and no request waits for it.
     def reload
+      settle_route_data
+      reloads = @reloads
+      data = trial_draw
       CamaleonCms::RouteReloadLock.exclusive do
         reload_monitor.synchronize do
-          clear_caches
-          # A draw that raises an error leaves no record, so the next call in a block draws at once.
-          @drawn_route_inputs = nil
-          Rails.application.reload_routes!
-          @drawn_route_inputs = route_inputs
-          after_reload_callbacks.uniq.each(&:call)
+          # Another reload drew the routes after the trial, so its data can be newer than this data.
+          data = trial_draw unless reloads == @reloads
+          @reloads = @reloads.to_i + 1
+          draw_app_routes(data)
         end
       end
       # This draw is also the draw that a reload_once block of this thread waited for.
@@ -46,9 +50,11 @@ module CamaleonCms
     end
 
     # Reloads the routes. In a reload_once block, the draw waits for the end of the block when it
-    # adds no route. So no plugin hook and no model callback in the block misses a route helper. The
-    # caches are clear at once in each case.
+    # adds no route. So no plugin hook and no model callback in the block misses a route helper. In a
+    # block, the caches are clear at once. With no block, the reload replaces the cached data, and a
+    # trial that fails leaves that data as it was.
     def request_reload
+      settle_route_data
       block = Thread.current[BLOCK_KEY]
       # A draw at once reads the data again, after adds_routes? read it (intended). Another thread can
       # reload the routes before this draw starts, and its caches lack the changes that this thread
@@ -59,11 +65,25 @@ module CamaleonCms
       nil
     end
 
+    # The default host that the last reload gave to the routes: the slug of the main site as that
+    # reload read it. It is nil with no record of a reload.
+    def drawn_default_host
+      @drawn_default_host if @drawn_route_inputs
+    end
+
     private
 
-    def clear_caches
-      @all_sites = nil
-      cache.clear
+    # Makes the data of a trial the cached data, and draws the routes of the app. The route files of
+    # Camaleon then read that data and the route file text of the trial. From the database, they
+    # read only the main site, for the default host, when its memo is clear.
+    def draw_app_routes(data)
+      use_route_data(data)
+      # A draw that raises an error leaves no record, so the next call in a block draws at once.
+      @drawn_route_inputs = nil
+      with_draw(data) { Rails.application.reload_routes! }
+      @drawn_route_inputs = route_inputs
+      @drawn_default_host = default_url_options[:host]
+      after_reload_callbacks.uniq.each(&:call)
     end
 
     # The data from the database that a draw of the routes reads.

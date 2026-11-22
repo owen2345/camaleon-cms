@@ -37,8 +37,14 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a group number to `set_field_value`, `set_field_values`, `update_field_value`, `get_field_value` or `get_field_values`, or rescues an error of those methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). `set_field_value`, `set_field_values` and `update_field_value` raise `ActiveRecord::RecordInvalid` for any other number. The exception is a negative Integer in `update_field_value`: it raises no error, and it finds a stored value with that number down to -2147483648. The two readers read no value for any other number, except a negative Integer down to -2147483648. They read each group of a list of such numbers (`[0, 1]`, `[-1, 0]`) ([details](#custom-field-group-numbers-are-validated)) |
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
+| Has plugin or theme code that changes the slug of a site, or destroys a site, in a transaction of its own, and reads `PluginRoutes.get_sites` before the commit | The list holds the change after the commit. Call `PluginRoutes.reload` in the transaction when the code needs the change sooner ([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)) |
+| Has plugin or theme code that gives a post type a new slug, or destroys a post type, in a transaction of its own, and needs the routes before the commit | The routes change after the commit. Call `PluginRoutes.reload` in the transaction when the code needs them sooner ([details](#a-post-type-draws-the-routes-after-its-commit-for-a-new-slug-and-a-delete)) |
+| Has plugin or theme code that stores a value with `PluginRoutes.cache_variable` in a transaction, and reads it after the commit | The value is gone after the commit. Store it after the transaction ([details](#pluginroutes-keeps-the-data-of-a-transaction-with-its-thread)) |
+| Sees the admin message that Camaleon cannot draw the routes | Repair or deactivate the plugin or the theme whose route file raises the error that the message names ([details](#a-reload-of-the-routes-draws-them-on-trial-first)) |
+| Has plugin or theme code that rescues an error of `PluginRoutes.reload` or `PluginRoutes.request_reload`, or a `routes_*.txt` file that mounts an engine | A route file that raises an error now gives `CamaleonCms::RouteDrawError`, and the routes of the app stay. Do not mount an engine in a `routes_*.txt` file ([details](#a-reload-of-the-routes-draws-them-on-trial-first)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has authors who saw a refused draft save in the post editor | Nothing. A refused draft save now stores nothing. The draft rows of the earlier refusals stay in the Drafts list. There, an author with the Delete permission of the post type can move their own rows to the trash ([details](#a-refused-draft-save-stores-nothing)) |
+| Runs more than one site, and has administrators who change the slug of a site in its settings form | A site settings save that Camaleon refuses now stores nothing, so the site keeps its slug. Before, the site got the new slug, and the redirect of the refusal went to the old host. Check that each site answers on its host: a site keeps a slug that a refused save stored before the upgrade ([details](#a-refused-site-settings-save-stores-nothing)) |
 | Has a plugin form, a script or a client that posts custom-field `values` to an admin save as a list that holds a hash or a list, or as a non-empty scalar, or the entry of a field as a non-empty scalar or a list | The save is now refused with a message, and the stored values stay. Before, such `values`, or such an entry beside a valid entry, removed the stored values of that field, and the save reported success. Send `values[<index>]` or a list of scalars ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes an Array to `set_field_value` or `save_field_value` | The items are now read in the order of the Array. To append an Array after the stored items (`clear: false`), give an order after the last stored order ([details](#set_field_value-stores-the-items-of-an-array-in-order)) |
@@ -373,13 +379,21 @@ end
 `PluginRoutes.reload_once` runs the block. In the block, `PluginRoutes.request_reload` leaves the
 draw to the end of the block when the draw adds no route. The block then draws the routes one time,
 unless it drew them after that call.
+
 `site_install_theme` and the activation of a plugin with `plugin_install` call
-`PluginRoutes.request_reload`. The create, the delete and a new slug of a post type or a site call it
-too. A post type that its site destroys does not call it: the site calls it after its own delete.
+`PluginRoutes.request_reload`. The create of a post type calls it too. For a new slug and for a
+delete, a post type calls `PluginRoutes.reload_after_commit`
+([details](#a-post-type-draws-the-routes-after-its-commit-for-a-new-slug-and-a-delete)). A post type
+that its site destroys does not call it: the site calls it after its own delete.
+
+A site calls it for its create and its delete, after the commit of its transaction. For a new slug,
+it calls it when the list of `PluginRoutes.get_sites` is loaded and does not hold that slug. The
+main site calls it also when the last reload drew another default host than its stored slug
+([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)).
 
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
 
-- a new post type, or a new slug of a post type
+- a new post type, or a new slug of a post type after its commit
 - a language that no site had
 - the first activation of a plugin or a theme
 
@@ -390,6 +404,105 @@ A callback of `PluginRoutes.add_after_reload_routes` runs after each draw. It no
 a site create, not 8 times. For a site delete, it runs one time, not 3 times.
 
 **Who must act.** Nobody.
+
+---
+
+## A site asks for the reload of the routes after its commit
+
+A site asks for a reload of the routes when it is created, when it gets a new slug, and when it is
+deleted. It now asks after the commit of the transaction that holds the change. Before, it asked in
+the transaction. When that transaction rolled back, `PluginRoutes.get_sites` kept the data of the
+transaction. The list held a slug that was not stored, or it lacked a site that was not deleted.
+
+A create or a delete outside a transaction reloads the routes right after it, as before. A new slug
+outside a transaction reloads them too while the list of `PluginRoutes.get_sites` is loaded. While
+the list is not loaded, the site asks for no reload: the next read of the list loads the sites
+from the database. The main site is the exception: it asks for the reload when the routes hold
+another default host than its stored slug. In a transaction that rolls back, the site asks for no
+reload. A new post type still reloads the routes in the transaction.
+
+**Who must act:** code that reads `PluginRoutes.get_sites` in a transaction, after it changed the
+slug of a site or destroyed a site there. The list holds the change after the commit. Call
+`PluginRoutes.reload` in the transaction when the code needs the change sooner.
+
+---
+
+## A reload of the routes draws them on trial first
+
+`PluginRoutes.reload` now loads the route files of Camaleon into an empty route set first. Only
+then does it draw the routes of the app. A route file can raise an error, for example the
+`routes_*.txt` file of a plugin or a theme with a syntax error. The reload then raises
+`CamaleonCms::RouteDrawError`, and the routes of the app stay as they were. Before, the app lost
+its routes, and each request failed until the next good draw.
+
+The message of the error names the error of the route file, and `cause` is that error. The new
+`PluginRoutes.check_routes` runs the trial alone: it raises the same error, and it draws nothing.
+
+A site runs the trial in the transaction that gives it a new slug or deletes it. When the trial
+fails, the site does not change.
+
+In the admin panel, a request whose trial fails answers as a refused save
+([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The message names the error of the
+route file, and it says that Camaleon did not save the change. A change such as the languages of a
+site is stored before the draw. The message then says that Camaleon kept the routes as they were.
+Before, such a request gave a server error.
+
+A theme switch that fails the trial redirects to the list of the themes with that message. The
+theme stays switched. Repair the route file that raises the error, or switch back when that file
+belongs to the new theme.
+
+The trial loads `config/routes.rb`, `config/routes/admin.rb` and `config/routes/frontend.rb` of
+Camaleon. Those files read the `routes_*.txt` files of the enabled plugins and themes. The trial
+does not load the route file of the host app or of a plugin gem. Each reload now loads the three
+files two times. In an app with one site, a reload took 94 ms, and 63 ms before.
+
+**Who must act:**
+
+- An operator who sees that message. Repair or deactivate the plugin or the theme whose route file
+  raises the error. The log has the backtrace of the error.
+- Code that rescues the error of a route file by its class, around `PluginRoutes.reload` or
+  `PluginRoutes.request_reload`. Rescue `CamaleonCms::RouteDrawError`.
+- A plugin or a theme with a `routes_*.txt` file that mounts an engine. The trial runs that
+  `mount` too, and a `mount` changes the route set of the engine. Mount the engine in the route
+  file of the host app.
+
+---
+
+## PluginRoutes keeps the data of a transaction with its thread
+
+`PluginRoutes` keeps the site list of `get_sites` and the values of `cache_variable` for all
+threads. A read while a transaction is open can give data that is not committed. Such a read now
+fills data that only the thread of that transaction uses. The other threads read the data from
+before the transaction.
+
+After the commit, each thread reads the committed data. After a rollback, the thread reads the
+stored data again. Camaleon then draws the routes again when a draw used the data of the
+transaction. Before, a post type that a transaction created was in the site list of each thread
+before the commit. After a rollback, it stayed in that list, and the app kept its route.
+
+The new `PluginRoutes.reload_after_commit` asks for a reload that waits for the commit of the open
+transaction. A rollback drops the request, and with no open transaction the method calls
+`PluginRoutes.request_reload` at once. A `requires_new` transaction is a savepoint: its request
+waits for the commit of the outermost transaction. The reload runs right after the commit when
+the transaction saved a site or a post type. Else it runs at the next call of `PluginRoutes`.
+
+**Who must act:** code that stores a value with `PluginRoutes.cache_variable` in a transaction, and
+reads it after the commit. The value is gone after the commit, so store it after the transaction.
+
+---
+
+## A post type draws the routes after its commit for a new slug and a delete
+
+A new post type still draws the routes in its transaction. So a hook later in that transaction can
+call the route helper of the post type, `cama_post_type_<id>_path`. A new slug and a delete of a
+post type add no route helper. For them, the post type now calls
+`PluginRoutes.reload_after_commit`, and the draw comes after the commit. A transaction that rolls
+back draws nothing. A save or a delete outside a transaction draws the routes right after it, as
+before.
+
+**Who must act:** code that changes the slug of a post type, or destroys one, in its own
+transaction. It must act when it needs the routes before the commit, for example for a call of
+`recognize_path` with the new slug. Call `PluginRoutes.reload` in the transaction, after the save.
 
 ---
 
@@ -427,6 +540,32 @@ draft save of that editor stored one more draft row, up to the first save that p
 **Who must act.** Nobody. The Drafts list of the post type shows the draft rows that the earlier
 refusals left. There, their author, with the Delete permission of the post type, moves them to the
 trash, and then deletes them in the Trash list.
+
+---
+
+## A refused site settings save stores nothing
+
+The site settings form stores the name, the slug and the description of a site. It also stores the
+options, the metas and the custom-field values of the site. Camaleon refuses such a save for a
+custom-field value, or for custom-field `values` in an unknown shape. It also refuses an options or
+metas container that is not a set of fields. A refused save now stores nothing, as a refused post
+save does. Before, it stored the name, the slug and the description, and each part that came before
+the refused part.
+
+In an install with more than one site, the slug of a site is the host of its requests. A refused
+save with a new slug stored that slug, and then redirected back to the form on the old host. The old
+host named no site, so the browser went to the main site, and no page showed the message. Now the
+site keeps its slug, and the form on the old host shows the message.
+
+**Who must act.** The operator of an install with more than one site, when a site no longer answers
+on its host. A site that got a new slug from a refused save keeps that slug. List the slug of each
+site in a Rails console, and compare each slug with the host of its site:
+
+```ruby
+CamaleonCms::Site.order(:id).pluck(:id, :name, :slug)
+```
+
+The settings form of such a site is on the host that its slug names. Store the old slug there.
 
 ---
 
@@ -851,6 +990,20 @@ Symbol twin raise `ArgumentError` before the delete.
 that converted its payload with `with_indifferent_access` before the call can keep the conversion.
 It can drop the conversion only when the payload holds no String key and its Symbol twin.
 
+### `Site.main_site` reads the main site again
+
+`CamaleonCms::Site.main_site` kept one site object for the life of the process. After a new slug
+of the main site, it returned the old slug until the process started again. A site whose slug has
+no dot then built its URLs on the old domain of the main site.
+
+Now `main_site` reads the main site again after a reload of the routes, and after the commit of a
+site. After that commit, the routes also get the new slug of the main site as their default host.
+It is still the site with the lowest id. A host app that redefines `main_site` with the same
+memo, `@main_site`, gets the same refresh: Camaleon clears that memo.
+
+**Who must act.** Nobody. Code that keeps the object that `main_site` returned still holds the
+old values of that object.
+
 ### An XHR admin save that is refused gets a 422
 
 The admin panel refuses a save in these cases:
@@ -896,8 +1049,8 @@ values of that field. The save reported success.
 Now the helper raises `CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues`. Each admin
 controller answers that error as a refused save, with a message that names the field
 ([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The stored custom-field values of the
-record stay. A post save and a draft save store nothing. Each other save keeps the attributes, metas
-and options that it stored before the custom-field values.
+record stay. A post save, a draft save and the site settings save store nothing. Each other save
+keeps the attributes, metas and options that it stored before the custom-field values.
 
 An entry with no `values`, or with an empty `values`, still removes the stored values of its field.
 The form sends such an entry for a checkboxes field with no option checked. A field entry that is

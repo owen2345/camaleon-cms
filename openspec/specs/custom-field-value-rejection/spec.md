@@ -111,6 +111,17 @@ stored: its attributes, metas, categories, tags, options and custom-field values
 create on a buffer that exists MUST keep that buffer in the same way. A refused draft save MUST
 store no new tag.
 
+The site settings save SHALL be atomic in the same way across the site and its options, metas and
+custom-field values. Each of these refusals SHALL roll the whole save back:
+
+- a refused custom-field value
+- custom-field `values` in a shape that the shared permit does not keep
+- an options or metas container that is not a set of fields
+
+A refused site settings save MUST keep the site as stored: its name, its slug, its description, its
+options, its metas and its custom-field values. So the redirect of the refusal MUST lead to a host
+that names the site.
+
 #### Scenario: Posts controller surfaces the refusal atomically
 
 - **WHEN** an untrusted author submits a post update whose editor field value contains a script
@@ -151,6 +162,25 @@ store no new tag.
   value
 - **THEN** the draft keeps its title, its meta, its categories, its tags and its custom-field values,
   and no new tag is stored
+
+#### Scenario: A refused site settings save keeps the slug of the site
+
+- **WHEN** an install has two sites
+- **AND** a site settings save carries a new slug, a new name, a new option and a refused part
+- **THEN** the response redirects back to the form with a flash error
+- **AND** the site keeps its slug, its name, its options and its custom-field values
+- **AND** the form at the redirect location answers with a 200
+
+#### Scenario: A refused site settings save by XHR keeps the slug of the site
+
+- **WHEN** the same save is an XHR without the `cama_ajax_request` param
+- **THEN** the response is the refusal as text with a 422, and the site keeps its slug
+
+#### Scenario: A site settings save that passes stores each part
+
+- **WHEN** a site settings save carries a new slug, a new name, a new option and a custom-field
+  value that passes
+- **THEN** each of them is stored, and the response redirects to the form on the new host
 
 ### Requirement: Field-attribute values are gated on their decoded members and rendered verbatim
 

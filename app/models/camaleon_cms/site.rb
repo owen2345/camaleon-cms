@@ -43,10 +43,24 @@ module CamaleonCms
 
     after_create :default_settings
     after_create :set_default_user_roles
-    after_save :refresh_routes, if: proc { |obj| obj.saved_change_to_attribute?(:slug) }
+    # A new slug and a delete are stored only when the routes can be drawn. The site draws them on
+    # trial in its transaction, and CamaleonCms::RouteDrawError rolls the change back. A create needs
+    # no check of its own: each post type of the site reloads the routes there, with a trial.
+    after_update :check_routes, if: proc { |obj| obj.saved_change_to_attribute?(:slug) }
+    # The check of a delete runs before each other step of the delete. The delete removes the media
+    # folder of the site, and a rollback does not bring that folder back.
+    before_destroy :check_routes, prepend: true
+    # A create, a delete and a new slug change the sites that PluginRoutes reads for the routes. The
+    # site asks for the reload after the commit of its transaction. A reload in the transaction
+    # reads data that a rollback removes, and PluginRoutes.get_sites keeps what it read.
+    after_commit :refresh_routes, on: %i[create destroy]
+    after_commit :refresh_routes_for_new_slug, on: :update
+    after_commit :forget_main_site
+    # PluginRoutes drops the data that it read in the transaction, and does the reload that waited.
+    after_commit :settle_routes
+    after_rollback :settle_routes_quietly
 
     before_destroy :destroy_site
-    after_destroy :refresh_routes
 
     validates :slug, uniqueness: { scope: :taxonomy }
 
@@ -145,8 +159,20 @@ module CamaleonCms
     end
 
     # return main site
+    # The memo keeps no site that a read in a trial draw or in an open transaction gave: that site can
+    # be data that is not committed.
     def self.main_site
-      @main_site ||= CamaleonCms::Site.reorder(id: :asc).first
+      return @main_site if @main_site
+
+      site = CamaleonCms::Site.reorder(id: :asc).first
+      @main_site = site unless PluginRoutes.private_reads?
+      site
+    end
+
+    # Makes main_site read the main site again. PluginRoutes calls it when it replaces or clears its
+    # cached data, and a site calls it after its commit.
+    def self.forget_main_site
+      @main_site = nil
     end
 
     # check if this site is the main site
@@ -256,6 +282,52 @@ module CamaleonCms
     # In a PluginRoutes.reload_once block, the draw waits for the end of the block when it adds no route.
     def refresh_routes
       PluginRoutes.request_reload
+    end
+
+    def check_routes
+      PluginRoutes.check_routes
+    end
+
+    def forget_main_site
+      self.class.forget_main_site
+    end
+
+    def settle_routes
+      PluginRoutes.settle_route_data
+    end
+
+    # An error of a reload after a rollback can hide the error that caused the rollback.
+    def settle_routes_quietly
+      PluginRoutes.settle_route_data(quiet: true)
+    end
+
+    # Asks for the reload when the list of PluginRoutes.get_sites does not hold the stored slug of
+    # the site. For each row of a transaction, Rails runs the commit callbacks of one instance. That
+    # instance can be another one than the instance that saved the new slug, and a later save of the
+    # same instance reports no new slug. So the method reads the stored slug.
+    #
+    # The routes also hold the slug of the main site, as their default host. So the main site asks
+    # for the reload too when the last reload drew another default host than its stored slug. A
+    # list that is not loaded holds no old slug. With no such list and no such host, the method
+    # reads no slug and asks for no reload.
+    def refresh_routes_for_new_slug
+      sites = PluginRoutes.loaded_sites
+      drawn_host = drawn_host_of_main_site
+      return if sites.nil? && drawn_host.nil?
+
+      stored_slug = self.class.where(id: id).pick(:slug)
+      return refresh_routes if drawn_host && drawn_host != stored_slug
+
+      return if sites.nil?
+
+      cached = sites.find { |site| site.id == id }
+      refresh_routes unless cached && cached.slug == stored_slug
+    end
+
+    # The default host of the last reload when this site is the main site, else nil.
+    def drawn_host_of_main_site
+      host = PluginRoutes.drawn_default_host
+      host if host && main_site?
     end
 
     def before_validating

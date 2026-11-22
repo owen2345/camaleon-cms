@@ -1,4 +1,5 @@
-Rails.application.routes.draw do
+# The route set of the app, or the empty route set of a trial draw (CamaleonCms::RouteTrial).
+PluginRoutes.route_set.draw do
   # frontend plugins
   scope PluginRoutes.system_info['relative_url_root'] do
     scope '(:locale)', locale: /#{PluginRoutes.all_locales}/, defaults: {} do
