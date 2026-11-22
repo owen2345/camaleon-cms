@@ -67,9 +67,12 @@ The real draw then reads the data and the snippet text of the trial. At the end 
   draws.
 
 **D4. `PluginRoutes.check_routes` runs the trial alone, and a site calls it in its transaction.**
-`Site` calls it in `after_save` for a new slug, and in `after_destroy`. An error of the trial goes
-through the transaction, which rolls back. The check drops its data. That data is not committed,
-and the transaction can still roll back after the check, as a refused site settings save does.
+`Site` calls it in `after_update` for a new slug, and in a `before_destroy` that runs first. The
+delete removes the media folder of the site, and a rollback does not bring that folder back. An
+error of the trial goes through the transaction, which rolls back.
+
+The check drops its data. That data is not committed, and the transaction can still roll back after
+the check, as a refused site settings save does.
 
 - *Alternative: keep the data of the check, and draw from it after the commit.* Not chosen: the
   check then must run after the last write of the transaction. Rails has no public callback for

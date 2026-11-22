@@ -3,11 +3,11 @@
 - [x] 1.1 Add `spec/lib/plugin_routes_trial_draw_spec.rb`. An enabled plugin gets a route file that
   raises an error, and the example calls `PluginRoutes.reload`. Verify: the example fails on the
   current code, because the app loses its routes
-- [ ] 1.2 Add two examples to `spec/requests/admin/settings/refused_site_save_spec.rb`. A site
+- [x] 1.2 Add two examples to `spec/requests/admin/settings/refused_site_save_spec.rb`. A site
   settings save carries a new slug while the routes cannot be drawn, as a form post and as an XHR.
   Each expects the answer of a refused save, with a message that names the error. Verify: they
   fail on the current code, because the slug is stored
-- [ ] 1.3 Add examples for `CamaleonCms::Site.main_site` to the spec of the site model. They cover a
+- [x] 1.3 Add examples for `CamaleonCms::Site.main_site` to the spec of the site model. They cover a
   new slug of the main site, site ids that do not start at 1, and a first site whose create rolls
   back. Verify: the first and the last example fail on the current code
 - [ ] 1.4 Add `spec/lib/plugin_routes_transaction_data_spec.rb`. It covers a post type that a
@@ -32,12 +32,12 @@
 
 ## 3. The site
 
-- [ ] 3.1 Call `PluginRoutes.check_routes` in `Site`, in `after_save` for a new slug and in
-  `after_destroy` (design D4). Verify: the example of 1.2 passes, and the examples of a delete pass
-- [ ] 3.2 Clear the memo of `CamaleonCms::Site.main_site` at a reload and after the commit of a
+- [x] 3.1 Call `PluginRoutes.check_routes` in `Site`, in `after_update` for a new slug and in the
+  first `before_destroy` (design D4). Verify: the example of 1.2 passes, and the examples of a delete pass
+- [x] 3.2 Clear the memo of `CamaleonCms::Site.main_site` at a reload and after the commit of a
   site. Do not fill it in a trial or in an open transaction (design D5). Verify: the examples of 1.3
   pass
-- [ ] 3.3 Answer `CamaleonCms::RouteDrawError` in `AdminController`, with the two messages in
+- [x] 3.3 Answer `CamaleonCms::RouteDrawError` in `AdminController`, with the two messages in
   `config/locales/camaleon_cms/admin/en.yml` (design D10). Verify: the examples of 1.2 pass, and an
   example of a languages save gets the message that the routes stay
 

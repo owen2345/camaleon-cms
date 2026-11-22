@@ -6,21 +6,6 @@
 RSpec.describe PluginRoutes do
   init_site
 
-  let(:broken_plugin_dir) { Dir.mktmpdir('broken_routes_plugin') }
-  let(:route_file_text) { "raise ArgumentError, 'broken plugin routes'" }
-
-  # Gives the app an enabled plugin whose route file raises an error, as PluginRoutes.load reads it.
-  def break_the_routes
-    FileUtils.mkdir_p(File.join(broken_plugin_dir, 'config'))
-    File.write(File.join(broken_plugin_dir, 'config', 'routes_main.txt'), route_file_text)
-    broken = { 'key' => 'broken_routes', 'path' => broken_plugin_dir }
-    allow(described_class).to(receive(:all_enabled_plugins).and_wrap_original { |original| original.call + [broken] })
-  end
-
-  def app_route_names
-    Rails.application.routes.named_routes.names
-  end
-
   def reload_and_rescue
     described_class.reload
   rescue StandardError, ScriptError
@@ -28,13 +13,6 @@ RSpec.describe PluginRoutes do
   end
 
   before { described_class.reload }
-
-  after do
-    FileUtils.rm_rf(broken_plugin_dir)
-    # A draw of the app routes that failed leaves no routes for the later examples.
-    allow(described_class).to receive(:all_enabled_plugins).and_call_original
-    Rails.application.reload_routes! unless app_route_names.include?(:cama_admin_dashboard)
-  end
 
   describe '.reload' do
     it 'keeps each route of the app when the route file of a plugin raises an error' do
@@ -69,11 +47,9 @@ RSpec.describe PluginRoutes do
     end
 
     context 'when the route file has a syntax error' do
-      let(:route_file_text) { "get 'broken' =>" }
-
       it 'raises CamaleonCms::RouteDrawError with the SyntaxError as its cause, and keeps the routes' do
         names = app_route_names
-        break_the_routes
+        break_the_routes("get 'broken' =>")
 
         expect { described_class.reload }.to raise_error(CamaleonCms::RouteDrawError, /\ASyntaxError: /) do |error|
           expect(error.cause).to be_a(SyntaxError)

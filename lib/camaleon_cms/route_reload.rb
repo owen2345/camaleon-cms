@@ -69,6 +69,7 @@ module CamaleonCms
     def draw_app_routes(data)
       @all_sites = data.sites
       @cache = data.cache
+      CamaleonCms::Site.forget_main_site
       # A draw that raises an error leaves no record, so the next call in a block draws at once.
       @drawn_route_inputs = nil
       with_draw(data) { Rails.application.reload_routes! }
@@ -79,6 +80,7 @@ module CamaleonCms
     def clear_caches
       @all_sites = nil
       cache.clear
+      CamaleonCms::Site.forget_main_site
     end
 
     # The data from the database that a draw of the routes reads.

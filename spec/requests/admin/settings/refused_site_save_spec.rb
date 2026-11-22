@@ -112,4 +112,40 @@ RSpec.describe 'A refused site settings save', type: :request do
     expect(response.body).to include('id="site_settings_form"')
     expect_site_as_stored
   end
+
+  # The site draws the routes on trial in the transaction of the save. A route file that raises an
+  # error rolls the save back, and the admin gets the error as the message of a refused save.
+  context 'when the routes cannot be drawn' do
+    let(:message) do
+      I18n.t('camaleon_cms.admin.message.route_draw_failed_change_not_saved',
+             error: 'ArgumentError: broken plugin routes')
+    end
+
+    before { break_the_routes }
+
+    it 'stores nothing of a save with a new slug, and redirects back with the error of the route file' do
+      names = app_route_names
+
+      save_site({ 'slug' => new_slug })
+
+      expect(response).to redirect_to(form_url)
+      expect(flash[:error]).to eq(message)
+      expect(flash[:notice]).to be_nil
+      expect_site_as_stored
+      expect(app_route_names).to eq(names)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('id="site_settings_form"')
+    end
+
+    it 'answers an XHR without cama_ajax_request with that message as text and a 422' do
+      save_site({ 'slug' => new_slug }, {}, xhr: true)
+
+      expect(response).to have_http_status(422) # rubocop:disable RSpecRails/HttpStatus
+      expect(response.body).to eq(message)
+      expect_site_as_stored
+    end
+  end
 end

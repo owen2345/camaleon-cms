@@ -32,6 +32,12 @@ module CamaleonCms
       nil
     end
 
+    # Whether a read on this thread must stay with the thread: a trial draw runs, or a transaction is
+    # open. Such a read can give data that is not committed.
+    def private_reads?
+      !trial_data.nil? || !open_transaction.nil?
+    end
+
     private
 
     # The route files of Camaleon. The route file of the host app, of a plugin gem or of another engine

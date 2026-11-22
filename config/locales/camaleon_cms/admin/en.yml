@@ -262,6 +262,8 @@ en:
         you_must_upload_video: 'You must upload an video'
         so_their_data_has_not_been_saved: 'So their data has not been saved'
         malformed_fields: 'The submitted settings could not be read as a set of fields, so none of them was saved.'
+        route_draw_failed_change_not_saved: "Camaleon did not save the change, because it cannot draw the routes: %{error}"
+        route_draw_failed_routes_kept: "Camaleon kept the routes as they were, because it cannot draw the new routes: %{error}"
         no_response_fields: 'No response fields '
         quick_info: 'Some quick info about this user'
         was_inactivated: 'was inactivated.'

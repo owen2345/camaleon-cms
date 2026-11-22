@@ -43,11 +43,19 @@ module CamaleonCms
 
     after_create :default_settings
     after_create :set_default_user_roles
+    # A new slug and a delete are stored only when the routes can be drawn. The site draws them on
+    # trial in its transaction, and CamaleonCms::RouteDrawError rolls the change back. A create needs
+    # no check of its own: each post type of the site reloads the routes there, with a trial.
+    after_update :check_routes, if: proc { |obj| obj.saved_change_to_attribute?(:slug) }
+    # The check of a delete runs before each other step of the delete. The delete removes the media
+    # folder of the site, and a rollback does not bring that folder back.
+    before_destroy :check_routes, prepend: true
     # A create, a delete and a new slug change the sites that PluginRoutes reads for the routes. The
     # site asks for the reload after the commit of its transaction. A reload in the transaction
     # reads data that a rollback removes, and PluginRoutes.get_sites keeps what it read.
     after_commit :refresh_routes, on: %i[create destroy]
     after_commit :refresh_routes_for_new_slug, on: :update
+    after_commit :forget_main_site
 
     before_destroy :destroy_site
 
@@ -148,8 +156,20 @@ module CamaleonCms
     end
 
     # return main site
+    # The memo keeps no site that a read in a trial draw or in an open transaction gave: that site can
+    # be data that is not committed.
     def self.main_site
-      @main_site ||= CamaleonCms::Site.reorder(id: :asc).first
+      return @main_site if @main_site
+
+      site = CamaleonCms::Site.reorder(id: :asc).first
+      @main_site = site unless PluginRoutes.private_reads?
+      site
+    end
+
+    # Makes main_site read the main site again. PluginRoutes calls it when it replaces or clears its
+    # cached data, and a site calls it after its commit.
+    def self.forget_main_site
+      @main_site = nil
     end
 
     # check if this site is the main site
@@ -259,6 +279,14 @@ module CamaleonCms
     # In a PluginRoutes.reload_once block, the draw waits for the end of the block when it adds no route.
     def refresh_routes
       PluginRoutes.request_reload
+    end
+
+    def check_routes
+      PluginRoutes.check_routes
+    end
+
+    def forget_main_site
+      self.class.forget_main_site
     end
 
     # Asks for the reload when the list of PluginRoutes.get_sites does not hold the stored slug of

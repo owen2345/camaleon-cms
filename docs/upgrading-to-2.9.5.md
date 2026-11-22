@@ -38,6 +38,7 @@ what theme/plugin developers should know.
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that changes the slug of a site, or destroys a site, in a transaction of its own, and reads `PluginRoutes.get_sites` before the commit | The list holds the change after the commit. Call `PluginRoutes.reload` in the transaction when the code needs the change sooner ([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)) |
+| Sees the admin message that Camaleon cannot draw the routes | Repair or deactivate the plugin or the theme whose route file raises the error that the message names ([details](#a-reload-of-the-routes-draws-them-on-trial-first)) |
 | Has plugin or theme code that rescues an error of `PluginRoutes.reload` or `PluginRoutes.request_reload`, or a `routes_*.txt` file that mounts an engine | A route file that raises an error now gives `CamaleonCms::RouteDrawError`, and the routes of the app stay. Do not mount an engine in a `routes_*.txt` file ([details](#a-reload-of-the-routes-draws-them-on-trial-first)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has authors who saw a refused draft save in the post editor | Nothing. A refused draft save now stores nothing. The draft rows of the earlier refusals stay in the Drafts list. There, an author with the Delete permission of the post type can move their own rows to the trash ([details](#a-refused-draft-save-stores-nothing)) |
@@ -430,6 +431,15 @@ its routes, and each request failed until the next good draw.
 The message of the error names the error of the route file, and `cause` is that error. The new
 `PluginRoutes.check_routes` runs the trial alone: it raises the same error, and it draws nothing.
 
+A site runs the trial in the transaction that gives it a new slug or deletes it. When the trial
+fails, the site does not change.
+
+In the admin panel, a request whose trial fails answers as a refused save
+([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The message names the error of the
+route file, and it says that Camaleon did not save the change. A change such as the languages of a
+site is stored before the draw. The message then says that Camaleon kept the routes as they were.
+Before, such a request gave a server error.
+
 The trial loads `config/routes.rb`, `config/routes/admin.rb` and `config/routes/frontend.rb` of
 Camaleon. Those files read the `routes_*.txt` files of the enabled plugins and themes. The trial
 does not load the route file of the host app or of a plugin gem. Each reload now loads the three
@@ -437,6 +447,8 @@ files two times. In an app with one site, a reload took 94 ms, and 63 ms before.
 
 **Who must act:**
 
+- An operator who sees that message. Repair or deactivate the plugin or the theme whose route file
+  raises the error. The log has the backtrace of the error.
 - Code that rescues the error of a route file by its class, around `PluginRoutes.reload` or
   `PluginRoutes.request_reload`. Rescue `CamaleonCms::RouteDrawError`.
 - A plugin or a theme with a `routes_*.txt` file that mounts an engine. The trial runs that
@@ -928,6 +940,18 @@ Symbol twin raise `ArgumentError` before the delete.
 **Who must act:** plugin or theme code that builds such a payload or such args. Give each key one type. Code
 that converted its payload with `with_indifferent_access` before the call can keep the conversion.
 It can drop the conversion only when the payload holds no String key and its Symbol twin.
+
+### `Site.main_site` reads the main site again
+
+`CamaleonCms::Site.main_site` kept one site object for the life of the process. After a new slug
+of the main site, it returned the old slug until the process started again. A site whose slug has
+no dot then built its URLs on the old domain of the main site.
+
+Now `main_site` reads the main site again after a reload of the routes, and after the commit of a
+site. It is still the site with the lowest id.
+
+**Who must act.** Nobody. Code that keeps the object that `main_site` returned still holds the
+old values of that object.
 
 ### An XHR admin save that is refused gets a 422
 
