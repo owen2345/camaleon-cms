@@ -14,8 +14,8 @@ settings save, because only that save stores a value that the redirect of the re
 - A refused site settings save keeps the slug of the site.
 - The redirect of the refusal leads to the form of the site, with the message.
 - The answer to an XHR without the `cama_ajax_request` param does not change.
-- After a rollback, `PluginRoutes.get_sites` holds each site as stored, unless a post type of that
-  transaction reloaded the routes.
+- After a rollback, `PluginRoutes.get_sites` holds each site as stored, unless code in that
+  transaction reloaded the routes, as a new post type does.
 
 **Non-Goals:**
 
