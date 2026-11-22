@@ -24,10 +24,11 @@ RSpec.describe 'A refused draft save stores nothing', type: :request do
 
   # The body is a query string, because the request helper of Rails sends a list of hashes in
   # another shape. The post editor sends the draft save by XHR, without cama_ajax_request.
-  def save_draft(values, title:, summary:, post_id: nil, draft_id: nil)
+  # `extra` holds other params of the form, such as `post_id`, `categories` and `tags`.
+  def save_draft(values, title:, summary:, draft_id: nil, **extra)
     params = { 'post' => { 'title' => title }, 'meta' => { 'summary' => summary },
                'field_options' => { '0' => { field.slug => { 'id' => field.id.to_s, 'values' => values } } } }
-    params['post_id'] = post_id.to_s if post_id
+    params.merge!(extra.transform_keys(&:to_s))
     path = "/admin/post_type/#{post_type.id}/drafts"
     body = Rack::Utils.build_nested_query(params)
     draft_id ? patch("#{path}/#{draft_id}", params: body, xhr: true) : post(path, params: body, xhr: true)
@@ -112,6 +113,23 @@ RSpec.describe 'A refused draft save stores nothing', type: :request do
         expect(draft.title).to eq('Stored title')
         expect(draft.get_meta('summary')).to eq('stored summary')
         expect(draft.get_field_values(field.slug)).to eq(['stored value'])
+      end
+
+      it 'keeps the categories and tags of the draft when a draft update is refused' do
+        stored_category = post_type.categories.create!(name: 'Stored category', slug: 'refused-draft-stored')
+        new_category = post_type.categories.create!(name: 'New category', slug: 'refused-draft-new')
+        save_draft({ '0' => 'stored value' }, title: 'Stored title', summary: 'stored summary',
+                                              categories: [stored_category.id], tags: 'stored-tag')
+        draft_id = drafts_of_editor.first.id
+
+        save_draft(refused, title: 'New title', summary: 'new summary', draft_id: draft_id,
+                            categories: [new_category.id], tags: 'new-tag')
+
+        expect_the_refusal
+        draft = stored_draft(draft_id)
+        expect(draft.categories.pluck(:id)).to eq([stored_category.id])
+        expect(draft.post_tags.pluck(:name)).to eq(['stored-tag'])
+        expect(post_type.post_tags.where(name: 'new-tag')).not_to exist
       end
     end
   end
