@@ -87,6 +87,14 @@ the order of the id.
 A host app can redefine `main_site` with the same memo: camaleon_website does it for the site with
 the id 132. The clear of the memo makes that method read its site again too.
 
+The routes hold the slug of the main site as their default host. A draw in a transaction can read
+the old slug: from the memo, or before the save of the new slug. So `PluginRoutes` records the
+default host of each reload. The main site asks for the reload after its commit when that host is
+not its stored slug.
+
+- *Alternative: `main_site` does not read its memo in a transaction.* Not chosen: a draw before
+  the save of the new slug still reads the old slug, and each read in a transaction costs a query.
+
 - *Alternative: return the first site of `PluginRoutes.get_sites`.* Not chosen: that object carries
   loaded metas and post types, and plugins can call `main_site`. The memo stays the smaller change.
 

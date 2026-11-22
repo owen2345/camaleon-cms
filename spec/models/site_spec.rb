@@ -65,6 +65,36 @@ RSpec.describe CamaleonCms::Site, type: :model do
       expect(described_class.main_site.slug).to eq('renamed-main.example.test')
     end
 
+    # The routes hold the slug of the main site as their default host. A draw in the transaction reads
+    # the old slug: from the memo, or before the save of the new slug. So the commit draws again.
+    describe 'the default host of the routes' do
+      let(:main) { described_class.reorder(id: :asc).first || create(:site) }
+      let(:default_host) { Rails.application.routes.default_url_options[:host] }
+
+      before do
+        main
+        PluginRoutes.reload
+      end
+
+      it 'is the new slug after a transaction that saves the slug and then draws the routes' do
+        ActiveRecord::Base.transaction do
+          main.update!(slug: 'renamed-main.example.test')
+          main.post_types.create!(name: 'Books', slug: 'books')
+        end
+
+        expect(default_host).to eq('renamed-main.example.test')
+      end
+
+      it 'is the new slug after a transaction that draws the routes and then saves the slug' do
+        ActiveRecord::Base.transaction do
+          main.post_types.create!(name: 'Books', slug: 'books')
+          main.update!(slug: 'renamed-main.example.test')
+        end
+
+        expect(default_host).to eq('renamed-main.example.test')
+      end
+    end
+
     it 'is the site with the lowest id, also when no site has the id 1' do
       described_class.delete_all
       described_class.instance_variable_set(:@main_site, nil)

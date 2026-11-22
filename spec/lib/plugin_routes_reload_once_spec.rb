@@ -369,6 +369,25 @@ RSpec.describe PluginRoutes do
       expect(cached_site(other_site).slug).to eq('renamed.example.test')
     end
 
+    # The routes hold the slug of the main site as their default host, so the list is not the only
+    # place with an old slug.
+    it 'draws the routes one time for a new slug of the main site when the list is not loaded' do
+      described_class.instance_variable_set(:@all_sites, nil)
+
+      @site.update!(slug: 'renamed-main.example.test')
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'neither loads the list nor draws the routes for a save of the main site that keeps its slug' do
+      described_class.instance_variable_set(:@all_sites, nil)
+
+      @site.update!(name: 'Renamed site')
+
+      expect(draws).to be_empty
+      expect(described_class.loaded_sites).to be_nil
+    end
+
     it 'draws no routes for a delete that the transaction rolls back, and the list keeps the site' do
       ActiveRecord::Base.transaction do
         other_site.destroy

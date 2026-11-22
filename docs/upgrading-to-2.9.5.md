@@ -416,7 +416,8 @@ transaction. The list held a slug that was not stored, or it lacked a site that 
 A create or a delete outside a transaction reloads the routes right after it, as before. A new slug
 outside a transaction reloads them too while the list of `PluginRoutes.get_sites` is loaded. While
 the list is not loaded, the site asks for no reload: the next read of the list loads the sites
-from the database. In a transaction that rolls back, the site asks for no reload. A new post type
+from the database. The main site is the exception: it asks for the reload when the routes hold
+another default host than its stored slug. In a transaction that rolls back, the site asks for no reload. A new post type
 still reloads the routes in the transaction.
 
 **Who must act:** code that reads `PluginRoutes.get_sites` in a transaction, after it changed the
@@ -994,7 +995,8 @@ of the main site, it returned the old slug until the process started again. A si
 no dot then built its URLs on the old domain of the main site.
 
 Now `main_site` reads the main site again after a reload of the routes, and after the commit of a
-site. It is still the site with the lowest id. A host app that redefines `main_site` with the same
+site. After that commit, the routes also get the new slug of the main site as their default host.
+It is still the site with the lowest id. A host app that redefines `main_site` with the same
 memo, `@main_site`, gets the same refresh: Camaleon clears that memo.
 
 **Who must act.** Nobody. Code that keeps the object that `main_site` returned still holds the

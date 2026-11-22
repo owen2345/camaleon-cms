@@ -64,6 +64,12 @@ module CamaleonCms
       nil
     end
 
+    # The default host that the last reload gave to the routes: the slug of the main site as that
+    # reload read it. It is nil with no record of a reload.
+    def drawn_default_host
+      @drawn_default_host if @drawn_route_inputs
+    end
+
     private
 
     # Makes the data of a trial the cached data, and draws the routes of the app. The route files then
@@ -74,6 +80,7 @@ module CamaleonCms
       @drawn_route_inputs = nil
       with_draw(data) { Rails.application.reload_routes! }
       @drawn_route_inputs = route_inputs
+      @drawn_default_host = default_url_options[:host]
       after_reload_callbacks.uniq.each(&:call)
     end
 

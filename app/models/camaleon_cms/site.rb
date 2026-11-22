@@ -304,15 +304,30 @@ module CamaleonCms
     # Asks for the reload when the list of PluginRoutes.get_sites does not hold the stored slug of
     # the site. For each row of a transaction, Rails runs the commit callbacks of one instance. That
     # instance can be another one than the instance that saved the new slug, and a later save of the
-    # same instance reports no new slug. So the method reads the stored slug. A list that is not
-    # loaded holds no old slug, so the method then reads nothing and asks for no reload.
+    # same instance reports no new slug. So the method reads the stored slug.
+    #
+    # The routes also hold the slug of the main site, as their default host. So the main site asks
+    # for the reload too when the last reload drew another default host than its stored slug. A
+    # list that is not loaded holds no old slug. With no such list and no such host, the method
+    # reads nothing and asks for no reload.
     def refresh_routes_for_new_slug
       sites = PluginRoutes.loaded_sites
-      return if sites.nil?
+      drawn_host = drawn_host_of_main_site
+      return if sites.nil? && drawn_host.nil?
 
       stored_slug = self.class.where(id: id).pick(:slug)
+      return refresh_routes if drawn_host && drawn_host != stored_slug
+
+      return if sites.nil?
+
       cached = sites.find { |site| site.id == id }
       refresh_routes unless cached && cached.slug == stored_slug
+    end
+
+    # The default host of the last reload when this site is the main site, else nil.
+    def drawn_host_of_main_site
+      host = PluginRoutes.drawn_default_host
+      host if host && main_site?
     end
 
     def before_validating

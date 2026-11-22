@@ -252,6 +252,10 @@ A commit of a site update SHALL ask for no reload when the list of `PluginRoutes
 the stored slug of that site. When the list is not loaded, the commit SHALL ask for no reload, and
 it SHALL NOT load the list.
 
+The main site is the exception. The routes hold the slug of the main site as their default host. The
+commit of its update SHALL ask for the reload when the last reload drew another default host than
+its stored slug. This rule holds also when the list is not loaded.
+
 #### Scenario: A new slug outside a transaction
 
 - **WHEN** code saves a site with a new slug, outside a transaction, while the list of
@@ -285,6 +289,18 @@ it SHALL NOT load the list.
 - **WHEN** code gives a site a new slug while the list of `PluginRoutes.get_sites` is not loaded
 - **THEN** the routes are not drawn, and the commit does not load the list
 - **AND** the next read of the list holds the new slug
+
+#### Scenario: A new slug of the main site in a transaction that draws the routes
+
+- **WHEN** a transaction gives the main site a new slug and creates a post type, in the one order
+  or in the other
+- **THEN** the default host of the routes is the new slug after the commit
+
+#### Scenario: A new slug of the main site while the list is not loaded
+
+- **WHEN** code gives the main site a new slug while the list of `PluginRoutes.get_sites` is not
+  loaded
+- **THEN** the routes are drawn one time
 
 #### Scenario: A delete that a transaction rolls back
 
