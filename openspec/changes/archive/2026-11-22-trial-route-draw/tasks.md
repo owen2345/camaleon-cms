@@ -17,6 +17,17 @@
 - [x] 1.5 Add examples for a post type to `spec/lib/plugin_routes_reload_once_spec.rb`. They cover a
   new slug in a transaction, a new slug outside a transaction, and a delete that rolls back.
   Verify: the first and the last example fail on the current code
+- [x] 1.6 Add examples for the theme switch to
+  `spec/requests/admin/appearances/themes_controller_spec.rb`. A route file raises an error, in the
+  switch and in a save of the `on_active` hook. Verify: they fail on the current code, because the
+  request raises the error
+- [x] 1.7 Add examples for the default host of the routes to the spec of the site model and to
+  `spec/lib/plugin_routes_reload_once_spec.rb`. A transaction gives the main site a new slug and
+  draws the routes. The main site also gets a new slug while the list is not loaded. Verify: they
+  fail on the current code, because the routes keep the old slug
+- [x] 1.8 Add examples for a `requires_new` transaction and for a commit that loses the connection
+  to `spec/lib/plugin_routes_transaction_data_spec.rb`. Verify: the example of the open outer
+  transaction and the example of the lost connection fail on the current code
 
 ## 2. The trial draw
 
@@ -40,6 +51,12 @@
 - [x] 3.3 Answer `CamaleonCms::RouteDrawError` in `AdminController`, with the two messages in
   `config/locales/camaleon_cms/admin/en.yml` (design D10). Verify: the examples of 1.2 pass, and an
   example of a languages save gets the message that the routes stay
+- [x] 3.4 Answer `CamaleonCms::RouteDrawError` in `ThemesController#index`, with a redirect to the
+  list of the themes and the flash (design D10). The message always says that the routes stay.
+  Verify: the examples of 1.6 pass
+- [x] 3.5 Record the default host of each reload in `PluginRoutes`. Make the main site ask for the
+  reload after its commit when that host is not its stored slug (design D5). Verify: the examples
+  of 1.7 pass, and a save of the main site that keeps its slug draws no routes
 
 ## 4. The data of a transaction
 
@@ -52,6 +69,8 @@
 - [x] 4.4 Change the spec support that resets the cached data of `PluginRoutes`, when an example
   leaves a data object of a thread. Verify: the specs of `spec/lib` and `spec/requests/admin` pass
   in a random order
+- [x] 4.5 Keep the state of the outermost transaction with the data of a transaction, and count an
+  invalidated state as rolled back (design D6). Verify: the examples of 1.8 pass
 
 ## 5. The reload after the commit
 
@@ -73,6 +92,10 @@
   methods there when the file lists the methods of `PluginRoutes`. Verify: the file names each new
   method, or the task notes that the file has no such list. Note: the file has no such list, so the
   new methods and the bindings of the survey are a new entry of its hardening hazards
+- [x] 6.4 Change `docs/upgrading-to-2.9.5.md` for the theme switch, the default host of the main
+  site and the savepoint. Record the route file rule, the spec helpers and the survey of the default
+  host in `docs/ai/reference.md`, `docs/ai/testing.md` and `docs/ai/ecosystem.md`. Verify: the
+  Markdown gate prints no line
 
 ## 7. Verification and shipping
 
