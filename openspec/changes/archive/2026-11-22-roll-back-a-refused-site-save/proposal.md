@@ -26,8 +26,8 @@ message.
   refusal leads to the form of the site, with the message.
 - The answer does not change. It is a redirect back with a flash, or the refusal as text with a
   422 for an XHR without `cama_ajax_request`.
-- A site asks for the reload of the routes after the commit of its transaction, for a new slug and
-  for a delete. Before, it asked in the transaction. After a rollback, `PluginRoutes.get_sites`
+- A site asks for the reload of the routes after the commit of its transaction, for a create, a
+  new slug and a delete. Before, it asked in the transaction. After a rollback, `PluginRoutes.get_sites`
   then kept the slug that was not stored.
 - `docs/upgrading-to-2.9.5.md` says what a refused site settings save stores now.
 
