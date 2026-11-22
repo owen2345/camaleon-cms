@@ -38,6 +38,7 @@ what theme/plugin developers should know.
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
+| Has authors who saw a refused draft save in the post editor | Nothing. A refused draft save now stores nothing. Their authors can move the draft rows that the earlier refusals left to the trash ([details](#a-refused-draft-save-stores-nothing)) |
 | Has a plugin form, a script or a client that posts custom-field `values` to an admin save as a list that holds a hash or a list, or as a non-empty scalar, or the entry of a field as a non-empty scalar or a list | The save is now refused with a message, and the stored values stay. Before, such `values`, or such an entry beside a valid entry, removed the stored values of that field, and the save reported success. Send `values[<index>]` or a list of scalars ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes an Array to `set_field_value` or `save_field_value` | The items are now read in the order of the Array. To append an Array after the stored items (`clear: false`), give an order after the last stored order ([details](#set_field_value-stores-the-items-of-an-array-in-order)) |
@@ -864,15 +865,21 @@ The nav menu item settings modal shows the refusal and stays open. The draft sav
 shows the refusal in its alert and keeps the post on the form, as it does for a refused meta or
 option. Before, it showed "The draft could not be saved".
 
-A refused draft save now stores nothing, as a refused post save does. Before, it stored the draft
-row with its metas, its categories and its tags, without the custom-field values. The editor of a
-new post got no draft id, so each later draft save of that editor stored one more draft row. The
-Drafts list of the post type shows the rows that those refusals left. There, their author, with the
-Delete permission of the post type, moves them to the trash, and then deletes them in the Trash list.
-
 **Who must act:** plugin or theme code that posts an admin save by XHR, without `cama_ajax_request`,
 and reads the answer. Read a `text/plain` 422 as the refusal, with the message in the body. A 422
 of another type is an error page, for example of a CSRF failure.
+
+### A refused draft save stores nothing
+
+The post editor saves a draft by XHR: each minute, and for Save Draft and Preview. A draft save that
+Camaleon refuses for a custom-field value now stores nothing, as a refused post save does. Before,
+it stored the draft row with its metas, its categories and its tags, without the custom-field
+values. The editor of a new post got no draft id, so each later draft save of that editor stored
+one more draft row.
+
+**Who must act:** nobody. The Drafts list of the post type shows the draft rows that the earlier
+refusals left. There, their author, with the Delete permission of the post type, moves them to the
+trash, and then deletes them in the Trash list.
 
 ### A save with custom-field `values` in an unknown shape is refused
 
