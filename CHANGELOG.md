@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** The development lockfile moves puma to 8.1.2, which the Audit job of CI refused at 8.1.1 for two advisories. The gemspec does not change, so a host app updates puma in its own bundle. Development-only. [#1365](https://github.com/owen2345/camaleon-cms/pull/1365).
+
 - **Bug fix:** A draft save of the post editor that Camaleon refuses for a custom-field value now stores nothing. Before, it left a draft row, and each later draft save of a new post stored one more row. [#1363](https://github.com/owen2345/camaleon-cms/pull/1363).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-refused-draft-save-stores-nothing).
 
