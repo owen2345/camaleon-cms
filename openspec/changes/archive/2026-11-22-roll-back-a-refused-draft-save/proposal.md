@@ -42,7 +42,7 @@ None.
 - `app/controllers/camaleon_cms/admin/posts/drafts_controller.rb`: the transaction.
 - `app/controllers/camaleon_cms/admin_controller.rb`: the comment of
   `rescue_from ActiveRecord::RecordInvalid`.
-- Specs: a new request spec, and three specs that expected the draft row to stay.
+- Specs: a new request spec, and three specs that expected the draft row or the new title to stay.
 - `docs/upgrading-to-2.9.5.md` and `CHANGELOG.md`.
 - Ecosystem: the four draft hooks run at the same points of a save that passes (design D3). No
   surveyed plugin or theme uses them.
