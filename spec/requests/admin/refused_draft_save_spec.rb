@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-# The draft save stored the draft row, its metas, its categories and its tags before the
-# custom-field values, with no transaction. A refused custom-field value then answered the XHR with
-# a 422 and no draft id, and the row stayed. The post editor had no draft id, so each later save of
-# a new post created one more draft row. Now the draft save writes in one transaction, as the post
-# save does, and a refused draft save stores nothing.
+# The post editor saves a draft by XHR. Camaleon answers a refused draft save with a 422 and rolls
+# the whole save back, as for a post save. These examples check that a refused draft save stores no
+# draft row and keeps a stored draft as it was.
 RSpec.describe 'A refused draft save stores nothing', type: :request do
   include_context 'with the post editor'
 
