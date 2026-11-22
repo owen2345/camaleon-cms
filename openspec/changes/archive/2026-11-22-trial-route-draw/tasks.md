@@ -80,5 +80,5 @@
   `bin/brakeman --no-pager` and `(cd spec/dummy && bin/rails zeitwerk:check)`. Run the whole suite
   when the adjacent specs are more than half of it. Verify: each check passes
 - [x] 7.2 Run `openspec validate --all --strict`. Verify: the change is valid
-- [ ] 7.3 Fold the change into the description of PR 1364, and archive this change on the branch.
+- [x] 7.3 Fold the change into the description of PR 1364, and archive this change on the branch.
   Verify: `openspec validate --archived` passes
