@@ -313,7 +313,7 @@ its stored slug. This rule holds also when the list is not loaded.
 #### Scenario: A new slug of the main site while the list is not loaded
 
 - **WHEN** code gives the main site a new slug while the list of `PluginRoutes.get_sites` is not
-  loaded
+  loaded, after a reload that drew its old slug as the default host
 - **THEN** the routes are drawn one time
 
 #### Scenario: A delete that a transaction rolls back
