@@ -43,10 +43,13 @@ module CamaleonCms
 
     after_create :default_settings
     after_create :set_default_user_roles
-    after_save :refresh_routes, if: proc { |obj| obj.saved_change_to_attribute?(:slug) }
+    # A create, a delete and a new slug change the sites that PluginRoutes reads for the routes. The
+    # site asks for the reload after the commit of its transaction. A reload in the transaction
+    # reads data that a rollback removes, and PluginRoutes.get_sites keeps what it read.
+    after_commit :refresh_routes, on: %i[create destroy]
+    after_commit :refresh_routes_for_new_slug, on: :update
 
     before_destroy :destroy_site
-    after_destroy :refresh_routes
 
     validates :slug, uniqueness: { scope: :taxonomy }
 
@@ -256,6 +259,16 @@ module CamaleonCms
     # In a PluginRoutes.reload_once block, the draw waits for the end of the block when it adds no route.
     def refresh_routes
       PluginRoutes.request_reload
+    end
+
+    # Asks for the reload when the list of PluginRoutes.get_sites does not hold the stored slug of
+    # the site. For each row of a transaction, Rails runs the commit callbacks of one instance. That
+    # instance can be another one than the instance that saved the new slug, and a later save of the
+    # same instance reports no new slug. So the method reads the stored slug.
+    def refresh_routes_for_new_slug
+      stored_slug = self.class.where(id: id).pick(:slug)
+      cached = PluginRoutes.get_sites.find { |site| site.id == id }
+      refresh_routes unless cached && cached.slug == stored_slug
     end
 
     def before_validating

@@ -37,8 +37,10 @@ what theme/plugin developers should know.
 | Has plugin or theme code that passes a group number to `set_field_value`, `set_field_values`, `update_field_value`, `get_field_value` or `get_field_values`, or rescues an error of those methods | The group number must be nil, or an integer from 0 to 2147483647 (an Integer, or a String of 1 to 16 digits). `set_field_value`, `set_field_values` and `update_field_value` raise `ActiveRecord::RecordInvalid` for any other number. The exception is a negative Integer in `update_field_value`: it raises no error, and it finds a stored value with that number down to -2147483648. The two readers read no value for any other number, except a negative Integer down to -2147483648. They read each group of a list of such numbers (`[0, 1]`, `[-1, 0]`) ([details](#custom-field-group-numbers-are-validated)) |
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
+| Has plugin or theme code that changes the slug of a site, or destroys a site, in a transaction of its own, and reads `PluginRoutes.get_sites` before the commit | The list holds the change after the commit, not in the transaction. Call `PluginRoutes.reload` in the transaction when the code needs the change sooner ([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has authors who saw a refused draft save in the post editor | Nothing. A refused draft save now stores nothing. The draft rows of the earlier refusals stay in the Drafts list. There, an author with the Delete permission of the post type can move their own rows to the trash ([details](#a-refused-draft-save-stores-nothing)) |
+| Runs more than one site, and has administrators who change the slug of a site in its settings form | Nothing. A site settings save that Camaleon refuses now stores nothing, so the site keeps its slug. Before, the site got the new slug, and the redirect of the refusal went to the old host ([details](#a-refused-site-settings-save-stores-nothing)) |
 | Has a plugin form, a script or a client that posts custom-field `values` to an admin save as a list that holds a hash or a list, or as a non-empty scalar, or the entry of a field as a non-empty scalar or a list | The save is now refused with a message, and the stored values stay. Before, such `values`, or such an entry beside a valid entry, removed the stored values of that field, and the save reported success. Send `values[<index>]` or a list of scalars ([details](#a-save-with-custom-field-values-in-an-unknown-shape-is-refused)) |
 | Has plugin or theme code that passes a Hash, an Array, `ActionController::Parameters` or a boolean to `update_field_value` | The value is now stored as `set_field_value` stores one value: JSON for a Hash, an Array or `ActionController::Parameters`, and `"true"` or `"false"` for a boolean ([details](#update_field_value-stores-a-value-as-set_field_value-stores-one-value)) |
 | Has plugin or theme code that passes an Array to `set_field_value` or `save_field_value` | The items are now read in the order of the Array. To append an Array after the stored items (`clear: false`), give an order after the last stored order ([details](#set_field_value-stores-the-items-of-an-array-in-order)) |
@@ -377,6 +379,9 @@ unless it drew them after that call.
 `PluginRoutes.request_reload`. The create, the delete and a new slug of a post type or a site call it
 too. A post type that its site destroys does not call it: the site calls it after its own delete.
 
+A site calls it after the commit of its transaction
+([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)).
+
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
 
 - a new post type, or a new slug of a post type
@@ -390,6 +395,22 @@ A callback of `PluginRoutes.add_after_reload_routes` runs after each draw. It no
 a site create, not 8 times. For a site delete, it runs one time, not 3 times.
 
 **Who must act.** Nobody.
+
+---
+
+## A site asks for the reload of the routes after its commit
+
+A site asks for a reload of the routes when it is created, when it gets a new slug, and when it is
+deleted. It now asks after the commit of the transaction that holds the change. Before, it asked in
+the transaction. When that transaction rolled back, `PluginRoutes.get_sites` kept the data of the
+transaction. The list held a slug that was not stored, or it lacked a site that was not deleted.
+
+A save or a delete outside a transaction reloads the routes right after it, as before. A
+transaction that rolls back reloads no routes.
+
+**Who must act:** code that reads `PluginRoutes.get_sites` in a transaction, after it changed the
+slug of a site or destroyed a site there. The list holds the change after the commit. Call
+`PluginRoutes.reload` in the transaction when the code needs the change sooner.
 
 ---
 
@@ -427,6 +448,32 @@ draft save of that editor stored one more draft row, up to the first save that p
 **Who must act.** Nobody. The Drafts list of the post type shows the draft rows that the earlier
 refusals left. There, their author, with the Delete permission of the post type, moves them to the
 trash, and then deletes them in the Trash list.
+
+---
+
+## A refused site settings save stores nothing
+
+The site settings form stores the name, the slug and the description of a site. It also stores the
+options, the metas and the custom-field values of the site. Camaleon refuses such a save for a
+custom-field value, or for custom-field `values` in an unknown shape. It also refuses an options or
+metas container that is not a set of fields. A refused save now stores nothing, as a refused post
+save does. Before, it stored the name, the slug and the description, and each part that came before
+the refused part.
+
+In an install with more than one site, the slug of a site is the host of its requests. A refused
+save with a new slug stored that slug, and then redirected back to the form on the old host. The old
+host named no site, so the browser went to the main site, and no page showed the message. Now the
+site keeps its slug, and the form on the old host shows the message.
+
+**Who must act.** The operator of an install with more than one site, when a site no longer answers
+on its host. A site that got a new slug from a refused save keeps that slug. List the slug of each
+site in a Rails console, and compare each slug with the host of its site:
+
+```ruby
+CamaleonCms::Site.order(:id).pluck(:id, :name, :slug)
+```
+
+The settings form of such a site is on the host that its slug names. Store the old slug there.
 
 ---
 
@@ -896,8 +943,8 @@ values of that field. The save reported success.
 Now the helper raises `CamaleonCms::Admin::CustomFieldsConcern::UnusableFieldValues`. Each admin
 controller answers that error as a refused save, with a message that names the field
 ([the answers](#an-xhr-admin-save-that-is-refused-gets-a-422)). The stored custom-field values of the
-record stay. A post save and a draft save store nothing. Each other save keeps the attributes, metas
-and options that it stored before the custom-field values.
+record stay. A post save, a draft save and the site settings save store nothing. Each other save
+keeps the attributes, metas and options that it stored before the custom-field values.
 
 An entry with no `values`, or with an empty `values`, still removes the stored values of its field.
 The form sends such an entry for a checkboxes field with no option checked. A field entry that is
