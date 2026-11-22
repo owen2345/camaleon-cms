@@ -29,7 +29,8 @@ it SHALL NOT load the list.
 
 #### Scenario: A second save after the new slug
 
-- **WHEN** a transaction saves a site with a new slug, and then saves that site again
+- **WHEN** a transaction saves a site with a new slug, and then saves that site again, while the
+  list of `PluginRoutes.get_sites` is loaded
 - **THEN** the routes are not drawn in the transaction
 - **AND** they are drawn one time after the commit
 
