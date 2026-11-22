@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A theme switch whose hook raises now rolls back, and the site keeps its old theme. Before, the site kept the key of the new theme, and the front page could fail. A switch that fails the route trial rolls back too. [#1366](https://github.com/owen2345/camaleon-cms/pull/1366).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-theme-switch-that-fails-rolls-back).
+
 - **Tooling:** The browser specs now pass on Chrome 158, which refuses the call that Capybara 3.40.0 sends to clear the cookies after each example. Development-only. [#1367](https://github.com/owen2345/camaleon-cms/pull/1367).
 
 - **Bug fix:** A refused site settings save now stores nothing, and a route file that raises an error no longer removes the app routes. [#1364](https://github.com/owen2345/camaleon-cms/pull/1364).
