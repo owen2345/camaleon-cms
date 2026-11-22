@@ -142,6 +142,14 @@ RSpec.describe PluginRoutes do
       expect(draws.size).to eq(1)
     end
 
+    it 'lets another thread do the reload when the thread of the transaction makes no later call' do
+      ActiveRecord::Base.transaction { described_class.reload_after_commit }
+
+      Thread.new { described_class.get_sites }.join
+
+      expect(draws.size).to eq(1)
+    end
+
     it 'asks for no reload when the transaction rolls back' do
       ActiveRecord::Base.transaction do
         described_class.reload_after_commit

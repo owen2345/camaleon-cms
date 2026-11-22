@@ -108,7 +108,8 @@ production does.
   app route set used the data object.
 - The thread settles its data object at its next read of `PluginRoutes` data. `PluginRoutes` also
   keeps a list of the data objects that need a step after their transaction. Each thread settles the
-  entries of that list whose transaction is fully committed or rolled back.
+  entries of that list whose transaction is over. A data object whose thread is dead counts as
+  rolled back.
 - `Site` and `PostType` call the settle step in `after_commit` and `after_rollback`, so the step
   runs right after the transaction.
 
@@ -141,7 +142,8 @@ records whether a transaction was open on the thread (D6) when the trial failed.
 
 `AdminController` has a `rescue_from` for the error. It calls `refuse_admin_save`, as the
 handlers of the other refusals do, and it raises the error again for a GET or HEAD request. It
-logs the error with its backtrace. `config/locales/camaleon_cms/admin/en.yml` gets two messages:
+logs the error with its backtrace. The admin shows a flash as HTML, so the handler escapes the text
+of the route file error for the flash. `config/locales/camaleon_cms/admin/en.yml` gets two messages:
 
 - A transaction was open: Camaleon did not save the change. The raise goes through that
   transaction, which rolls back.
