@@ -173,6 +173,9 @@ logs the error with its backtrace. `config/locales/camaleon_cms/admin/en.yml` ge
   routes stay. The reload raises the error.
 - [The message shows the text of a route file error] → Only a signed-in role of the admin area
   gets it. The log has the backtrace.
+- [A savepoint rolls back, and its transaction goes on] → A read in it can leave data with the
+  thread until that transaction is over. A reload in the savepoint has data of its own, and its
+  rollback draws the routes again.
 - [A value of `PluginRoutes.cache_variable` that code writes in a transaction is gone after the
   commit] → The next read computes it again.
 
