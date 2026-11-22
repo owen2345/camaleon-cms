@@ -56,6 +56,9 @@ module CamaleonCms
     after_commit :refresh_routes, on: %i[create destroy]
     after_commit :refresh_routes_for_new_slug, on: :update
     after_commit :forget_main_site
+    # PluginRoutes drops the data that it read in the transaction, and does the reload that waited.
+    after_commit :settle_routes
+    after_rollback :settle_routes_quietly
 
     before_destroy :destroy_site
 
@@ -287,6 +290,15 @@ module CamaleonCms
 
     def forget_main_site
       self.class.forget_main_site
+    end
+
+    def settle_routes
+      PluginRoutes.settle_route_data
+    end
+
+    # An error of a reload after a rollback can hide the error that caused the rollback.
+    def settle_routes_quietly
+      PluginRoutes.settle_route_data(quiet: true)
     end
 
     # Asks for the reload when the list of PluginRoutes.get_sites does not hold the stored slug of

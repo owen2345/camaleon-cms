@@ -379,4 +379,70 @@ RSpec.describe PluginRoutes do
       expect(cached_site(other_site)).to be_present
     end
   end
+
+  # A new post type adds a route helper that a hook later in the transaction can call, so its draw
+  # runs in the transaction. A new slug and a delete add no helper, so their draw waits for the commit.
+  describe 'a post type that changes in a transaction' do
+    it 'draws the routes one time, after the commit, for a new slug in a transaction' do
+      ActiveRecord::Base.transaction do
+        post_type.update!(slug: 'articles')
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'draws the routes one time, right after the save, for a new slug outside a transaction' do
+      post_type.update!(slug: 'articles')
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'has the route of the new slug after the commit' do
+      allow(Rails.application).to receive(:reload_routes!).and_call_original
+
+      ActiveRecord::Base.transaction { post_type.update!(slug: 'articles') }
+
+      route = Rails.application.routes.recognize_path('/articles')
+      expect(route).to include(action: 'post_type', post_type_id: post_type.id)
+    end
+
+    it 'draws no routes for a new slug that the transaction rolls back' do
+      ActiveRecord::Base.transaction do
+        post_type.update!(slug: 'articles')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(draws).to be_empty
+    end
+
+    it 'draws no routes for a delete that the transaction rolls back, and the app keeps the route' do
+      allow(Rails.application).to receive(:reload_routes!).and_wrap_original do |draw|
+        draws << :draw
+        draw.call
+      end
+      created = @site.post_types.create!(name: 'Books', slug: 'books')
+      draws.clear
+
+      ActiveRecord::Base.transaction do
+        created.destroy
+        raise ActiveRecord::Rollback
+      end
+
+      expect(draws).to be_empty
+      expect(Rails.application.routes.url_helpers).to be_method_defined("cama_post_type_#{created.id}_path")
+    end
+
+    it 'draws the routes one time, after the commit, for a delete in a transaction' do
+      created = @site.post_types.create!(name: 'Books', slug: 'books')
+      draws.clear
+
+      ActiveRecord::Base.transaction do
+        created.destroy
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+    end
+  end
 end

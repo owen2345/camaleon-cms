@@ -35,7 +35,7 @@ module CamaleonCms
     # Whether a read on this thread must stay with the thread: a trial draw runs, or a transaction is
     # open. Such a read can give data that is not committed.
     def private_reads?
-      !trial_data.nil? || !open_transaction.nil?
+      drawing_on_trial? || !open_transaction.nil?
     end
 
     private
@@ -74,9 +74,13 @@ module CamaleonCms
       draw.data if draw&.route_set
     end
 
-    # The values of cache_variable: of the trial that runs on this thread, or of all threads.
-    def cache
-      trial_data&.cache || (@cache ||= {})
+    def drawing_on_trial?
+      !trial_data.nil?
+    end
+
+    # Whether a draw runs on this thread: a trial, or the draw of the app routes.
+    def drawing?
+      !Thread.current[DRAW_KEY].nil?
     end
 
     # The sites with the data that a draw reads from them (PluginRoutes.get_sites).
@@ -93,9 +97,15 @@ module CamaleonCms
     # The transaction of this thread that a rollback can undo, or nil. Other transactions can join
     # such a transaction. The transaction that the test fixtures open is not one.
     def open_transaction
-      transaction = ActiveRecord::Base.connection_pool.active_connection?&.current_transaction
+      transaction = route_connection&.current_transaction
       transaction if transaction&.joinable?
-    rescue ActiveRecord::ConnectionNotEstablished
+    end
+
+    # The database connection that this thread uses now, if any. PluginRoutes reads its settings while
+    # the app boots, before Active Record has a connection.
+    def route_connection
+      ActiveRecord::Base.connection_pool.active_connection? if defined?(ActiveRecord::Base)
+    rescue ActiveRecord::ActiveRecordError
       nil
     end
   end

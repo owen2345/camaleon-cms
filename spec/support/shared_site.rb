@@ -28,5 +28,8 @@ RSpec.configure do |config|
     # An example that stubs the draw leaves a record of a reload that drew no route. With no record,
     # a call in a PluginRoutes.reload_once block draws the routes at once.
     PluginRoutes.instance_variable_set(:@drawn_route_inputs, nil)
+    # An example can end before PluginRoutes settles the data of its last transaction.
+    PluginRoutes.instance_variable_set(:@unsettled, nil)
+    Thread.current[:cama_route_transaction] = nil
   end
 end

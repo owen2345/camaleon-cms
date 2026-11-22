@@ -174,6 +174,9 @@ a later read in the transaction comes from the database. After the commit, it SH
 `PluginRoutes.request_reload`, one time for that transaction. After a rollback, it SHALL ask for no
 reload. With no open transaction, it SHALL call `PluginRoutes.request_reload` at once.
 
+The call after the commit SHALL come right after the commit when the transaction saved a site or a
+post type. Else it SHALL come at the next call of `PluginRoutes`.
+
 #### Scenario: A request with no open transaction
 
 - **WHEN** code outside a transaction calls `PluginRoutes.reload_after_commit`

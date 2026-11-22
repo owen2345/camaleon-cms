@@ -442,6 +442,24 @@ Changes that look free from inside this repository and are not:
   - `camaleon_export_import` is the only consumer that passes `clear: false`. It passes one stored
     value in each call, with the stored order of that value, so its orders do not change.
 
+- **Drawing the routes on trial, and keeping the data of a transaction with its thread** (#1364)
+  changes no surveyed code path that runs today. A grep of the 28 local checkouts of plugins, themes
+  and host apps ran on 2026-11-22. It found no call of `PluginRoutes.reload`, `request_reload`,
+  `reload_once`, `cache_variable` or `get_sites` outside specs. It found these bindings:
+  - The suites of `cama_contact_form`, `camaleon-cms-seo`, `camaleon_editor` and
+    `camaleon-post-clone` reset `PluginRoutes.@all_sites`, `PluginRoutes.@cache` and
+    `CamaleonCms::Site.@main_site` before each example. The three names stay, and they stay the data
+    that all threads share.
+  - `camaleon_website` redefines `CamaleonCms::Site.main_site` in an initializer, to pin the site
+    with the id 132, with the same memo, `@main_site`. `Site.forget_main_site` clears that memo, so
+    the host method reads its site again too. A change of `main_site` that drops the memo breaks
+    that host.
+  - `camaleon-spree` reads `Cama::Site.main_site.get_languages` in a route initializer.
+  - The route file of a plugin gem calls `Rails.application.routes.draw`. The trial does not load
+    it: the trial loads only the three route files of Camaleon, which draw into
+    `PluginRoutes.route_set`. A route file of a host app can mount an engine, and a mount changes
+    the route set of that engine.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

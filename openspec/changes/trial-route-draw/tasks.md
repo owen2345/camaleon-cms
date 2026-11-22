@@ -10,11 +10,11 @@
 - [x] 1.3 Add examples for `CamaleonCms::Site.main_site` to the spec of the site model. They cover a
   new slug of the main site, site ids that do not start at 1, and a first site whose create rolls
   back. Verify: the first and the last example fail on the current code
-- [ ] 1.4 Add `spec/lib/plugin_routes_transaction_data_spec.rb`. It covers a post type that a
+- [x] 1.4 Add `spec/lib/plugin_routes_transaction_data_spec.rb`. It covers a post type that a
   transaction creates, with the commit and with the rollback. It also covers a read of a list that
   is not loaded, and a value of `cache_variable`. Another thread reads `PluginRoutes.loaded_sites`.
   Verify: the examples fail on the current code
-- [ ] 1.5 Add examples for a post type to `spec/lib/plugin_routes_reload_once_spec.rb`. They cover a
+- [x] 1.5 Add examples for a post type to `spec/lib/plugin_routes_reload_once_spec.rb`. They cover a
   new slug in a transaction, a new slug outside a transaction, and a delete that rolls back.
   Verify: the first and the last example fail on the current code
 
@@ -43,35 +43,36 @@
 
 ## 4. The data of a transaction
 
-- [ ] 4.1 Add the test for an open transaction (design D6). Add the data object of a thread for a
+- [x] 4.1 Add the test for an open transaction (design D6). Add the data object of a thread for a
   read and for a clear. Verify: the examples of 1.4 for the read and for `cache_variable` pass
-- [ ] 4.2 Add the settle step for the commit and for the rollback (design D6). Add the list of the
+- [x] 4.2 Add the settle step for the commit and for the rollback (design D6). Add the list of the
   data objects, and the reload that does not raise (design D9). Verify: the examples of 1.4 pass
-- [ ] 4.3 Call the settle step in `after_commit` and `after_rollback` of `Site` and `PostType`.
+- [x] 4.3 Call the settle step in `after_commit` and `after_rollback` of `Site` and `PostType`.
   Verify: the examples of 1.4 pass with no later read of `PluginRoutes` data
-- [ ] 4.4 Change the spec support that resets the cached data of `PluginRoutes`, when an example
+- [x] 4.4 Change the spec support that resets the cached data of `PluginRoutes`, when an example
   leaves a data object of a thread. Verify: the specs of `spec/lib` and `spec/requests/admin` pass
   in a random order
 
 ## 5. The reload after the commit
 
-- [ ] 5.1 Add `PluginRoutes.reload_after_commit` (design D7). Verify: its three scenarios pass as
+- [x] 5.1 Add `PluginRoutes.reload_after_commit` (design D7). Verify: its three scenarios pass as
   examples
-- [ ] 5.2 Call it in `PostType`, in `after_update` for a new slug and in `after_destroy` (design
+- [x] 5.2 Call it in `PostType`, in `after_update` for a new slug and in `after_destroy` (design
   D8). Verify: the examples of 1.5 pass, and the draw counts of
   `spec/requests/admin/settings/sites_controller_spec.rb` stay
 
 ## 6. Documentation
 
-- [ ] 6.1 Write the comments of the new methods and of the changed callbacks. Verify: each comment
+- [x] 6.1 Write the comments of the new methods and of the changed callbacks. Verify: each comment
   says what the code does and why, in a few lines
 - [ ] 6.2 Change `docs/upgrading-to-2.9.5.md`. Add a section for the trial draw. Add a section for
   the post type draw after the commit, with its at-a-glance row. Change the sentences on the site
   list after a rollback. Change the `CHANGELOG.md` entry of the PR. Verify: the Markdown gate prints
   no line
-- [ ] 6.3 Read `docs/ai/ecosystem.md` for `PluginRoutes` and `main_site`, and record the new public
+- [x] 6.3 Read `docs/ai/ecosystem.md` for `PluginRoutes` and `main_site`, and record the new public
   methods there when the file lists the methods of `PluginRoutes`. Verify: the file names each new
-  method, or the task notes that the file has no such list
+  method, or the task notes that the file has no such list. Note: the file has no such list, so the
+  new methods and the bindings of the survey are a new entry of its hardening hazards
 
 ## 7. Verification and shipping
 

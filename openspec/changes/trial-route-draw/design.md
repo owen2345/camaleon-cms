@@ -84,6 +84,9 @@ each commit of a site. `main_site` does not fill the memo while a trial runs or 
 open. The site with the lowest id is also the first site of `PluginRoutes.get_sites`, which is in
 the order of the id.
 
+A host app can redefine `main_site` with the same memo: camaleon_website does it for the site with
+the id 132. The clear of the memo makes that method read its site again too.
+
 - *Alternative: return the first site of `PluginRoutes.get_sites`.* Not chosen: that object carries
   loaded metas and post types, and plugins can call `main_site`. The memo stays the smaller change.
 
@@ -127,7 +130,8 @@ run on the instance that saved the change, so no stored value is read after the 
 
 **D9. A reload after a rollback does not raise.**
 When the reload of D6 fails, `PluginRoutes` logs the error and goes on. An error there hides the
-error that caused the rollback.
+error that caused the rollback. A read of `PluginRoutes` data that settles a commit logs the error
+of the reload of D7 too: the read must give its data.
 
 **D10. A trial that fails raises `CamaleonCms::RouteDrawError`, and the admin answers it.**
 The error of a route file can be a `SyntaxError`, which is not a `StandardError`. The trial puts

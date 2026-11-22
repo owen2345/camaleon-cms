@@ -4,12 +4,15 @@ require 'json'
 require 'monitor'
 require_relative 'camaleon_cms/route_reload'
 require_relative 'camaleon_cms/route_trial'
+require_relative 'camaleon_cms/route_transaction_data'
 
 class PluginRoutes
   # reload, reload_once and request_reload
   extend CamaleonCms::RouteReload
   # route_set and check_routes
   extend CamaleonCms::RouteTrial
+  # reload_after_commit and settle_route_data
+  extend CamaleonCms::RouteTransactionData
 
   class << self
     # return plugin information
@@ -264,11 +267,12 @@ class PluginRoutes
     end
 
     def cache_variable(var_name, value = nil)
+      settle_route_data(quiet: true)
       reload_monitor.synchronize do
         if value.nil?
           cache[var_name]
         else
-          cache[var_name] = value
+          cache_to_fill[var_name] = value
         end
       end
     end
@@ -285,8 +289,9 @@ class PluginRoutes
       # a key absent from the loaded records as unset, so preloading only _default/languages_site
       # would make every other site meta read silently return its default. Site-level metas are few
       # rows per site, so this bounded over-fetch is the safe trade against that correctness hazard.
-      data = trial_data
-      data ? (data.sites ||= stored_sites) : (@all_sites ||= stored_sites)
+      settle_route_data(quiet: true)
+      data = private_route_data
+      data ? (data.sites ||= stored_sites) : (@all_sites || fill_sites)
     rescue StandardError
       []
     end
@@ -294,7 +299,8 @@ class PluginRoutes
     # The list of get_sites when it is loaded, else nil. It reads no site. A list that is not loaded
     # holds no old data: the next call of get_sites reads the sites from the database.
     def loaded_sites
-      data = trial_data
+      settle_route_data(quiet: true)
+      data = private_route_data
       data ? data.sites : @all_sites
     end
 

@@ -38,6 +38,8 @@ what theme/plugin developers should know.
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that changes the slug of a site, or destroys a site, in a transaction of its own, and reads `PluginRoutes.get_sites` before the commit | The list holds the change after the commit. Call `PluginRoutes.reload` in the transaction when the code needs the change sooner ([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)) |
+| Has plugin or theme code that gives a post type a new slug, or destroys a post type, in a transaction of its own, and needs the routes before the commit | The routes change after the commit. Call `PluginRoutes.reload` in the transaction when the code needs them sooner ([details](#a-post-type-draws-the-routes-after-its-commit-for-a-new-slug-and-a-delete)) |
+| Has plugin or theme code that stores a value with `PluginRoutes.cache_variable` in a transaction, and reads it after the commit | The value is gone after the commit. Store it after the transaction ([details](#pluginroutes-keeps-the-data-of-a-transaction-with-its-thread)) |
 | Sees the admin message that Camaleon cannot draw the routes | Repair or deactivate the plugin or the theme whose route file raises the error that the message names ([details](#a-reload-of-the-routes-draws-them-on-trial-first)) |
 | Has plugin or theme code that rescues an error of `PluginRoutes.reload` or `PluginRoutes.request_reload`, or a `routes_*.txt` file that mounts an engine | A route file that raises an error now gives `CamaleonCms::RouteDrawError`, and the routes of the app stay. Do not mount an engine in a `routes_*.txt` file ([details](#a-reload-of-the-routes-draws-them-on-trial-first)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
@@ -377,9 +379,12 @@ end
 `PluginRoutes.reload_once` runs the block. In the block, `PluginRoutes.request_reload` leaves the
 draw to the end of the block when the draw adds no route. The block then draws the routes one time,
 unless it drew them after that call.
+
 `site_install_theme` and the activation of a plugin with `plugin_install` call
-`PluginRoutes.request_reload`. The create, the delete and a new slug of a post type call it too. A
-post type that its site destroys does not call it: the site calls it after its own delete.
+`PluginRoutes.request_reload`. The create of a post type calls it too. For a new slug and for a
+delete, a post type calls `PluginRoutes.reload_after_commit`
+([details](#a-post-type-draws-the-routes-after-its-commit-for-a-new-slug-and-a-delete)). A post type
+that its site destroys does not call it: the site calls it after its own delete.
 
 A site calls it for its create and its delete, after the commit of its transaction. For a new slug,
 it calls it when the list of `PluginRoutes.get_sites` is loaded and does not hold that slug
@@ -387,7 +392,7 @@ it calls it when the list of `PluginRoutes.get_sites` is loaded and does not hol
 
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
 
-- a new post type, or a new slug of a post type
+- a new post type, or a new slug of a post type after its commit
 - a language that no site had
 - the first activation of a plugin or a theme
 
@@ -411,8 +416,8 @@ transaction. The list held a slug that was not stored, or it lacked a site that 
 A create or a delete outside a transaction reloads the routes right after it, as before. A new slug
 outside a transaction reloads them too while the list of `PluginRoutes.get_sites` is loaded. While
 the list is not loaded, the site asks for no reload: the next read of the list loads the sites
-from the database. In a transaction that rolls back, the site asks for no reload. A new post type,
-or a new slug of a post type, still reloads the routes in the transaction.
+from the database. In a transaction that rolls back, the site asks for no reload. A new post type
+still reloads the routes in the transaction.
 
 **Who must act:** code that reads `PluginRoutes.get_sites` in a transaction, after it changed the
 slug of a site or destroyed a site there. The list holds the change after the commit. Call
@@ -454,6 +459,43 @@ files two times. In an app with one site, a reload took 94 ms, and 63 ms before.
 - A plugin or a theme with a `routes_*.txt` file that mounts an engine. The trial runs that
   `mount` too, and a `mount` changes the route set of the engine. Mount the engine in the route
   file of the host app.
+
+---
+
+## PluginRoutes keeps the data of a transaction with its thread
+
+`PluginRoutes` keeps the site list of `get_sites` and the values of `cache_variable` for all
+threads. A read while a transaction is open can give data that is not committed. Such a read now
+fills data that only the thread of that transaction uses. The other threads read the data from
+before the transaction.
+
+After the commit, each thread reads the committed data. After a rollback, the thread reads the
+stored data again. Camaleon then draws the routes again when a draw used the data of the
+transaction. Before, a post type that a transaction created was in the site list of each thread
+before the commit. After a rollback, it stayed in that list, and the app kept its route.
+
+The new `PluginRoutes.reload_after_commit` asks for a reload that waits for the commit of the open
+transaction. A rollback drops the request, and with no open transaction the method reloads at
+once. The reload runs right after the commit when the transaction saved a site or a post type.
+Else it runs at the next call of `PluginRoutes`.
+
+**Who must act:** code that stores a value with `PluginRoutes.cache_variable` in a transaction, and
+reads it after the commit. The value is gone after the commit, so store it after the transaction.
+
+---
+
+## A post type draws the routes after its commit for a new slug and a delete
+
+A new post type still draws the routes in its transaction. So a hook later in that transaction can
+call the route helper of the post type, `cama_post_type_<id>_path`. A new slug and a delete of a
+post type add no route helper. For them, the post type now calls
+`PluginRoutes.reload_after_commit`, and the draw comes after the commit. A transaction that rolls
+back draws nothing. A save or a delete outside a transaction draws the routes right after it, as
+before.
+
+**Who must act:** code that changes the slug of a post type, or destroys one, in its own
+transaction. It must act when it needs the routes before the commit, for example for a call of
+`recognize_path` with the new slug. Call `PluginRoutes.reload` in the transaction, after the save.
 
 ---
 
@@ -948,7 +990,8 @@ of the main site, it returned the old slug until the process started again. A si
 no dot then built its URLs on the old domain of the main site.
 
 Now `main_site` reads the main site again after a reload of the routes, and after the commit of a
-site. It is still the site with the lowest id.
+site. It is still the site with the lowest id. A host app that redefines `main_site` with the same
+memo, `@main_site`, gets the same refresh: Camaleon clears that memo.
 
 **Who must act.** Nobody. Code that keeps the object that `main_site` returned still holds the
 old values of that object.

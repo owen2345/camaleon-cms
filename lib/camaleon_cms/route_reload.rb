@@ -17,6 +17,7 @@ module CamaleonCms
     # done, and new requests wait until it is done (CamaleonCms::RouteReloadLock). The trial does not
     # wait, and no request waits for it.
     def reload
+      settle_route_data
       reloads = @reloads
       data = trial_draw
       CamaleonCms::RouteReloadLock.exclusive do
@@ -52,6 +53,7 @@ module CamaleonCms
     # adds no route. So no plugin hook and no model callback in the block misses a route helper. The
     # caches are clear at once in each case.
     def request_reload
+      settle_route_data
       block = Thread.current[BLOCK_KEY]
       # A draw at once reads the data again, after adds_routes? read it (intended). Another thread can
       # reload the routes before this draw starts, and its caches lack the changes that this thread
@@ -67,20 +69,12 @@ module CamaleonCms
     # Makes the data of a trial the cached data, and draws the routes of the app. The route files then
     # read that data and the route file text of the trial, with no read of the database.
     def draw_app_routes(data)
-      @all_sites = data.sites
-      @cache = data.cache
-      CamaleonCms::Site.forget_main_site
+      use_route_data(data)
       # A draw that raises an error leaves no record, so the next call in a block draws at once.
       @drawn_route_inputs = nil
       with_draw(data) { Rails.application.reload_routes! }
       @drawn_route_inputs = route_inputs
       after_reload_callbacks.uniq.each(&:call)
-    end
-
-    def clear_caches
-      @all_sites = nil
-      cache.clear
-      CamaleonCms::Site.forget_main_site
     end
 
     # The data from the database that a draw of the routes reads.
