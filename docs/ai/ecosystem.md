@@ -459,6 +459,9 @@ Changes that look free from inside this repository and are not:
     it: the trial loads only the three route files of Camaleon, which draw into
     `PluginRoutes.route_set`. A route file of a host app can mount an engine, and a mount changes
     the route set of that engine.
+  - No checkout redefines `PluginRoutes.default_url_options`. The main site compares its stored
+    slug with the host that the last reload read from that method. A redefinition that gives
+    another host reloads the routes at each commit of a main site update.
 
 ## APIs with no surveyed consumer
 
