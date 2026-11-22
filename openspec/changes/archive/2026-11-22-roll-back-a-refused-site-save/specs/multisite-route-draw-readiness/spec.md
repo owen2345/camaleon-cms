@@ -8,8 +8,11 @@ that holds the change, and one time for that transaction. A transaction that rol
 SHALL ask for no reload. After a rollback, the list of `PluginRoutes.get_sites` MUST hold each site
 as stored, unless code in that transaction reloaded the routes or asked for a reload, as a post
 type does. A site create creates the post types of the site, so the list can hold a site whose
-create rolled back. A commit of a site update SHALL ask for no reload when the list of
-`PluginRoutes.get_sites` holds the stored slug of that site.
+create rolled back.
+
+A commit of a site update SHALL ask for no reload when the list of `PluginRoutes.get_sites` holds
+the stored slug of that site. When the list is not loaded, the commit SHALL ask for no reload, and
+it SHALL NOT load the list.
 
 #### Scenario: A new slug outside a transaction
 
@@ -37,6 +40,12 @@ create rolled back. A commit of a site update SHALL ask for no reload when the l
 
 - **WHEN** code saves a new name of a site, and the list holds the stored slug of that site
 - **THEN** the routes are not drawn
+
+#### Scenario: A new slug while the list is not loaded
+
+- **WHEN** code gives a site a new slug while the list of `PluginRoutes.get_sites` is not loaded
+- **THEN** the routes are not drawn, and the commit does not load the list
+- **AND** the next read of the list holds the new slug
 
 #### Scenario: A delete that a transaction rolls back
 

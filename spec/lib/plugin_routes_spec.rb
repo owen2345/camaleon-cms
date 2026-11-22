@@ -199,6 +199,25 @@ RSpec.describe PluginRoutes do
     end
   end
 
+  describe '.loaded_sites' do
+    before { described_class.instance_variable_set(:@all_sites, nil) }
+    after  { described_class.instance_variable_set(:@all_sites, nil) }
+
+    it 'returns nil and reads no site when the list is not loaded' do
+      sites = :unset
+      queries = sql_queries(matching: /#{CamaleonCms::Site.table_name}/) { sites = described_class.loaded_sites }
+
+      expect(sites).to be_nil
+      expect(queries).to be_empty
+    end
+
+    it 'returns the list of get_sites after a load' do
+      sites = described_class.get_sites
+
+      expect(described_class.loaded_sites).to equal(sites)
+    end
+  end
+
   describe '.all_enabled_plugins' do
     # Reset the memoized site list and the cached result. Creating a site can trigger a route
     # reload that re-populates both with pre-stub data, so each example resets again just before

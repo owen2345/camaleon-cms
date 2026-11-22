@@ -264,10 +264,14 @@ module CamaleonCms
     # Asks for the reload when the list of PluginRoutes.get_sites does not hold the stored slug of
     # the site. For each row of a transaction, Rails runs the commit callbacks of one instance. That
     # instance can be another one than the instance that saved the new slug, and a later save of the
-    # same instance reports no new slug. So the method reads the stored slug.
+    # same instance reports no new slug. So the method reads the stored slug. A list that is not
+    # loaded holds no old slug, so the method then reads nothing and asks for no reload.
     def refresh_routes_for_new_slug
+      sites = PluginRoutes.loaded_sites
+      return if sites.nil?
+
       stored_slug = self.class.where(id: id).pick(:slug)
-      cached = PluginRoutes.get_sites.find { |site| site.id == id }
+      cached = sites.find { |site| site.id == id }
       refresh_routes unless cached && cached.slug == stored_slug
     end
 

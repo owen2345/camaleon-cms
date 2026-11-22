@@ -358,6 +358,17 @@ RSpec.describe PluginRoutes do
       expect(draws).to be_empty
     end
 
+    # A reload request clears the list, and the next read loads it with the stored sites.
+    it 'neither loads the list nor draws the routes for a new slug when the list is not loaded' do
+      described_class.instance_variable_set(:@all_sites, nil)
+
+      other_site.update!(slug: 'renamed.example.test')
+
+      expect(draws).to be_empty
+      expect(described_class.loaded_sites).to be_nil
+      expect(cached_site(other_site).slug).to eq('renamed.example.test')
+    end
+
     it 'draws no routes for a delete that the transaction rolls back, and the list keeps the site' do
       ActiveRecord::Base.transaction do
         other_site.destroy

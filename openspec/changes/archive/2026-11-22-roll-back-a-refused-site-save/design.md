@@ -66,9 +66,13 @@ the instance. Two facts of Rails make such a record wrong:
   save stores the new slug through one instance, and the custom-field values then save the site
   through another instance. The first instance gets no commit callback.
 
+A list that is not loaded holds no old slug: the next read loads the stored sites. So the callback
+reads `PluginRoutes.loaded_sites` first, which loads nothing. When the list is not loaded, the
+callback asks for no reload and reads no slug.
+
 A save or a delete outside a transaction commits at once, so its reload comes right after it, as
 before. The draws of a site create and of a site delete keep their number. Each commit of a site
-update costs one query for the stored slug.
+update costs one query for the stored slug while the list is loaded.
 
 A post type keeps its reload in the transaction. A new post type, or a new slug of a post type,
 adds a route. `PluginRoutes.request_reload` draws such a route at once, so that a hook or a

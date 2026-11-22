@@ -19,8 +19,8 @@
   that another site has
 
 - [x] 2.2 In `Site`, ask for the reload of the routes in `after_commit` (design D5). A create and a
-  delete always ask. An update asks when the list of `PluginRoutes.get_sites` does not hold the
-  stored slug. Verify: the examples of 1.2 pass, and the draw counts of
+  delete always ask. An update asks when the list of `PluginRoutes.get_sites` is loaded and does
+  not hold the stored slug. Verify: the examples of 1.2 pass, and the draw counts of
   `spec/requests/admin/settings/sites_controller_spec.rb` stay
 
 ## 3. Documentation

@@ -322,6 +322,12 @@ class PluginRoutes
       []
     end
 
+    # The list of get_sites when it is loaded, else nil. It reads no site. A list that is not loaded
+    # holds no old data: the next call of get_sites reads the stored sites.
+    def loaded_sites
+      @all_sites
+    end
+
     # check if db migrate already done
     def db_installed?
       @db_installed ||= ActiveRecord::Base.connection.table_exists?(CamaleonCms::Site.table_name)
