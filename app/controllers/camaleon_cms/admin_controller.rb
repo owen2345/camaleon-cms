@@ -10,9 +10,8 @@ module CamaleonCms
     #   a slug that names no custom field.
     # - A post type: a decorator class option that names no post decorator.
     #
-    # A failed create or update of a post stores no attribute, meta, option or custom-field value of
-    # the post. Each other save, a draft save included, keeps what it stored before the custom-field
-    # values, and the old values stay.
+    # A failed save of a post, or of a draft of the post editor, stores nothing of that record. Each
+    # other save keeps what it stored before the custom-field values, and the old values stay.
     #
     # The error is raised again for any other record, and for a GET or HEAD request. A GET or HEAD
     # request submits no form, and a redirect leads to a page that fails the same way.

@@ -3,7 +3,7 @@
 # The draft save of the post editor sends an XHR. A refused custom-field value answers it with the
 # refusal as text and a 422. The script read that answer as a failed save and showed only "The draft
 # could not be saved". This example drives the real editor as an author who is not an administrator:
-# the alert shows the refusal, the post stays on the form, and the buffer stores no value.
+# the alert shows the refusal, the post stays on the form, and the save stores no buffer.
 RSpec.describe 'Post editor draft save with a refused custom-field value', :js do
   init_site
 
@@ -33,9 +33,7 @@ RSpec.describe 'Post editor draft save with a refused custom-field value', :js d
     expect(page).to have_css('#cama_alert_modal', text: refusal)
     expect(page).to have_no_css('#cama_custom_loading')
     expect(page).to have_current_path(new_post_path, ignore_query: true)
-    buffer = CamaleonCms::Post.where(status: 'draft_child', post_parent: nil).order(:id).last
-    expect(buffer).to be_present
-    expect(buffer.get_field_value('draft_attr')).to be_blank
+    expect(CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)).not_to exist
   end
 
   # A 422 that is not a refusal: production answers a CSRF failure of the JSON request with a JSON

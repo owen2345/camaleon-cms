@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A draft save of the post editor that Camaleon refuses for a custom-field value now stores nothing. Before, it left a draft row, and each later draft save of a new post stored one more row. [#1363](https://github.com/owen2345/camaleon-cms/pull/1363).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-refused-draft-save-stores-nothing).
+
 - **Bug fix:** Camaleon now refuses an admin save, with a message, when custom-field `values` have a shape that it cannot read. It also refuses a non-empty scalar or a list as a field entry. Before, such `values`, or such an entry beside a valid entry, removed the stored values of that field, and the save reported success. [#1357](https://github.com/owen2345/camaleon-cms/pull/1357).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-save-with-custom-field-values-in-an-unknown-shape-is-refused).
 
