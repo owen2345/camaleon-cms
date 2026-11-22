@@ -65,7 +65,7 @@
 
 - [x] 6.1 Write the comments of the new methods and of the changed callbacks. Verify: each comment
   says what the code does and why, in a few lines
-- [ ] 6.2 Change `docs/upgrading-to-2.9.5.md`. Add a section for the trial draw. Add a section for
+- [x] 6.2 Change `docs/upgrading-to-2.9.5.md`. Add a section for the trial draw. Add a section for
   the post type draw after the commit, with its at-a-glance row. Change the sentences on the site
   list after a rollback. Change the `CHANGELOG.md` entry of the PR. Verify: the Markdown gate prints
   no line
@@ -76,9 +76,9 @@
 
 ## 7. Verification and shipping
 
-- [ ] 7.1 Run `bin/rubocop -A`, then `bin/rspec` on the new specs and the adjacent specs, then
+- [x] 7.1 Run `bin/rubocop -A`, then `bin/rspec` on the new specs and the adjacent specs, then
   `bin/brakeman --no-pager` and `(cd spec/dummy && bin/rails zeitwerk:check)`. Run the whole suite
   when the adjacent specs are more than half of it. Verify: each check passes
-- [ ] 7.2 Run `openspec validate --all --strict`. Verify: the change is valid
+- [x] 7.2 Run `openspec validate --all --strict`. Verify: the change is valid
 - [ ] 7.3 Fold the change into the description of PR 1364, and archive this change on the branch.
   Verify: `openspec validate --archived` passes

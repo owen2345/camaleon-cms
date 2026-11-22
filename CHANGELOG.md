@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-- **Bug fix:** A site settings save that Camaleon refuses now stores nothing. Before, it kept a new slug, and with more than one site the redirect of the refusal went to a host that named no site. A site now asks for the reload of the routes after the commit of its transaction. [#1364](https://github.com/owen2345/camaleon-cms/pull/1364).
-  - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-refused-site-settings-save-stores-nothing).
+- **Bug fix:** A refused site settings save now stores nothing, and a route file that raises an error no longer removes the app routes. [#1364](https://github.com/owen2345/camaleon-cms/pull/1364).
+  - **Breaking change:** a post type draws the routes for a new slug or a delete after its commit.
+  - Upgrade notes: [refused save](docs/upgrading-to-2.9.5.md#a-refused-site-settings-save-stores-nothing), [trial draw](docs/upgrading-to-2.9.5.md#a-reload-of-the-routes-draws-them-on-trial-first).
 
 - **Security fix:** The development lockfile moves puma to 8.1.2, which the Audit job of CI refused at 8.1.1 for two advisories. The gemspec does not change, so a host app updates puma in its own bundle. Development-only. [#1365](https://github.com/owen2345/camaleon-cms/pull/1365).
 
