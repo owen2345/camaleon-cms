@@ -38,5 +38,5 @@
   `bin/brakeman --no-pager` and `(cd spec/dummy && bin/rails zeitwerk:check)`. Verify: each check
   passes
 - [x] 4.2 Run `openspec validate --all --strict`. Verify: the change is valid
-- [ ] 4.3 Open the PR, add the `CHANGELOG.md` entry with the link of the PR, and archive this change
+- [x] 4.3 Open the PR, add the `CHANGELOG.md` entry with the link of the PR, and archive this change
   on the branch. Verify: `openspec validate --archived` passes
