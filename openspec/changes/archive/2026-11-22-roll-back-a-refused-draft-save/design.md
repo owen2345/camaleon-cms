@@ -37,8 +37,9 @@ options in one transaction. The draft save calls the same writer of the metas, v
   method also takes the attributes of a post update, which the draft save assigns before its hook.
 
 **D2. A refused draft update rolls back too.** The update has no draft row to lose. But without the
-transaction it stored the new attributes and metas beside the old options and custom-field values.
-A refused meta or option already stores nothing of a draft save, so the two refusals now agree.
+transaction it stored the new attributes, metas, categories and tags beside the old options and
+custom-field values. A refused meta or option already stores nothing of a draft save, so the two
+refusals now agree.
 
 - *Alternative: keep the attributes of a refused update, so that the buffer holds the typed text.*
   Rejected: the editor keeps the post on the form with its text, and it shows the refusal. The

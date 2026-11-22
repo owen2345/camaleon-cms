@@ -4,21 +4,22 @@
 
 The post editor saves a draft buffer by XHR: each minute, and for Save Draft and Preview. A draft
 buffer is a post row with the status `draft_child`. `CamaleonCms::Admin::Posts::DraftsController`
-stored the draft row and its metas first. Then it stored the custom-field values and the options,
-with no transaction.
+stored the draft row, its metas, its categories and its tags first. Then it stored the custom-field
+values and the options, with no transaction.
 
 Camaleon refuses a custom-field value with unsafe content, and custom-field `values` in a shape
 that the shared permit cannot read. The draft save then answered with a 422 and no draft id, but
-the draft row and its metas stayed.
+the draft row, its metas, its categories and its tags stayed.
 
 The editor of a new post got no draft id. So each later save of that editor created one more draft
 row, and the Drafts list of the post type showed each of them. A refused update of a draft stored
-the new attributes and metas beside the old options and custom-field values.
+the new attributes, metas, categories and tags beside the old options and custom-field values.
 
 ## What Changes
 
 - The draft create and the draft update write in one transaction, as the post save does. The
-  transaction holds the draft row, its metas, its custom-field values and its options.
+  transaction holds the draft row, its metas, its categories, its tags, its custom-field values and
+  its options.
 - A refused draft save stores nothing. A draft create stores no draft row. A draft update, and a
   draft create on a buffer that exists, keep the buffer as stored.
 - The answer does not change: the refusal as text with a 422. The post editor shows it in its alert.
