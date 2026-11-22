@@ -56,12 +56,15 @@ RSpec.describe CamaleonCms::RouteReloadLock do
 
   it 'holds a new request until the draw is done' do
     release = Queue.new
+    drawing = Queue.new
     allow(Rails.application).to receive(:reload_routes!) do
+      drawing << :started
       release.pop
       draws << :drawn
     end
     reload = spawn { PluginRoutes.reload }
-    Timeout.timeout(finish_time) { Thread.pass until reload.status == 'sleep' }
+    # The trial of the reload can sleep before the draw, so the example waits for the draw itself.
+    Timeout.timeout(finish_time) { drawing.pop }
 
     middleware, started = middleware_for
     request = request_thread(middleware)

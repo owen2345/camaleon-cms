@@ -38,6 +38,7 @@ what theme/plugin developers should know.
 | Copies a custom-field value (`dup`), or clones posts with the master branch of `camaleon-post-clone` | The copy of a stored value with a negative group number is invalid, and the clone of its post raises `ActiveRecord::RecordInvalid` ([details](#custom-field-group-numbers-are-validated)) |
 | Has plugin or theme code that passes a plain Hash with String keys (a `JSON.parse` result) to `set_field_values`, or args with String keys to `set_field_value` | The call now stores the values as the payload or the args give them. Before, `set_field_values` deleted every stored value of the record and stored nothing, and `set_field_value` ignored each String key of its args. A String key and its Symbol twin at one level now raise `ArgumentError` ([details](#set_field_values-reads-a-plain-hash-with-string-keys)) |
 | Has plugin or theme code that changes the slug of a site, or destroys a site, in a transaction of its own, and reads `PluginRoutes.get_sites` before the commit | The list holds the change after the commit. Call `PluginRoutes.reload` in the transaction when the code needs the change sooner ([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)) |
+| Has plugin or theme code that rescues an error of `PluginRoutes.reload` or `PluginRoutes.request_reload`, or a `routes_*.txt` file that mounts an engine | A route file that raises an error now gives `CamaleonCms::RouteDrawError`, and the routes of the app stay. Do not mount an engine in a `routes_*.txt` file ([details](#a-reload-of-the-routes-draws-them-on-trial-first)) |
 | Has plugin or theme code that posts an admin save by XHR, without the `cama_ajax_request` param, and reads the answer | A refused save answers that XHR with the message as text and a 422, not with a redirect and a flash ([details](#an-xhr-admin-save-that-is-refused-gets-a-422)) |
 | Has authors who saw a refused draft save in the post editor | Nothing. A refused draft save now stores nothing. The draft rows of the earlier refusals stay in the Drafts list. There, an author with the Delete permission of the post type can move their own rows to the trash ([details](#a-refused-draft-save-stores-nothing)) |
 | Runs more than one site, and has administrators who change the slug of a site in its settings form | A site settings save that Camaleon refuses now stores nothing, so the site keeps its slug. Before, the site got the new slug, and the redirect of the refusal went to the old host. Check that each site answers on its host: a site keeps a slug that a refused save stored before the upgrade ([details](#a-refused-site-settings-save-stores-nothing)) |
@@ -415,6 +416,32 @@ or a new slug of a post type, still reloads the routes in the transaction.
 **Who must act:** code that reads `PluginRoutes.get_sites` in a transaction, after it changed the
 slug of a site or destroyed a site there. The list holds the change after the commit. Call
 `PluginRoutes.reload` in the transaction when the code needs the change sooner.
+
+---
+
+## A reload of the routes draws them on trial first
+
+`PluginRoutes.reload` now loads the route files of Camaleon into an empty route set first. Only
+then does it draw the routes of the app. A route file can raise an error, for example the
+`routes_*.txt` file of a plugin or a theme with a syntax error. The reload then raises
+`CamaleonCms::RouteDrawError`, and the routes of the app stay as they were. Before, the app lost
+its routes, and each request failed until the next good draw.
+
+The message of the error names the error of the route file, and `cause` is that error. The new
+`PluginRoutes.check_routes` runs the trial alone: it raises the same error, and it draws nothing.
+
+The trial loads `config/routes.rb`, `config/routes/admin.rb` and `config/routes/frontend.rb` of
+Camaleon. Those files read the `routes_*.txt` files of the enabled plugins and themes. The trial
+does not load the route file of the host app or of a plugin gem. Each reload now loads the three
+files two times. In an app with one site, a reload took 94 ms, and 63 ms before.
+
+**Who must act:**
+
+- Code that rescues the error of a route file by its class, around `PluginRoutes.reload` or
+  `PluginRoutes.request_reload`. Rescue `CamaleonCms::RouteDrawError`.
+- A plugin or a theme with a `routes_*.txt` file that mounts an engine. The trial runs that
+  `mount` too, and a `mount` changes the route set of the engine. Mount the engine in the route
+  file of the host app.
 
 ---
 

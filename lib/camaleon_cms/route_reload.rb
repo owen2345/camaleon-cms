@@ -3,25 +3,28 @@
 module CamaleonCms
   # The reload of the routes. PluginRoutes extends this module.
   #
-  # `reload` clears the caches of PluginRoutes and draws the routes now. Code that makes more than one
-  # change runs in a `reload_once` block and calls `request_reload` for each change. A draw that adds
-  # no route then waits for the end of the block, and the block draws the routes one time.
+  # `reload` draws the routes on trial (CamaleonCms::RouteTrial), and then draws the routes of the app
+  # from the data of that trial. Code that makes more than one change runs in a `reload_once` block
+  # and calls `request_reload` for each change. A draw that adds no route then waits for the end of
+  # the block, and the block draws the routes one time.
   module RouteReload
     # The Thread.current key for the state of a reload_once block.
     BLOCK_KEY = :cama_route_reload_block
     private_constant :BLOCK_KEY
 
-    # Reloads the routes now. The reload waits until the other requests are done, and new requests
-    # wait until it is done (CamaleonCms::RouteReloadLock).
+    # Reloads the routes now. A trial that fails raises CamaleonCms::RouteDrawError, and the routes and
+    # the cached data stay as they were. The draw of the app routes waits until the other requests are
+    # done, and new requests wait until it is done (CamaleonCms::RouteReloadLock). The trial does not
+    # wait, and no request waits for it.
     def reload
+      reloads = @reloads
+      data = trial_draw
       CamaleonCms::RouteReloadLock.exclusive do
         reload_monitor.synchronize do
-          clear_caches
-          # A draw that raises an error leaves no record, so the next call in a block draws at once.
-          @drawn_route_inputs = nil
-          Rails.application.reload_routes!
-          @drawn_route_inputs = route_inputs
-          after_reload_callbacks.uniq.each(&:call)
+          # Another reload drew the routes after the trial, so its data can be newer than this data.
+          data = trial_draw unless reloads == @reloads
+          @reloads = @reloads.to_i + 1
+          draw_app_routes(data)
         end
       end
       # This draw is also the draw that a reload_once block of this thread waited for.
@@ -60,6 +63,18 @@ module CamaleonCms
     end
 
     private
+
+    # Makes the data of a trial the cached data, and draws the routes of the app. The route files then
+    # read that data and the route file text of the trial, with no read of the database.
+    def draw_app_routes(data)
+      @all_sites = data.sites
+      @cache = data.cache
+      # A draw that raises an error leaves no record, so the next call in a block draws at once.
+      @drawn_route_inputs = nil
+      with_draw(data) { Rails.application.reload_routes! }
+      @drawn_route_inputs = route_inputs
+      after_reload_callbacks.uniq.each(&:call)
+    end
 
     def clear_caches
       @all_sites = nil

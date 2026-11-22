@@ -3,10 +3,13 @@
 require 'json'
 require 'monitor'
 require_relative 'camaleon_cms/route_reload'
+require_relative 'camaleon_cms/route_trial'
 
 class PluginRoutes
   # reload, reload_once and request_reload
   extend CamaleonCms::RouteReload
+  # route_set and check_routes
+  extend CamaleonCms::RouteTrial
 
   class << self
     # return plugin information
@@ -84,45 +87,10 @@ class PluginRoutes
     end
 
     # load plugin routes if it is enabled
+    # The draw of the app routes in PluginRoutes.reload gets the text that its trial read.
     def load(env = 'admin')
-      plugins = all_enabled_plugins
-      res = ''
-      case env
-      when 'front'
-        res << "namespace :plugins do \n"
-        plugins.each do |plugin|
-          res << "namespace '#{plugin['key']}' do \n"
-          begin
-            res << "#{File.open(File.join(plugin['path'], 'config', "routes_#{env}.txt")).read}\n"
-          rescue StandardError
-            ''
-          end
-          res << "end\n"
-        end
-        res << "end\n"
-
-      when 'admin' # admin
-        res << "scope 'admin', as: 'admin' do \n"
-        res << "namespace :plugins do \n"
-        plugins.each do |plugin|
-          res << "namespace '#{plugin['key']}' do \n"
-          begin
-            res << "#{File.open(File.join(plugin['path'], 'config', "routes_#{env}.txt")).read}\n"
-          rescue StandardError
-            ''
-          end
-          res << "end\n"
-        end
-        res << "end\n"
-        res << "end\n"
-      else # main
-        plugins.each do |plugin|
-          res << "#{File.open(File.join(plugin['path'], 'config', "routes_#{env}.txt")).read}\n"
-        rescue StandardError
-          ''
-        end
-      end
-      res + load_themes(env)
+      sources = route_sources
+      sources ? (sources[env] ||= route_file_text(env)) : route_file_text(env)
     end
 
     def load_themes(env = 'admin')
@@ -317,7 +285,8 @@ class PluginRoutes
       # a key absent from the loaded records as unset, so preloading only _default/languages_site
       # would make every other site meta read silently return its default. Site-level metas are few
       # rows per site, so this bounded over-fetch is the safe trade against that correctness hazard.
-      @all_sites ||= CamaleonCms::Site.includes(:metas, :post_types).order(id: :asc).to_a
+      data = trial_data
+      data ? (data.sites ||= stored_sites) : (@all_sites ||= stored_sites)
     rescue StandardError
       []
     end
@@ -325,7 +294,8 @@ class PluginRoutes
     # The list of get_sites when it is loaded, else nil. It reads no site. A list that is not loaded
     # holds no old data: the next call of get_sites reads the sites from the database.
     def loaded_sites
-      @all_sites
+      data = trial_data
+      data ? data.sites : @all_sites
     end
 
     # check if db migrate already done
@@ -512,6 +482,48 @@ class PluginRoutes
       Rake.application.top_level_tasks.any? { |task| task.to_s.split(':').include?('db') }
     end
 
+    # The text of the route files of the enabled plugins and themes, for one part of the routes.
+    def route_file_text(env)
+      plugins = all_enabled_plugins
+      res = ''
+      case env
+      when 'front'
+        res << "namespace :plugins do \n"
+        plugins.each do |plugin|
+          res << "namespace '#{plugin['key']}' do \n"
+          begin
+            res << "#{File.open(File.join(plugin['path'], 'config', "routes_#{env}.txt")).read}\n"
+          rescue StandardError
+            ''
+          end
+          res << "end\n"
+        end
+        res << "end\n"
+
+      when 'admin' # admin
+        res << "scope 'admin', as: 'admin' do \n"
+        res << "namespace :plugins do \n"
+        plugins.each do |plugin|
+          res << "namespace '#{plugin['key']}' do \n"
+          begin
+            res << "#{File.open(File.join(plugin['path'], 'config', "routes_#{env}.txt")).read}\n"
+          rescue StandardError
+            ''
+          end
+          res << "end\n"
+        end
+        res << "end\n"
+        res << "end\n"
+      else # main
+        plugins.each do |plugin|
+          res << "#{File.open(File.join(plugin['path'], 'config', "routes_#{env}.txt")).read}\n"
+        rescue StandardError
+          ''
+        end
+      end
+      res + load_themes(env)
+    end
+
     def anonymous_hooks
       @anonymous_hooks ||= {}
     end
@@ -522,10 +534,6 @@ class PluginRoutes
 
     def reload_monitor
       @reload_monitor ||= Monitor.new
-    end
-
-    def cache
-      @cache ||= {}
     end
   end
 end
