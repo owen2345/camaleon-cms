@@ -50,8 +50,9 @@ module CamaleonCms
     end
 
     # Reloads the routes. In a reload_once block, the draw waits for the end of the block when it
-    # adds no route. So no plugin hook and no model callback in the block misses a route helper. The
-    # caches are clear at once in each case.
+    # adds no route. So no plugin hook and no model callback in the block misses a route helper. In a
+    # block, the caches are clear at once. With no block, the reload replaces the cached data, and a
+    # trial that fails leaves that data as it was.
     def request_reload
       settle_route_data
       block = Thread.current[BLOCK_KEY]
