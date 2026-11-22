@@ -294,7 +294,8 @@ its stored slug. This rule holds also when the list is not loaded.
 
 #### Scenario: A save with no new slug
 
-- **WHEN** code saves a new name of a site, and the list holds the stored slug of that site
+- **WHEN** code saves a new name of a site that is not the main site, and the list holds the stored
+  slug of that site
 - **THEN** the routes are not drawn
 
 #### Scenario: A new slug while the list is not loaded
