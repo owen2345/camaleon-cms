@@ -387,7 +387,8 @@ delete, a post type calls `PluginRoutes.reload_after_commit`
 that its site destroys does not call it: the site calls it after its own delete.
 
 A site calls it for its create and its delete, after the commit of its transaction. For a new slug,
-it calls it when the list of `PluginRoutes.get_sites` is loaded and does not hold that slug
+it calls it when the list of `PluginRoutes.get_sites` is loaded and does not hold that slug. The
+main site calls it also when the last reload drew another default host than its stored slug
 ([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)).
 
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
