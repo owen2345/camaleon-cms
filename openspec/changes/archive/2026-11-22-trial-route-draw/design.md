@@ -107,9 +107,16 @@ production does.
   the thread. It starts as a copy of the shared data.
 - A clear of the cached data in an open transaction makes an empty data object of the thread. The
   reload and the reload request clear the data.
-- The data object keeps the state object of its transaction. The transaction rolled back when the
-  state says `rolledback?`. It committed when the state says `fully_committed?`. It also committed
-  when the state says `committed?` and the connection has no open transaction as defined above.
+- The data object keeps the state object of its transaction. It also keeps the state object of
+  the outermost such transaction of the connection. A `requires_new` transaction is a savepoint,
+  and only the commit of the outermost transaction stores its changes. The transaction rolled back
+  when one of the two states says `rolledback?`.
+- The transaction committed when the outer state says `fully_committed?`. It also committed when
+  that state says `committed?` and the connection has no open transaction as defined above. Rails
+  takes a transaction from its stack before it sends COMMIT. In that window, the state of a
+  savepoint says `committed?`, and the connection has no open transaction.
+- Rails has no public reader for the outermost transaction. The data object reads the stack of
+  the transaction manager. With no such stack, it reads only the state of its own transaction.
   A commit that loses the connection leaves the state as `invalidated?`, from Rails 7.1. The
   database can then hold the change or not, so that state counts as rolled back.
 - After the commit, `PluginRoutes` drops the data object. It clears the shared data when the data
@@ -184,6 +191,8 @@ theme stays switched when a save of that hook rolls back.
   theme mounts an engine. The upgrade notes name the limit.
 - [The design reads `current_transaction`, `joinable?` and the transaction state of Rails] → The
   `Metas` concern reads the same state. The specs of this change run on each Rails version of CI.
+- [The design reads `@stack` of the transaction manager, which is private] → Rails 6.1 to 8.1 have
+  it. Without it, a savepoint is settled as before, and its spec fails on that Rails version.
 - [A request reaches the route of an uncommitted post type] → It gets the 404 page, as with no
   such route.
 - [**BREAKING**: code needs the route of a new slug in its transaction] → The upgrade notes tell

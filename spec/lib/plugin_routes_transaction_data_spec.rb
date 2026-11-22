@@ -213,6 +213,41 @@ RSpec.describe PluginRoutes do
       expect(draws).to be_empty
     end
 
+    # A requires_new transaction is a savepoint of the transaction around it, and only the commit of
+    # that transaction stores its changes.
+    context 'when a savepoint asks for the reload' do
+      # Rails takes a transaction from its stack before it sends COMMIT. In that window the state of
+      # the savepoint says committed?, and the connection has no open transaction.
+      it 'does not reload before the commit of the outer transaction is over' do
+        connection = ActiveRecord::Base.connection
+
+        ActiveRecord::Base.transaction do
+          ActiveRecord::Base.transaction(requires_new: true) { described_class.reload_after_commit }
+          no_transaction = ActiveRecord::ConnectionAdapters::NullTransaction.new
+          allow(connection).to receive(:current_transaction).and_return(no_transaction)
+          described_class.get_sites
+          allow(connection).to receive(:current_transaction).and_call_original
+
+          expect(draws).to be_empty
+        end
+
+        described_class.get_sites
+
+        expect(draws.size).to eq(1)
+      end
+
+      it 'asks for no reload when the outer transaction rolls back' do
+        ActiveRecord::Base.transaction do
+          ActiveRecord::Base.transaction(requires_new: true) { described_class.reload_after_commit }
+          raise ActiveRecord::Rollback
+        end
+
+        described_class.get_sites
+
+        expect(draws).to be_empty
+      end
+    end
+
     it 'clears the cached data of the thread at once' do
       described_class.cache_variable('probe', 'old')
 

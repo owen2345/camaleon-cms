@@ -194,6 +194,9 @@ a later read in the transaction comes from the database. After the commit, it SH
 `PluginRoutes.request_reload`, one time for that transaction. After a rollback, it SHALL ask for no
 reload. With no open transaction, it SHALL call `PluginRoutes.request_reload` at once.
 
+A `requires_new` transaction is a savepoint of the transaction around it. Its request SHALL wait for
+the commit of the outermost transaction. A rollback of that transaction SHALL drop the request.
+
 The call after the commit SHALL come right after the commit when the transaction saved a site or a
 post type. Else it SHALL come at the next call of `PluginRoutes`.
 
@@ -213,6 +216,13 @@ post type. Else it SHALL come at the next call of `PluginRoutes`.
 - **WHEN** code in a transaction calls `PluginRoutes.reload_after_commit`, and the transaction rolls
   back
 - **THEN** the routes are not drawn
+
+#### Scenario: A request in a savepoint
+
+- **WHEN** code in a `requires_new` transaction calls `PluginRoutes.reload_after_commit`, and the
+  commit of the transaction around it is not over
+- **THEN** the routes are not drawn
+- **AND** they are drawn one time after that commit
 
 ### Requirement: A post type draws the routes in its transaction only for a create
 

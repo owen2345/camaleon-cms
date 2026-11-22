@@ -33,21 +33,26 @@ module CamaleonCms
       def initialize(data, transaction, connection)
         @data = data
         @state = transaction.state
+        @outer_state = outer_state_of(connection) || @state
         @connection = connection
         @thread = Thread.current
       end
 
-      # :open, :committed or :rolled_back. The state of a savepoint says committed? when the savepoint
-      # is released, and a transaction around it can still roll back. That rollback marks the state as
-      # rolled back. So a state that is committed, and not fully committed, counts only when its
-      # connection has no open transaction.
+      # :open, :committed or :rolled_back. A requires_new transaction is a savepoint, and only the
+      # commit of the outermost transaction stores its changes. So the state of that transaction says
+      # when the entry is committed. A rollback of the one or of the other rolls the entry back.
+      #
+      # In a spec, the outermost transaction that a rollback can undo is a savepoint too. Its state
+      # says committed? when it is released, so that state counts only when its connection has no
+      # open transaction.
       #
       # A commit that loses the connection leaves the state invalidated (Rails 7.1 and later). The
       # database can hold the change or not, so that state counts as rolled back. The thread then
       # drops the data of the transaction, and a draw that used the data runs again.
       def outcome
-        return :rolled_back if @state.rolledback? || @state.try(:invalidated?)
-        if @state.fully_committed? || (@state.committed? && !@connection.current_transaction.joinable?)
+        return :rolled_back if over_without_commit?(@state) || over_without_commit?(@outer_state)
+        if @outer_state.fully_committed? ||
+           (@outer_state.committed? && !@connection.current_transaction.joinable?)
           return :committed
         end
 
@@ -56,6 +61,20 @@ module CamaleonCms
 
       def open?
         !settled && outcome == :open
+      end
+
+      private
+
+      def over_without_commit?(state)
+        state.rolledback? || state.try(:invalidated?)
+      end
+
+      # The state of the outermost transaction of the connection that a rollback can undo. Rails has
+      # no public reader for that transaction, so this reads the stack of its transaction manager.
+      # With no such stack, the entry reads only the state of its own transaction.
+      def outer_state_of(connection)
+        stack = connection.transaction_manager.instance_variable_get(:@stack)
+        stack.find(&:joinable?)&.state if stack.is_a?(Array)
       end
     end
 
