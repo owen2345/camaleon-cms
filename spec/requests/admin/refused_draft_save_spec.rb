@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# The post editor saves a draft by XHR. Camaleon answers a refused draft save with a 422 and rolls
-# the whole save back, as for a post save. These examples check that a refused draft save stores no
-# draft row and keeps a stored draft as it was.
+# The post editor saves a draft by XHR. Camaleon answers a draft save that it refuses for a
+# custom-field value with a 422. Camaleon rolls the whole save back, as for a post save. These
+# examples check that a refused draft save stores no draft row and keeps a stored draft as it was.
 RSpec.describe 'A refused draft save stores nothing', type: :request do
   include_context 'with the post editor'
 
