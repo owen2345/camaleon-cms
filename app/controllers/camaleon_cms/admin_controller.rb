@@ -48,8 +48,7 @@ module CamaleonCms
     rescue_from CamaleonCms::RouteDrawError do |exception|
       raise exception if request.get? || request.head?
 
-      backtrace = (exception.cause || exception).backtrace&.first(10)&.join("\n")
-      Rails.logger.error("Camaleon CMS: the routes cannot be drawn: #{exception.message}\n#{backtrace}")
+      log_route_draw_error(exception)
       refuse_admin_save(route_draw_error_message(exception))
     end
     # layout 'camaleon_cms/admin'
@@ -166,13 +165,18 @@ module CamaleonCms
     # failure rolled back, so the change of the request is not stored. With no transaction, the change
     # can be stored, and only the routes stay as they were. The flash shows its message as HTML, so
     # the text of the route file error is escaped for it.
-    def route_draw_error_message(exception)
-      error = refusal_as_text? ? exception.message : ERB::Util.html_escape(exception.message)
+    def route_draw_error_message(exception, as_text: refusal_as_text?)
+      error = as_text ? exception.message : ERB::Util.html_escape(exception.message)
       if exception.in_transaction?
         cama_t('camaleon_cms.admin.message.route_draw_failed_change_not_saved', error: error)
       else
         cama_t('camaleon_cms.admin.message.route_draw_failed_routes_kept', error: error)
       end
+    end
+
+    def log_route_draw_error(exception)
+      backtrace = (exception.cause || exception).backtrace&.first(10)&.join("\n")
+      Rails.logger.error("Camaleon CMS: the routes cannot be drawn: #{exception.message}\n#{backtrace}")
     end
 
     # Send `Cache-Control: no-store` on every admin response so no admin page is ever cached by the

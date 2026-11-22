@@ -39,5 +39,20 @@ RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
 
       expect(response.body).to include('Theme updated')
     end
+
+    # The theme switch is a GET request, and AdminController raises the error of a failed draw again
+    # for a GET request. The list of the themes has no draw, so the redirect leads to a page that works.
+    it 'redirects to the list with the error of the route file when the routes cannot be drawn' do
+      break_the_routes("raise ArgumentError, '<b>broken</b>'")
+
+      get cama_admin_appearances_themes_path, params: { set: 'default' }
+
+      expect(response).to redirect_to(cama_admin_appearances_themes_path)
+      expect(flash[:error]).to eq(I18n.t('camaleon_cms.admin.message.route_draw_failed_routes_kept',
+                                         error: 'ArgumentError: &lt;b&gt;broken&lt;/b&gt;'))
+      expect(flash[:notice]).to be_nil
+      follow_redirect!
+      expect(response).to have_http_status(:success)
+    end
   end
 end

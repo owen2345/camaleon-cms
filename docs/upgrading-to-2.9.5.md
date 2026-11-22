@@ -445,6 +445,9 @@ route file, and it says that Camaleon did not save the change. A change such as 
 site is stored before the draw. The message then says that Camaleon kept the routes as they were.
 Before, such a request gave a server error.
 
+A theme switch that fails the trial redirects to the list of the themes with that message. The
+theme stays switched, so switch back or repair its route file.
+
 The trial loads `config/routes.rb`, `config/routes/admin.rb` and `config/routes/frontend.rb` of
 Camaleon. Those files read the `routes_*.txt` files of the enabled plugins and themes. The trial
 does not load the route file of the host app or of a plugin gem. Each reload now loads the three

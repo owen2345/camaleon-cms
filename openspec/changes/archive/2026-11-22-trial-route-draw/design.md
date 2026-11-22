@@ -145,7 +145,12 @@ records whether a transaction was open on the thread (D6) when the trial failed.
 `AdminController` has a `rescue_from` for the error. It calls `refuse_admin_save`, as the
 handlers of the other refusals do, and it raises the error again for a GET or HEAD request. It
 logs the error with its backtrace. The admin shows a flash as HTML, so the handler escapes the text
-of the route file error for the flash. `config/locales/camaleon_cms/admin/en.yml` gets two messages:
+of the route file error for the flash.
+
+The theme switch is a GET request, so `ThemesController` rescues the error itself. It redirects to
+the list of the themes with the flash, and that list draws no routes.
+
+`config/locales/camaleon_cms/admin/en.yml` gets two messages:
 
 - A transaction was open: Camaleon did not save the change. The raise goes through that
   transaction, which rolls back.

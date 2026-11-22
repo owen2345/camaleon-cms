@@ -61,6 +61,10 @@ When a transaction was open on the thread at the failure, the message SHALL say 
 not save the change. Otherwise it SHALL say that Camaleon kept the routes as they were. Camaleon
 SHALL log the error. For a GET or HEAD request, the controller SHALL raise the error again.
 
+The theme switch of the admin is a GET request. Its controller SHALL answer the error with a
+redirect to the list of the themes and a flash error, and it SHALL log the error. That list draws no
+routes.
+
 #### Scenario: A site settings save with a new slug
 
 - **WHEN** the route file of an enabled plugin raises an error
@@ -73,6 +77,13 @@ SHALL log the error. For a GET or HEAD request, the controller SHALL raise the e
 
 - **WHEN** the same save is an XHR without the `cama_ajax_request` param
 - **THEN** the response is that message as text with a 422
+
+#### Scenario: A theme switch
+
+- **WHEN** an admin switches the theme of a site, and the route file of an enabled plugin or theme
+  raises an error
+- **THEN** the response redirects to the list of the themes with a flash error
+- **AND** the flash error says that the routes stay as they were, and the list answers with a 200
 
 #### Scenario: A change that is stored before the draw
 

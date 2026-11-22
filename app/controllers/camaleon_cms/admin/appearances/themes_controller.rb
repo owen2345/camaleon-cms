@@ -18,6 +18,12 @@ module CamaleonCms
           site_install_theme(params[:set])
           flash[:notice] = t('camaleon_cms.admin.themes.message.updated')
           redirect_to action: :index
+        rescue CamaleonCms::RouteDrawError => e
+          # The switch is a GET request, and AdminController raises this error again for a GET request.
+          # The list has no draw of the routes, so the redirect leads to a page that works.
+          log_route_draw_error(e)
+          flash[:error] = route_draw_error_message(e, as_text: false)
+          redirect_to action: :index
         end
 
         def load_data
