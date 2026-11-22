@@ -26,6 +26,7 @@ RSpec.describe 'A refused site settings save', type: :request do
       'a custom-field value with a group number that is not valid' =>
         { 'field_options' => { '0' => { 'title' => { 'id' => title.id.to_s, 'group_number' => 'x',
                                                      'values' => { '0' => 'new title' } } } } },
+      'an options container that is not a set of fields' => { 'options' => ['x'] },
       'a metas container that is not a set of fields' => { 'metas' => ['x'] }
     }
   end
@@ -59,6 +60,7 @@ RSpec.describe 'A refused site settings save', type: :request do
   [
     'custom-field values that the permit cannot read',
     'a custom-field value with a group number that is not valid',
+    'an options container that is not a set of fields',
     'a metas container that is not a set of fields'
   ].each do |part|
     it "keeps the slug for #{part}, and the redirect leads to the form of the site" do
