@@ -19,7 +19,8 @@ the main site, it returns the old slug until the process starts again.
 - `PluginRoutes.reload` draws the routes on trial first. The trial loads the route files of Camaleon
   into an empty route set that only the thread uses. A trial that raises an error leaves the routes
   and the cached data as they were, and the reload raises that error.
-- The real draw reads the data that the trial read. It does not read the database again.
+- The real draw reads the data that the trial read. From the database, it reads at most the main
+  site.
 - A trial that fails raises the new `CamaleonCms::RouteDrawError`. Its message names the error of
   the route file.
 - An admin request answers that error as a refused save. The answer is a redirect back with a

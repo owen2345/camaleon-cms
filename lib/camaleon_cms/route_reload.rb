@@ -73,8 +73,9 @@ module CamaleonCms
 
     private
 
-    # Makes the data of a trial the cached data, and draws the routes of the app. The route files then
-    # read that data and the route file text of the trial, with no read of the database.
+    # Makes the data of a trial the cached data, and draws the routes of the app. The route files of
+    # Camaleon then read that data and the route file text of the trial. From the database, they
+    # read only the main site, for the default host, when its memo is clear.
     def draw_app_routes(data)
       use_route_data(data)
       # A draw that raises an error leaves no record, so the next call in a block draws at once.
