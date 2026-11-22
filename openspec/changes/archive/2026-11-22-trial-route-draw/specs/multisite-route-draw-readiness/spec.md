@@ -296,7 +296,8 @@ its stored slug. This rule holds also when the list is not loaded.
 
 #### Scenario: A new slug while the list is not loaded
 
-- **WHEN** code gives a site a new slug while the list of `PluginRoutes.get_sites` is not loaded
+- **WHEN** code gives a site that is not the main site a new slug while the list of
+  `PluginRoutes.get_sites` is not loaded
 - **THEN** the routes are not drawn, and the commit does not load the list
 - **AND** the next read of the list holds the new slug
 
