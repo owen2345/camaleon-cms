@@ -68,6 +68,18 @@ RSpec.describe 'A refused draft save stores nothing', type: :request do
         expect_the_refusal
       end
 
+      it 'stores no category link and no new tag when a refused draft create of a new post carries them' do
+        category = post_type.categories.create!(name: 'Refused category', slug: 'refused-draft-create')
+
+        expect do
+          save_draft(refused, title: 'New post draft', summary: 'new summary',
+                              categories: [category.id], tags: 'new-tag')
+        end.not_to(change(CamaleonCms::TermRelationship, :count))
+
+        expect_the_refusal
+        expect(post_type.post_tags.where(name: 'new-tag')).not_to exist
+      end
+
       it 'stores no draft row when the first draft create under a post is refused' do
         save_draft(refused, title: 'First draft', summary: 'new summary', post_id: parent.id)
 

@@ -106,9 +106,10 @@ the field, as a refused admin save answers (the requirement "A refused admin sav
 The draft save of the post editor SHALL be atomic in the same way, for a draft create and for a
 draft update. A refused custom-field value, and custom-field `values` in a shape that the shared
 permit does not keep, SHALL roll the whole draft save back. A refused draft create MUST store no
-draft row and no meta. A refused draft update MUST keep the draft as stored: its attributes, metas,
-options and custom-field values. A refused draft create on a buffer that exists MUST keep that
-buffer in the same way.
+draft row, no meta and no link to a category or a tag. A refused draft update MUST keep the draft as
+stored: its attributes, metas, categories, tags, options and custom-field values. A refused draft
+create on a buffer that exists MUST keep that buffer in the same way. A refused draft save MUST
+store no new tag.
 
 #### Scenario: Posts controller surfaces the refusal atomically
 
@@ -127,6 +128,11 @@ buffer in the same way.
   refused value
 - **THEN** the response is the refusal with a 422, and no draft row and no meta are stored
 
+#### Scenario: A refused draft create stores no category or tag
+
+- **WHEN** the draft create of a new post carries a category, a new tag and a refused value
+- **THEN** no link to a category or a tag is stored, and no new tag is stored
+
 #### Scenario: A draft create after refused ones stores one draft row
 
 - **WHEN** two draft creates of a new post are refused, and a third one carries no refused value
@@ -141,8 +147,10 @@ buffer in the same way.
 
 #### Scenario: A refused draft update keeps the draft as stored
 
-- **WHEN** a draft update carries a new title, a new meta and a refused value
-- **THEN** the draft keeps its title, its meta and its custom-field values
+- **WHEN** a draft update carries a new title, a new meta, a new category, a new tag and a refused
+  value
+- **THEN** the draft keeps its title, its meta, its categories, its tags and its custom-field values,
+  and no new tag is stored
 
 ### Requirement: Field-attribute values are gated on their decoded members and rendered verbatim
 
