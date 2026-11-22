@@ -15,7 +15,8 @@ settings save, because only that save stores a value that the redirect of the re
 - The redirect of the refusal leads to the form of the site, with the message.
 - The answer to an XHR without the `cama_ajax_request` param does not change.
 - After a rollback, `PluginRoutes.get_sites` holds each site as stored, unless code in that
-  transaction reloaded the routes or asked for a reload, as a post type does.
+  transaction loaded the list. A reload of the routes, a reload request and a read of the list
+  while it is not loaded each load the list.
 
 **Non-Goals:**
 
@@ -89,8 +90,9 @@ callback later in the same transaction finds the route helper.
 
 ## Risks / Trade-offs
 
-- In a transaction that changes the slug of a site, or destroys a site, `PluginRoutes.get_sites`
-  holds the stored sites until the commit. Before, code in that transaction read the change at once.
+- In a transaction that changes the slug of a site, or destroys a site, the site no longer reloads
+  the routes. A loaded list of `PluginRoutes.get_sites` keeps the stored sites until the commit.
+  Before, code in that transaction read the change at once.
   Camaleon has no such code, and no surveyed plugin or theme has it. The upgrade guide names
   `PluginRoutes.reload` for that case.
 - An error of the reload now comes after the commit, so it does not roll the change back.

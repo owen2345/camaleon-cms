@@ -256,10 +256,12 @@ delete.
 A site SHALL ask for the reload of the routes when it is created, when it gets a new slug and when
 it is deleted. It SHALL ask with `PluginRoutes.request_reload`, after the commit of the transaction
 that holds the change, and one time for that transaction. A transaction that rolls back
-SHALL ask for no reload. After a rollback, the list of `PluginRoutes.get_sites` MUST hold each site
-as stored, unless code in that transaction reloaded the routes or asked for a reload, as a post
-type does. A site create creates the post types of the site, so the list can hold a site whose
-create rolled back.
+SHALL ask for no reload.
+
+After a rollback, the list of `PluginRoutes.get_sites` MUST hold each site as stored, unless code in
+that transaction loaded the list. A reload of the routes, a reload request and a read of the list
+while it is not loaded each load the list. A site create creates its post types, which ask for a
+reload, so the list can hold a site whose create rolled back.
 
 A commit of a site update SHALL ask for no reload when the list of `PluginRoutes.get_sites` holds
 the stored slug of that site. When the list is not loaded, the commit SHALL ask for no reload, and
