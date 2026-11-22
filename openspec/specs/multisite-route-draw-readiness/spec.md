@@ -451,7 +451,8 @@ that transaction, and that reload starts with a trial.
 
 #### Scenario: A new slug when the routes can be drawn
 
-- **WHEN** each route file can be drawn, and code saves a site with a new slug
+- **WHEN** each route file can be drawn, and code saves a site with a new slug while the list of
+  `PluginRoutes.get_sites` is loaded
 - **THEN** the slug is stored, and the routes of the app are drawn one time, after the commit
 
 ### Requirement: The main site follows the stored sites
