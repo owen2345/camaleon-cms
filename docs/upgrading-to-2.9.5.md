@@ -405,8 +405,9 @@ deleted. It now asks after the commit of the transaction that holds the change. 
 the transaction. When that transaction rolled back, `PluginRoutes.get_sites` kept the data of the
 transaction. The list held a slug that was not stored, or it lacked a site that was not deleted.
 
-A save or a delete outside a transaction reloads the routes right after it, as before. A
-transaction that rolls back reloads no routes.
+A save or a delete outside a transaction reloads the routes right after it, as before. In a
+transaction that rolls back, the site asks for no reload. A new post type, or a new slug of a post
+type, still reloads the routes in the transaction.
 
 **Who must act:** code that reads `PluginRoutes.get_sites` in a transaction, after it changed the
 slug of a site or destroyed a site there. The list holds the change after the commit. Call
