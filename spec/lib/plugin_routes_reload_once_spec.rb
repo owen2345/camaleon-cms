@@ -358,7 +358,7 @@ RSpec.describe PluginRoutes do
       expect(draws).to be_empty
     end
 
-    # A reload request clears the list, and the next read loads it with the stored sites.
+    # The list is not loaded before the first read of get_sites in a process, or after a read that failed.
     it 'neither loads the list nor draws the routes for a new slug when the list is not loaded' do
       described_class.instance_variable_set(:@all_sites, nil)
 
