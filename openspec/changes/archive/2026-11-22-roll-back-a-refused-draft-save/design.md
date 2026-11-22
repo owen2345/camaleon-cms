@@ -58,8 +58,9 @@ four hooks.
 
 **D4. The draft rows of earlier refusals stay.** A row that a refusal left has the same columns as
 the buffer of a new post that its author still writes. So no task can select only the rows of the
-refusals. The Drafts list of the post type shows each of them. Their author can move them to the
-trash there, and then delete them in the Trash list (`docs/upgrading-to-2.9.5.md`).
+refusals. The Drafts list of the post type shows each of them. Their author, with the Delete
+permission of the post type, can move them to the trash there and delete them in the Trash list
+(`docs/upgrading-to-2.9.5.md`).
 
 ## Risks / Trade-offs
 
