@@ -6,7 +6,7 @@ Load this file when reading or writing application code. Version floors are in `
 
 - `app/apps/plugins/` and `app/apps/themes/` hold the plugins and themes bundled with the gem; most of the ecosystem lives in separate gems (`docs/ai/ecosystem.md`).
 - `spec/dummy/` is the host Rails app for specs and for Rails commands; `Rails.root` in specs points there.
-- Routes are split under `config/routes/` (`admin.rb`, `frontend.rb`) and joined by `config/routes.rb`.
+- Routes are split under `config/routes/` (`admin.rb`, `frontend.rb`) and joined by `config/routes.rb`. Each of the three files draws into `PluginRoutes.route_set`, not into `Rails.application.routes`. `PluginRoutes.reload` first loads them into an empty route set, as a trial (`CamaleonCms::RouteTrial`). Add a new route file of Camaleon to `route_files` of that module, or the trial does not load it.
 
 ## Namespacing
 
