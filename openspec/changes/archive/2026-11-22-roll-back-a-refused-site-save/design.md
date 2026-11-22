@@ -14,7 +14,8 @@ settings save, because only that save stores a value that the redirect of the re
 - A refused site settings save keeps the slug of the site.
 - The redirect of the refusal leads to the form of the site, with the message.
 - The answer to an XHR without the `cama_ajax_request` param does not change.
-- After a rollback, `PluginRoutes.get_sites` holds each site as stored.
+- After a rollback, `PluginRoutes.get_sites` holds each site as stored, unless a post type of that
+  transaction reloaded the routes.
 
 **Non-Goals:**
 
@@ -91,6 +92,7 @@ callback later in the same transaction finds the route helper.
 - An error of the reload now comes after the commit, so it does not roll the change back.
 - A post type that is created in the same transaction still reloads the routes in the transaction.
   That reload reads a new slug of the site before the commit. After a rollback of such a
-  transaction, the list holds that slug until the next reload.
+  transaction, the list holds that slug until the next reload. A site create creates the post
+  types of the site, so after a rollback of a site create the list holds that site.
 - A refused save no longer stores the new name, description, options and metas. The administrator
   sends the form again after the correction of the refused part.
