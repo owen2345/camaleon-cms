@@ -481,9 +481,10 @@ transaction. Before, a post type that a transaction created was in the site list
 before the commit. After a rollback, it stayed in that list, and the app kept its route.
 
 The new `PluginRoutes.reload_after_commit` asks for a reload that waits for the commit of the open
-transaction. A rollback drops the request, and with no open transaction the method reloads at
-once. The reload runs right after the commit when the transaction saved a site or a post type.
-Else it runs at the next call of `PluginRoutes`.
+transaction. A rollback drops the request, and with no open transaction the method calls
+`PluginRoutes.request_reload` at once. A `requires_new` transaction is a savepoint: its request
+waits for the commit of the outermost transaction. The reload runs right after the commit when
+the transaction saved a site or a post type. Else it runs at the next call of `PluginRoutes`.
 
 **Who must act:** code that stores a value with `PluginRoutes.cache_variable` in a transaction, and
 reads it after the commit. The value is gone after the commit, so store it after the transaction.
