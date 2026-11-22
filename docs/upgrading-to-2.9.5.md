@@ -376,10 +376,11 @@ end
 draw to the end of the block when the draw adds no route. The block then draws the routes one time,
 unless it drew them after that call.
 `site_install_theme` and the activation of a plugin with `plugin_install` call
-`PluginRoutes.request_reload`. The create, the delete and a new slug of a post type or a site call it
-too. A post type that its site destroys does not call it: the site calls it after its own delete.
+`PluginRoutes.request_reload`. The create, the delete and a new slug of a post type call it too. A
+post type that its site destroys does not call it: the site calls it after its own delete.
 
-A site calls it after the commit of its transaction
+A site calls it for its create and its delete, after the commit of its transaction. For a new slug,
+it calls it when the list of `PluginRoutes.get_sites` is loaded and does not hold that slug
 ([details](#a-site-asks-for-the-reload-of-the-routes-after-its-commit)).
 
 A draw that adds a route does not wait. These changes draw the routes at once, as before:
@@ -405,9 +406,11 @@ deleted. It now asks after the commit of the transaction that holds the change. 
 the transaction. When that transaction rolled back, `PluginRoutes.get_sites` kept the data of the
 transaction. The list held a slug that was not stored, or it lacked a site that was not deleted.
 
-A save or a delete outside a transaction reloads the routes right after it, as before. In a
-transaction that rolls back, the site asks for no reload. A new post type, or a new slug of a post
-type, still reloads the routes in the transaction.
+A create or a delete outside a transaction reloads the routes right after it, as before. A new slug
+outside a transaction reloads them too while the list of `PluginRoutes.get_sites` is loaded. While
+the list is not loaded, the site asks for no reload: the next read of the list loads the stored
+sites. In a transaction that rolls back, the site asks for no reload. A new post type, or a new slug
+of a post type, still reloads the routes in the transaction.
 
 **Who must act:** code that reads `PluginRoutes.get_sites` in a transaction, after it changed the
 slug of a site or destroyed a site there. The list holds the change after the commit. Call

@@ -16,7 +16,8 @@ it SHALL NOT load the list.
 
 #### Scenario: A new slug outside a transaction
 
-- **WHEN** code saves a site with a new slug, outside a transaction
+- **WHEN** code saves a site with a new slug, outside a transaction, while the list of
+  `PluginRoutes.get_sites` is loaded
 - **THEN** the routes are drawn one time, and the list of `PluginRoutes.get_sites` holds the new slug
 
 #### Scenario: A new slug that a transaction rolls back
