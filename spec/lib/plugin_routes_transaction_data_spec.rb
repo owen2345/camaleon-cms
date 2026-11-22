@@ -135,6 +135,38 @@ RSpec.describe PluginRoutes do
     end
   end
 
+  # An error of the reload after a rollback can hide the error that caused the rollback. A read of
+  # the data that does the reload of a commit must give its data. So both log the error of the draw.
+  describe 'a reload whose trial fails' do
+    let(:log_line) { /the routes were not drawn again.*broken plugin routes/ }
+
+    it 'logs the error after a rollback, and the transaction raises its own error' do
+      allow(Rails.logger).to receive(:error)
+      expect(Rails.logger).to receive(:error).with(log_line)
+
+      expect do
+        ActiveRecord::Base.transaction do
+          @site.post_types.create!(name: 'Books', slug: 'books')
+          break_the_routes
+          raise 'the error of the transaction'
+        end
+      end.to raise_error(RuntimeError, 'the error of the transaction')
+
+      # The app keeps the route of the post type until a reload that passes.
+      repair_the_routes
+      described_class.reload
+    end
+
+    it 'logs the error in a read of the data that does the reload of a commit' do
+      ActiveRecord::Base.transaction { described_class.reload_after_commit }
+      break_the_routes
+      allow(Rails.logger).to receive(:error)
+      expect(Rails.logger).to receive(:error).with(log_line)
+
+      expect(described_class.get_sites.map(&:id)).to include(@site.id)
+    end
+  end
+
   describe '.reload_after_commit' do
     let(:draws) { [] }
 
