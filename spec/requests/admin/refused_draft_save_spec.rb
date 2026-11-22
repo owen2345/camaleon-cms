@@ -112,6 +112,23 @@ RSpec.describe 'A refused draft save stores nothing', type: :request do
         expect(drafts_of_editor.count).to eq(1)
       end
 
+      it 'keeps the categories and tags of the buffer when a draft create on that buffer is refused' do
+        stored_category = post_type.categories.create!(name: 'Stored category', slug: 'refused-buffer-stored')
+        new_category = post_type.categories.create!(name: 'New category', slug: 'refused-buffer-new')
+        save_draft({ '0' => 'stored value' }, title: 'Stored title', summary: 'stored summary', post_id: parent.id,
+                                              categories: [stored_category.id], tags: 'stored-tag')
+        buffer_id = drafts_of_editor.find_by!(post_parent: parent.id).id
+
+        save_draft(refused, title: 'New title', summary: 'new summary', post_id: parent.id,
+                            categories: [new_category.id], tags: 'new-tag')
+
+        expect_the_refusal
+        buffer = stored_draft(buffer_id)
+        expect(buffer.categories.pluck(:id)).to eq([stored_category.id])
+        expect(buffer.post_tags.pluck(:name)).to eq(['stored-tag'])
+        expect(post_type.post_tags.where(name: 'new-tag')).not_to exist
+      end
+
       it 'keeps the draft as stored when a draft update is refused' do
         save_draft({ '0' => 'stored value' }, title: 'Stored title', summary: 'stored summary')
         draft_id = drafts_of_editor.first.id
