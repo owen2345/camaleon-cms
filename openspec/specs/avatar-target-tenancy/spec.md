@@ -10,15 +10,15 @@ a user outside the sites they administer.
 
 `MediaController#crop` SHALL resolve the `saved_avatar` target through `current_site.users` and write
 the avatar only when a matching user is found. A `saved_avatar` id the current site does not own SHALL be a
-no-op: no avatar written, no error raised, no existence oracle.
+no-op: no avatar written, no error raised, no existence oracle. `current_site.users` gives all users in
+shared-users mode, and only the users of the site otherwise. The scenarios of this requirement describe a
+caller that is authorized to write the target.
 
 #### Scenario: A foreign user's avatar is not written
 
 - **WHEN** users are not shared across sites and a caller authorized to manage users crops with
   `saved_avatar` naming a user of another site
 - **THEN** that user's avatar is unchanged and no error is raised
-
-`current_site.users` yields all users in shared-users mode and only the site's own users otherwise.
 
 #### Scenario: A same-site user's avatar still updates
 
@@ -34,8 +34,6 @@ A resolved same-site target SHALL be written only when the caller is also author
 
 - **WHEN** a caller not authorized to write the target crops with `saved_avatar` naming a user the current site owns
 - **THEN** that user's avatar is unchanged
-
-The scenarios of the requirement above describe the resolution behavior for a caller already authorized to write the target.
 
 ### Requirement: The crop avatar target is authorized as self or by a user manager
 
