@@ -25,6 +25,8 @@ module CamaChromeStorageReset
   private
 
   # Chrome accepts only an http or https origin, so a URL such as about:blank gives no origin.
+  # The origin keeps the user and the password of a URL such as http://user:pass@host. Chrome 158
+  # accepts that origin too, and clears the local storage of the host.
   def visited_origins
     entries = execute_cdp('Page.getNavigationHistory')['entries']
     entries.filter_map { |entry| entry['url'][%r{\Ahttps?://[^/?#]+}] }.uniq
