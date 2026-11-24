@@ -438,6 +438,13 @@ its routes, and each request failed until the next good draw.
 The message of the error names the error of the route file, and `cause` is that error. The new
 `PluginRoutes.check_routes` runs the trial alone: it raises the same error, and it draws nothing.
 
+`PluginRoutes.trial_routes` runs the trial too, and returns it. `PluginRoutes.reload(trial:)` then
+draws from the data of that trial. It runs a trial of its own when another reload drew the routes
+after that trial, for example a reload of another thread. It also runs one when the transaction of
+that trial rolled back. It runs a trial of its own also after the commit of the outermost
+transaction that was open at that trial. It draws nothing when the last draw is a reload of the
+same thread that read the stored rows after that trial.
+
 A site runs the trial in the transaction that gives it a new slug or deletes it. When the trial
 fails, the site does not change.
 

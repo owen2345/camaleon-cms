@@ -123,6 +123,181 @@ RSpec.describe PluginRoutes do
     end
   end
 
+  # Code can check the routes in a transaction, and reload them after it with the data of that check.
+  describe '.trial_routes' do
+    let(:draws) { [] }
+
+    before do
+      allow(Rails.application).to receive(:reload_routes!).and_wrap_original do |draw|
+        draws << :draw
+        draw.call
+      end
+    end
+
+    it 'gives a trial that a reload draws the routes of the app from, with no trial of its own' do
+      trial = described_class.trial_routes
+      expect(described_class).not_to receive(:trial_draw)
+
+      described_class.reload(trial: trial)
+
+      expect(draws.size).to eq(1)
+    end
+
+    it 'raises CamaleonCms::RouteDrawError, and draws no route of the app, when a route file raises an error' do
+      break_the_routes
+
+      expect { described_class.trial_routes }.to raise_error(CamaleonCms::RouteDrawError, /broken plugin routes/)
+      expect(draws).to be_empty
+    end
+
+    # The data of the other reload can be newer than the data of the trial.
+    it 'makes the reload run a trial again when a reload of another thread drew the routes after the trial' do
+      trial = described_class.trial_routes
+      Thread.new { described_class.reload }.join
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      described_class.reload(trial: trial)
+
+      expect(draws.size).to eq(2)
+    end
+
+    # The trial read the rows as its transaction saw them. After the commit, the database can hold a
+    # newer row of another connection. Here the example stores a name with no callback.
+    it 'makes the reload run a trial again when the transaction of the trial committed' do
+      trial = nil
+      ActiveRecord::Base.transaction(requires_new: true) { trial = described_class.trial_routes }
+      CamaleonCms::Site.where(id: @site.id).update_all(name: 'Stored after the trial') # rubocop:disable Rails/SkipsModelValidations
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      described_class.reload(trial: trial)
+
+      expect(described_class.get_sites.find { |site| site.id == @site.id }.name).to eq('Stored after the trial')
+      expect(draws.size).to eq(1)
+    end
+
+    # A later transaction of the thread is not the transaction of the trial. A trial in it reads the newer
+    # row, so the reload must not draw from the old trial there.
+    it 'makes the reload run a trial again in a later transaction, when the transaction of the trial committed' do
+      trial = nil
+      ActiveRecord::Base.transaction(requires_new: true) { trial = described_class.trial_routes }
+      CamaleonCms::Site.where(id: @site.id).update_all(name: 'Stored after the trial') # rubocop:disable Rails/SkipsModelValidations
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      ActiveRecord::Base.transaction(requires_new: true) do
+        described_class.reload(trial: trial)
+
+        expect(described_class.get_sites.find { |site| site.id == @site.id }.name).to eq('Stored after the trial')
+      end
+      expect(draws.size).to eq(1)
+    end
+
+    # In a transaction of the caller that is still open, the release of a savepoint is no commit. So the
+    # reload runs no trial again.
+    it 'draws from a trial of a savepoint, with no trial of its own, in the transaction around it' do
+      ActiveRecord::Base.transaction(requires_new: true) do
+        trial = nil
+        ActiveRecord::Base.transaction(requires_new: true) { trial = described_class.trial_routes }
+        expect(described_class).not_to receive(:trial_draw)
+
+        described_class.reload(trial: trial)
+      end
+
+      expect(draws.size).to eq(1)
+    end
+
+    # The trial read a row that the rollback removed. A reload that drew from that trial gave the row to
+    # each thread.
+    it 'makes the reload run a trial again when the transaction of the trial rolled back' do
+      stored_slug = @site.slug
+      trial = nil
+      ActiveRecord::Base.transaction(requires_new: true) do
+        CamaleonCms::Site.find(@site.id).update!(slug: 'renamed.example.test')
+        trial = described_class.trial_routes
+        raise ActiveRecord::Rollback
+      end
+
+      described_class.reload(trial: trial)
+
+      expect(described_class.get_sites.find { |site| site.id == @site.id }.slug).to eq(stored_slug)
+      expect(draws.size).to eq(1)
+    end
+
+    # A commit that loses the connection leaves the state of its transaction invalidated: the database
+    # can hold the change or not. The example makes the release of the savepoint fail.
+    it 'makes the reload run a trial again when the commit of the transaction of the trial lost the connection' do
+      connection = ActiveRecord::Base.connection
+      allow(connection).to receive(:release_savepoint).and_raise(ActiveRecord::ConnectionFailed, 'gone')
+      # Rails throws the connection away after such a commit, and the example still needs it.
+      allow(connection).to receive(:throw_away!)
+      trial = nil
+      expect do
+        ActiveRecord::Base.transaction do
+          connection.materialize_transactions
+          trial = described_class.trial_routes
+        end
+      end.to raise_error(ActiveRecord::ConnectionFailed)
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      described_class.reload(trial: trial)
+
+      expect(draws.size).to eq(1)
+    end
+
+    # The draw of this thread read the stored rows after the trial, so a draw from the trial adds nothing.
+    it 'draws no routes again when this thread drew the routes after the trial, with no open transaction' do
+      trial = described_class.trial_routes
+      described_class.reload
+      expect(described_class).not_to receive(:trial_draw)
+
+      described_class.reload(trial: trial)
+
+      expect(draws.size).to eq(1)
+    end
+
+    # A draw in a transaction can read rows that a rollback removes.
+    it 'makes the reload run a trial again when this thread drew the routes after the trial, in a transaction' do
+      trial = described_class.trial_routes
+      ActiveRecord::Base.transaction(requires_new: true) { described_class.reload }
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      described_class.reload(trial: trial)
+
+      expect(draws.size).to eq(2)
+    end
+
+    # The older trial lacks a row that the newer trial read.
+    it 'makes the reload run a trial again when this thread drew the routes from an older trial' do
+      older = described_class.trial_routes
+      trial = described_class.trial_routes
+      described_class.reload(trial: older)
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      described_class.reload(trial: trial)
+
+      expect(draws.size).to eq(2)
+    end
+
+    # Another reload can draw the routes while the trial runs, and its data can be newer than the data
+    # of the trial. So the trial counts the reloads before it reads its data.
+    it 'makes the reload run a trial again when another reload drew the routes during the trial' do
+      first_trial = true
+      allow(described_class).to receive(:trial_draw).and_wrap_original do |trial_draw|
+        data = trial_draw.call
+        if first_trial
+          first_trial = false
+          Thread.new { described_class.reload }.join
+        end
+        data
+      end
+      trial = described_class.trial_routes
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      described_class.reload(trial: trial)
+
+      expect(draws.size).to eq(2)
+    end
+  end
+
   describe '.route_set' do
     it 'is the route set of the app when no trial runs' do
       expect(described_class.route_set).to equal(Rails.application.routes)

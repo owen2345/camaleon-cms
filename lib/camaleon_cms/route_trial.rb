@@ -110,6 +110,16 @@ module CamaleonCms
       transaction_stack(connection).any?(&:joinable?)
     end
 
+    # The state of the outermost transaction of this thread that a rollback can undo, or nil with no open
+    # transaction. A savepoint in that transaction commits only with it. With no stack to read, it is
+    # the state of the open transaction itself.
+    def outer_transaction_state
+      transaction = open_transaction
+      return unless transaction
+
+      (transaction_stack(route_connection).find(&:joinable?) || transaction).state
+    end
+
     # The open transactions of the connection, the outermost first. Rails has no public reader for
     # them, so this reads the stack of its transaction manager, as RouteTransactionData::Entry does.
     # With no stack to read, the list is empty.
