@@ -548,8 +548,8 @@ a reload in that transaction still SHALL run a trial again.
 A reload of the same thread, for example of a commit callback, can read its data after the trial.
 It reads with no open transaction, and it can be the last draw of the routes. The reload with the
 trial SHALL then draw nothing: the routes already have the stored rows. It SHALL draw nothing also after the commit
-of the outermost transaction that was open at the trial, and in a later transaction. When that
-transaction rolled back, the reload SHALL run a trial again instead.
+of the outermost transaction that was open at the trial, and in a later transaction. When the
+outermost transaction of the trial rolled back, the reload SHALL run a trial again.
 
 #### Scenario: A reload of the same thread between the trial and the draw
 
@@ -774,7 +774,7 @@ data while the transaction is open, because that data lacks the rows of the tran
 
 The transaction that the test fixtures open for each example SHALL NOT count as an open transaction
 here. A transaction that no other transaction can join (`joinable: false`) SHALL count as an open
-transaction here. This holds when a transaction that others can join is open around it.
+transaction here, also when a transaction that others can join is open around it.
 
 #### Scenario: A transaction that no other transaction can join
 
