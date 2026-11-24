@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The checked-in OpenSpec agent files are regenerated with OpenSpec 2.2.0, which gives `openspec-*` skills in place of the `/opsx:*` commands. The OpenSpec requirements are shorter, so `openspec validate --strict` passes again. Development-only. [#1368](https://github.com/owen2345/camaleon-cms/pull/1368).
+
 - **Bug fix:** A theme switch whose hook raises now rolls back, and the site keeps its old theme. Before, the site kept the key of the new theme, and the front page could fail. A switch that fails the route trial rolls back too. [#1366](https://github.com/owen2345/camaleon-cms/pull/1366).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#a-theme-switch-that-fails-rolls-back).
 
