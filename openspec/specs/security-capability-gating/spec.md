@@ -125,6 +125,7 @@ When a gate must stop dangerous content submitted by an untrusted user, the reme
 save-time refusal with an error naming the problem. The content SHALL NOT be sanitized, stripped,
 escaped-away, or otherwise rewritten, at save or at render. Stored content always equals authored
 content, and the frontend can emit it verbatim.
+A new proposal that stops dangerous content SHALL use this remedy and cite this requirement.
 
 #### Scenario: A proposal remedies dangerous content with a transform
 
@@ -151,8 +152,7 @@ NOT count as a remedy and SHALL carry no gate.
 ### Requirement: Content stored before a gate existed is reported, not rewritten
 
 Content stored before a gate existed SHALL be reported for operator review (read-only scan), not
-rewritten. New proposals that stop dangerous content SHALL conform to this remedy and cite this
-requirement, rather than introduce a sanitizing or transforming step.
+rewritten.
 
 #### Scenario: Historical data is reported, not rewritten
 
