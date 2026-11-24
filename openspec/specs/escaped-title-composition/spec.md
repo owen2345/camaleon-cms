@@ -8,14 +8,13 @@ It does, however, put a burden on every caller. A `SafeBuffer` interpolated into
 
 Three sink families give three different outcomes for the same interpolation, which is why this went unnoticed for so long. ERB `<%= %>` escapes again and is broken; `raw` does not escape and is correct by accident; `display_meta_tags` normalizes through `strip_tags`, unescaping and re-escaping, and absorbs the extra layer. Only the first family needs fixing, and the correct fix is at the composition site, not at the sink — rewriting a sink to `raw` renders correctly today but makes its safety depend entirely on `the_title` continuing to escape, which is how the underlying vulnerability returns.
 
-The third requirement covers a failure that looks like the same bug but is not: applying a transformation such as `titleize` to a value that is already escaped corrupts its entities rather than doubling them, and no amount of correct composition repairs that. Complements [`generated-markup-escaping`](../generated-markup-escaping/spec.md), which governs building markup outside a template; this capability governs composing values that arrive already escaped.
+The requirement on text transformations covers a failure that looks like the same bug but is not. A transformation such as `titleize` on a value that is already escaped corrupts its entities. It does not double them, and correct composition cannot repair that. Complements [`generated-markup-escaping`](../generated-markup-escaping/spec.md), which governs building markup outside a template; this capability governs composing values that arrive already escaped.
 
 ## Requirements
+
 ### Requirement: Escaped decorator values MUST be composed without string interpolation
 
-`PostDecorator#the_title` and `TermTaxonomyDecorator#the_title` (and its subclasses' inherited implementation) return an already-escaped `ActiveSupport::SafeBuffer`. Any caller combining such a value with other text SHALL pass it as an argument to a composition helper — `safe_join`, `content_tag`, `link_to`, or an HTML attribute value — and SHALL NOT interpolate it into a plain Ruby string that is subsequently rendered by an escaping sink.
-
-The escaping contract of `the_title` itself is unchanged: it continues to return escaped output, because sinks outside this repository depend on it.
+`PostDecorator#the_title` and `TermTaxonomyDecorator#the_title` return an already-escaped value. A caller that combines such a value with other text SHALL pass it as an argument to a composition helper. The helpers are `safe_join`, `content_tag`, `link_to` and an HTML attribute value. The caller SHALL NOT interpolate it into a plain Ruby string that is subsequently rendered by an escaping sink.
 
 #### Scenario: A site name containing HTML metacharacters renders literally in the settings heading
 
@@ -50,6 +49,10 @@ The escaping contract of `the_title` itself is unchanged: it continues to return
 - **AND** an administrator opens the custom fields form containing the category select
 - **THEN** the option text and its `data-help` attribute both read the name literally
 - **AND** the page contains no `<b>` element originating from the name
+
+### Requirement: The escaping contract of the decorator titles is unchanged
+
+`PostDecorator#the_title` and `TermTaxonomyDecorator#the_title`, with the implementation its subclasses inherit, SHALL return an already-escaped `ActiveSupport::SafeBuffer`. This contract is unchanged, because sinks outside this repository depend on it.
 
 #### Scenario: Already-correct sinks are unchanged
 

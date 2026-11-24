@@ -9,21 +9,23 @@ and it keeps the configs the gem itself ships as plain JSON.
 
 ### Requirement: Config files load with comments and repeated keys
 
-Camaleon SHALL accept `//` and `/* */` comments and repeated keys when it parses these configs:
-
-- the system config: the gem's `config/system.json` and the host's `config/system.json`;
-- plugin configs: `config/config.json` of app and bundled plugins, and `config/camaleon_plugin.json` of
-  plugin gems;
-- theme configs: `config/config.json` of app themes, and `config/camaleon_theme.json` of theme gems.
-
-The last value of a repeated key SHALL win. This SHALL hold on every supported json version, without json
-deprecation warnings.
+Camaleon SHALL accept `//` and `/* */` comments and repeated keys when it parses the system config:
+the gem's `config/system.json` and the host's `config/system.json`. The last value of a repeated key
+SHALL win. This SHALL hold on every supported json version, without json deprecation warnings.
 
 #### Scenario: A host system config written by an older generator
 
 - **WHEN** the host's `config/system.json` contains a comment and repeats a setting
 - **THEN** the system settings hold that setting's last value
 - **AND** no warning is emitted
+
+### Requirement: Plugin and theme config files load with comments and repeated keys
+
+Camaleon SHALL accept `//` and `/* */` comments and repeated keys in plugin configs. These
+are `config/config.json` of app and bundled plugins, and `config/camaleon_plugin.json` of plugin gems.
+Camaleon SHALL accept them in theme configs. These are `config/config.json` of app themes, and
+`config/camaleon_theme.json` of theme gems. The last value of a repeated key SHALL win, on every supported json version, without
+json deprecation warnings.
 
 #### Scenario: An app plugin or theme config with comments
 

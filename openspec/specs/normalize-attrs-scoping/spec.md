@@ -42,7 +42,7 @@ The system SHALL keep `normalize_attrs(:content)` on `PostComment` (unchanged) a
 - **AND** the text `"text"` SHALL be preserved
 
 ### Requirement: Models affected by normalize_attrs removal are explicit
-The following model attributes SHALL NOT have `normalize_attrs` applied after this change:
+The following model attributes SHALL NOT have `normalize_attrs` applied:
 
 - `Meta#value`
 - `User#first_name`, `User#last_name`, `User#username`
@@ -57,15 +57,23 @@ The following model attributes SHALL NOT have `normalize_attrs` applied after th
 - `Widget::Main#name`
 - `Widget::Sidebar#name`
 
-Description fields (`:description`) on the above models SHALL retain `normalize_attrs` unchanged (they may legitimately contain user HTML content).
-
-`NavMenuItem#name` (the menu label) SHALL retain `normalize_attrs` as an intentional exception: it is the only `:name` field rendered as raw/trusted HTML by the frontend nav menu builder (`CamaleonCms::Frontend::NavMenuHelper#cama_menu_draw_items` marks it `html_safe`), unlike all other model names which are ERB-auto-escaped at render time. `sanitize()` preserves safe formatting (icons, spans) while stripping scripts and event handlers, preventing stored XSS from menu managers.
-
 #### Scenario: All cleaned models store angle brackets without stripping
 - **WHEN** any of the listed models has a name field set to a value containing `<` or `>` (e.g., `Widget::Main.name = "promo <featured>"`)
 - **THEN** the persisted value SHALL contain the angle brackets unchanged
+
+### Requirement: Description fields keep normalize_attrs
+Description fields (`:description`) on the models above SHALL retain `normalize_attrs` unchanged, because they can legitimately contain user HTML content.
+
+#### Scenario: A description is still sanitized
+- **WHEN** a description of one of the listed models is set to `<script>alert(1)</script>text`
+- **THEN** the persisted description SHALL NOT contain `<script>`
+- **AND** the text `"text"` SHALL be preserved
+
+### Requirement: NavMenuItem name keeps normalize_attrs as an intentional exception
+`NavMenuItem#name` (the menu label) SHALL retain `normalize_attrs` as an intentional exception. It is the only `:name` field that the frontend nav menu builder renders as raw HTML: `CamaleonCms::Frontend::NavMenuHelper#cama_menu_draw_items` marks it `html_safe`. All other model names are ERB-auto-escaped at render time.
 
 #### Scenario: NavMenuItem name is sanitized due to raw-HTML render path
 - **WHEN** a menu manager sets a NavMenuItem label to `<span class="icon"></span><script>alert(1)</script>`
 - **THEN** the persisted name SHALL contain `<span class="icon"></span>`
 - **AND** the `<script>` tag SHALL be stripped
+- **AND** `sanitize()` preserves safe formatting (icons, spans) while it strips scripts and event handlers, which prevents stored XSS from menu managers

@@ -10,15 +10,11 @@ ids, and the bundled theme's custom-save path answers with a single standard res
 
 ### Requirement: Theme settings saves accept only registered field slugs
 
-Every request-parameter path that saves custom-field values from the admin theme-settings
-form — the `theme_fields` payload param and the `field_options` payload submitted through a
-theme's custom-save action — SHALL accept only slugs of fields registered under the theme
-placement scope, discarding submitted entries for unregistered slugs and arbitrary field ids.
-A value
-submitted for a registered theme field MUST save and read back; a value submitted for an
-unregistered slug MUST NOT create a stored value row. The filter applies to every role that
-can reach theme settings, including non-administrator roles granted the theme-settings
-capability.
+Every request-parameter path that saves custom-field values from the admin theme-settings form SHALL
+accept only slugs of fields registered under the theme placement scope. The paths are the
+`theme_fields` payload param and the `field_options` payload that a theme's custom-save action
+submits. A submitted entry for an unregistered slug or an arbitrary field id MUST be discarded and
+MUST NOT create a stored value row.
 
 #### Scenario: Unregistered slug via theme_fields is dropped
 
@@ -26,16 +22,31 @@ capability.
   `theme_fields` payload carries a slug not registered on the theme scope
 - **THEN** no value row is stored for that slug
 
+#### Scenario: Unregistered slug via the bundled theme's custom-save action is dropped
+
+- **WHEN** the bundled `new` theme is active and a theme save posts its custom-save action
+  with a `field_options` payload carrying an unregistered slug
+- **THEN** no value row is stored for that slug
+
+### Requirement: A value submitted for a registered theme field saves
+
+A value submitted for a registered theme field MUST save and read back.
+
 #### Scenario: Registered slug via theme_fields saves
 
 - **WHEN** a theme save posts a `theme_fields` payload carrying a slug registered on the
   theme scope
 - **THEN** the value is stored and readable back from the theme
 
-#### Scenario: Unregistered slug via the bundled theme's custom-save action is dropped
+### Requirement: The theme settings filter applies to every role that can reach theme settings
 
-- **WHEN** the bundled `new` theme is active and a theme save posts its custom-save action
-  with a `field_options` payload carrying an unregistered slug
+The filter SHALL apply to every role that can reach theme settings. This includes a
+non-administrator role that has the theme-settings capability.
+
+#### Scenario: A role with the theme-settings capability and no other capability is filtered
+
+- **WHEN** a non-administrator role that has the theme-settings capability posts a theme save with
+  an unregistered slug in the `field_options` payload
 - **THEN** no value row is stored for that slug
 
 ### Requirement: A submission carrying no registered slug leaves stored values intact
@@ -93,14 +104,10 @@ standard single redirect; the theme's settings hook MUST NOT issue a second resp
 
 ### Requirement: An admin custom-field save stores only the fields its form offers
 
-Every admin save of custom-field values — site settings, theme settings (both payloads), post type,
-post and draft, category, post tag, user, widget assignment and nav menu item — SHALL accept only
-slugs of fields in the groups the corresponding form renders for the record being saved. A slug
-registered only on another record of the same placement class (another post type, another site's
-settings, theme or user groups, another widget, another menu) MUST NOT create a value row on the
-record being saved. A slug registered on the record's own groups MUST save and read back as before.
-For a post or draft those are its post type's post groups: the groups placed on the post itself or on
-its categories, which the editor also renders, are not saved this way, as before.
+Every admin save of custom-field values SHALL accept only slugs of fields in the groups the
+corresponding form renders for the record being saved. A slug registered only on another record of
+the same placement class MUST NOT create a value row on the record being saved. A slug registered on
+the record's own groups MUST save and read back as before.
 
 #### Scenario: A sibling post type's slug is dropped from a post type save
 
@@ -130,6 +137,31 @@ its categories, which the editor also renders, are not saved this way, as before
   record's slug
 - **THEN** the registered slug's value is stored and readable back, and the sibling slug is dropped
 
+### Requirement: The form groups rule covers each admin save of custom-field values
+
+The rule of the form groups SHALL apply to each admin save of custom-field values. The saves are
+site settings, theme settings (both payloads), post type, post and draft, category, post tag, user,
+widget assignment and nav menu item. Another record is another post type, another site's settings,
+theme or user groups, another widget or another menu.
+
+#### Scenario: Each admin save drops the slug of another record
+
+- **WHEN** a save of one of the listed records submits a slug that is registered only on another
+  record of the same placement class
+- **THEN** no value row is stored on the record being saved
+
+### Requirement: A post or draft save accepts the post groups of its post type
+
+For a post or draft, the groups that the permit allows SHALL be the post groups of its post type.
+The groups placed on the post itself or on its categories, which the editor also renders, are not
+saved this way, as before.
+
+#### Scenario: A group placed on the post itself is outside the permit
+
+- **WHEN** a post save submits a slug of a group that is placed on the post itself or on its
+  categories
+- **THEN** the permit does not accept that slug as a post group of the post type, as before
+
 ### Requirement: A permitted value is stored under its slug's own field
 
 The shared permit SHALL carry, for each permitted slug, the id of one of that slug's fields in the groups
@@ -145,13 +177,9 @@ type.
 
 ### Requirement: A save resolves each slug in the groups it permits
 
-A save whose record's own field-group lookup differs from the groups its permit allows — a post type
-(whose lookup returns its posts' groups), a post or draft (whose lookup adds the groups placed on the
-post and its categories), a user (whose lookup keys on a site id equal to the user's) and a widget
-assignment (whose lookup finds none) — SHALL resolve each permitted slug's field among the fields of
-those groups. A same-slug field outside them MUST NOT receive the value row. Other callers of the model
-save keep resolving slugs through the record's own lookup. Neither lookup SHALL point a row at a field
-group sharing the slug.
+A save whose own field-group lookup differs from the groups of its permit SHALL resolve each
+permitted slug's field among the fields of those groups. A same-slug field outside them MUST NOT
+receive the value row.
 
 #### Scenario: A post type's own field wins over its posts' field of the same slug
 
@@ -170,6 +198,36 @@ group sharing the slug.
 - **WHEN** a group placed on the post holds a field under the same slug as a post type's post field,
   ordered first, and the post or its draft is saved with that slug
 - **THEN** the value row points at the post type's field
+
+#### Scenario: A widget assignment resolves its slug in the groups of its permit
+
+- **WHEN** a widget assignment is saved with a permitted slug, and the own lookup of the assignment
+  finds no field group
+- **THEN** the value row points at the field of the groups that the permit allows
+
+### Requirement: The lookup of a record differs from its permit for four kinds of save
+
+The own lookup of the record differs from the groups its permit allows in four kinds of save. The
+lookup of a post type returns the groups of its posts. The lookup of a post or draft adds the groups
+placed on the post and its categories. The lookup of a user keys on a site id equal to the id of the
+user. The lookup of a widget assignment finds none. Each of these saves SHALL resolve each permitted
+slug in the groups of its permit.
+
+#### Scenario: A save of each kind resolves in the groups of its permit
+
+- **WHEN** a save of one of these four kinds has a permitted slug
+- **AND** a field of the same slug is outside the groups of the permit
+- **THEN** the value row points at the field in the groups of the permit
+
+### Requirement: Other callers of the model save resolve slugs through the record's own lookup
+
+Other callers of the model save SHALL keep resolving slugs through the record's own lookup. Neither
+lookup SHALL point a row at a field group sharing the slug.
+
+#### Scenario: A caller of the model save outside the admin saves resolves through the own lookup
+
+- **WHEN** a caller of the model save other than an admin save stores a value
+- **THEN** the slug resolves through the own lookup of the record, as before
 
 ### Requirement: A nav menu item save accepts the groups placed on its menu
 
@@ -209,13 +267,9 @@ permit to one record requires the caller to pass the field groups its form rende
 ### Requirement: A permitted slug's values are kept in both shapes the admin forms submit
 
 The shared permit SHALL keep the values of a permitted slug in both shapes that the admin forms
-submit. Most fields submit a hash keyed by index, and the checkboxes field submits a list of scalars.
-A list of scalars MUST be stored in the order submitted and read back from the saved
-record. A list holding anything other than scalars MUST NOT create a value row.
-
-No admin form submits a list that holds a hash. The `field_attrs` field names its inputs
-`values[][attr]` and `values[][value]`. The admin JavaScript renames them to `values[<index>][attr]`
-and `values[<index>][value]`, a hash keyed by index, before the form submits.
+submit. Most fields submit a hash keyed by index, and the checkboxes field submits a list of
+scalars. A list of scalars MUST be stored in the order submitted and read back from the saved
+record. A list that holds anything other than scalars MUST NOT create a value row.
 
 #### Scenario: A checkboxes field's checked options are stored
 
@@ -237,6 +291,18 @@ and `values[<index>][value]`, a hash keyed by index, before the form submits.
 
 - **WHEN** a save submits a registered field's values as a list of hashes
 - **THEN** the save is refused, and no value row is stored for that field
+
+### Requirement: No admin form submits a list that holds a hash
+
+The admin JavaScript SHALL rename the inputs `values[][attr]` and `values[][value]` of the
+`field_attrs` field to `values[<index>][attr]` and `values[<index>][value]` before the form submits.
+So no admin form submits a list that holds a hash.
+
+#### Scenario: The field_attrs inputs are keyed by index on submit
+
+- **WHEN** an admin form with a `field_attrs` field submits
+- **THEN** the inputs are `values[<index>][attr]` and `values[<index>][value]`, a hash keyed by
+  index, and not a list that holds a hash
 
 ### Requirement: A field with a numeric slug does not remove the other fields of its group
 
@@ -308,25 +374,6 @@ scalars. A save that submits the `values` of an allowed slug in any other shape 
 The stored custom-field values of the record MUST stay. A list that holds a hash or a list, and a
 non-empty scalar, are such shapes.
 
-A save that submits the entry of an allowed slug as a non-empty scalar or as a list SHALL be refused
-in the same way.
-
-The refusal SHALL answer as the requirement "A refused admin save answers by the kind of the
-request" of `custom-field-value-rejection` says. The refusal SHALL name the slug of the field.
-
-An entry with no `values`, with `nil` or with an empty `String` holds no value, and it SHALL NOT be
-refused. The form submits such an entry for a checkboxes field with no option checked. The save MUST
-then remove the stored values of that field, as before.
-
-When the host app sets `action_on_unpermitted_parameters` to `:raise`, Rails SHALL raise
-`ActionController::UnpermittedParameters` for each `values` that the permit does not keep, as before.
-Such `values` are `nil`, an empty `String`, a list that holds a hash or a list, and a non-empty
-scalar. That error comes in place of the refusal, and in place of the removal for a `values` of `nil`
-or an empty `String`. The save then removes no stored value.
-
-The permit SHALL NOT refuse an entry under a slug that it does not allow. It drops that entry, as
-before.
-
 #### Scenario: A save with a list of hashes keeps the stored values
 
 - **WHEN** a record holds values of two fields
@@ -339,6 +386,16 @@ before.
 
 - **WHEN** a save submits a nested list or a non-empty scalar as the `values` of an allowed slug
 - **THEN** the save answers with the refusal, and the stored values of the record stay
+
+#### Scenario: A refused post save stores nothing
+
+- **WHEN** a post save submits a new title and a list of hashes as the `values` of a post type field
+- **THEN** the save answers with the refusal, and the post keeps its title and its stored values
+
+### Requirement: A save with a field entry that is a non-empty scalar or a list is refused
+
+A save that submits the entry of an allowed slug as a non-empty scalar or as a list SHALL be refused
+in the same way.
 
 #### Scenario: A save with a field entry that is a non-empty scalar or a list keeps the stored values
 
@@ -354,16 +411,27 @@ before.
 - **THEN** the save answers with the refusal, the category is stored, and it holds no custom-field
   value
 
+### Requirement: The refusal of a field value names the slug and answers by the kind of request
+
+The refusal SHALL answer as the requirement "A refused admin save answers by the kind of the
+request" of `custom-field-value-rejection` says. The refusal SHALL name the slug of the field.
+
 #### Scenario: An XHR gets the refusal with a 422
 
 - **WHEN** an XHR without the `cama_ajax_request` param submits a non-empty scalar as the `values` of
   an allowed slug
 - **THEN** the answer is the refusal as text with a 422, and the stored values of the record stay
 
-#### Scenario: A refused post save stores nothing
+#### Scenario: The refusal names the slug
 
-- **WHEN** a post save submits a new title and a list of hashes as the `values` of a post type field
-- **THEN** the save answers with the refusal, and the post keeps its title and its stored values
+- **WHEN** a save submits a list of hashes as the `values` of an allowed slug
+- **THEN** the refusal names the slug of that field
+
+### Requirement: An entry with no values is not refused
+
+An entry with no `values`, with `nil` or with an empty `String` holds no value, and it SHALL NOT be
+refused. The form submits such an entry for a checkboxes field with no option checked. The save MUST
+then remove the stored values of that field, as before.
 
 #### Scenario: A checkboxes field with no option checked is cleared
 
@@ -376,3 +444,30 @@ before.
 
 - **WHEN** a save submits an empty `String` as the `values` of an allowed slug
 - **THEN** the save reports no error, and removes the stored values of that field
+
+### Requirement: A host that raises for an unpermitted parameter gets the error in place of the refusal
+
+When the host app sets `action_on_unpermitted_parameters` to `:raise`, Rails SHALL raise
+`ActionController::UnpermittedParameters` for each `values` that the permit does not keep, as
+before. That error comes in place of the refusal, and in place of the removal for a `values` of
+`nil` or an empty `String`. The save then removes no stored value.
+
+#### Scenario: A host that raises gets the error for each value that the permit does not keep
+
+- **WHEN** the host app sets `action_on_unpermitted_parameters` to `:raise`
+- **AND** a save submits `values` for an allowed slug that the permit does not keep
+- **AND** such `values` are `nil`, an empty `String`, a list that holds a hash or a list, or a
+  non-empty scalar
+- **THEN** Rails raises `ActionController::UnpermittedParameters`, in place of the refusal and in
+  place of the removal
+- **AND** the save removes no stored value
+
+### Requirement: The permit does not refuse an entry under a slug that it does not allow
+
+The permit SHALL NOT refuse an entry under a slug that it does not allow. It drops that entry, as
+before.
+
+#### Scenario: An entry under a slug that the permit does not allow is dropped
+
+- **WHEN** a save submits an entry under a slug that the permit does not allow
+- **THEN** the permit drops that entry, and the save is not refused

@@ -37,7 +37,11 @@ The authorization decision SHALL be derived from the request parameter alone and
 ### Requirement: Unresolvable profile targets are handled gracefully
 The system SHALL NOT raise an unhandled exception when the `user_id` supplied to `GET /admin/profile` does not resolve to a user visible to the current site. This applies to nonexistent IDs, IDs of deleted users, and non-numeric values.
 
-Note: whether a user of a *different* site resolves is governed by the `users_share_sites` system setting, not by this capability. Under the shipped default (`true`), `Site#users` spans all sites, so such an ID resolves normally and is covered by the ordinary "admin views another user" scenario.
+#### Scenario: A user of a different site is resolved by the sharing setting
+- **WHEN** `user_id` belongs to a user of a different site
+- **THEN** the `users_share_sites` system setting governs whether it resolves, not this capability
+- **AND** under the shipped default (`true`), `Site#users` spans all sites, so such an ID resolves normally
+- **AND** the ordinary "admin views another user" scenario covers that case
 
 #### Scenario: Authorized user requests a nonexistent user
 - **WHEN** a user authorized to manage users visits `/admin/profile?user_id=NONEXISTENT_ID`

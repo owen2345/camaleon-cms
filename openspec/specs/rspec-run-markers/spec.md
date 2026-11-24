@@ -14,17 +14,7 @@ session reads them to judge a failed run.
 
 When the support files of the Camaleon suite load, the run SHALL create an empty file
 `tmp/rspec-runs/rspec-<pid>-<start>.pid` under the repo root, its run marker. `<start>` is the Unix
-time of the load in seconds. The run SHALL hold a lock on its run marker until its process ends. It
-SHALL NOT wait for another run or refuse to start because of one. The run SHALL lock the file before
-the file gets that name, so that no other run finds the run marker unlocked. Until then, the file
-has a temporary name, which no run counts as a run marker.
-
-A file in `tmp/rspec-runs` with another name is not a run marker. The line at exit and the removal
-of old run markers ignore it.
-
-A run that cannot write its run marker SHALL print
-`RspecRunMarker: no run marker for this run: <error>` on stderr. It SHALL continue without a run
-marker, with the same exit status.
+time of the load in seconds.
 
 #### Scenario: A run writes and locks its run marker
 
@@ -32,30 +22,48 @@ marker, with the same exit status.
 - **THEN** `tmp/rspec-runs` holds an empty run marker with the pid and the start of the run
 - **AND** a shared lock on it fails while the run is active
 
+#### Scenario: The run marker directory does not exist
+
+- **WHEN** a run loads in a checkout without `tmp/rspec-runs`
+- **THEN** the run creates the directory and writes its run marker
+
+### Requirement: A run holds a lock on its run marker and never waits
+
+The run SHALL hold a lock on its run marker until its process ends. It SHALL NOT wait for another run or refuse to start because of one.
+
 #### Scenario: Another run holds the lock of its run marker
 
 - **WHEN** a run probes the run marker of an active run
 - **THEN** the probe returns at once, and the run does not wait for that run
-
-#### Scenario: The run marker never appears unlocked
-
-- **WHEN** another run lists the directory while this run writes its run marker
-- **THEN** it finds the run marker under its name only with the lock held
 
 #### Scenario: A killed run releases its lock
 
 - **WHEN** another process kills the run and its forked children without their exit hooks
 - **THEN** a shared lock on its run marker succeeds
 
-#### Scenario: The run marker directory does not exist
+### Requirement: The run marker is locked before it gets its name
 
-- **WHEN** a run loads in a checkout without `tmp/rspec-runs`
-- **THEN** the run creates the directory and writes its run marker
+The run SHALL lock the file before the file gets the name of a run marker. No other run then finds the run marker unlocked. Until then, the file has a temporary name, which no run counts as a run marker.
+
+#### Scenario: The run marker never appears unlocked
+
+- **WHEN** another run lists the directory while this run writes its run marker
+- **THEN** it finds the run marker under its name only with the lock held
+
+### Requirement: A file with another name is not a run marker
+
+The line at exit and the removal of old run markers SHALL ignore a file in `tmp/rspec-runs` with another name.
 
 #### Scenario: A file that is not a run marker is in the directory
 
 - **WHEN** `tmp/rspec-runs` holds a file with another name, for example `notes.txt` or a `.tmp` file
 - **THEN** the line at exit and the removal of old run markers ignore it
+
+### Requirement: A run that cannot write its run marker continues
+
+A run that cannot write its run marker SHALL print
+`RspecRunMarker: no run marker for this run: <error>` on stderr. It SHALL continue without a run
+marker, with the same exit status.
 
 #### Scenario: The run cannot write its run marker
 
@@ -74,16 +82,7 @@ marker, with the same exit status.
 At exit, the process that loaded the support files SHALL print one line on stderr when another run
 overlapped it. A run overlapped this run when it was active at the load of this run or wrote its run
 marker later. The line is `RspecRunMarker: other runs during this run: <names>`, with the names in
-sorted order. The line SHALL come after the summary of RSpec. A forked child of the run SHALL NOT
-print the line.
-
-A run counts as active while its process holds the lock on its run marker. A run marker that is
-gone, or that the run has no permission to open, counts as ended.
-
-A run without a run marker SHALL print `RspecRunMarker: no run marker for this run` at exit in
-place of the line. When the run cannot list the run markers at exit, it SHALL print
-`RspecRunMarker: cannot list the run markers at exit: <error>` and no line. The exit status of
-the run SHALL NOT change.
+sorted order. The line SHALL come after the summary of RSpec.
 
 #### Scenario: Two runs overlap
 
@@ -105,10 +104,30 @@ the run SHALL NOT change.
 - **WHEN** the run starts with `RUBYOPT=-W0`, which silences `Kernel#warn`
 - **THEN** the run still prints the line and the warnings
 
+### Requirement: A forked child does not print the line
+
+A forked child of the run SHALL NOT print the line.
+
 #### Scenario: A forked child exits
 
 - **WHEN** a forked child of the run, for example a round of `rspec --bisect`, exits
 - **THEN** the child prints no line, and the run prints its line once at its own exit
+
+### Requirement: A run is active while it holds the lock of its run marker
+
+A run SHALL count as active while its process holds the lock on its run marker. A run marker that is gone, or that the run has no permission to open, counts as ended.
+
+#### Scenario: A run marker that is gone
+
+- **WHEN** the run marker of a run is gone, or the run has no permission to open it
+- **THEN** the run counts as ended and the line at exit does not name it
+
+### Requirement: A run without a run marker or a listing prints a warning at exit
+
+A run without a run marker SHALL print `RspecRunMarker: no run marker for this run` at exit in
+place of the line. When the run cannot list the run markers at exit, it SHALL print
+`RspecRunMarker: cannot list the run markers at exit: <error>` and no line. The exit status of
+the run SHALL NOT change.
 
 #### Scenario: The run has no run marker
 

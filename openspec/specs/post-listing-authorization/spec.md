@@ -7,12 +7,10 @@ taxonomy filter must narrow that set, never widen it to another post type's cont
 ## Requirements
 ### Requirement: A taxonomy filter cannot escape the authorized post type
 
-The admin post index SHALL keep its result set scoped to the post type named in the URL (the one it
-authorized `:posts` on). A category or tag filter SHALL be resolved within that post type — a taxonomy
-id belonging to a different post type SHALL be rejected as not found, disclosing neither posts nor the
-taxonomy's name or edit URL — and the listing SHALL be the intersection of that post type's posts and
-the taxonomy's posts. A category or tag belonging to a different post type SHALL NOT cause that other
-post type's posts to be listed, in any status.
+The admin post index SHALL keep its result set scoped to the post type named in the URL, the one it
+authorized `:posts` on. A category or tag filter SHALL be resolved within that post type. A taxonomy
+id of a different post type SHALL be rejected as not found. The listing SHALL be the intersection of
+that post type's posts and the taxonomy's posts.
 
 #### Scenario: A cross-post-type category filter leaks nothing
 
@@ -20,9 +18,10 @@ post type's posts to be listed, in any status.
   filter whose id belongs to post type B, including with `?s=all`
 - **THEN** the request is rejected as not found, and neither post type B's posts nor the taxonomy's
   name are disclosed
+- **AND** the taxonomy's edit URL is not disclosed
+- **AND** no post of post type B is listed, in any status
 
 #### Scenario: A same-post-type taxonomy filter still narrows the listing
 
 - **WHEN** a user requests a post type's index filtered by a category or tag of that same post type
 - **THEN** the listing shows that post type's posts belonging to the taxonomy
-

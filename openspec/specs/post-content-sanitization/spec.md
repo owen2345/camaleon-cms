@@ -16,15 +16,6 @@ The system SHALL define a `post_content_unfiltered_html` key in `UserRole::ROLES
 can be assigned per post type per role. The key MUST be surfaced in the admin UI alongside existing
 post-type permission keys.
 
-The key name SHALL state its subject. It governs `Post#content` (and, per the
-`custom-field-value-rejection` capability, a post's gated custom-field values), and is distinct from
-the manager-family key `contact_form_unfiltered_html`, which governs contact-form content under
-`contact-form-output-escaping`. Holding either SHALL NOT imply the other. The permission is checked
-as `can?(:post_content_unfiltered_html, post_type)`; the ability name and the role-meta key are
-deliberately identical, matching how manager-family keys resolve through
-`Ability#define_manage_rules`. Both capabilities share the same remedy: a save the author is not
-permitted to make is refused outright, never rewritten.
-
 #### Scenario: Admin can grant unfiltered HTML permission to a role
 
 - **WHEN** an admin edits a role's post-type permissions in the admin panel
@@ -39,6 +30,13 @@ permitted to make is refused outright, never rewritten.
   explicitly skipped during seed to prevent non-admin editors from storing raw scripts
 - **AND** the contributor role SHALL NOT have `post_content_unfiltered_html` enabled
 
+### Requirement: The post-content key is distinct from the contact-form key
+
+The key name SHALL state its subject. It governs `Post#content` (and, per the
+`custom-field-value-rejection` capability, a post's gated custom-field values). It is distinct from
+the manager-family key `contact_form_unfiltered_html`, which governs contact-form content under
+`contact-form-output-escaping`. Holding either SHALL NOT imply the other.
+
 #### Scenario: Holding the post-content grant does not widen contact-form trust
 
 - **WHEN** a user holds `post_content_unfiltered_html` on every post type but not
@@ -46,35 +44,52 @@ permitted to make is refused outright, never rewritten.
 - **AND** that user saves a contact form whose `previous_html` contains `<script>alert(1)</script>`
 - **THEN** the save SHALL be refused and nothing SHALL be persisted
 
+### Requirement: The post-content permission is checked under the name of its key
+
+The system SHALL check the permission as `can?(:post_content_unfiltered_html, post_type)`. The
+ability name and the role-meta key are deliberately identical, as manager-family keys resolve
+through `Ability#define_manage_rules`. Both capabilities share the same remedy: the system SHALL
+refuse a save that the author is not permitted to make outright, and never rewrite it.
+
+#### Scenario: A role with the key passes the ability check
+
+- **WHEN** a role holds the `post_content_unfiltered_html` key on a post type
+- **THEN** `can?(:post_content_unfiltered_html, post_type)` is true for a user with that role
+
 ### Requirement: Untrusted users' dangerous post content is rejected at save time
 
 The system SHALL refuse to save `Post#content` when the current user lacks the
 `post_content_unfiltered_html` permission for the associated post type and the content contains
-anything outside the post allowlist — script elements, `<iframe>`, event-handler attributes,
-script-capable URI schemes, css the scrubber would refuse — or structurally deceptive markup (tags
-the parser drops or leaves open, translation markers inside tags, non-marker comments, values
-beyond the parse bound). The refusal SHALL be a validation error on `content` naming the remedy
-(remove the markup or obtain the permission). Content SHALL NEVER be sanitized, stripped, or
-otherwise rewritten: it is stored exactly as authored or not stored at all.
-
-The allowlist is unchanged from the sanitize era: the sanitizer default widened with the
-structural, non-executable markup long-form content legitimately uses — table elements (`table`,
-`thead`, `tbody`, `tfoot`, `tr`, `td`, `th`, `caption`, `col`, `colgroup`), `figure`/`figcaption`,
-`u`, `s`, `hr`, and the attributes `id`, `style` (css-scrubbed), `target`, `rel`, `colspan`,
-`rowspan` — plus `data-*`/`aria-*` attributes admitted by shape.
-
-Admitting an attribute by shape SHALL NOT admit markup carried in its value: a value that decodes to
-a tag-open — entity-encoded so no literal `<` is stored, e.g. `data-content="&lt;img onerror=...&gt;"`
-— SHALL be refused, because a client-side `data-html` sink (Bootstrap tooltip/popover and the like)
-would inject it as HTML. The parse-size bound is generous (multiple megabytes); a value beyond it
-SHALL be refused with a size-specific error distinct from the markup error, since an over-size value
-may be perfectly clean.
+markup outside the post allowlist or structurally deceptive markup. The refusal SHALL be a validation
+error on `content` naming the remedy (remove the markup or obtain the permission). Content SHALL
+NEVER be sanitized, stripped, or otherwise rewritten: it is stored exactly as authored or not stored
+at all.
 
 #### Scenario: Contributor saves post with script tag
 
 - **WHEN** a contributor (role with only `edit` permission, without `post_content_unfiltered_html`)
   creates or updates a post with content containing `<script>alert(1)</script>`
 - **THEN** the save SHALL fail with a validation error on `content`, and nothing SHALL be persisted
+
+#### Scenario: Pre-gate stored content stays editable while untouched
+
+- **WHEN** a post whose stored content predates the gate (and would fail it) is updated without
+  changing `content`
+- **THEN** the save SHALL succeed; changing the content itself SHALL re-run the gate
+
+### Requirement: The content gate refuses these kinds of markup
+
+The content gate SHALL refuse each of these kinds of markup from an untrusted user:
+
+- script elements
+- `<iframe>`
+- event-handler attributes
+- script-capable URI schemes
+- css the scrubber would refuse
+- tags the parser drops or leaves open
+- translation markers inside tags
+- non-marker comments
+- values beyond the parse bound
 
 #### Scenario: Contributor saves post with SVG-based XSS
 
@@ -93,6 +108,21 @@ may be perfectly clean.
 - **THEN** the save SHALL fail with a validation error on `content` — the payload SHALL NOT be
   stripped and stored
 
+#### Scenario: A stray HTML comment is refused
+
+- **WHEN** a contributor saves content containing `<!-- hidden -->` (not a translation marker)
+- **THEN** the save SHALL fail with a validation error on `content`
+
+### Requirement: The post allowlist is the sanitizer default plus structural markup
+
+The post allowlist SHALL be the sanitizer default widened with this structural, non-executable markup
+that long-form content legitimately uses:
+
+- table elements: `table`, `thead`, `tbody`, `tfoot`, `tr`, `td`, `th`, `caption`, `col`, `colgroup`
+- `figure`, `figcaption`, `u`, `s` and `hr`
+- the attributes `id`, `style` (css-scrubbed), `target`, `rel`, `colspan` and `rowspan`
+- `data-*` and `aria-*` attributes, admitted by shape
+
 #### Scenario: Contributor's table markup is preserved
 
 - **WHEN** a contributor saves post content containing
@@ -107,10 +137,11 @@ may be perfectly clean.
 - **AND WHEN** the same content additionally carries an `onclick` attribute
 - **THEN** the save SHALL fail with a validation error — no stripped variant SHALL be stored
 
-#### Scenario: A stray HTML comment is refused
+### Requirement: An attribute admitted by shape does not admit markup in its value
 
-- **WHEN** a contributor saves content containing `<!-- hidden -->` (not a translation marker)
-- **THEN** the save SHALL fail with a validation error on `content`
+Admitting an attribute by shape SHALL NOT admit markup carried in its value. The gate SHALL refuse a
+value that decodes to a tag-open, even when it is entity-encoded so that no literal `<` is stored.
+This is because a client-side `data-html` sink, such as a Bootstrap tooltip or popover, injects it as HTML.
 
 #### Scenario: Markup smuggled through an attribute value is refused
 
@@ -119,18 +150,17 @@ may be perfectly clean.
 - **THEN** the save SHALL fail with a validation error on `content` — a benign `data-*` value with no
   markup still saves
 
+### Requirement: A value beyond the parse bound is refused with a size-specific error
+
+The parse-size bound is generous: multiple megabytes. The gate SHALL refuse a value beyond it with a
+size-specific error that differs from the markup error. An over-size value can be perfectly clean.
+
 #### Scenario: Over-size content is refused with a size-specific message
 
 - **WHEN** a contributor saves content beyond the parse-size bound
 - **THEN** the save SHALL fail with a size-specific error on `content`, not the disallowed-markup error
 - **AND WHEN** a long but clean post within the bound is saved
 - **THEN** the save SHALL succeed
-
-#### Scenario: Pre-gate stored content stays editable while untouched
-
-- **WHEN** a post whose stored content predates the gate (and would fail it) is updated without
-  changing `content`
-- **THEN** the save SHALL succeed; changing the content itself SHALL re-run the gate
 
 ### Requirement: Trusted users' post content bypasses the content gate
 
@@ -156,13 +186,6 @@ The system SHALL apply the gate (same as for an untrusted user) when no user con
 (background jobs, rake tasks, console operations): dangerous content SHALL be refused, while benign
 content saves normally.
 
-The system SHALL also expose an explicit per-record opt-out for developer-controlled saves: calling
-`post.unfiltered_content!` before save SHALL cause the content to be stored unchanged regardless of
-user context. The opt-out SHALL be exposed as a reader plus this bang enabler with NO
-`unfiltered_content=` writer, so `assign_attributes`/mass assignment cannot reach it and request
-parameters cannot set it; it exists for trusted server-side pipelines (imports, seeds, plugin code)
-that would otherwise be refused by the fail-closed default.
-
 #### Scenario: Background job updates post content without user context
 
 - **WHEN** a background job or rake task updates a post's content with dangerous markup
@@ -175,11 +198,24 @@ that would otherwise be refused by the fail-closed default.
 - **WHEN** a background job or rake task saves benign post content with no `CurrentRequest` context
 - **THEN** the save SHALL succeed and the content SHALL be stored exactly as authored
 
+### Requirement: A developer-controlled save can opt out of the content gate
+
+The system SHALL also expose an explicit per-record opt-out for developer-controlled saves. Calling
+`post.unfiltered_content!` before save SHALL cause the content to be stored unchanged regardless of
+user context.
+
 #### Scenario: A trusted pipeline opts a record out of sanitization
 
 - **WHEN** server-side code calls `post.unfiltered_content!` and saves with no `CurrentRequest.user`
 - **AND** the content contains `<script>seed()</script>`
 - **THEN** the persisted content SHALL contain the `<script>` element unchanged
+
+### Requirement: The opt-out has no mass-assignment writer
+
+The opt-out SHALL be exposed as a reader plus the bang enabler with NO `unfiltered_content=` writer.
+So `assign_attributes` and mass assignment cannot reach it, and request parameters cannot set it. It
+exists for trusted server-side pipelines (imports, seeds, plugin code) that the fail-closed default
+would otherwise refuse.
 
 #### Scenario: The opt-out has no mass-assignment writer
 
@@ -189,7 +225,10 @@ that would otherwise be refused by the fail-closed default.
 
 ### Requirement: The post summary from an untrusted user is held to the content scan
 
-A post save or draft save whose `meta[summary]` the content scan would refuse (the same allowlist and size bound as `Post#content`) SHALL be refused, naming the summary field, when the current user lacks the `post_content_unfiltered_html` permission for the post type; nothing from the save SHALL be stored. The summary SHALL NEVER be sanitized or rewritten. An administrator's or permission holder's summary SHALL be stored as written. A summary stored before this requirement SHALL NOT be rewritten; the `camaleon_cms:security:scan_content` task lists it.
+A post save or draft save SHALL be refused when its `meta[summary]` fails the content scan. This
+holds when the current user lacks the `post_content_unfiltered_html` permission for the post type. The scan uses the
+same allowlist and size bound as `Post#content`. The refusal SHALL name the summary field. Nothing
+from the save SHALL be stored. The summary SHALL NEVER be sanitized or rewritten.
 
 #### Scenario: An editor's summary with a script is refused
 
@@ -202,15 +241,26 @@ A post save or draft save whose `meta[summary]` the content scan would refuse (t
 - **WHEN** an editor updates a post with `meta[summary]` holding text with a `<b>` element
 - **THEN** the save succeeds and the summary is stored as submitted
 
+#### Scenario: A draft autosave is held to the same scan
+
+- **WHEN** an editor without the permission autosaves a draft with a summary containing a script element
+- **THEN** the draft save answers with an error naming the summary field and stores nothing
+
+### Requirement: A trusted summary and an older summary are stored as written
+
+An administrator's or permission holder's summary SHALL be stored as written. A summary stored before
+the scan existed SHALL NOT be rewritten. The `camaleon_cms:security:scan_content` task lists it.
+
 #### Scenario: A permission holder's summary is stored as written
 
 - **WHEN** an administrator updates a post with `meta[summary]` containing a script element
 - **THEN** the save succeeds and the summary is stored as written
 
-#### Scenario: A draft autosave is held to the same scan
+#### Scenario: A summary stored before the scan is not rewritten
 
-- **WHEN** an editor without the permission autosaves a draft with a summary containing a script element
-- **THEN** the draft save answers with an error naming the summary field and stores nothing
+- **WHEN** a post has a summary that the scan would refuse, stored before the scan existed
+- **THEN** the system does not rewrite that summary
+- **AND** the `camaleon_cms:security:scan_content` task lists it
 
 ### Requirement: The markup gate reads each element once
 

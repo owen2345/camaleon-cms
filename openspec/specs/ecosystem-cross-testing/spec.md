@@ -84,26 +84,28 @@ readable repositories SHALL be enrolled.
 An enrolled member SHALL expose, on its default branch, a workflow that another repository's pipeline
 can call, accepting these inputs: `camaleon_cms_repository` (the `owner/name` of the core repository
 to test against), `camaleon_cms_ref` (the commit, branch or tag of core to test against) and
-`member_ref` (the member's own ref to test, defaulting to its default branch). The workflow SHALL run the member's own code at `member_ref`, never the calling repository's
-code, against core at the given repository and ref, and SHALL fail exactly when the member's suite
-fails or cannot be set up. The workflow SHALL NOT be startable by hand: a manual run executes in the
-member's default-branch context, where code checked out from a caller-supplied ref could write the
-shared Actions caches later runs restore, whereas a run called from a core pull request is confined
-to that pull request's cache scope.
+`member_ref` (the member's own ref to test, defaulting to its default branch).
 
 #### Scenario: Core calls the member's workflow
 - **WHEN** core's pipeline calls a member's workflow with core's repository and the commit under test
 - **THEN** the member's suite SHALL run from the member's default branch with `camaleon_cms` loaded
   from that commit
 
-#### Scenario: A maintainer wants a member checked against an arbitrary core branch
-- **WHEN** a maintainer wants to know whether a member passes against a core branch
-- **THEN** opening a pull request for that branch in core, draft or not, SHALL run the member's
-  suite against it, and the member's workflow SHALL offer no manual trigger
+### Requirement: The callable workflow tests the member's own code against the given core
+The workflow SHALL run the member's own code at `member_ref`, never the calling repository's code, against core at the given repository and ref. It SHALL fail exactly when the member's suite fails or cannot be set up.
 
 #### Scenario: A member branch is tested before it merges
 - **WHEN** the workflow is called with `member_ref` set to a member branch
 - **THEN** the member's code SHALL be taken from that branch
+
+### Requirement: The callable workflow has no manual trigger
+The workflow SHALL NOT be startable by hand. A manual run executes in the member's default-branch context. There, code checked out from a caller-supplied ref could write the shared Actions caches that later runs restore. A run called from a core pull request is confined to that pull request's cache scope.
+
+#### Scenario: A maintainer wants a member checked against an arbitrary core branch
+- **WHEN** a maintainer wants to know whether a member passes against a core branch
+- **THEN** opening a pull request for that branch in core, draft or not, SHALL run the member's
+  suite against it
+- **AND** the member's workflow SHALL offer no manual trigger
 
 ### Requirement: A member's gem set changes only as far as the core under test requires
 A compatibility run SHALL start from the member's committed, locked gem versions and change them only
@@ -179,10 +181,6 @@ The CI of an enrolled member SHALL run the suite of the member against the `mast
 camaleon_cms. It SHALL do so on each event that starts the member's own tests. For a plugin, the
 events are a pull request and a push to the default branch. For `florsan`, the event is each push.
 
-The run SHALL call the callable workflow of the member with `member_ref` set to the commit that the
-member's own tests use in that event. The two results of a commit thus differ only in the Camaleon
-code. The run SHALL read the callable workflow from that same commit.
-
 #### Scenario: A pull request changes a plugin
 
 - **WHEN** a pull request is opened or updated against an enrolled plugin
@@ -200,6 +198,12 @@ code. The run SHALL read the callable workflow from that same commit.
 - **WHEN** a commit is pushed to a branch of `florsan`
 - **THEN** the suite of `florsan` SHALL run with that commit, and with `camaleon_cms` from the
   `master` branch
+
+### Requirement: The member check tests the commit that the member's own tests use
+
+The run SHALL call the callable workflow of the member with `member_ref` set to the commit that the
+member's own tests use in that event. The two results of a commit thus differ only in the Camaleon
+code. The run SHALL read the callable workflow from that same commit.
 
 #### Scenario: A pull request changes the callable workflow of a member
 
@@ -236,19 +240,10 @@ Camaleon code. When the check cannot read the version or cannot get the count, t
   count fails
 - **THEN** the suite SHALL run
 
-### Requirement: The member check is advisory and runs no code from a free-form ref
+### Requirement: The member check is advisory
 
 The member check SHALL be a workflow of its own in the member. It SHALL NOT be a precondition of a
 merge in the member, and the Release workflow of a member SHALL NOT require it.
-
-The check SHALL use no stored secret. Its only token SHALL be the token of the run, with read
-permission. A pull request from a fork SHALL run the same jobs. A run inside a fork of the member
-SHALL be skipped. The callable workflow takes the code of the member from the member's repository,
-and a commit of the fork is not there.
-
-A run on a push to the default branch of the member writes the Actions caches of that branch. The
-code of such a run SHALL be only the pushed commit and camaleon_cms `master`, never a ref that a
-person supplies.
 
 #### Scenario: The member check is red on a pull request of the member
 
@@ -261,6 +256,13 @@ person supplies.
 - **WHEN** the Release workflow of a member verifies CI for the commit of the release
 - **THEN** it SHALL consider only the member's own CI workflow
 
+### Requirement: The member check uses no stored secret
+
+The check SHALL use no stored secret. Its only token SHALL be the token of the run, with read
+permission. A pull request from a fork SHALL run the same jobs. A run inside a fork of the member
+SHALL be skipped. The callable workflow takes the code of the member from the member's repository,
+and a commit of the fork is not there.
+
 #### Scenario: A pull request comes from a fork of the member
 
 - **WHEN** a contributor without write access opens a pull request from a fork of a plugin
@@ -271,6 +273,17 @@ person supplies.
 
 - **WHEN** an event starts the workflow in a fork of the member
 - **THEN** the jobs of the member check SHALL be skipped
+
+### Requirement: The member check runs no code from a free-form ref
+
+A run on a push to the default branch of the member writes the Actions caches of that branch. The
+code of such a run SHALL be only the pushed commit and camaleon_cms `master`, never a ref that a
+person supplies.
+
+#### Scenario: A push to the default branch of the member
+
+- **WHEN** a commit is pushed to the default branch of a member
+- **THEN** the run SHALL use only the pushed commit and camaleon_cms `master`, and no ref that a person supplies
 
 ### Requirement: The checks of a member name the Camaleon code that they test
 

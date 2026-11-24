@@ -10,17 +10,36 @@ render in favour of the default decorator, and such values are reported by the s
 ### Requirement: The decorator class option names a post decorator
 
 A write that sets or changes a post type's `cama_post_decorator_class` option SHALL be accepted only
-when the new value is blank or names a class that is a subclass of `CamaleonCms::PostDecorator`. Any
-other value, an unknown class name, a name that cannot be loaded or a class outside the decorator
-hierarchy, SHALL be refused at save with an error naming the option, and the value when it is a
-class name, and the post type's stored options SHALL be left exactly as they were. The check SHALL
-apply to every writer, administrators included, through every option writer and whatever form the
-options are passed in. A write that leaves a stored value unchanged SHALL NOT be refused for it.
+when the new value is blank or names a class that is a subclass of `CamaleonCms::PostDecorator`. A
+write that leaves a stored value unchanged SHALL NOT be refused for it.
 
 #### Scenario: A decorator subclass
 
 - **WHEN** the option is set to the name of a `CamaleonCms::PostDecorator` subclass
 - **THEN** it SHALL be stored and posts of the type SHALL decorate with that class
+
+#### Scenario: Clearing the option
+
+- **WHEN** the option is set to a blank value
+- **THEN** it SHALL be accepted and posts of the type SHALL decorate with the default decorator
+
+#### Scenario: Other options are unaffected
+
+- **WHEN** a post type's other options are written without the decorator option
+- **THEN** they SHALL be stored as before
+
+#### Scenario: A stored value the check would refuse
+
+- **WHEN** a post type holds such a value and its other options are written, deleted or saved with
+  the post type
+- **THEN** those writes SHALL succeed and the stored value SHALL remain, while changing it to another
+  value the check refuses SHALL still be refused
+
+### Requirement: Any other value of the decorator class option is refused
+
+Any other value SHALL be refused at save: an unknown class name, a name that cannot be loaded or a
+class outside the decorator hierarchy. The error SHALL name the option, and the value when it is a
+class name. The post type's stored options SHALL be left exactly as they were.
 
 #### Scenario: A class outside the decorator hierarchy
 
@@ -40,29 +59,6 @@ options are passed in. A write that leaves a stored value unchanged SHALL NOT be
   not a module or a decorator whose file raises while loading
 - **THEN** the save SHALL fail the same way, not with a server error
 
-#### Scenario: Options passed in any form
-
-- **WHEN** the option is written through `set_meta` as `ActionController::Parameters`, as a JSON
-  string, or as a Hash carrying both the String and the Symbol form of its key
-- **THEN** the value that would be stored SHALL be the one checked
-
-#### Scenario: Clearing the option
-
-- **WHEN** the option is set to a blank value
-- **THEN** it SHALL be accepted and posts of the type SHALL decorate with the default decorator
-
-#### Scenario: Other options are unaffected
-
-- **WHEN** a post type's other options are written without the decorator option
-- **THEN** they SHALL be stored as before
-
-#### Scenario: A stored value the check would refuse
-
-- **WHEN** a post type holds such a value and its other options are written, deleted or saved with
-  the post type
-- **THEN** those writes SHALL succeed and the stored value SHALL remain, while changing it to another
-  value the check refuses SHALL still be refused
-
 #### Scenario: A value passed to a save
 
 - **WHEN** a post type is created or updated with the option set to a value the check refuses, in
@@ -76,15 +72,24 @@ options are passed in. A write that leaves a stored value unchanged SHALL NOT be
   writes another option
 - **THEN** the options it wrote before the refusal SHALL remain stored
 
+### Requirement: The decorator class check applies to every writer
+
+The check SHALL apply to every writer, administrators included, through every option writer and
+whatever form the options are passed in.
+
+#### Scenario: Options passed in any form
+
+- **WHEN** the option is written through `set_meta`
+- **AND** the options are `ActionController::Parameters`, a JSON string, or a Hash that carries both
+  the String and the Symbol form of its key
+- **THEN** the value that would be stored SHALL be the one checked
+
 ### Requirement: A refusal from a save hook surfaces in the admin panel
 
 A hook run after an admin post type save can write a value that the check refuses. The admin panel
 SHALL NOT answer that refusal with a server error. It SHALL answer as a refused admin save answers
 (`custom-field-value-rejection`, the requirement "A refused admin save answers by the kind of the
-request"). The post type's own attributes, saved before the hook ran, remain saved. The message
-SHALL quote the value only when it is a class name, cut short, and SHALL NOT echo any other value. A refusal that comes
-while the admin panel serves a GET or HEAD request is no submitted save and SHALL be raised, not
-redirected.
+request"). The post type's own attributes, saved before the hook ran, remain saved.
 
 #### Scenario: A hook stores a rejected value
 
@@ -93,6 +98,16 @@ redirected.
 - **THEN** the response SHALL redirect with the error in the flash, the option SHALL stay unset,
   and posts of the type SHALL decorate with the default decorator
 
+#### Scenario: Saving a post type that holds a stored value the check would refuse
+
+- **WHEN** an administrator saves the settings of such a post type
+- **THEN** the save SHALL succeed and the stored value SHALL remain
+
+### Requirement: The message of a refusal quotes a class name only
+
+The message SHALL quote the value only when it is a class name, cut short, and SHALL NOT echo any
+other value.
+
 #### Scenario: A hook stores markup or an overlong name
 
 - **WHEN** a hook run after an admin post type save writes markup, or a class name longer than the
@@ -100,10 +115,10 @@ redirected.
 - **THEN** the response SHALL redirect with the error in the flash, the markup SHALL NOT appear in the
   flash or on the next page, and no server error SHALL occur
 
-#### Scenario: Saving a post type that holds a stored value the check would refuse
+### Requirement: A refusal while the admin panel serves a GET or HEAD request is raised
 
-- **WHEN** an administrator saves the settings of such a post type
-- **THEN** the save SHALL succeed and the stored value SHALL remain
+A refusal that comes while the admin panel serves a GET or HEAD request is no submitted save. The
+admin panel SHALL raise it and SHALL NOT redirect it.
 
 #### Scenario: A refusal while serving a page
 
@@ -118,9 +133,7 @@ A post SHALL decorate with the class named by its post type's option when that c
 `CamaleonCms::PostDecorator` subclass, and with `CamaleonCms::PostDecorator` otherwise: a blank
 option, a post without a post type, a post type whose options row is not a JSON object (which reads as
 no options), or a stored value the check would refuse (written before the check, left by a removed
-plugin, or imported). A stored value that is ignored SHALL be logged as a warning naming the post type
-and the value, once per request for each post type and value, and SHALL NOT be rewritten. A lookup
-that fails SHALL be logged with the error.
+plugin, or imported).
 
 #### Scenario: A stored value the check would refuse
 
@@ -139,6 +152,23 @@ that fails SHALL be logged with the error.
 - **WHEN** a post's post type has an options row that is not a JSON object
 - **THEN** the post SHALL decorate with the default decorator without a lookup failure, and the row
   is reported by the scan task
+
+### Requirement: A decorator lookup logs an ignored value and a failure
+
+The system SHALL log a stored value that it ignores as a warning. The warning names the post type
+and the value, once per request for each post type and value. The system SHALL NOT rewrite it. A lookup that fails SHALL
+be logged with the error.
+
+#### Scenario: An ignored value is logged once per request
+
+- **WHEN** a request decorates several posts of a post type whose stored option is ignored
+- **THEN** one warning naming the post type and the value SHALL be logged for that request
+- **AND** the stored option SHALL be unchanged
+
+#### Scenario: A lookup that fails
+
+- **WHEN** the lookup of the decorator class fails with an error
+- **THEN** the error SHALL be logged
 
 ### Requirement: Stored values that would be refused are reported
 

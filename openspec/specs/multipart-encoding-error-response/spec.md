@@ -8,29 +8,9 @@ Before, the server answered that request with a 500.
 
 ### Requirement: A multipart request that Rack cannot parse for its encoding gets a 400
 
-A part of a multipart request can name a charset, and Rack gives that charset to the name of the
-part too. The param parser of Rack then raises an encoding error for a part in a charset that is
-not ASCII-compatible (UTF-16, UTF-32, UTF-7). Rack 3.2 converts a part in ISO-2022-JP to UTF-8, so
-that part gets the error only for bytes that Rack cannot convert. A file part can name the charset
-of its file name (`filename*=UTF-16LE''a.txt`), and the parser raises the error for a file name in
-a charset that is not ASCII-compatible too.
-
-The system SHALL answer such a request with a 400, for each request method. No controller action
-SHALL start, and the request SHALL store nothing. The system SHALL remove the temporary files that
-Rack recorded for the uploads of that request. Rack records none when its multipart parser raises
-the error, and Ruby then removes the files at garbage collection. Rack 2.2 and Rack 3.0 record
-none for each such request. Rack 3.2 records none for a part in ISO-2022-JP with invalid bytes and
-for a file name in such a charset.
-
-`CamaleonCms::MultipartEncodingGuard` (the guard) gives that answer:
-
-- It SHALL parse the params of a multipart request only, with the parser of Rack.
-- It SHALL also answer the plain `ArgumentError` of Rack 2.2 with a 400. Rack 2.2 raises that error
-  when the bytes of the part name are invalid in the charset of the part.
-- It SHALL NOT answer another error of the parser. A param error of Rack that is a subclass of
-  `ArgumentError` SHALL pass. Rack and Rails handle such an error as before.
-- The charset in the `Content-Type` of a file part SHALL cause no 400, because Rack does not give
-  that charset to the name of a file part.
+The system SHALL answer a multipart request that the param parser of Rack cannot parse for its
+encoding with a 400, for each request method. No controller action SHALL start, and the request
+SHALL store nothing.
 
 #### Scenario: A POST with a part in UTF-16 gets a 400
 
@@ -43,10 +23,65 @@ for a file name in such a charset.
   `charset=UTF-16LE`
 - **THEN** the response is a 400, and the stored values of the record are unchanged
 
+### Requirement: The 400 covers a part and a file name in a charset that Rack cannot read
+
+A part of a multipart request can name a charset, and Rack gives that charset to the name of the
+part too. The param parser of Rack then raises an encoding error. The system SHALL answer with a
+400 a request that has any of these:
+
+- a part in a charset that is not ASCII-compatible (UTF-16, UTF-32, UTF-7)
+- a part in ISO-2022-JP with bytes that Rack cannot convert
+- a file part whose file name is in a charset that is not ASCII-compatible, such as
+  `filename*=UTF-16LE''a.txt`
+
+#### Scenario: A file name in UTF-16 gets a 400
+
+- **WHEN** a multipart request has a file part with `filename*=UTF-16LE''a.txt`
+- **THEN** the response is a 400, and the next middleware does not get the request
+
+#### Scenario: A part in ISO-2022-JP with bytes that Rack cannot convert gets a 400
+
+- **WHEN** a multipart request has a part with `charset=ISO-2022-JP` and bytes that Rack cannot convert
+- **THEN** the response is a 400, and the next middleware does not get the request
+- **AND** Rack 3.2 converts the other bytes of that charset to UTF-8, so those bytes cause no error
+
+### Requirement: The system removes the temporary files of a refused request
+
+The system SHALL remove the temporary files that Rack recorded for the uploads of that request. Rack
+records none when its multipart parser raises the error, and Ruby then removes the files at garbage
+collection. Rack 2.2 and Rack 3.0 record none for each such request. Rack 3.2 records none for a part
+in ISO-2022-JP with invalid bytes and for a file name in such a charset.
+
+#### Scenario: Rack recorded temporary files for the uploads
+
+- **WHEN** Rack recorded temporary files for the uploads of a multipart request that gets a 400
+- **THEN** the system removes those files
+
+#### Scenario: Rack recorded no temporary file
+
+- **WHEN** the multipart parser of Rack raises the error and Rack recorded no temporary file
+- **THEN** the system removes nothing, and Ruby removes the files at garbage collection
+
+### Requirement: The guard parses the params of multipart requests only
+
+`CamaleonCms::MultipartEncodingGuard` (the guard) gives the 400 answer. It SHALL parse the params of a
+multipart request only, with the parser of Rack. The charset in the `Content-Type` of a file part
+SHALL cause no 400. Rack does not give that charset to the name of a file part.
+
 #### Scenario: A part in an ASCII-compatible charset reaches the controller
 
 - **WHEN** a multipart request has a part with `charset=ISO-8859-1`
 - **THEN** the controller saves the request
+
+#### Scenario: A file part with a charset in its content type
+
+- **WHEN** a multipart request has a file part whose `Content-Type` names a charset
+- **THEN** the guard answers no 400 for that charset
+
+### Requirement: The guard answers the plain ArgumentError of Rack 2.2 with a 400
+
+The guard SHALL also answer the plain `ArgumentError` of Rack 2.2 with a 400. Rack 2.2 raises that
+error when the bytes of the part name are invalid in the charset of the part.
 
 #### Scenario: The plain ArgumentError of Rack 2.2 gets a 400
 
@@ -54,10 +89,10 @@ for a file name in such a charset.
   that starts with `invalid byte sequence`, for a multipart request
 - **THEN** the response is a 400, and the next middleware does not get the request
 
-#### Scenario: A file name in UTF-16 gets a 400
+### Requirement: The guard does not answer another error of the parser
 
-- **WHEN** a multipart request has a file part with `filename*=UTF-16LE''a.txt`
-- **THEN** the response is a 400, and the next middleware does not get the request
+The guard SHALL NOT answer another error of the parser. A param error of Rack that is a subclass of
+`ArgumentError` SHALL pass. Rack and Rails handle such an error as before.
 
 #### Scenario: Another error of the parser stays with Rack and Rails
 

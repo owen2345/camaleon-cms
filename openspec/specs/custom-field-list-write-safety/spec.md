@@ -13,11 +13,25 @@ to a signed-in user without rights on that post or post type.
 ### Requirement: The custom-fields list category write requires a CSRF-verified POST
 
 `Admin::Settings::CustomFieldsController#list` SHALL persist a post's categories (via
-`update_categories`) only on a POST request — not merely a non-GET one, because Rails' CSRF
-verification exempts HEAD exactly like GET. A GET or HEAD SHALL render the field groups for the
-resolved record without mutating it, so that a cross-site request that carries the SameSite=Lax auth
-cookie but no CSRF token cannot change or delete a post's category relationships. The route SHALL
-accept POST so a legitimate, CSRF-verified caller can still perform the write.
+`update_categories`) only on a POST request, not merely a non-GET one, because Rails' CSRF
+verification exempts HEAD exactly like GET. The route SHALL accept POST so a legitimate,
+CSRF-verified caller can still perform the write.
+
+#### Scenario: A POST performs the category write
+
+- **WHEN** a signed-in user sends `POST /admin/settings/custom_fields/list` with `post_id=<ID>` and a `categories` list of the post type's own categories
+- **THEN** the post's categories are set to that list
+
+#### Scenario: A POST ignores categories from another site
+
+- **WHEN** the `categories` list on the POST names a category owned by another site
+- **THEN** that category is not added to the post
+
+### Requirement: A GET or HEAD of the custom-fields list does not mutate the record
+
+A GET or HEAD SHALL render the field groups for the resolved record without mutating it. So a
+cross-site request that carries the SameSite=Lax auth cookie but no CSRF token cannot change or
+delete a post's category relationships.
 
 #### Scenario: A GET does not change a post's categories
 
@@ -34,29 +48,28 @@ accept POST so a legitimate, CSRF-verified caller can still perform the write.
 - **WHEN** a signed-in user sends `GET /admin/settings/custom_fields/list?post_id=<ID>&categories[]=<OTHER>` for an existing post that is not assigned category `OTHER`
 - **THEN** the rendered field groups are those of the post's own saved categories only, not category `OTHER`'s — the read-only verb does not union the request's `categories` into the render
 
-#### Scenario: A POST performs the category write
-
-- **WHEN** a signed-in user sends `POST /admin/settings/custom_fields/list` with `post_id=<ID>` and a `categories` list of the post type's own categories
-- **THEN** the post's categories are set to that list
-
-#### Scenario: A POST ignores categories from another site
-
-- **WHEN** the `categories` list on the POST names a category owned by another site
-- **THEN** that category is not added to the post
-
 ### Requirement: The custom-fields list endpoint authorizes the caller against the resolved record
 
 `Admin::Settings::CustomFieldsController#list` carries no role `before_action` and is reachable by any
 signed-in user, so it SHALL authorize the caller against the record it resolves before rendering or
-writing: `:update` on the post when `post_id` names an existing post — covering both the GET/HEAD render
-of that post's custom-field values and the POST category write — and `:create_post` on the post type for
-the new-post render branch. A caller who lacks the required ability SHALL be denied, with neither the
-field groups rendered nor the categories changed.
+writing. A caller who lacks the required ability SHALL be denied, with neither the field groups
+rendered nor the categories changed.
 
 #### Scenario: A user who cannot update the post is denied
 
 - **WHEN** a signed-in user without `:update` on the post sends `#list` with that `post_id` (by GET or POST)
 - **THEN** the request is denied, and the post's categories are unchanged
+
+### Requirement: The custom-fields list endpoint requires the ability of its branch
+
+The endpoint SHALL require `:update` on the post when `post_id` names an existing post. That covers
+both the GET/HEAD render of the custom-field values of that post and the POST category write. It
+SHALL require `:create_post` on the post type for the new-post render branch.
+
+#### Scenario: A user who can update the post is not denied
+
+- **WHEN** a signed-in user with `:update` on the post sends `#list` with that `post_id` (by GET or POST)
+- **THEN** the request is not denied
 
 #### Scenario: A user who cannot create posts of the type is denied the new-post render
 

@@ -46,26 +46,29 @@ The method is public API shipped in the gem and is called by plugins and themes 
 
 `Hash#to_attr_url_format` emits a Ruby-style `:key => "value"` fragment for code generation, not HTML. Every emitted value SHALL be a complete, correctly escaped double-quoted Ruby literal, such that any input round-trips unchanged through evaluation.
 
-It SHALL NOT be given the HTML escaper used by `to_attr_format`: its output is not HTML, and entity-encoding would corrupt the generated code.
-
-This is a correctness requirement, not a security one. The method's existing quote handling is already correct for its context — `'a"b'` round-trips today. What it misses is the backslash, which is itself an escape character inside a double-quoted literal.
+This is a correctness requirement, not a security one.
 
 #### Scenario: Value containing a double quote round-trips
 - **WHEN** a value containing `"` is passed to `to_attr_url_format`
 - **THEN** evaluating the emitted fragment SHALL yield the original value
+- **AND** the existing quote handling is already correct for this context, because `'a"b'` round-trips
 
 #### Scenario: Literal backslash is preserved rather than forming an escape sequence
 - **WHEN** a value contains a backslash, as in `a\b`
 - **THEN** evaluating the emitted fragment SHALL yield that value unchanged
 - **AND** SHALL NOT yield a control character
+- **AND** the backslash needs care because it is itself an escape character inside a double-quoted literal
 
 #### Scenario: Backslash immediately preceding a quote does not break the literal
 - **WHEN** a value contains `a\"b`
 - **THEN** the emitted fragment SHALL be syntactically valid Ruby
 - **AND** evaluating it SHALL yield the original value
 
+### Requirement: `Hash#to_attr_url_format` does not use the HTML escaper
+
+`Hash#to_attr_url_format` SHALL NOT use the HTML escaper that `to_attr_format` uses. Its output is not HTML, and entity-encoding would corrupt the generated code.
+
 #### Scenario: HTML entities are not introduced
 - **WHEN** a value contains `<` or `&`
 - **THEN** the emitted fragment SHALL contain those characters literally
 - **AND** SHALL NOT contain `&lt;` or `&amp;`
-

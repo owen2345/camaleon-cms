@@ -11,30 +11,16 @@ invalid group number is refused too, for each author.
 
 ### Requirement: Trusted authors and explicit pipelines bypass the gate
 
-Admins SHALL always be able to store any value. The other trusted authors SHALL depend on the owner
-of the value:
-
-- For the fields of a post, a saver that holds `post_content_unfiltered_html` for the post type SHALL
-  bypass the gate. The permission that governs the post body governs the fields of the post.
-- For the fields of an owner that is not a post, a saver that holds `settings` or `custom_fields`
-  SHALL bypass the gate. This SHALL NOT apply to another site or its themes (the last item). These
-  two permissions give a role the trust of an administrator. Examples are the current site, its theme,
-  a category, a post tag, a user, a nav menu item and a post type.
-- For the fields of a theme of the current site, a saver that holds `theme_settings` SHALL bypass
-  the gate too. That permission allows the save of the theme settings, which holds these fields.
-- For the fields of another site or of its theme, only an admin SHALL bypass the gate. The same
-  applies to a value with no owner.
-
-The trust check SHALL find the owner of a value by its Camaleon class. This SHALL hold also when the
-host app has a top-level class of the same name, such as `Post`.
-
-When no request context exists, the gate SHALL apply (fail closed). A trusted server-side pipeline
-opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang enabler with no writer.
+Admins SHALL always be able to store any value. The other trusted authors SHALL bypass the gate only as far as the owner of the value allows. The next requirements give the rule for each owner.
 
 #### Scenario: Admin stores a script editor value verbatim
 
 - **WHEN** an admin saves an editor field value containing `<script>`
 - **THEN** the value is stored exactly as written
+
+### Requirement: The permission of the post body governs the fields of a post
+
+For the fields of a post, a saver that holds `post_content_unfiltered_html` for the post type SHALL bypass the gate. The permission that governs the post body governs the fields of the post.
 
 #### Scenario: Granted non-admin role is trusted for a post's fields
 
@@ -42,16 +28,20 @@ opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang 
   editor value on a post of that type
 - **THEN** the value is stored exactly as written
 
+#### Scenario: A settings or custom_fields holder is not trusted for the fields of a post
+
+- **WHEN** a non-admin role that holds `settings` or `custom_fields`, but not
+  `post_content_unfiltered_html`, saves a post field value that holds a `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
+### Requirement: A settings or custom_fields holder is trusted for the fields of other owners
+
+For the fields of an owner that is not a post, a saver that holds `settings` or `custom_fields` SHALL bypass the gate. This SHALL NOT apply to another site or its themes. These two permissions give a role the trust of an administrator. Examples are the current site, its theme, a category, a post tag, a user, a nav menu item and a post type.
+
 #### Scenario: A settings holder is trusted for the fields of the site
 
 - **WHEN** a non-admin role that holds `settings` saves the site settings with a `text_box` site field
   value that holds a `<script>` element
-- **THEN** the value is stored exactly as written
-
-#### Scenario: A theme_settings holder is trusted for the fields of a theme
-
-- **WHEN** a non-admin role that holds `theme_settings` saves the theme settings with a `text_box`
-  theme field value that holds a `<script>` element
 - **THEN** the value is stored exactly as written
 
 #### Scenario: A settings or custom_fields holder is trusted for the fields of other owners
@@ -60,17 +50,15 @@ opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang 
   category field value that hold a `<script>` element
 - **THEN** each value is stored exactly as written
 
-#### Scenario: A settings or custom_fields holder is not trusted for the fields of a post
+### Requirement: A theme_settings holder is trusted for the fields of a theme
 
-- **WHEN** a non-admin role that holds `settings` or `custom_fields`, but not
-  `post_content_unfiltered_html`, saves a post field value that holds a `<script>` element
-- **THEN** the save is refused, and no value row is stored
+For the fields of a theme of the current site, a saver that holds `theme_settings` SHALL bypass the gate too. That permission allows the save of the theme settings, which holds these fields.
 
-#### Scenario: A settings holder is not trusted for the fields of another site
+#### Scenario: A theme_settings holder is trusted for the fields of a theme
 
-- **WHEN** a non-admin role that holds `settings` saves a field value of another site that holds a
-  `<script>` element
-- **THEN** the save is refused, and no value row is stored
+- **WHEN** a non-admin role that holds `theme_settings` saves the theme settings with a `text_box`
+  theme field value that holds a `<script>` element
+- **THEN** the value is stored exactly as written
 
 #### Scenario: A theme_settings holder is not trusted for the fields of another owner
 
@@ -78,12 +66,30 @@ opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang 
   that holds a `<script>` element
 - **THEN** the save is refused, and no value row is stored
 
+### Requirement: Only an admin is trusted for another site or a value with no owner
+
+For the fields of another site or of its theme, only an admin SHALL bypass the gate. The same applies to a value with no owner.
+
+#### Scenario: A settings holder is not trusted for the fields of another site
+
+- **WHEN** a non-admin role that holds `settings` saves a field value of another site that holds a
+  `<script>` element
+- **THEN** the save is refused, and no value row is stored
+
+### Requirement: The trust check finds the owner by its Camaleon class
+
+The trust check SHALL find the owner of a value by its Camaleon class. This SHALL hold also when the host app has a top-level class of the same name, such as `Post`.
+
 #### Scenario: A top-level Post model of the host app does not change the trust
 
 - **WHEN** the host app has a top-level `Post` model
 - **AND** a non-admin role that holds `settings`, but not `post_content_unfiltered_html`, saves a post
   field value that holds a `<script>` element
 - **THEN** the save is refused, and no value row is stored
+
+### Requirement: A missing request context fails closed and an explicit pipeline can opt out
+
+When no request context exists, the gate SHALL apply (fail closed). A trusted server-side pipeline opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang enabler with no writer.
 
 #### Scenario: Missing request context fails closed
 
@@ -98,46 +104,45 @@ opts out with `CustomFieldsRelationship#unfiltered_value!`, a reader and a bang 
 
 ### Requirement: A refused value rolls the save back and surfaces as an error
 
-An admin post save SHALL be atomic across the parent post and its metas, field values and options:
-they are written in one transaction, so a value the gate refuses rolls the parent save back with it —
-no half-applied post, and no orphan post on create. The response SHALL surface the refusal naming
-the field, as a refused admin save answers (the requirement "A refused admin save answers by the kind of the request"), and the refusal SHALL NOT produce an unhandled 500.
-
-The draft save of the post editor SHALL be atomic in the same way, for a draft create and for a
-draft update. A refused custom-field value, and custom-field `values` in a shape that the shared
-permit does not keep, SHALL roll the whole draft save back. A refused draft create MUST store no
-draft row, no meta and no link to a category or a tag. A refused draft update MUST keep the draft as
-stored: its attributes, metas, categories, tags, options and custom-field values. A refused draft
-create on a buffer that exists MUST keep that buffer in the same way. A refused draft save MUST
-store no new tag.
-
-The site settings save SHALL be atomic in the same way across the site and its options, metas and
-custom-field values. Each of these refusals SHALL roll the whole save back:
-
-- a refused custom-field value
-- custom-field `values` in a shape that the shared permit does not keep
-- an options or metas container that is not a set of fields
-
-A refused site settings save MUST keep the site as stored: its name, its slug, its description, its
-options, its metas and its custom-field values. So the redirect of the refusal MUST lead to a host
-that names the site.
+An admin post save SHALL be atomic across the parent post and its metas, field values and options. Camaleon writes them in one transaction, so a value that the gate refuses rolls the parent save back with it. The response SHALL surface the refusal naming the field. It SHALL NOT produce an unhandled 500.
 
 #### Scenario: Posts controller surfaces the refusal atomically
 
 - **WHEN** an untrusted author submits a post update whose editor field value contains a script
 - **THEN** the response redirects back with a flash error naming the field, the value is not stored,
   and the parent post's other changes in that submission are not persisted either
+- **AND** the response surfaces the refusal as a refused admin save answers (the requirement "A refused admin save answers by the kind of the request")
+- **AND** the refusal does not produce an unhandled 500
+
+#### Scenario: A refused post create leaves no orphan post
+
+- **WHEN** an untrusted author submits a post create whose editor field value contains a script
+- **THEN** no post is stored
+- **AND** no half-applied post remains
 
 #### Scenario: Value persistence does not destroy the prior value
 
 - **WHEN** an author's new value for a field is refused (through the single-value write path)
 - **THEN** the previously stored value for that field is unchanged
 
+### Requirement: A refused draft save rolls the whole draft save back
+
+The draft save of the post editor SHALL be atomic in the same way, for a draft create and for a draft update. A refused custom-field value SHALL roll the whole draft save back. So SHALL custom-field `values` in a shape that the shared permit does not keep.
+
 #### Scenario: A refused draft create stores no draft row
 
 - **WHEN** the draft create of a new post, or the first draft create under a post, carries a
   refused value
 - **THEN** the response is the refusal with a 422, and no draft row and no meta are stored
+
+#### Scenario: A draft save with custom-field values that the permit does not keep is rolled back
+
+- **WHEN** a draft save carries custom-field `values` in a shape that the shared permit does not keep
+- **THEN** the whole draft save is rolled back
+
+### Requirement: A refused draft save leaves the stored data unchanged
+
+A refused draft create MUST store no draft row, no meta and no link to a category or a tag. A refused draft update MUST keep the draft as stored: its attributes, metas, categories, tags, options and custom-field values. A refused draft create on a buffer that exists MUST keep that buffer in the same way. A refused draft save MUST store no new tag.
 
 #### Scenario: A refused draft create stores no category or tag
 
@@ -163,6 +168,27 @@ that names the site.
 - **THEN** the draft keeps its title, its meta, its categories, its tags and its custom-field values,
   and no new tag is stored
 
+### Requirement: The site settings save is atomic
+
+The site settings save SHALL be atomic in the same way across the site and its options, metas and custom-field values. Each refused part SHALL roll the whole save back.
+
+#### Scenario: Each kind of refusal rolls the whole site settings save back
+
+- **WHEN** a site settings save carries a refused custom-field value
+- **OR** it carries custom-field `values` in a shape that the shared permit does not keep
+- **OR** it carries an options or metas container that is not a set of fields
+- **THEN** the whole save is rolled back
+
+#### Scenario: A site settings save that passes stores each part
+
+- **WHEN** a site settings save carries a new slug, a new name, a new option and a custom-field
+  value that passes
+- **THEN** each of them is stored, and the response redirects to the form on the new host
+
+### Requirement: A refused site settings save keeps the site as stored
+
+A refused site settings save MUST keep the site as stored: its name, its slug, its description, its options, its metas and its custom-field values. So the redirect of the refusal MUST lead to a host that names the site.
+
 #### Scenario: A refused site settings save keeps the slug of the site
 
 - **WHEN** an install has two sites
@@ -176,28 +202,32 @@ that names the site.
 - **WHEN** the same save is an XHR without the `cama_ajax_request` param
 - **THEN** the response is the refusal as text with a 422, and the site keeps its slug
 
-#### Scenario: A site settings save that passes stores each part
+### Requirement: Field-attribute values are gated on their decoded members
 
-- **WHEN** a site settings save carries a new slug, a new name, a new option and a custom-field
-  value that passes
-- **THEN** each of them is stored, and the response redirects to the form on the new host
-
-### Requirement: Field-attribute values are gated on their decoded members and rendered verbatim
-
-For `field_attrs` values — stored as JSON whose string members the frontend emits as markup — the
-system SHALL parse the stored JSON and apply the markup gate to each **decoded** member of any JSON
-shape (object, array, or nested), and to each key of an object, so that
-markup hidden by JSON unicode-escaping (\u003c stored instead of a literal `<`) is refused exactly like literal markup;
-a value that does not parse SHALL be scanned as stored. Trust, fail-closed and opt-out semantics
-SHALL be those of the custom-field gate. When the stored JSON is an object the renderer SHALL emit
-the stored attribute name and value verbatim (the pair's value, not the attribute name twice); a JSON
-value that is not an object (array or scalar) SHALL render nothing rather than raise.
+For `field_attrs` values, stored as JSON whose string members the frontend emits as markup, Camaleon SHALL parse the stored JSON. It SHALL apply the markup gate to each decoded member of any JSON shape (object, array, or nested), and to each key of an object. A value that does not parse SHALL be scanned as stored. Trust, fail-closed and opt-out semantics SHALL be those of the custom-field gate.
 
 #### Scenario: Script in a pair member is refused regardless of byte encoding
 
 - **WHEN** an untrusted author saves a field_attrs pair whose value member carries a script
   element, whether the stored JSON holds it as literal bytes or unicode-escaped
 - **THEN** the save is refused and no value row is stored
+- **AND** markup hidden by JSON unicode-escaping (\u003c stored instead of a literal `<`) is refused exactly like literal markup
+
+#### Scenario: Trusted authors store any pair
+
+- **WHEN** an admin (or a saver holding `post_content_unfiltered_html` for the post type) saves a
+  pair carrying a script member
+- **THEN** the pair is stored exactly as written
+
+#### Scenario: Script hidden in a JSON-array member is refused
+
+- **WHEN** an untrusted author saves a field_attrs value that is a JSON array whose member carries a
+  unicode-escaped script
+- **THEN** the save is refused and no value row is stored
+
+### Requirement: Field-attribute values are rendered verbatim
+
+When the stored JSON is an object, the renderer SHALL emit the stored attribute name and value verbatim. It SHALL emit the value of the pair, not the attribute name twice. A JSON value that is not an object (array or scalar) SHALL render nothing rather than raise.
 
 #### Scenario: Benign pairs are stored and rendered byte-for-byte
 
@@ -206,22 +236,10 @@ value that is not an object (array or scalar) SHALL render nothing rather than r
 - **THEN** the pair is stored exactly as written and the frontend renders the attribute name and
   the value verbatim
 
-#### Scenario: Trusted authors store any pair
-
-- **WHEN** an admin (or a saver holding `post_content_unfiltered_html` for the post type) saves a
-  pair carrying a script member
-- **THEN** the pair is stored exactly as written
-
 #### Scenario: The value member is rendered
 
 - **WHEN** a stored pair `{attr: "Size", value: "XL"}` is rendered
 - **THEN** the output shows `Size` as the label and `XL` as the value (not the label twice)
-
-#### Scenario: Script hidden in a JSON-array member is refused
-
-- **WHEN** an untrusted author saves a field_attrs value that is a JSON array whose member carries a
-  unicode-escaped script
-- **THEN** the save is refused and no value row is stored
 
 #### Scenario: A non-object field_attrs value renders nothing
 
@@ -243,124 +261,19 @@ actually changes SHALL be gated.
 - **AND WHEN** the author changes that value itself
 - **THEN** the gate re-runs and refuses it
 
+### Requirement: A group number is the index of a copy of a repeatable field group
+
+An author can add a repeatable field group to a post several times. The group number of a custom-field value SHALL be the index of the copy that the value belongs to, from 0.
+
+#### Scenario: The copies of a repeatable group get consecutive group numbers
+
+- **WHEN** an author adds a repeatable field group to a post twice
+- **THEN** the values of the first copy hold group number 0
+- **AND** the values of the second copy hold group number 1
+
 ### Requirement: A custom-field value validates its group number
 
-An author can add a repeatable field group to a post several times. The group number of a
-custom-field value is the index of the copy that the value belongs to, from 0.
-
-A value SHALL be valid only when its group number is nil, an Integer from 0 to 2147483647, or a
-String of 1 to 16 digits with such a number. For any other group number, the save MUST fail with
-`ActiveRecord::RecordInvalid` and a message that names the field ("the group number error"), on
-each supported database. The system SHALL NOT change an invalid group number to a valid one. The
-writes that skip the validation (`update_attribute`, `save(validate: false)`, `update_column`,
-`update_all` with a hash, `insert_all`) are the exception: they store a castable group number inside
-the 4-byte range as Rails casts it, as before. For a String with no leading digit (`'abc'`),
-`update_column` stores NULL.
-
-- **When the validation runs.** A new value is always validated. A stored value SHALL be validated
-  only when a save changes its group number. A copy (`dup`) is a new value, and it SHALL keep the
-  group number as the caller gave it. So the copy of an invalid value MUST be invalid.
-- **Admin saves.** An admin save that reaches the controller with an invalid group number MUST NOT
-  answer with a 500. It SHALL answer with the error as a refused admin save answers (the requirement "A refused admin save answers by the kind of the request"), and the record SHALL keep its stored values. Rails answers a param in an invalid encoding with a 400 before the controller. An absent
-  or empty group number SHALL mean group 0. `cama_permitted_field_options` SHALL keep a group
-  number that is a list or a hash, with its content removed, so that the save fails.
-- **Calls with no values.** `set_field_value` with an empty list of values MUST get the error, and
-  it SHALL validate the group number before it deletes a stored value. An entry of
-  `set_field_values` with no values MUST get the error too.
-- **A call that looks the value up.** `update_field_value` MUST get the error for an invalid group
-  number, and it SHALL validate the number before its lookup. Without the validation, the lookup
-  finds the groups of a list (`[1]`) and no value for `'1abc'` or `true`. The caller then
-  gets no error. A negative Integer is the exception: the method SHALL look it up with no
-  validation. The lookup finds only a value with that number, and the method changes
-  no group number. The method returns false for a value that a validation refuses, and nil for each
-  other error in the lookup or the write, as before.
-- **An update with a loaded association.** `update_field_value` SHALL update the stored value in
-  the database. With a loaded `custom_field_values` association, it SHALL then put the saved value
-  in the row with the same id that the association holds. The record then reads the new value. When
-  another instance replaced the stored row, the association holds no such row, and the record reads
-  the old value until it is loaded again. The method SHALL save no other change of that row.
-- **Reads.** `get_field_values` SHALL read no value for an invalid group number, other than a
-  negative Integer down to -2147483648 or a list. `get_field_value` SHALL return its default for
-  a group number that reads no value. A negative Integer down to -2147483648 reads a stored value
-  with that number. A list (Array) SHALL read each group in the list when each item is a valid
-  group number or a negative Integer down to -2147483648. A list with any other item SHALL read no
-  value. A list in a list (`[[1]]`) is such an item.
-- **Reads with a loaded association.** Each group number SHALL read the same stored values with or
-  without a loaded `custom_field_values` association. A loaded association SHALL read `:note` as
-  `'note'`, `5` as `'5'`, a Date as `'2020-01-01'` and a Range key as its slugs, as the database
-  does. It SHALL read each key of a list, and the keys of a list in a list. The database gives the
-  values in the order of `term_order`, and a loaded association in the order of its rows. So the
-  first value, which `get_field_value` returns, can differ. The values differ in these cases:
-  - A loaded association reads unsaved values: the values of the rows that the record built, and
-    the changed values of its rows. It reads each row under the group number and the slug that the
-    row holds, also when they are not saved. It reads an unsaved invalid group number as the
-    integer cast gives it (`'1abc'` as group 1).
-  - A loaded association reads the rows that it holds, until it is loaded again. A write of another
-    instance, or an `update_all`, changes no row that the association holds, so the association
-    reads the old values.
-  - On MySQL, the collation can match another spelling of a slug (`'Note'` or `'nóte'` for
-    `'note'`), and a loaded association matches only the same slug.
-  - The database compares the slugs in a Range key with its collation. A loaded association
-    compares their bytes.
-  - The database raises an error for a key that it cannot read, for example a Hash. A loaded
-    association reads no value for such a key.
-- **Reads of each group.** `get_fields_grouped` SHALL read the values of a Symbol key (`:note`) as
-  it reads the values of the String key (`'note'`). An Integer key (`5`) SHALL read the values of
-  its String (`'5'`). A Date key SHALL read the values of the slug that the connection quotes for it
-  (`'2020-01-01'`). A Range key SHALL read the values of each slug in the Range. Each group
-  SHALL give the values under the key as given.
-- **A String that Rails cannot cast.** Rails cannot read a String in an invalid encoding, or in an
-  encoding that is not ASCII-compatible (UTF-16), as an Integer. The integer cast of Rails raises an
-  `ArgumentError` for an invalid encoding. For UTF-16LE or UTF-16BE, the cast returns nil, and a
-  lookup raises an encoding error. For such a group number, each write path MUST fail with the group number
-  error. A lookup (`where`, `find_by`) SHALL find no row. `update_attribute` and
-  `save(validate: false)` MUST NOT store it.
-  `update_column`, `update_all` with a hash and `insert_all` are not write paths of this
-  requirement: they store NULL.
-- **A slug that is not in UTF-8.** The message of the group number error SHALL hold the slug of
-  the field in UTF-8. Without the conversion, a slug in an encoding that is not ASCII-compatible
-  (UTF-16) raises an encoding error in place of the group number error.
-- **The range of the attribute.** The group number attribute SHALL have the range of a 4-byte
-  integer on each supported database, also where the column can hold a larger integer (SQLite, a
-  `bigint` column).
-- **The rollback.** `set_field_value` and `set_field_values` delete stored values before they
-  create the new values. When a new value is invalid, that delete MUST roll back. Inside a
-  transaction of the caller, the two methods SHALL use a savepoint, so the stored values stay when
-  the caller rescues the error and commits. They SHALL run one statement in that transaction
-  first, because Rails 7.2 and later open no savepoint before the first statement.
-- **A pool with an isolation level.** Rails 8.1 permits no savepoint while the connection pool has
-  a transaction isolation level. The two methods then SHALL NOT ask for a savepoint. Inside a
-  transaction of the caller, they run in that transaction, and only a rollback of it restores the
-  deleted values. The transaction of the two methods is on the connection pool of
-  `ActiveRecord::Base`.
-- **The record after a call.** After a failed call, the two methods SHALL reset the
-  `custom_field_values` association of the record. The record then SHALL read its stored values,
-  and its next save MUST NOT store a value of the failed call. A failed call is an exception of any
-  class, a `throw` or `ActiveRecord::Rollback`. The two methods SHALL put back the unsaved values
-  that the caller built before the call. A callback of a value that raises `ActiveRecord::Rollback`
-  before Rails stores the value is not a failed call.
-- **A loaded association.** After `set_field_value`, a loaded `custom_field_values` association
-  SHALL NOT hold a value that the call deleted. The call SHALL NOT load an association that is not
-  loaded.
-
-#### Scenario: An admin save with a group number above the range
-
-- **WHEN** an admin save submits a registered field with a group number above 2147483647
-- **THEN** the response redirects back with an error that names the field, and the stored values of
-  the record are unchanged
-
-#### Scenario: An admin save with a boolean group number
-
-- **WHEN** an admin save with a JSON body submits `true` or `false` as a group number
-- **THEN** the response redirects back with an error that names the field, and the stored values of
-  the record are unchanged
-
-#### Scenario: An admin save with a group number that is a list or a hash
-
-- **WHEN** an admin save submits a registered field with a group number that is a list, a hash or a
-  list of hashes
-- **THEN** the response redirects back with an error that names the field, and the stored values of
-  the record are unchanged
+A group number SHALL be valid only when it is nil or an Integer from 0 to 2147483647. A String of 1 to 16 digits with such a number is valid too. For any other group number, the save MUST fail. It MUST fail with `ActiveRecord::RecordInvalid` and a message that names the field ("the group number error"). This applies on each supported database. The system SHALL NOT change an invalid group number to a valid one.
 
 #### Scenario: A negative group number, or a String that is not digits
 
@@ -377,6 +290,29 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **WHEN** a save submits a group number of 2147483647
 - **THEN** the value is stored under that group number
 
+### Requirement: Writes that skip the validation store a castable group number
+
+These writes skip the validation: `update_attribute`, `save(validate: false)`, `update_column`, `update_all` with a hash and `insert_all`. They SHALL store a castable group number inside the 4-byte range as Rails casts it, as before. For a String with no leading digit (`'abc'`), `update_column` SHALL store NULL.
+
+#### Scenario: A castable group number through a write that skips the validation
+
+- **WHEN** one of these writes gets a castable group number inside the 4-byte range
+- **THEN** the value is stored with the number as Rails casts it
+
+#### Scenario: A String with no leading digit through update_column
+
+- **WHEN** `update_column` gets the group number `'abc'`
+- **THEN** NULL is stored
+
+### Requirement: The validation runs for a new value and for a changed group number
+
+A new value SHALL always be validated. A stored value SHALL be validated only when a save changes its group number. A copy (`dup`) is a new value, and it SHALL keep the group number as the caller gave it. So the copy of an invalid value MUST be invalid.
+
+#### Scenario: A new value with an invalid group number is validated
+
+- **WHEN** a new value with an invalid group number is saved
+- **THEN** the save fails with the group number error
+
 #### Scenario: A stored value with a negative group number stays writable
 
 - **WHEN** a stored value holds a negative group number down to -2147483648
@@ -384,32 +320,69 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   with that number as an Integer
 - **THEN** the update succeeds
 
-#### Scenario: A group number String that Rails cannot cast
-
-- **WHEN** `set_field_value`, `set_field_values` or a direct `custom_field_values.create!` gets a
-  group number String in an invalid encoding, or in an encoding that is not ASCII-compatible
-- **THEN** the caller gets the group number error, and the stored values of the record are
-  unchanged
-
-#### Scenario: A save that skips the validation, with a String that Rails cannot cast
-
-- **WHEN** `update_attribute` or `save(validate: false)` saves a value with a group number String
-  in an invalid encoding, or in an encoding that is not ASCII-compatible
-- **THEN** the save returns false, the value holds the message of the group number error, and the
-  stored value is unchanged
-
-#### Scenario: A write that looks the number up first
-
-- **WHEN** `custom_field_values.find_or_create_by!` gets a group number String in an invalid
-  encoding, or in an encoding that is not ASCII-compatible
-- **THEN** the lookup finds no row, the caller gets the group number error, and the stored values
-  of the record are unchanged
-
 #### Scenario: The copy of an invalid value is invalid
 
 - **WHEN** a caller copies a value with `dup`, and the value holds an invalid group number
 - **THEN** the save of the copy returns false, the copy holds the message of the group number
   error, and the save stores no row
+
+### Requirement: An admin save with an invalid group number does not answer with a 500
+
+An admin save that reaches the controller with an invalid group number MUST NOT answer with a 500. It SHALL answer with the error as the requirement "A refused admin save answers by the kind of the request" says. The record SHALL keep its stored values. An absent or empty group number SHALL mean group 0.
+
+#### Scenario: An admin save with a group number above the range
+
+- **WHEN** an admin save submits a registered field with a group number above 2147483647
+- **THEN** the response redirects back with an error that names the field, and the stored values of
+  the record are unchanged
+
+#### Scenario: An admin save with a boolean group number
+
+- **WHEN** an admin save with a JSON body submits `true` or `false` as a group number
+- **THEN** the response redirects back with an error that names the field, and the stored values of
+  the record are unchanged
+
+#### Scenario: An admin save with an absent or empty group number
+
+- **WHEN** an admin save submits a registered field value with an absent or empty group number
+- **THEN** the value is stored under group 0
+
+#### Scenario: A param in an invalid encoding never reaches the controller
+
+- **WHEN** a request carries a param in an invalid encoding
+- **THEN** Rails answers with a 400 before the controller
+
+### Requirement: The shared permit keeps a malformed group number
+
+`cama_permitted_field_options` SHALL keep a group number that is a list or a hash, with its content removed, so that the save fails.
+
+#### Scenario: An admin save with a group number that is a list or a hash
+
+- **WHEN** an admin save submits a registered field with a group number that is a list, a hash or a
+  list of hashes
+- **THEN** the response redirects back with an error that names the field, and the stored values of
+  the record are unchanged
+
+### Requirement: Calls with no values validate the group number
+
+`set_field_value` with an empty list of values MUST get the error, and it SHALL validate the group number before it deletes a stored value. An entry of `set_field_values` with no values MUST get the error too.
+
+#### Scenario: An empty list of values with an invalid group number
+
+- **WHEN** `set_field_value` gets an empty list of values and an invalid group number
+- **THEN** the caller gets the group number error, and the stored values of the record are
+  unchanged
+
+#### Scenario: An entry with no values and an invalid group number
+
+- **WHEN** `set_field_values` or an admin save gets an entry with no values and an invalid group
+  number
+- **THEN** the caller gets the group number error, and the stored values of the record are
+  unchanged
+
+### Requirement: update_field_value validates the group number before its lookup
+
+`update_field_value` MUST get the error for an invalid group number, and it SHALL validate the number before its lookup. A negative Integer is the exception: the method SHALL look it up with no validation. The method returns false for a value that a validation refuses, and nil for each other error in the lookup or the write, as before.
 
 #### Scenario: update_field_value with an invalid group number
 
@@ -417,12 +390,25 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   example `'1abc'` or `true`
 - **THEN** the caller gets the group number error, and the stored values of the record are
   unchanged
+- **AND** without the validation, the lookup finds the groups of a list (`[1]`)
+- **AND** without the validation, the lookup finds no value for `'1abc'` or `true`, so the caller gets no error
 
-#### Scenario: update_field_value with a slug in UTF-16 and an invalid group number
+#### Scenario: update_field_value with a negative Integer
 
-- **WHEN** `update_field_value` gets a slug in UTF-16 and an invalid group number (`'1abc'`)
-- **THEN** the caller gets the group number error with the slug in UTF-8, and the stored values of
-  the record are unchanged
+- **WHEN** `update_field_value` gets a negative Integer as the group number
+- **THEN** the method looks it up with no validation
+- **AND** the lookup finds only a value with that number
+- **AND** the method changes no group number
+
+#### Scenario: The return value of update_field_value after an error
+
+- **WHEN** a validation refuses the value in `update_field_value`
+- **THEN** the method returns false
+- **AND** for each other error in the lookup or the write, the method returns nil
+
+### Requirement: update_field_value updates a loaded association
+
+`update_field_value` SHALL update the stored value in the database. With a loaded `custom_field_values` association, it SHALL then put the saved value in the row with the same id that the association holds. The record then reads the new value. The method SHALL save no other change of that row.
 
 #### Scenario: update_field_value with a loaded association
 
@@ -437,17 +423,52 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **AND** `update_field_value` updates that value
 - **THEN** the stored value holds the new value
 - **AND** the record reads the old value until it is loaded again
+- **AND** the cause is that the association holds no row with the id of the replaced value
+
+#### Scenario: update_field_value saves no other change of the row
+
+- **WHEN** a row of a loaded `custom_field_values` association holds an unsaved change of another attribute
+- **AND** `update_field_value` updates the value of that row
+- **THEN** the method saves no other change of that row
+
+### Requirement: Reads of an invalid group number return no value
+
+`get_field_values` SHALL read no value for an invalid group number, other than a negative Integer down to -2147483648 or a list. `get_field_value` SHALL return its default for a group number that reads no value. A negative Integer down to -2147483648 SHALL read a stored value with that number.
 
 #### Scenario: A reader with a group number that the integer cast misreads
 
 - **WHEN** `get_field_values` or `get_field_value` gets `'1abc'` or `true` as the group number
 - **THEN** it reads no value, and `get_field_value` returns its default
 
-#### Scenario: A reader with an Integer outside the 4-byte range
+#### Scenario: A reader with a negative Integer
 
-- **WHEN** a stored value holds a group number outside the 4-byte range (SQLite, a `bigint` column)
-- **AND** `get_field_values` gets that number, with or without a loaded association
+- **WHEN** a stored value holds a negative group number down to -2147483648
+- **AND** `get_field_values` gets that number
+- **THEN** it reads the stored value with that number
+
+### Requirement: Reads of a list of group numbers
+
+A list (Array) of group numbers SHALL read each group in the list. This applies when each item is a valid group number or a negative Integer down to -2147483648. A list with any other item SHALL read no value. A list in a list (`[[1]]`) is such an item.
+
+#### Scenario: A reader with a list of group numbers
+
+- **WHEN** `get_field_values` gets `[0, 1]` as the group number, with or without a loaded
+  association
+- **THEN** it reads the values of group 0 and of group 1
+
+#### Scenario: A reader with a list that holds an invalid group number
+
+- **WHEN** `get_field_values` gets `[1, '1abc']` as the group number
 - **THEN** it reads no value
+
+#### Scenario: A reader with a list in a list of group numbers
+
+- **WHEN** `get_field_values` gets `[[1]]` as the group number
+- **THEN** it reads no value
+
+### Requirement: A loaded association reads the same values as the database
+
+Each group number SHALL read the same stored values with or without a loaded `custom_field_values` association. A loaded association SHALL read a key as the database does. It reads `:note` as `'note'`, `5` as `'5'`, a Date as `'2020-01-01'` and a Range key as its slugs. It SHALL read each key of a list, and the keys of a list in a list.
 
 #### Scenario: A reader with a String of digits and a loaded association
 
@@ -485,6 +506,45 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   `[['note', 'other']]` as the key
 - **THEN** it reads the values of the slugs `note` and `other`
 
+### Requirement: A loaded association can read other values than the database
+
+A loaded association SHALL read the values in the order of its rows, and the database gives them in the order of `term_order`. So the first value, which `get_field_value` returns, can differ. The values also differ in the cases of the scenarios below.
+
+#### Scenario: A loaded association reads unsaved values
+
+- **WHEN** a loaded association holds rows that the record built, or changed values of its rows, and they are not saved
+- **THEN** the association reads these values
+- **AND** it reads each row under the group number and the slug that the row holds, also when they are not saved
+- **AND** it reads an unsaved invalid group number as the integer cast gives it (`'1abc'` as group 1)
+
+#### Scenario: A loaded association reads the rows that it holds
+
+- **WHEN** a write of another instance, or an `update_all`, changes a stored value
+- **THEN** the loaded association reads the old values until it is loaded again
+- **AND** the cause is that the write changes no row that the association holds
+
+#### Scenario: A slug that the collation of MySQL matches
+
+- **WHEN** a key on MySQL is another spelling of a slug (`'Note'` or `'nóte'` for `'note'`)
+- **THEN** the database matches the slug with its collation
+- **AND** a loaded association matches only the same slug
+
+#### Scenario: The slugs of a Range key are compared by collation or by bytes
+
+- **WHEN** a Range key selects slugs
+- **THEN** the database compares the slugs with its collation
+- **AND** a loaded association compares their bytes
+
+#### Scenario: A key that the database cannot read
+
+- **WHEN** a key is one that the database cannot read, for example a Hash
+- **THEN** the database raises an error
+- **AND** a loaded association reads no value for such a key
+
+### Requirement: get_fields_grouped reads each key like get_field_values
+
+`get_fields_grouped` SHALL read the values of a Symbol key (`:note`) as it reads the values of the String key (`'note'`). An Integer key (`5`) SHALL read the values of its String (`'5'`). A Date key SHALL read the values of the slug that the connection quotes for it (`'2020-01-01'`). A Range key SHALL read the values of each slug in the Range. Each group SHALL give the values under the key as given.
+
 #### Scenario: get_fields_grouped with a Symbol key
 
 - **WHEN** `get_fields_grouped` gets `[:note]` as the list of keys
@@ -500,29 +560,73 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **WHEN** `get_fields_grouped` gets `['n'..'o']` as the list of keys
 - **THEN** each group gives the values of the slug `note` under the Range
 
-#### Scenario: A reader with a list of group numbers
+#### Scenario: get_fields_grouped with a Date key
 
-- **WHEN** `get_field_values` gets `[0, 1]` as the group number, with or without a loaded
-  association
-- **THEN** it reads the values of group 0 and of group 1
+- **WHEN** `get_fields_grouped` gets `[Date.new(2020, 1, 1)]` as the list of keys
+- **THEN** each group gives the values of the slug `2020-01-01` under the Date
 
-#### Scenario: A reader with a list that holds an invalid group number
+### Requirement: A String that Rails cannot cast is refused as a group number
 
-- **WHEN** `get_field_values` gets `[1, '1abc']` as the group number
+Rails cannot read a String in an invalid encoding, or in an encoding that is not ASCII-compatible (UTF-16), as an Integer. For such a group number, each write path MUST fail with the group number error. A lookup (`where`, `find_by`) SHALL find no row. `update_attribute` and `save(validate: false)` MUST NOT store it.
+
+#### Scenario: A group number String that Rails cannot cast
+
+- **WHEN** `set_field_value`, `set_field_values` or a direct `custom_field_values.create!` gets a
+  group number String in an invalid encoding, or in an encoding that is not ASCII-compatible
+- **THEN** the caller gets the group number error, and the stored values of the record are
+  unchanged
+- **AND** the cause is that the integer cast of Rails raises an `ArgumentError` for an invalid encoding
+- **AND** for UTF-16LE or UTF-16BE, the cast returns nil, and a lookup raises an encoding error
+
+#### Scenario: A save that skips the validation, with a String that Rails cannot cast
+
+- **WHEN** `update_attribute` or `save(validate: false)` saves a value with a group number String
+  in an invalid encoding, or in an encoding that is not ASCII-compatible
+- **THEN** the save returns false, the value holds the message of the group number error, and the
+  stored value is unchanged
+
+#### Scenario: A write that looks the number up first
+
+- **WHEN** `custom_field_values.find_or_create_by!` gets a group number String in an invalid
+  encoding, or in an encoding that is not ASCII-compatible
+- **THEN** the lookup finds no row, the caller gets the group number error, and the stored values
+  of the record are unchanged
+
+#### Scenario: Writes that are no write paths of this requirement store NULL
+
+- **WHEN** `update_column`, `update_all` with a hash or `insert_all` gets such a String
+- **THEN** NULL is stored
+- **AND** these writes are not write paths of this requirement
+
+### Requirement: The group number error holds the slug in UTF-8
+
+The message of the group number error SHALL hold the slug of the field in UTF-8.
+
+#### Scenario: update_field_value with a slug in UTF-16 and an invalid group number
+
+- **WHEN** `update_field_value` gets a slug in UTF-16 and an invalid group number (`'1abc'`)
+- **THEN** the caller gets the group number error with the slug in UTF-8, and the stored values of
+  the record are unchanged
+- **AND** without the conversion, a slug in an encoding that is not ASCII-compatible (UTF-16) raises an encoding error in place of the group number error
+
+### Requirement: The group number attribute has the range of a 4-byte integer
+
+The group number attribute SHALL have the range of a 4-byte integer on each supported database. This holds also where the column can hold a larger integer (SQLite, a `bigint` column).
+
+#### Scenario: A reader with an Integer outside the 4-byte range
+
+- **WHEN** a stored value holds a group number outside the 4-byte range (SQLite, a `bigint` column)
+- **AND** `get_field_values` gets that number, with or without a loaded association
 - **THEN** it reads no value
 
-#### Scenario: An empty list of values with an invalid group number
+#### Scenario: A save with a group number above the 4-byte range
 
-- **WHEN** `set_field_value` gets an empty list of values and an invalid group number
-- **THEN** the caller gets the group number error, and the stored values of the record are
-  unchanged
+- **WHEN** a save submits the group number 2147483648 on a database whose column can hold it
+- **THEN** the save fails with the group number error
 
-#### Scenario: An entry with no values and an invalid group number
+### Requirement: A failed set_field_value or set_field_values rolls its delete back
 
-- **WHEN** `set_field_values` or an admin save gets an entry with no values and an invalid group
-  number
-- **THEN** the caller gets the group number error, and the stored values of the record are
-  unchanged
+`set_field_value` and `set_field_values` delete stored values before they create the new values. When a new value is invalid, that delete MUST roll back. Inside a transaction of the caller, the two methods SHALL use a savepoint. So the stored values stay when the caller rescues the error and commits.
 
 #### Scenario: A failed call inside a transaction of the caller keeps the stored values
 
@@ -531,6 +635,10 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   inside that transaction and commits
 - **THEN** the stored values of the record are unchanged
 
+### Requirement: The two methods run one statement before the savepoint
+
+Inside a transaction of the caller, the two methods SHALL run one statement in that transaction first. The cause is that Rails 7.2 and later open no savepoint before the first statement.
+
 #### Scenario: A failed call that is the first statement of a transaction rolls back to a savepoint
 
 - **WHEN** the pool has no isolation level, a caller opens a transaction, and `set_field_value` or
@@ -538,18 +646,19 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
 - **THEN** the method rolls back to a savepoint of its own, and Rails does not restart the
   transaction of the caller
 
+### Requirement: A pool with an isolation level gets no savepoint
+
+Rails 8.1 permits no savepoint while the connection pool has a transaction isolation level. The two methods then SHALL NOT ask for a savepoint. Inside a transaction of the caller, they run in that transaction, and only a rollback of it restores the deleted values. The transaction of the two methods is on the connection pool of `ActiveRecord::Base`.
+
 #### Scenario: A transaction of the caller with a pool isolation level
 
 - **WHEN** a caller on Rails 8.1 runs `set_field_value` or `set_field_values` inside a joinable
   `Model.transaction` that starts under `ActiveRecord.with_transaction_isolation_level`
 - **THEN** the method opens no savepoint, and the call stores its values
 
-#### Scenario: A loaded association reads the new values after set_field_value
+### Requirement: The record reads its stored values after a failed call
 
-- **WHEN** the `custom_field_values` association of a record is loaded, and `set_field_value` stores a
-  new value for a group that holds a stored value
-- **THEN** the record reads the new value and not the deleted value, and the association stays
-  loaded
+After a failed call, the two methods SHALL reset the `custom_field_values` association of the record. The record then SHALL read its stored values, and its next save MUST NOT store a value of the failed call. The two methods SHALL put back the unsaved values that the caller built before the call.
 
 #### Scenario: The record reads the stored values after a failed call
 
@@ -563,17 +672,35 @@ the 4-byte range as Rails casts it, as before. For a String with no leading digi
   `set_field_value` or `set_field_values` then raises an error
 - **THEN** the association holds that value, and the next save of the record stores it
 
+#### Scenario: A failed call is an exception of any class, a throw or ActiveRecord::Rollback
+
+- **WHEN** `set_field_value` or `set_field_values` ends with an exception of any class, a `throw` or `ActiveRecord::Rollback`
+- **THEN** the call is a failed call
+
+#### Scenario: A Rollback in a callback before Rails stores the value is no failed call
+
+- **WHEN** a callback of a value raises `ActiveRecord::Rollback` before Rails stores the value
+- **THEN** the call is not a failed call
+
+### Requirement: A loaded association holds no value that set_field_value deleted
+
+After `set_field_value`, a loaded `custom_field_values` association SHALL NOT hold a value that the call deleted. The call SHALL NOT load an association that is not loaded.
+
+#### Scenario: A loaded association reads the new values after set_field_value
+
+- **WHEN** the `custom_field_values` association of a record is loaded, and `set_field_value` stores a
+  new value for a group that holds a stored value
+- **THEN** the record reads the new value and not the deleted value, and the association stays
+  loaded
+
+#### Scenario: set_field_value does not load an association that is not loaded
+
+- **WHEN** the `custom_field_values` association of a record is not loaded and `set_field_value` runs
+- **THEN** the association is still not loaded after the call
+
 ### Requirement: set_field_values reads its payload by String or Symbol keys
 
-`set_field_values` SHALL read a plain Hash payload by a String key or its Symbol twin alike. This
-holds for the `id`, `group_number` and `values` of each entry. A plain
-Hash with String keys, for example a `JSON.parse` result, MUST store the values of each entry and
-validate its group number. The same payload with Symbol keys or with indifferent access gives the
-same result.
-
-The method SHALL NOT change the keys of the Hash of the caller. Request parameters SHALL store their
-values as before. A plain Hash with a String key and its Symbol twin at one level MUST raise
-`ArgumentError` before the delete. The record then keeps its stored values.
+`set_field_values` SHALL read a plain Hash payload by a String key or its Symbol twin alike. This holds for the `id`, `group_number` and `values` of each entry. A plain Hash with String keys, for example a `JSON.parse` result, MUST store the values of each entry and validate its group number. The same payload with Symbol keys or with indifferent access gives the same result.
 
 #### Scenario: A JSON.parse result stores its values
 
@@ -588,10 +715,18 @@ values as before. A plain Hash with a String key and its Symbol twin at one leve
 - **THEN** the call raises `ActiveRecord::RecordInvalid` with the group number error, and the record
   keeps its stored values
 
+### Requirement: set_field_values refuses a String key and its Symbol twin
+
+A plain Hash with a String key and its Symbol twin at one level MUST raise `ArgumentError` before the delete. The record then keeps its stored values.
+
 #### Scenario: A String key and its Symbol twin are refused
 
 - **WHEN** `set_field_values` gets a plain Hash that holds `:note` and `'note'` at one level
 - **THEN** the call raises `ArgumentError`, and the record keeps its stored values
+
+### Requirement: set_field_values keeps the keys of its argument
+
+The method SHALL NOT change the keys of the Hash of the caller. Request parameters SHALL store their values as before.
 
 #### Scenario: The Hash of the caller keeps its keys
 
@@ -626,23 +761,7 @@ values as before. A plain Hash with a String key and its Symbol twin at one leve
 
 ### Requirement: A refused admin save answers by the kind of the request
 
-The admin panel refuses a save in these cases:
-
-- a custom-field value with unsafe or too large content, an invalid group number, or a slug that
-  names no custom field
-- a post type option that names no post decorator
-- a meta or options container that is not a set of fields
-- custom-field `values`, or a field entry, in a shape that the shared permit cannot read
-
-Each refusal SHALL answer in the same way, by the kind of the request:
-
-- A submitted form SHALL get a redirect back, with the message as a flash error.
-- An XHR that carries the `cama_ajax_request` param (an admin page that `camaleon_admin_ajax` loads
-  in place) SHALL get the same redirect and flash.
-- Any other XHR SHALL get the message as plain text with a 422, and no flash.
-
-A refused save SHALL store nothing of the refused value. A refusal while the admin panel serves a
-GET or HEAD request is no submitted save and SHALL be raised, not answered.
+The admin panel SHALL answer each refusal of a save in the same way, by the kind of the request. A submitted form SHALL get a redirect back, with the message as a flash error. An XHR that carries the `cama_ajax_request` param (an admin page that `camaleon_admin_ajax` loads in place) SHALL get the same redirect and flash. Any other XHR SHALL get the message as plain text with a 422, and no flash.
 
 #### Scenario: The nav menu item settings modal shows the refusal
 
@@ -670,48 +789,57 @@ GET or HEAD request is no submitted save and SHALL be raised, not answered.
   of a CSRF failure
 - **THEN** the post editor or the modal shows its generic failure message, not the body of the page
 
+### Requirement: The admin panel refuses an unsafe custom-field value
+
+The admin panel SHALL refuse a save with a custom-field value that has unsafe or too large content. It SHALL refuse a save with an invalid group number, or with a slug that names no custom field. It SHALL refuse custom-field `values`, or a field entry, in a shape that the shared permit cannot read.
+
+#### Scenario: A custom-field value with a slug that names no custom field is refused
+
+- **WHEN** an admin save carries a custom-field value with a slug that names no custom field
+- **THEN** the save is refused
+- **AND** the refusal answers by the kind of the request
+
+### Requirement: The admin panel refuses malformed options and containers
+
+The admin panel SHALL refuse a save with a post type option that names no post decorator. It SHALL refuse a save with a meta or options container that is not a set of fields.
+
+#### Scenario: A post type option that names no post decorator is refused
+
+- **WHEN** a save carries a post type option that names no post decorator
+- **THEN** the save is refused
+- **AND** the refusal answers by the kind of the request
+
 #### Scenario: A container that is not a set of fields, by XHR
 
 - **WHEN** a category save by XHR carries `meta[]=x`
 - **THEN** the response is a 422 with the message as text, and no option is stored
 
+### Requirement: A refused save stores nothing and a refusal on a read request is raised
+
+A refused save SHALL store nothing of the refused value. A refusal while the admin panel serves a GET or HEAD request is no submitted save and SHALL be raised, not answered.
+
+#### Scenario: A refusal on a GET request is raised
+
+- **WHEN** the admin panel serves a GET or HEAD request and a refusal occurs
+- **THEN** the refusal is raised and not answered as a refused save
+
+#### Scenario: A refused save stores nothing
+
+- **WHEN** a save is refused
+- **THEN** nothing of the refused value is stored
+
 ### Requirement: A custom-field value of every kind is scanned on save for untrusted authors
 
-The system SHALL validate every custom-field value row on save, for every field kind. The `data`
-shortcode puts a stored value of any kind into a page as markup. So no kind is safe without the scan.
+Camaleon SHALL validate every custom-field value row on save, for every field kind. The `data` shortcode puts a stored value of any kind into a page as markup, so no kind is safe without the scan. A value beyond the parse size bound SHALL be refused for every kind.
 
-- For a value of any kind, content outside the post-content allowlist SHALL be refused. Examples are script elements, event-handler attributes, script-capable URI schemes and
-  disallowed elements. Comments that are not translation markers are refused too. So is deceptive
-  markup: tags that the parser drops or that stay open, and translation markers inside tags.
-- For a URI-type value (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
-  (`javascript:`, `vbscript:`, non-raster `data:`) SHALL also be refused.
-- For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace before
-  another character SHALL also be refused. A `data` shortcode inside a tag puts the value into an
-  attribute, and each of these characters ends the attribute. A URL can encode them, such as `%27` for `'`. Whitespace
-  at the end of the value SHALL pass: no character of the value follows it. The translation markers
-  of a translated value SHALL pass, because the shortcode shows one translation without them.
-- For a URI-type value, the scheme rule and the character rule SHALL also read each text that
-  `String#translate` shows. That text can keep a marker, or join a scheme across one.
-- For a value of any kind that parses as JSON, each key and decoded member SHALL be held to the
-  allowlist too. `the_json_field` parses a value of any kind. The scan SHALL also parse each
-  translation of the value, because the `field_attrs` template translates the value before it parses
-  it. The scan SHALL include each member of a key that occurs twice in an object. The parse keeps
-  only the last of them, but the stored JSON keeps each one.
-- For such a value, the `field_attrs` template and `the_json_field` show a member of the object with
-  `to_s`. So a member that is an object or an array SHALL also be held to the allowlist as its Ruby
-  text. That text writes each quote of a String as `\"`.
-- A `field_attrs` pair that code stores as a Hash keeps `<` and writes each attribute quote as `\"`.
-  So the scan of the stored value can refuse a tag with an attribute in such a pair, such as a link
-  (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
-- A value beyond the parse size bound SHALL be refused for every kind.
+#### Scenario: A value beyond the parse size bound is refused
 
-The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or
-not stored at all. The gate SHALL apply on every value-write path (including `update_field_value`),
-not only the admin form. The same dispatch SHALL back the `scan_content` audit task, so it reports
-exactly the stored values of every kind that the gate refuses.
+- **WHEN** an untrusted author saves a value of any kind beyond the parse size bound
+- **THEN** the save is refused, and no value row is stored
 
-A value of another kind gets no rule for a position inside a tag. Only an admin or a holder of
-`content_shortcodes` can place a shortcode, and that role chooses the position (intended).
+### Requirement: A value of any kind is held to the post-content allowlist
+
+For a value of any kind, content outside the post-content allowlist SHALL be refused. Examples are script elements, event-handler attributes, script-capable URI schemes and disallowed elements. Comments that are not translation markers are refused too. So is deceptive markup: tags that the parser drops or that stay open, and translation markers inside tags.
 
 #### Scenario: Untrusted author's script editor value is refused
 
@@ -725,6 +853,27 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
   post-content allowlist
 - **THEN** the value is stored byte-for-byte as written
 
+#### Scenario: Script in a text_box value is refused
+
+- **WHEN** an untrusted author saves a `text_box` value that holds a `<script>` element
+- **THEN** the save is refused with an error naming the field, and no value row is stored
+
+#### Scenario: A plain text_box value is stored unchanged
+
+- **WHEN** an untrusted author saves a `text_box` value such as `a < b & c` or `<b>bold</b>`
+- **THEN** the value is stored byte-for-byte as written
+
+#### Scenario: The data shortcode shows no script of an untrusted author
+
+- **WHEN** an administrator puts `[data field='note']` in the content of a post
+- **AND** an editor without `post_content_unfiltered_html` saves a `<script>` in the `text_box` field
+  `note` of that post
+- **THEN** the save is refused, and the page of the post holds no script of the editor
+
+### Requirement: A URI-type value refuses a script-capable scheme
+
+For a URI-type value (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme (`javascript:`, `vbscript:`, non-raster `data:`) SHALL also be refused.
+
 #### Scenario: Script-capable URL in a URI field is refused
 
 - **WHEN** an untrusted author saves a `url`-type field value of `javascript:alert(1)`
@@ -735,12 +884,17 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 - **WHEN** an untrusted author saves a `url`-type field value of `https://example.com/"><script>alert(1)</script>`
 - **THEN** the save is refused and no value row is stored
 
+### Requirement: A URI-type value refuses characters that end an attribute
+
+For a URI-type value, a quote (`"` or `'`), an angle bracket, a backtick and whitespace before another character SHALL also be refused. Whitespace at the end of the value SHALL pass. The translation markers of a translated value SHALL pass.
+
 #### Scenario: A quote in a URL value is refused
 
 - **WHEN** an administrator puts `<img src="[data field='photo']">` in the content of a post
 - **AND** an untrusted author saves the `image` value `x" onerror="alert(1)` in the field `photo` of
   that post
 - **THEN** the save is refused, and the page of the post holds no event handler of the author
+- **AND** the cause is that a `data` shortcode inside a tag puts the value into an attribute, and a quote ends the attribute
 
 #### Scenario: A leading space in a URL value is refused
 
@@ -755,12 +909,24 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 - **WHEN** an untrusted author saves a `url`-type value of `https://example.com/page` followed by a
   space or a line break
 - **THEN** the value is stored byte-for-byte as written
+- **AND** the cause is that no character of the value follows that whitespace
 
 #### Scenario: A translated URL value is stored unchanged
 
 - **WHEN** an untrusted author saves the translated `url`-type value
   `<!--:en-->https://example.com/en<!--:--><!--:es-->https://example.com/es<!--:-->`
 - **THEN** the value is stored byte-for-byte as written
+- **AND** the cause is that the shortcode shows one translation without the markers
+
+#### Scenario: An encoded URL is stored unchanged
+
+- **WHEN** an untrusted author saves a `url`-type value of `https://example.com/a%20b?q=%22x%22`
+- **THEN** the value is stored byte-for-byte as written
+- **AND** a URL can encode the refused characters, such as `%27` for `'`, and the encoded form passes
+
+### Requirement: A URI-type value is scanned in each text that translate shows
+
+For a URI-type value, the scheme rule and the character rule SHALL also read each text that `String#translate` shows. That text can keep a marker, or join a scheme across one.
 
 #### Scenario: A script URL that a translation joins is refused
 
@@ -776,15 +942,9 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
   with no quotes
 - **AND** no value row is stored
 
-#### Scenario: An encoded URL is stored unchanged
+### Requirement: A value that parses as JSON is held to the allowlist by key and member
 
-- **WHEN** an untrusted author saves a `url`-type value of `https://example.com/a%20b?q=%22x%22`
-- **THEN** the value is stored byte-for-byte as written
-
-#### Scenario: A quote in a text_box value is stored unchanged
-
-- **WHEN** an untrusted author saves a `text_box` value such as `She said "don't" twice`
-- **THEN** the value is stored byte-for-byte as written
+For a value of any kind that parses as JSON, each key and decoded member SHALL be held to the allowlist too. `the_json_field` parses a value of any kind. The scan SHALL include each member of a key that occurs twice in an object. The parse keeps only the last of them, but the stored JSON keeps each one.
 
 #### Scenario: A member that a duplicate key hides is refused
 
@@ -795,26 +955,6 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 
 - **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"Color"} /* <script>alert(1)</script> */`
 - **THEN** the save is refused, and no value row is stored
-
-#### Scenario: An escaped quote that ends an attribute in the stored JSON is refused
-
-- **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"a","value":"<img src=x title=\"a onerror=alert(1);//\">"}`
-- **THEN** the save is refused, and no value row is stored
-
-#### Scenario: An object member whose Ruby text ends an attribute is refused
-
-- **WHEN** an untrusted author saves the `to_json` form of
-  `{ attr: 'a', value: { x: '<img src=x title="a onerror=alert(1);//">' } }` as a `field_attrs` value
-- **THEN** the save is refused, because the template of the field shows the member as
-  `{"x" => "<img src=x title=\"a onerror=alert(1);//\">"}`, and no value row is stored
-
-#### Scenario: A pair that code stores as a Hash with a quoted attribute is refused
-
-- **WHEN** code saves the pair `{ attr: 'Link', value: '<a href="https://example.com/">Shop</a>' }`
-  as a Hash for an untrusted author
-- **THEN** the save is refused, because the stored JSON writes each quote of the attribute as `\"`
-- **AND WHEN** the code saves the `to_json` form of the pair, which escapes `<`
-- **THEN** the pair is stored exactly as written
 
 #### Scenario: An escaped script member after a quote in a comment is refused
 
@@ -827,16 +967,6 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
   `S` is the `to_json` form of a String that holds a `<script>` element
 - **THEN** the save is refused, and no value row is stored
 
-#### Scenario: An escaped script in a translation of the JSON is refused
-
-- **WHEN** an untrusted author saves the `field_attrs` value `<!--:en-->{"attr":"a","value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}<!--:-->`
-- **THEN** the save is refused, and no value row is stored
-
-#### Scenario: Script in a text_box value is refused
-
-- **WHEN** an untrusted author saves a `text_box` value that holds a `<script>` element
-- **THEN** the save is refused with an error naming the field, and no value row is stored
-
 #### Scenario: An escaped script in a JSON member of a text_box value is refused
 
 - **WHEN** an untrusted author saves, as a `text_box` value, the `to_json` form of
@@ -844,33 +974,73 @@ A value of another kind gets no rule for a position inside a tag. Only an admin 
 - **THEN** the save is refused, because `the_json_field` shows the decoded member, and no value row
   is stored
 
-#### Scenario: A plain text_box value is stored unchanged
+### Requirement: The scan parses each translation of a JSON value
 
-- **WHEN** an untrusted author saves a `text_box` value such as `a < b & c` or `<b>bold</b>`
-- **THEN** the value is stored byte-for-byte as written
+The scan SHALL also parse each translation of the value, because the `field_attrs` template translates the value before it parses it.
 
-#### Scenario: The data shortcode shows no script of an untrusted author
+#### Scenario: An escaped script in a translation of the JSON is refused
 
-- **WHEN** an administrator puts `[data field='note']` in the content of a post
-- **AND** an editor without `post_content_unfiltered_html` saves a `<script>` in the `text_box` field
-  `note` of that post
-- **THEN** the save is refused, and the page of the post holds no script of the editor
+- **WHEN** an untrusted author saves the `field_attrs` value `<!--:en-->{"attr":"a","value":"\u003cscript\u003ealert(1)\u003c/script\u003e"}<!--:-->`
+- **THEN** the save is refused, and no value row is stored
+
+### Requirement: A member that is an object or an array is held to the allowlist as Ruby text
+
+For such a value, the `field_attrs` template and `the_json_field` show a member of the object with `to_s`. So a member that is an object or an array SHALL also be held to the allowlist as its Ruby text. That text writes each quote of a String as `\"`.
+
+#### Scenario: An object member whose Ruby text ends an attribute is refused
+
+- **WHEN** an untrusted author saves the `to_json` form of
+  `{ attr: 'a', value: { x: '<img src=x title="a onerror=alert(1);//">' } }` as a `field_attrs` value
+- **THEN** the save is refused, because the template of the field shows the member as
+  `{"x" => "<img src=x title=\"a onerror=alert(1);//\">"}`, and no value row is stored
+
+### Requirement: A field_attrs pair that code stores as a Hash can be refused for its quotes
+
+A `field_attrs` pair that code stores as a Hash keeps `<` and writes each attribute quote as `\"`. So the scan of the stored value SHALL refuse a tag with an attribute in such a pair, such as a link (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
+
+#### Scenario: A pair that code stores as a Hash with a quoted attribute is refused
+
+- **WHEN** code saves the pair `{ attr: 'Link', value: '<a href="https://example.com/">Shop</a>' }`
+  as a Hash for an untrusted author
+- **THEN** the save is refused, because the stored JSON writes each quote of the attribute as `\"`
+- **AND WHEN** the code saves the `to_json` form of the pair, which escapes `<`
+- **THEN** the pair is stored exactly as written
+
+#### Scenario: An escaped quote that ends an attribute in the stored JSON is refused
+
+- **WHEN** an untrusted author saves the `field_attrs` value `{"attr":"a","value":"<img src=x title=\"a onerror=alert(1);//\">"}`
+- **THEN** the save is refused, and no value row is stored
+
+### Requirement: A value is stored verbatim or not stored, on every write path
+
+The value SHALL NOT be sanitized, escaped, or otherwise rewritten: it is stored exactly as written or not stored at all. The gate SHALL apply on every value-write path (including `update_field_value`), not only the admin form.
 
 #### Scenario: update_field_value routes through the gate
 
 - **WHEN** an untrusted author writes a dangerous value through `update_field_value`
 - **THEN** the gate refuses it and the value is not stored (the API SHALL NOT bypass validations)
 
+### Requirement: The scan_content audit task uses the same dispatch as the gate
+
+The same dispatch SHALL back the `scan_content` audit task, so it reports exactly the stored values of every kind that the gate refuses.
+
+#### Scenario: The audit task reports the values that the gate refuses
+
+- **WHEN** the `scan_content` audit task runs over stored values of every kind
+- **THEN** it reports exactly the stored values that the gate refuses
+
+### Requirement: A value of a kind with no URI rule gets no rule for a position inside a tag
+
+A value of another kind SHALL get no rule for a position inside a tag. Only an admin or a holder of `content_shortcodes` can place a shortcode, and that role chooses the position (intended).
+
+#### Scenario: A quote in a text_box value is stored unchanged
+
+- **WHEN** an untrusted author saves a `text_box` value such as `She said "don't" twice`
+- **THEN** the value is stored byte-for-byte as written
+
 ### Requirement: The rules for a value are resolved from the slug, not a client-supplied id
 
-`set_field_values` SHALL resolve the `custom_field_id` of each value row from the trusted field slug.
-That is the field that the object registers under the slug, not the client-supplied `id`. The gate selects
-the rules for a value from the `field_key` of its field. So a forged `id` that names a field of
-another kind MUST NOT change the rules for a value written under a slug. An example is a `text_box`
-id on a `url` slug, which skips the URI rule.
-
-When the slug names no field on the object, the caller-supplied `id` MAY stand (trusted internal
-callers). Permitted browser payloads always name registered slugs.
+`set_field_values` SHALL resolve the `custom_field_id` of each value row from the trusted field slug. That is the field that the object registers under the slug, not the client-supplied `id`. The gate selects the rules for a value from the `field_key` of its field. So a forged `id` that names a field of another kind MUST NOT change the rules for a value written under a slug.
 
 #### Scenario: A forged id of another kind does not change the rules
 
@@ -883,3 +1053,12 @@ callers). Permitted browser payloads always name registered slugs.
 
 - **WHEN** a value is saved for a slug while a different field's `id` is submitted alongside it
 - **THEN** the stored row's `custom_field_id` is the id of the field the slug names
+
+### Requirement: A slug that names no field keeps the caller-supplied id
+
+When the slug names no field on the object, Camaleon SHALL keep the caller-supplied `id` (trusted internal callers). Permitted browser payloads always name registered slugs.
+
+#### Scenario: A trusted internal caller supplies an id for a slug that names no field
+
+- **WHEN** a trusted internal caller writes a value for a slug that names no field on the object, with an `id`
+- **THEN** the stored row keeps that `id`

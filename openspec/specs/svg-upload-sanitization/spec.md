@@ -35,29 +35,28 @@ non-SVG uploads.
 
 ### Requirement: Reject SVGs with javascript: URIs
 
-The system SHALL reject SVG uploads whose `href`/`xlink:href` attributes, or whose serialized markup,
-contain a blocked URI scheme. `javascript:` and `vbscript:` are always blocked; a `data:` URI is
-blocked unless its media type is an allowlisted raster image (for example `image/png`, `image/gif`,
-`image/jpeg`, `image/webp`), so an embedded raster bitmap is accepted while `data:text/html`,
-`data:image/svg+xml`, and a bare `data:,…` are rejected. Detection SHALL tolerate the same
-TAB/LF/CR gaps *inside* the scheme that a browser strips before executing the URI (for example
-`java&#9;script:`), matching `ContentSecurity::BLOCKED_SCHEME_PATTERN` used for non-SVG uploads.
-Entity-encoded variants are caught because XML parsing resolves entities into the decoded attribute
-value, and the serialized document is entity-decoded (normalized) before inspection. The SVG scanner is
-the only gate for a served `.svg`, so it aligns with the non-SVG ruleset's scheme, element, and
-(case-insensitive) event-handler checks as defense-in-depth. It inspects the XML-parsed document,
-exactly as a browser does when serving `image/svg+xml`; a *literal* TAB/LF/CR that XML attribute-value
-normalization folds to a space — making the scheme inert when the file is served as an image — is
-therefore out of scope, unlike the entity/character-reference gaps above, which survive parsing and are
-caught.
+The system SHALL reject SVG uploads whose `href`/`xlink:href` attributes, or whose serialized markup, contain a blocked URI scheme. `javascript:` and `vbscript:` are always blocked. A `data:` URI is blocked unless its media type is an allowlisted raster image.
 
 #### Scenario: SVG with javascript: in href is rejected
 - **WHEN** a user uploads an SVG file containing an `href` attribute with `javascript:` URI
 - **THEN** the system returns an error and does NOT store the file
 
-#### Scenario: SVG with entity-encoded javascript: in href is rejected
-- **WHEN** a user uploads an SVG file containing `href="javascript&#58;alert(1)"`
-- **THEN** the system returns an error and does NOT store the file (entity is resolved during XML parsing, javascript: is detected)
+#### Scenario: An embedded raster image is accepted
+- **WHEN** a user uploads an SVG containing `<image xlink:href="data:image/png;base64,…"/>` (an embedded raster bitmap)
+- **THEN** the system stores the file normally
+- **AND** the allowlisted raster media types are, for example, `image/png`, `image/gif`, `image/jpeg` and `image/webp`
+
+#### Scenario: A dangerous data: URI is rejected
+- **WHEN** a user uploads an SVG containing a `data:text/html` or `data:image/svg+xml` URI (which can carry active content)
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: A bare data: URI is rejected
+- **WHEN** a user uploads an SVG containing a bare `data:,…` URI
+- **THEN** the system returns an error and does NOT store the file
+
+### Requirement: Scheme detection tolerates gaps inside the scheme
+
+Detection SHALL tolerate the same TAB/LF/CR gaps *inside* the scheme that a browser strips before executing the URI (for example `java&#9;script:`). This matches `ContentSecurity::BLOCKED_SCHEME_PATTERN`, which the system uses for non-SVG uploads.
 
 #### Scenario: SVG with an in-scheme TAB/LF/CR gap in href is rejected
 - **WHEN** a user uploads an SVG file containing `href="java&#9;script:alert(1)"` (a TAB inside the scheme name)
@@ -75,13 +74,31 @@ caught.
 - **WHEN** a user uploads an SVG whose text is prose containing a colon but no blocked scheme (for example `Fig 1: a red circle`)
 - **THEN** the system stores the file normally
 
-#### Scenario: An embedded raster image is accepted
-- **WHEN** a user uploads an SVG containing `<image xlink:href="data:image/png;base64,…"/>` (an embedded raster bitmap)
-- **THEN** the system stores the file normally
+### Requirement: Entity-encoded scheme variants are caught
 
-#### Scenario: A dangerous data: URI is rejected
-- **WHEN** a user uploads an SVG containing a `data:text/html` or `data:image/svg+xml` URI (which can carry active content)
+The scanner SHALL catch entity-encoded variants of a blocked scheme. XML parsing resolves entities into the decoded attribute value. The scanner SHALL entity-decode (normalize) the serialized document before inspection.
+
+#### Scenario: SVG with entity-encoded javascript: in href is rejected
+- **WHEN** a user uploads an SVG file containing `href="javascript&#58;alert(1)"`
+- **THEN** the system returns an error and does NOT store the file (entity is resolved during XML parsing, javascript: is detected)
+
+### Requirement: The SVG scanner aligns with the non-SVG ruleset
+
+The SVG scanner is the only gate for a served `.svg`. It SHALL align with the scheme, element, and (case-insensitive) event-handler checks of the non-SVG ruleset, as defense-in-depth.
+
+#### Scenario: A construct that the non-SVG ruleset refuses is refused in SVG
+- **WHEN** a user uploads an SVG that contains a scheme, element or event handler that the non-SVG ruleset refuses
 - **THEN** the system returns an error and does NOT store the file
+
+### Requirement: The scanner inspects the XML-parsed document
+
+The SVG scanner SHALL inspect the XML-parsed document, exactly as a browser does when it serves `image/svg+xml`. Entity and character-reference gaps survive parsing, so the scanner SHALL catch them. A *literal* TAB/LF/CR that XML attribute-value normalization folds to a space is out of scope.
+
+#### Scenario: A literal gap folded by XML normalization is out of scope
+- **WHEN** a user uploads an SVG whose attribute value has a literal TAB, LF or CR inside the scheme
+- **AND** XML attribute-value normalization folds it to a space
+- **THEN** the scanner is not required to reject the file
+- **AND** the reason is that the folded scheme is inert when the file is served as an image
 
 ### Requirement: Reject SVGs with DTD entities containing dangerous content
 
@@ -99,10 +116,6 @@ The system SHALL reject SVG uploads that use internal DTD entities to inject dan
 
 The system SHALL accept SVG uploads that contain no dangerous elements, attributes, or URIs.
 
-The SMIL animation elements `animate` and `set` SHALL be treated as safe elements: they carry no script by themselves, and the scripting risk they were associated with is the `onbegin`/`onend`/`onrepeat` event-handler attributes, which the event-handler rule continues to reject independently of the element they appear on. Elements that embed foreign content or handlers — `script`, `foreignObject`, `handler`, `iframe`, `object`, `embed` — remain rejected.
-
-The elements `form`, `meta`, `base`, `style` and `link` SHALL also be rejected. Each is valid in SVG and none executes script on its own, but an uploaded SVG is served inline from the site origin, and these five are what turn a passive image into markup that can navigate (`meta http-equiv="refresh"`, `base href`), collect input (`form`), or pull in remote styling (`link`, `style`). `ContentSecurity::BLOCKED_ELEMENTS` already refuses all five in every non-SVG upload; rejecting them here too means the SVG and non-SVG rulesets no longer disagree about the same bytes, so re-uploading a file under a different extension cannot reach a more permissive ruleset.
-
 #### Scenario: Safe SVG without dangerous content is accepted
 - **WHEN** a user uploads an SVG file with no script elements, event handlers, or javascript: URIs
 - **THEN** the system stores the file normally
@@ -115,33 +128,52 @@ The elements `form`, `meta`, `base`, `style` and `link` SHALL also be rejected. 
 - **WHEN** a user uploads an SVG containing `<set attributeName="fill" to="blue"/>` and no event-handler attributes
 - **THEN** the system stores the file normally
 
+### Requirement: SMIL animation elements are safe elements
+
+The SMIL animation elements `animate` and `set` SHALL be treated as safe elements, because they carry no script by themselves. The event-handler rule SHALL reject the `onbegin`/`onend`/`onrepeat` attributes on any element. Elements that embed foreign content or handlers (`script`, `foreignObject`, `handler`, `iframe`, `object`, `embed`) SHALL remain rejected.
+
 #### Scenario: An animation element carrying an event handler is still rejected
 - **WHEN** a user uploads an SVG containing `<animate onbegin="alert(1)"/>`
 - **THEN** the system returns an error and does NOT store the file
+- **AND** the scripting risk of these elements is the event-handler attributes, which the event-handler rule rejects independently of the element
 
 #### Scenario: foreignObject remains rejected
 - **WHEN** a user uploads an SVG containing a `<foreignObject>` element
 - **THEN** the system returns an error and does NOT store the file
 
+### Requirement: Navigating, input and styling elements are rejected
+
+The elements `form`, `meta`, `base`, `style` and `link` SHALL be rejected. `ContentSecurity::BLOCKED_ELEMENTS` already refuses all five in every non-SVG upload, so the SVG and non-SVG rulesets SHALL NOT disagree about the same bytes. The system serves an uploaded SVG inline from the site origin.
+
 #### Scenario: An SVG carrying a form is rejected
 - **WHEN** a user uploads an SVG containing a `<form>` element
 - **THEN** the system returns an error and does NOT store the file
+- **AND** the reason is that `form` can collect input
 
 #### Scenario: An SVG carrying a meta refresh is rejected
 - **WHEN** a user uploads an SVG containing a `<meta http-equiv="refresh">` element
 - **THEN** the system returns an error and does NOT store the file
+- **AND** the reason is that `meta http-equiv="refresh"` can navigate
 
 #### Scenario: An SVG carrying a base element is rejected
 - **WHEN** a user uploads an SVG containing a `<base>` element
 - **THEN** the system returns an error and does NOT store the file
+- **AND** the reason is that `base href` can navigate
 
 #### Scenario: An SVG carrying a style element is rejected
 - **WHEN** a user uploads an SVG containing a `<style>` element
 - **THEN** the system returns an error and does NOT store the file
+- **AND** the reason is that `style` can pull in remote styling
 
 #### Scenario: An SVG carrying a link element is rejected
 - **WHEN** a user uploads an SVG containing a `<link>` element
 - **THEN** the system returns an error and does NOT store the file
+- **AND** the reason is that `link` can pull in remote styling
+
+#### Scenario: A different extension reaches no more permissive ruleset
+- **WHEN** a user re-uploads a file with one of these five elements under a different extension
+- **THEN** the file does not reach a more permissive ruleset
+- **AND** each of the five elements is valid in SVG and none executes script on its own
 
 ### Requirement: XML parse errors reject the upload
 
@@ -170,25 +202,12 @@ mode; HTML-parsed uploads are decided entirely by the rejection rules applied to
 
 ### Requirement: The parse-based checker governs every markup format, not only SVG
 
-Every requirement in this capability SHALL apply to any upload a browser parses as markup, not only
-to files named `.svg`. The rejection rules — script elements, attributes whose name begins with
-`on`, blocked URI schemes, entity-expanded content, and the navigating/embedding elements `form`,
-`meta`, `base`, `style`, `link`, `foreignObject`, `handler`, `iframe`, `object` and `embed` — are the
-same for an HTML, XHTML, XML or XSL upload as for an SVG.
+Every requirement in this capability SHALL apply to any upload a browser parses as markup, not only to files named `.svg`. The rejection rules are the same for an HTML, XHTML, XML or XSL upload as for an SVG. `upload-content-security` specifies which uploads reach this checker.
 
-The checker SHALL reject event handlers by shape: any attribute whose name begins with `on`,
-case-insensitively. It SHALL NOT decide event handlers by matching a list of known handler names,
-because such a list is unbounded and grows with the web platform.
-
-Which uploads reach this checker is specified by `upload-content-security`.
-
-#### Scenario: An HTML upload with an unlisted handler is rejected
-- **WHEN** an `.html` upload contains an `onpointerdown` attribute
-- **THEN** the checker reports it unsafe and the upload is not stored
-
-#### Scenario: A future handler name needs no rule change
-- **WHEN** an `.html` upload contains an attribute named `onsomethingnotyetinvented`
-- **THEN** the checker reports it unsafe, because the match is on the `on` prefix and not on a name list
+#### Scenario: The same rules apply to every markup format
+- **WHEN** an HTML, XHTML, XML or XSL upload has a script element, an `on` attribute, a blocked URI scheme, or entity-expanded content
+- **THEN** the checker reports it unsafe
+- **AND** the same holds for the elements `form`, `meta`, `base`, `style`, `link`, `foreignObject`, `handler`, `iframe`, `object` and `embed`
 
 #### Scenario: An XHTML upload carrying a script element is rejected
 - **WHEN** an `.xhtml` upload contains a `<script>` element
@@ -202,25 +221,36 @@ Which uploads reach this checker is specified by `upload-content-security`.
 - **WHEN** an `.html` upload contains ordinary formatting markup with no handlers, script, blocked elements or blocked schemes
 - **THEN** the checker reports it safe and the upload is stored normally
 
+### Requirement: Event handlers are rejected by shape
+
+The checker SHALL reject event handlers by shape: any attribute whose name begins with `on`, case-insensitively. It SHALL NOT decide event handlers by matching a list of known handler names. Such a list is unbounded and grows with the web platform.
+
+#### Scenario: An HTML upload with an unlisted handler is rejected
+- **WHEN** an `.html` upload contains an `onpointerdown` attribute
+- **THEN** the checker reports it unsafe and the upload is not stored
+
+#### Scenario: A future handler name needs no rule change
+- **WHEN** an `.html` upload contains an attribute named `onsomethingnotyetinvented`
+- **THEN** the checker reports it unsafe, because the match is on the `on` prefix and not on a name list
+
+
+
 ### Requirement: HTML-family markup is evaluated with an HTML parser
 
-The system SHALL parse `html`, `htm` and `shtml` uploads with an HTML parser rather than an XML
-parser, because an HTML document is not well-formed XML and an XML parse would reject or misread it.
-The XML parser SHALL remain in use for `svg`, `svgz`, `xhtml`, `xht`, `xml`, `xsl` and `xslt`.
-
-Both parse modes SHALL apply the same rejection rules, so the verdict for a given payload does not
-depend on which parser read it. In particular, the element check SHALL fold case: an HTML parser
-lowercases element names (`foreignObject` becomes `foreignobject`), so a case-sensitive match would
-refuse a construct in XML mode yet accept it in HTML mode. Folding case also matches an SVG inlined
-into an HTML document, where `<SCRIPT>` fires exactly as `<script>`.
+The system SHALL parse `html`, `htm` and `shtml` uploads with an HTML parser rather than an XML parser. The XML parser SHALL remain in use for `svg`, `svgz`, `xhtml`, `xht`, `xml`, `xsl` and `xslt`.
 
 #### Scenario: A structurally ordinary HTML document is not rejected merely for being HTML
 - **WHEN** an `.html` upload contains unclosed `<p>` tags, an implicit `<tbody>`, or attribute values without quotes
 - **THEN** the checker does not reject it for those reasons alone
+- **AND** the reason is that an HTML document is not well-formed XML, so an XML parse rejects or misreads it
 
 #### Scenario: HTML comments do not cause rejection
 - **WHEN** an `.html` upload contains an ordinary HTML comment
 - **THEN** the checker does not reject it for the comment
+
+### Requirement: Both parse modes apply the same rejection rules
+
+Both parse modes SHALL apply the same rejection rules, so the verdict for a given payload does not depend on which parser read it. The element check SHALL fold case.
 
 #### Scenario: The same payload gets the same verdict in either mode
 - **WHEN** identical event-handler markup is scanned once as `.html` and once as `.xhtml`
@@ -229,4 +259,9 @@ into an HTML document, where `<SCRIPT>` fires exactly as `<script>`.
 #### Scenario: A camelCase blocked element is rejected in HTML mode too
 - **WHEN** markup carrying a `<foreignObject>` element is scanned once as `.svg` (XML mode) and once as `.html` (HTML mode, where the parser lowercases it to `foreignobject`)
 - **THEN** both are reported unsafe, because the element check folds case
+- **AND** a case-sensitive match refuses the construct in XML mode but accepts it in HTML mode
 
+#### Scenario: An uppercase script element is rejected
+- **WHEN** an upload contains `<SCRIPT>`
+- **THEN** the checker reports it unsafe
+- **AND** the reason is that an SVG inlined into an HTML document fires `<SCRIPT>` exactly as `<script>`

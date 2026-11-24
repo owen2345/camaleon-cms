@@ -11,10 +11,25 @@ request names a locale the site does not offer.
 
 The frontend SHALL resolve `I18n.locale` in order: a scalar `?locale=` parameter, the visitor's
 session language (stored from a scalar `?cama_set_language=` parameter), then the site's first
-configured language. Only scalar values SHALL participate: a non-scalar `locale` or
-`cama_set_language` parameter (an array or hash, e.g. `?locale[]=`) SHALL be ignored in favor of
-the rest of the chain and MUST NOT produce a server error. A session language the site does not
-offer SHALL be dropped from the chain.
+configured language. A session language that the site does not offer SHALL be dropped from the
+chain.
+
+#### Scenario: Offered scalar locale is honored
+
+- **WHEN** a site's configured languages include `en` and a visitor opens `/?locale=en`
+- **THEN** the page renders in English
+
+#### Scenario: A session language that the site does not offer is dropped
+
+- **WHEN** the session language of a visitor is not among the configured languages of the site, and
+  the request has no `?locale=` parameter
+- **THEN** the page renders in the first configured language of the site
+
+### Requirement: Only scalar locale parameters take part in the locale chain
+
+Only scalar values SHALL participate in the chain. A non-scalar `locale` or `cama_set_language`
+parameter (an array or hash, e.g. `?locale[]=`) SHALL be ignored in favor of the rest of the chain
+and MUST NOT produce a server error.
 
 #### Scenario: Non-scalar locale parameter is ignored
 
@@ -27,11 +42,6 @@ offer SHALL be dropped from the chain.
 - **WHEN** a visitor opens `/?cama_set_language[]=en`
 - **THEN** the page renders with the locale resolved from the rest of the chain
 - **AND** the response is not a server error
-
-#### Scenario: Offered scalar locale is honored
-
-- **WHEN** a site's configured languages include `en` and a visitor opens `/?locale=en`
-- **THEN** the page renders in English
 
 ### Requirement: Unoffered locales produce the site's 404 page
 

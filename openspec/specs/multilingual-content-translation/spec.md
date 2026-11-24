@@ -31,9 +31,6 @@ otherwise in this order: the requested locale if the value carries it; else `I18
 if the value carries it; else an empty string when the value carries translations for other
 locales; else the value itself.
 
-The empty-string case is deliberate: a value that has been translated but not into any locale the
-reader can be served renders as nothing rather than leaking another language's text.
-
 #### Scenario: The requested locale is present
 - **WHEN** `<!--:en-->Hello<!--:--><!--:es-->Hola<!--:-->` is translated to `:es`
 - **THEN** the result is `Hola`
@@ -46,6 +43,8 @@ reader can be served renders as nothing rather than leaking another language's t
 #### Scenario: Neither the requested nor the default locale is present
 - **WHEN** `<!--:es-->Hola<!--:-->` is translated to `:fr` and `I18n.default_locale` is `:en`
 - **THEN** the result is an empty string
+- **AND** a value translated into no locale that the reader can be served renders as nothing, so it does
+  not leak another language's text
 
 ### Requirement: Untagged content passes through translation unchanged
 

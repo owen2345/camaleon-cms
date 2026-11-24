@@ -83,29 +83,8 @@ guarded so it never aborts boot when the database is unavailable.
 `PluginRoutes.reload` SHALL wait until each other request that the app serves has its response,
 before it clears and draws the route set. A request that starts while a reload runs or waits SHALL
 wait until the draw is done. A request that reloads the routes SHALL NOT wait for itself. The reload
-MUST NOT wait for the requests longer than `CamaleonCms::RouteReloadLock::WAIT_TIMEOUT` seconds:
-then it SHALL draw the routes and log a warning.
-
-Code can hold the lock for longer than a draw: a theme switch holds it for its whole time. A reload
-of another thread MUST NOT wait for that thread longer than `WAIT_TIMEOUT` seconds either. Then it
-SHALL draw the routes with no lock and log a warning, and the lock SHALL stay with the thread that
-holds it.
-
-`CamaleonCms::RouteReloadLock.exclusive(wait_for_holder: true)` SHALL NOT run its block with no
-lock. It SHALL wait for the thread that holds the lock for `HOLDER_WAIT_TIMEOUT` seconds at most,
-and then it SHALL raise `CamaleonCms::RouteReloadLock::WaitTimeout`. A theme switch takes the lock
-this way. When its block starts while a request still runs, the warning SHALL name a theme switch,
-not a reload.
-
-The wait for the requests and the wait for the thread that holds the lock SHALL have a time each.
-The wait for the requests SHALL count only the time in which no thread holds the lock. The wait for
-that thread SHALL count only the time in which a thread holds the lock. So a reload waits for
-2 x `WAIT_TIMEOUT` seconds at most. A block with `wait_for_holder: true` waits for `WAIT_TIMEOUT` +
-`HOLDER_WAIT_TIMEOUT` seconds at most.
-
-A fiber server runs each request in a fiber, and such an app sets
-`config.active_support.isolation_level` to `:fiber`. The lock SHALL then count each fiber as it
-counts each thread: a share and the lock belong to one fiber.
+MUST NOT wait for the requests longer than `CamaleonCms::RouteReloadLock::WAIT_TIMEOUT` seconds.
+After that time, it SHALL draw the routes and log a warning.
 
 #### Scenario: A reload waits for a request
 
@@ -127,12 +106,27 @@ counts each thread: a share and the lock belong to one fiber.
 - **WHEN** a request still runs after `WAIT_TIMEOUT` seconds of a reload
 - **THEN** the reload draws the routes and logs a warning
 
+### Requirement: A reload waits a limited time for the thread that holds the lock
+
+Code can hold the lock of `CamaleonCms::RouteReloadLock` for longer than a draw: a theme switch holds
+it for its whole time. A reload of another thread MUST NOT wait for that thread longer than
+`WAIT_TIMEOUT` seconds. Then it SHALL draw the routes with no lock and log a warning, and the lock
+SHALL stay with the thread that holds it.
+
 #### Scenario: Another thread holds the lock longer than the wait time
 
 - **WHEN** a theme switch still holds the lock after `WAIT_TIMEOUT` seconds of a reload of another
   thread
 - **THEN** the reload draws the routes and logs a warning
 - **AND** a request that starts then still waits until the switch is done
+
+### Requirement: A block can wait for the thread that holds the lock
+
+`CamaleonCms::RouteReloadLock.exclusive(wait_for_holder: true)` SHALL NOT run its block with no
+lock. It SHALL wait for the thread that holds the lock for `HOLDER_WAIT_TIMEOUT` seconds at most,
+and then it SHALL raise `CamaleonCms::RouteReloadLock::WaitTimeout`. A theme switch takes the lock
+this way. When its block starts while a request still runs, the warning SHALL name a theme switch,
+not a reload.
 
 #### Scenario: A block that waits for the thread that holds the lock
 
@@ -148,6 +142,14 @@ counts each thread: a share and the lock belong to one fiber.
 - **THEN** the block runs with the lock
 - **AND** the warning in the log names a theme switch, not a reload
 
+### Requirement: The wait for the requests and the wait for the holder have a time each
+
+The wait for the requests and the wait for the thread that holds the lock SHALL have a time each.
+The wait for the requests SHALL count only the time in which no thread holds the lock. The wait for
+that thread SHALL count only the time in which a thread holds the lock. So a reload waits for
+2 x `WAIT_TIMEOUT` seconds at most. A block with `wait_for_holder: true` waits for `WAIT_TIMEOUT` +
+`HOLDER_WAIT_TIMEOUT` seconds at most.
+
 #### Scenario: A reload meets a thread that holds the lock, after a wait for a request
 
 - **WHEN** a reload waits for a request, and a thread then takes the lock
@@ -160,6 +162,12 @@ counts each thread: a share and the lock belong to one fiber.
   than `WAIT_TIMEOUT` seconds
 - **AND** a request still runs when that thread is done
 - **THEN** the block waits for that request for `WAIT_TIMEOUT` seconds at most, before it runs
+
+### Requirement: The lock counts each fiber as it counts each thread
+
+A fiber server runs each request in a fiber, and such an app sets
+`config.active_support.isolation_level` to `:fiber`. The lock SHALL then count each fiber as it
+counts each thread: a share and the lock belong to one fiber.
 
 #### Scenario: Two fibers of one thread
 
@@ -176,24 +184,36 @@ the draw adds no route to the routes of the last reload. At the end of the block
 `PluginRoutes.reload_once` SHALL draw the routes one time when a call left a draw to it and the block
 drew no routes after that call. It SHALL draw them also when the block raises an error.
 
-A draw adds a route when the last reload did not have one of these:
-
-- a post type with its present slug
-- the route files of a plugin or a theme that a site has enabled
-- a language of a site
-
-A call before the first reload of the process SHALL draw at once. A call after a draw that raised an
-error SHALL draw at once too.
-
-Outside such a block, `PluginRoutes.request_reload` SHALL reload the routes at once.
-`PluginRoutes.reload` SHALL draw the routes at once, in the block too. A block in another block SHALL
-leave the draw to the outer block. A block SHALL NOT change a reload on another thread.
-
 #### Scenario: Two calls that add no route give one draw
 
 - **WHEN** code in a `PluginRoutes.reload_once` block calls `PluginRoutes.request_reload` two times,
   and the database has no new post type, plugin, theme or language
 - **THEN** the routes are not drawn in the block, and they are drawn one time at the end of the block
+
+#### Scenario: A block that asks for no draw
+
+- **WHEN** no code in a `PluginRoutes.reload_once` block calls `PluginRoutes.request_reload`
+- **THEN** the routes are not drawn
+
+#### Scenario: The caches are clear in the block
+
+- **WHEN** code in a block calls `PluginRoutes.request_reload` and then reads a list that
+  `PluginRoutes` caches, such as the enabled plugins of a site
+- **THEN** the list comes from the database, not from the cache of before the call
+
+#### Scenario: The block raises an error
+
+- **WHEN** a call in a block left a draw to the end of the block, and the block then raises an error
+- **THEN** the routes are drawn one time, and the caller gets the error
+
+### Requirement: A draw that adds a route happens at once
+
+`PluginRoutes.request_reload` SHALL draw the routes at once in a block when the draw adds a route. A
+draw adds a route when the last reload did not have one of these:
+
+- a post type with its present slug
+- the route files of a plugin or a theme that a site has enabled
+- a language of a site
 
 #### Scenario: A new post type in a block
 
@@ -221,10 +241,16 @@ leave the draw to the outer block. A block SHALL NOT change a reload on another 
   own
 - **THEN** the routes are not drawn before the end of the block
 
-#### Scenario: A block that asks for no draw
+### Requirement: Some calls draw the routes at once
 
-- **WHEN** no code in a `PluginRoutes.reload_once` block calls `PluginRoutes.request_reload`
-- **THEN** the routes are not drawn
+A call before the first reload of the process SHALL draw at once. A call after a draw that raised an
+error SHALL draw at once too. Outside such a block, `PluginRoutes.request_reload` SHALL reload the
+routes at once. `PluginRoutes.reload` SHALL draw the routes at once, in the block too.
+
+#### Scenario: A call before the first reload
+
+- **WHEN** code in a block calls `PluginRoutes.request_reload` before the first reload of the process
+- **THEN** the routes are drawn at once
 
 #### Scenario: A call after a draw that raised an error
 
@@ -237,12 +263,6 @@ leave the draw to the outer block. A block SHALL NOT change a reload on another 
 - **WHEN** code outside a `PluginRoutes.reload_once` block calls `PluginRoutes.request_reload`
 - **THEN** `PluginRoutes.reload` draws the routes at once
 
-#### Scenario: The caches are clear in the block
-
-- **WHEN** code in a block calls `PluginRoutes.request_reload` and then reads a list that
-  `PluginRoutes` caches, such as the enabled plugins of a site
-- **THEN** the list comes from the database, not from the cache of before the call
-
 #### Scenario: `PluginRoutes.reload` in a block
 
 - **WHEN** a call in a block left a draw to the end of the block, and code in the block then calls
@@ -250,10 +270,10 @@ leave the draw to the outer block. A block SHALL NOT change a reload on another 
 - **THEN** `PluginRoutes.reload` draws the routes at once, and the end of the block does not draw
   them again
 
-#### Scenario: The block raises an error
+### Requirement: A block does not change the draws of another block or thread
 
-- **WHEN** a call in a block left a draw to the end of the block, and the block then raises an error
-- **THEN** the routes are drawn one time, and the caller gets the error
+A block in another block SHALL leave the draw to the outer block. A block SHALL NOT change a reload
+on another thread.
 
 #### Scenario: A block in a block
 
@@ -273,15 +293,22 @@ plugins and that theme. The last draw SHALL be done before the admin gets the re
 `site_after_install` SHALL draw the routes one time for its plugins and its theme, under the same
 condition as the create.
 
-The delete of a site SHALL draw the routes one time, in a `PluginRoutes.reload_once` block or not. A
-post type that its site destroys SHALL ask for no draw. The site SHALL ask for the draw after its own
-delete.
-
 #### Scenario: An admin creates a second site
 
 - **WHEN** an admin creates a site, and another site already has each default plugin and the theme
 - **THEN** the routes are drawn 3 times, and they then have the route of each post type of the new
   site
+
+#### Scenario: A create that fails
+
+- **WHEN** an admin sends a site that is not valid
+- **THEN** the routes are not drawn, and the admin sees the form again
+
+### Requirement: The delete of a site draws the routes one time
+
+The delete of a site SHALL draw the routes one time, in a `PluginRoutes.reload_once` block or not. A
+post type that its site destroys SHALL ask for no draw. The site SHALL ask for the draw after its own
+delete.
 
 #### Scenario: An admin deletes a site
 
@@ -308,11 +335,6 @@ delete.
 - **WHEN** code outside a block destroys a post type, and not its site
 - **THEN** the routes are drawn at once
 
-#### Scenario: A create that fails
-
-- **WHEN** an admin sends a site that is not valid
-- **THEN** the routes are not drawn, and the admin sees the form again
-
 ### Requirement: A site asks for the reload of the routes after the commit of its transaction
 
 A site SHALL ask for the reload of the routes when it is created, when it gets a new slug and when
@@ -320,26 +342,11 @@ it is deleted. It SHALL ask with `PluginRoutes.request_reload`, after the commit
 that holds the change, and one time for that transaction. A transaction that rolls back SHALL ask
 for no reload.
 
-After a rollback, the list of `PluginRoutes.get_sites` MUST hold each site as stored.
-
-A commit of a site update SHALL ask for no reload when the list of `PluginRoutes.get_sites` holds
-the stored slug of that site. When the list is not loaded, the commit SHALL ask for no reload, and
-it SHALL NOT load the list.
-
-The main site is the exception. The routes hold the slug of the main site as their default host. The
-commit of its update SHALL ask for the reload when the last reload drew another default host than
-its stored slug. This rule holds also when the list is not loaded.
-
 #### Scenario: A new slug outside a transaction
 
 - **WHEN** code saves a site with a new slug, outside a transaction, while the list of
   `PluginRoutes.get_sites` is loaded
 - **THEN** the routes are drawn one time, and the list of `PluginRoutes.get_sites` holds the new slug
-
-#### Scenario: A new slug that a transaction rolls back
-
-- **WHEN** a transaction saves a site with a new slug, and then rolls back
-- **THEN** the routes are not drawn, and the list of `PluginRoutes.get_sites` holds the stored slug
 
 #### Scenario: A second save after the new slug
 
@@ -354,6 +361,32 @@ its stored slug. This rule holds also when the list is not loaded.
   through another instance, in one transaction
 - **THEN** the list of `PluginRoutes.get_sites` holds the new slug after the commit
 
+### Requirement: A rollback leaves the site list as stored
+
+After a rollback, the list of `PluginRoutes.get_sites` MUST hold each site as stored.
+
+#### Scenario: A new slug that a transaction rolls back
+
+- **WHEN** a transaction saves a site with a new slug, and then rolls back
+- **THEN** the routes are not drawn, and the list of `PluginRoutes.get_sites` holds the stored slug
+
+#### Scenario: A delete that a transaction rolls back
+
+- **WHEN** a transaction destroys a site, and then rolls back
+- **THEN** the routes are not drawn, and the list of `PluginRoutes.get_sites` holds the site
+
+#### Scenario: A create that a transaction rolls back
+
+- **WHEN** a transaction creates a site, and then rolls back
+- **THEN** the list of `PluginRoutes.get_sites` holds no such site
+- **AND** the app has no route of a post type of that site
+
+### Requirement: A site update asks for no reload when the list holds its stored slug
+
+A commit of a site update SHALL ask for no reload when the list of `PluginRoutes.get_sites` holds
+the stored slug of that site. When the list is not loaded, the commit SHALL ask for no reload, and
+it SHALL NOT load the list.
+
 #### Scenario: A save with no new slug
 
 - **WHEN** code saves a new name of a site that is not the main site, and the list holds the stored
@@ -367,6 +400,12 @@ its stored slug. This rule holds also when the list is not loaded.
 - **THEN** the routes are not drawn, and the commit does not load the list
 - **AND** the next read of the list holds the new slug
 
+### Requirement: The update of the main site asks for a reload when the default host changes
+
+The main site is the exception. The routes hold the slug of the main site as their default host. The
+commit of its update SHALL ask for the reload when the last reload drew another default host than
+its stored slug. This rule holds also when the list is not loaded.
+
 #### Scenario: A new slug of the main site in a transaction that draws the routes
 
 - **WHEN** a transaction gives the main site a new slug and creates a post type, in the one order
@@ -379,17 +418,6 @@ its stored slug. This rule holds also when the list is not loaded.
   loaded, after a reload that drew its old slug as the default host
 - **THEN** the routes are drawn one time
 
-#### Scenario: A delete that a transaction rolls back
-
-- **WHEN** a transaction destroys a site, and then rolls back
-- **THEN** the routes are not drawn, and the list of `PluginRoutes.get_sites` holds the site
-
-#### Scenario: A create that a transaction rolls back
-
-- **WHEN** a transaction creates a site, and then rolls back
-- **THEN** the list of `PluginRoutes.get_sites` holds no such site
-- **AND** the app has no route of a post type of that site
-
 ### Requirement: A reload of the routes draws them on trial first
 
 `PluginRoutes.reload` SHALL load the route files of Camaleon into an empty route set before it clears
@@ -397,44 +425,6 @@ the route set of the app. This trial SHALL read the data of the routes into a co
 thread uses. When the trial raises an error, the reload SHALL raise `CamaleonCms::RouteDrawError`.
 The message of that error SHALL name the error of the route file, and its cause SHALL be that error.
 The route set of the app and the cached data of `PluginRoutes` MUST then stay as they were.
-
-When the trial passes, the draw of the app route set SHALL read the data that the trial read. It
-SHALL NOT read the sites from the database again. A reload MUST NOT draw the routes from data that is
-older than the data of the last reload.
-
-A trial SHALL read the database with no query cache. In a request, that cache holds the rows that
-the request read before, and a write of another thread does not clear it. So a trial reads the rows
-that another request stored before it.
-
-`PluginRoutes` keeps the site list and the lists of the enabled plugins for all threads. A read that
-fills them SHALL use no query cache too. So a request that fills them after a clear gives each
-thread the stored rows.
-
-`PluginRoutes.check_routes` SHALL run the trial alone. It SHALL raise `CamaleonCms::RouteDrawError`
-for a trial that fails. It MUST NOT change the route set of the app or the cached data of
-`PluginRoutes`.
-
-`PluginRoutes.trial_routes` SHALL run the trial as `check_routes` does, and return it.
-`PluginRoutes.reload` and `PluginRoutes.request_reload` SHALL take that trial as `trial:`. A reload
-with a trial SHALL draw from the data of the trial, with no trial of its own. When another reload drew
-the routes after that trial, it SHALL run a trial again. It SHALL run a trial again also when the
-transaction that was open at that trial rolled back.
-
-A trial reads the rows as its transaction sees them, and another connection can commit a newer row.
-So a reload SHALL run a trial again also after the commit of the outermost transaction that was
-open at its trial. A savepoint commits only with the transaction around it. So the release of a
-savepoint SHALL NOT make a reload in that transaction run a trial again. When another reload drew
-the routes after the trial, a reload in that transaction still SHALL run a trial again. A reload in
-a later transaction SHALL run a trial again.
-
-The other reload can be a reload of the same thread, for example of a commit callback. That reload
-can read its data after the trial, with no open transaction, and be the last draw of the routes. The
-reload with the trial SHALL then draw nothing: the routes already have the stored rows. It SHALL
-draw nothing also after the commit of the outermost transaction that was open at the trial, and in
-a later transaction. When the transaction that was open at the trial rolled back, the reload SHALL
-run a trial again instead.
-
-The trial does not load the route file of the host app, of a plugin gem or of another engine.
 
 #### Scenario: The route file of a plugin raises an error
 
@@ -445,17 +435,23 @@ The trial does not load the route file of the host app, of a plugin gem or of an
 - **AND** the list of `PluginRoutes.get_sites` and each value of `PluginRoutes.cache_variable` stay
   as they were
 
+### Requirement: The draw of a reload uses the data of its trial
+
+When the trial passes, the draw of the app route set SHALL read the data that the trial read. It
+SHALL NOT read the sites from the database again. A reload MUST NOT draw the routes from data that is
+older than the data of the last reload.
+
 #### Scenario: A reload that passes
 
 - **WHEN** code calls `PluginRoutes.reload`, and each route file can be drawn
 - **THEN** the routes of the app are drawn one time
 - **AND** the reload reads the sites from the database one time
 
-#### Scenario: Another reload between the trial and the draw
+### Requirement: A trial reads the database with no query cache
 
-- **WHEN** a reload of another thread draws the routes after the trial of a reload and before its
-  draw
-- **THEN** the reload runs its trial again, and it draws the routes from that data
+A trial SHALL read the database with no query cache. In a request, that cache holds the rows that
+the request read before, and a write of another thread does not clear it. So a trial reads the rows
+that another request stored before it.
 
 #### Scenario: A trial in a request after a write of another request
 
@@ -463,17 +459,49 @@ The trial does not load the route file of the host app, of a plugin gem or of an
   reloads the routes
 - **THEN** the trial of that reload reads the changed site
 
+### Requirement: A fill of the shared route data uses no query cache
+
+`PluginRoutes` keeps the site list and the lists of the enabled plugins for all threads. A read that
+fills them SHALL use no query cache too. So a request that fills them after a clear gives each
+thread the stored rows.
+
 #### Scenario: A request fills the site list after a clear of another request
 
 - **WHEN** a request read the sites, another request then changes a site and clears the site list,
   and the first request calls `PluginRoutes.get_sites`
 - **THEN** the list holds the changed site
 
-#### Scenario: A reload of the same thread between the trial and the draw
+### Requirement: A check of the routes runs the trial alone
 
-- **WHEN** a thread runs a trial, and then reloads the routes with no trial and no open transaction
-- **AND** the thread gives the trial to `PluginRoutes.reload`, and no other thread drew the routes
-- **THEN** that reload runs no trial, and it draws no routes
+`PluginRoutes.check_routes` SHALL run the trial alone. It SHALL raise `CamaleonCms::RouteDrawError`
+for a trial that fails. It MUST NOT change the route set of the app or the cached data of
+`PluginRoutes`.
+
+#### Scenario: A check with a draw that fails
+
+- **WHEN** the route file of an enabled plugin raises an error, and code calls
+  `PluginRoutes.check_routes`
+- **THEN** the call raises `CamaleonCms::RouteDrawError`, and the routes of the app are not drawn
+
+#### Scenario: A check with a draw that passes
+
+- **WHEN** each route file can be drawn, and code calls `PluginRoutes.check_routes`
+- **THEN** the call raises no error, and the routes of the app are not drawn
+- **AND** the cached data of `PluginRoutes` stays as it was
+
+### Requirement: A reload can take the trial of an earlier call
+
+`PluginRoutes.trial_routes` SHALL run the trial as `check_routes` does, and return it.
+`PluginRoutes.reload` and `PluginRoutes.request_reload` SHALL take that trial as `trial:`. A reload
+with a trial SHALL draw from the data of the trial, with no trial of its own. When another reload drew
+the routes after that trial, it SHALL run a trial again. It SHALL run a trial again also when the
+transaction that was open at that trial rolled back.
+
+#### Scenario: Another reload between the trial and the draw
+
+- **WHEN** a reload of another thread draws the routes after the trial of a reload and before its
+  draw
+- **THEN** the reload runs its trial again, and it draws the routes from that data
 
 #### Scenario: A trial whose transaction rolls back
 
@@ -481,6 +509,12 @@ The trial does not load the route file of the host app, of a plugin gem or of an
 - **AND** code gives that trial to `PluginRoutes.reload`
 - **THEN** the reload runs a trial again, and the list of `PluginRoutes.get_sites` holds the stored
   slug
+
+### Requirement: A reload runs a trial again after the commit of the trial transaction
+
+A trial reads the rows as its transaction sees them, and another connection can commit a newer row.
+So a reload SHALL run a trial again also after the commit of the outermost transaction that was
+open at its trial. A reload in a later transaction SHALL run a trial again.
 
 #### Scenario: A trial whose transaction commits
 
@@ -497,23 +531,41 @@ The trial does not load the route file of the host app, of a plugin gem or of an
 - **THEN** the reload runs a trial again, and `PluginRoutes.get_sites` gives the new name in that
   transaction
 
+### Requirement: The release of a savepoint does not make a reload run a trial again
+
+A savepoint commits only with the transaction around it. So the release of a savepoint SHALL NOT make
+a reload in that transaction run a trial again. When another reload drew the routes after the trial,
+a reload in that transaction still SHALL run a trial again.
+
 #### Scenario: A trial of a savepoint in an open transaction
 
 - **WHEN** a savepoint in a transaction calls `PluginRoutes.trial_routes`, and the transaction then
   gives that trial to `PluginRoutes.reload`
 - **THEN** the reload runs no trial, and it draws the routes from the data of the trial
 
-#### Scenario: A check with a draw that fails
+### Requirement: A reload with a trial draws nothing when the routes already have the stored rows
 
-- **WHEN** the route file of an enabled plugin raises an error, and code calls
-  `PluginRoutes.check_routes`
-- **THEN** the call raises `CamaleonCms::RouteDrawError`, and the routes of the app are not drawn
+A reload of the same thread, for example of a commit callback, can read its data after the trial.
+It reads with no open transaction, and it can be the last draw of the routes. The reload with the
+trial SHALL then draw nothing: the routes already have the stored rows. It SHALL draw nothing also after the commit
+of the outermost transaction that was open at the trial, and in a later transaction. When that
+transaction rolled back, the reload SHALL run a trial again instead.
 
-#### Scenario: A check with a draw that passes
+#### Scenario: A reload of the same thread between the trial and the draw
 
-- **WHEN** each route file can be drawn, and code calls `PluginRoutes.check_routes`
-- **THEN** the call raises no error, and the routes of the app are not drawn
-- **AND** the cached data of `PluginRoutes` stays as it was
+- **WHEN** a thread runs a trial, and then reloads the routes with no trial and no open transaction
+- **AND** the thread gives the trial to `PluginRoutes.reload`, and no other thread drew the routes
+- **THEN** that reload runs no trial, and it draws no routes
+
+### Requirement: The trial loads no route file of another app or gem
+
+The trial SHALL NOT load the route file of the host app, of a plugin gem or of another engine.
+
+#### Scenario: A trial of a reload
+
+- **WHEN** a reload runs its trial
+- **THEN** the trial does not load the route file of the host app, of a plugin gem or of another
+  engine
 
 ### Requirement: An admin request answers a route draw that fails as a refused save
 
@@ -521,23 +573,6 @@ When `CamaleonCms::RouteDrawError` reaches an admin controller, in a request tha
 HEAD, the controller SHALL answer as it answers a refused save. The answer is a redirect back with
 a flash error. For an XHR without the `cama_ajax_request` param, it is the message as text with a
 422. The message SHALL name the error of the route file.
-
-When a transaction was open on the thread at the failure, the message SHALL say that Camaleon did
-not save the change. Otherwise it SHALL say that Camaleon kept the routes as they were. Camaleon
-SHALL log the error. For a GET or HEAD request, the controller SHALL raise the error again.
-
-The theme switch of the admin is a GET request. Its controller SHALL answer the error with a
-redirect to the list of the themes and a flash error, and it SHALL log the error. That list draws no
-routes. A failed trial in the transaction of the switch rolls the switch back. So the flash error
-SHALL say that Camaleon did not save the change, and the site SHALL keep its old theme.
-
-The draw after the commit of the switch runs a trial again. In a transaction of the caller, the
-draw runs a trial again when another reload drew the routes after the trial of the switch. A change
-outside the switch can fail that trial.
-The flash error then SHALL say that Camaleon kept the routes as they were, and the theme stays
-switched. The helper SHALL give the error of that trial with `in_transaction?` false, also in a
-transaction of the caller, because the switch stays. A caller that lets that error through a
-transaction of its own rolls the switch back, and the error does not say so.
 
 #### Scenario: A site settings save with a new slug
 
@@ -551,6 +586,26 @@ transaction of its own rolls the switch back, and the error does not say so.
 
 - **WHEN** the same save is an XHR without the `cama_ajax_request` param
 - **THEN** the response is that message as text with a 422
+
+### Requirement: The message of a route draw error says whether the change is saved
+
+When a transaction was open on the thread at the failure, the message SHALL say that Camaleon did
+not save the change. Otherwise it SHALL say that Camaleon kept the routes as they were. Camaleon
+SHALL log the error. For a GET or HEAD request, the controller SHALL raise the error again.
+
+#### Scenario: A change that is stored before the draw
+
+- **WHEN** an admin saves the languages of a site, and the route file of an enabled plugin raises
+  an error
+- **THEN** the response redirects back with a flash error
+- **AND** the flash error says that the routes stay as they were
+
+### Requirement: The theme switch answers a route draw that fails with a redirect
+
+The theme switch of the admin is a GET request. Its controller SHALL answer the error with a
+redirect to the list of the themes and a flash error, and it SHALL log the error. That list draws no
+routes. A failed trial in the transaction of the switch rolls the switch back. So the flash error
+SHALL say that Camaleon did not save the change, and the site SHALL keep its old theme.
 
 #### Scenario: A theme switch
 
@@ -568,12 +623,30 @@ transaction of its own rolls the switch back, and the error does not say so.
 - **AND** the flash error says that the change was not saved, and the site keeps its old theme
 - **AND** the record that the hook saved is not stored
 
-#### Scenario: A change that is stored before the draw
+### Requirement: A route draw that fails after the commit of a theme switch keeps the switch
 
-- **WHEN** an admin saves the languages of a site, and the route file of an enabled plugin raises
-  an error
-- **THEN** the response redirects back with a flash error
-- **AND** the flash error says that the routes stay as they were
+The draw after the commit of the switch runs a trial again. In a transaction of the caller, the
+draw runs a trial again when another reload drew the routes after the trial of the switch. A change
+outside the switch can fail that trial. The flash error then SHALL say that Camaleon kept the routes
+as they were, and the theme stays switched.
+
+#### Scenario: A change outside the switch fails the trial of the draw
+
+- **WHEN** an admin switches the theme of a site, and a change outside the switch makes the trial of
+  the draw after the commit fail
+- **THEN** the flash error says that Camaleon kept the routes as they were
+- **AND** the theme stays switched
+
+### Requirement: The helper of the theme switch gives an error that is not in a transaction
+
+The helper of the theme switch SHALL give the error of that trial with `in_transaction?` false. This
+holds also in a transaction of the caller, because the switch stays. A caller that lets that error through a
+transaction of its own rolls the switch back, and the error does not say so.
+
+#### Scenario: The draw after the switch fails in a transaction of the caller
+
+- **WHEN** the draw after the commit of the switch fails in a transaction of the caller
+- **THEN** the error that the helper gives has `in_transaction?` false
 
 ### Requirement: A site checks the routes in its transaction
 
@@ -639,30 +712,24 @@ While a transaction is open on the connection of a thread, `PluginRoutes` SHALL 
 reads in a copy of that thread. The data is the site list and each value of
 `PluginRoutes.cache_variable`. The other threads SHALL read the data from before the transaction.
 
-After the commit, each thread SHALL read the committed data. After a rollback, the thread SHALL read
-the stored data again. The routes of the app SHALL then be drawn again when a draw used the data of
-that transaction.
-
-A savepoint in the transaction, such as a `requires_new` transaction, uses the data of the
-transaction. After the rollback of a savepoint that used the data, the thread SHALL read the data
-from the database again. This holds also for a savepoint in a savepoint that was released before the
-rollback. The rollback also drops each value that the transaction stored with
-`PluginRoutes.cache_variable` before the savepoint.
-
-A savepoint that reloads the routes, or that asks for a reload, gets data of its own. After its
-rollback, the thread SHALL read the data from the database again too. It MUST NOT read the shared
-data while the transaction is open, because that data lacks the rows of the transaction.
-
-The transaction that the test fixtures open for each example is not an open transaction here. A
-transaction that no other transaction can join (`joinable: false`) is an open transaction here when a
-transaction that others can join is open around it.
-
 #### Scenario: A new post type in a transaction
 
 - **WHEN** a transaction creates a post type
 - **THEN** the route helper of the post type exists in the transaction
 - **AND** the site list that the other threads read does not hold the post type before the commit
 - **AND** that list holds the post type after the commit
+
+#### Scenario: A cached value in a transaction
+
+- **WHEN** code in a transaction stores a value with `PluginRoutes.cache_variable`
+- **THEN** the code reads the value back in the transaction
+- **AND** the other threads do not read that value
+
+### Requirement: A thread reads the committed or the stored data after the end of a transaction
+
+After the commit, each thread SHALL read the committed data. After a rollback, the thread SHALL read
+the stored data again. The routes of the app SHALL then be drawn again when a draw used the data of
+that transaction.
 
 #### Scenario: A new post type that a transaction rolls back
 
@@ -676,6 +743,14 @@ transaction that others can join is open around it.
   not loaded, and then rolls back
 - **THEN** the list of `PluginRoutes.get_sites` holds the stored slug
 
+### Requirement: A savepoint uses the data of its transaction
+
+A savepoint in the transaction, such as a `requires_new` transaction, uses the data of the
+transaction. After the rollback of a savepoint that used the data, the thread SHALL read the data
+from the database again. This holds also for a savepoint in a savepoint that was released before the
+rollback. The rollback also drops each value that the transaction stored with
+`PluginRoutes.cache_variable` before the savepoint.
+
 #### Scenario: A savepoint that rolls back
 
 - **WHEN** a transaction stores a value with `PluginRoutes.cache_variable`
@@ -683,11 +758,23 @@ transaction that others can join is open around it.
 - **THEN** the list of `PluginRoutes.get_sites` in the transaction holds the stored slug
 - **AND** `PluginRoutes.cache_variable` gives no value for the key that the transaction stored
 
+### Requirement: A savepoint that reloads the routes gets data of its own
+
+A savepoint that reloads the routes, or that asks for a reload, gets data of its own. After its
+rollback, the thread SHALL read the data from the database again too. It MUST NOT read the shared
+data while the transaction is open, because that data lacks the rows of the transaction.
+
 #### Scenario: A savepoint that asks for a reload and rolls back
 
 - **WHEN** a transaction creates a post type
 - **AND** a savepoint in it calls `PluginRoutes.reload_after_commit`, and rolls back
 - **THEN** the list of `PluginRoutes.get_sites` in the transaction holds the post type
+
+### Requirement: Only some transactions count as open for the data of PluginRoutes
+
+The transaction that the test fixtures open for each example SHALL NOT count as an open transaction
+here. A transaction that no other transaction can join (`joinable: false`) SHALL count as an open
+transaction here. This holds when a transaction that others can join is open around it.
 
 #### Scenario: A transaction that no other transaction can join
 
@@ -695,25 +782,19 @@ transaction that others can join is open around it.
   value there with `PluginRoutes.cache_variable`, and rolls that transaction back
 - **THEN** `PluginRoutes.cache_variable` gives no value for that key, in each thread
 
-#### Scenario: A cached value in a transaction
+#### Scenario: Only the transaction of the test fixtures is open
 
-- **WHEN** code in a transaction stores a value with `PluginRoutes.cache_variable`
-- **THEN** the code reads the value back in the transaction
-- **AND** the other threads do not read that value
+- **WHEN** only the transaction that the test fixtures open for an example is open, and code stores a
+  value with `PluginRoutes.cache_variable`
+- **THEN** `PluginRoutes` does not treat that transaction as open, and it keeps the value as it
+  does with no transaction
 
 ### Requirement: A reload request can wait for the commit
 
 `PluginRoutes.reload_after_commit` SHALL ask for a reload of the routes after the commit of the
-transaction that is open on the thread. It SHALL clear the cached data of the thread at once, so that
-a later read in the transaction comes from the database. After the commit, it SHALL call
-`PluginRoutes.request_reload`, one time for that transaction. After a rollback, it SHALL ask for no
-reload. With no open transaction, it SHALL call `PluginRoutes.request_reload` at once.
-
-A `requires_new` transaction is a savepoint of the transaction around it. Its request SHALL wait for
-the commit of the outermost transaction. A rollback of that transaction SHALL drop the request.
-
-The call after the commit SHALL come right after the commit when the transaction saved a site or a
-post type. Else it SHALL come at the next call of `PluginRoutes`.
+transaction that is open on the thread. After the commit, it SHALL call `PluginRoutes.request_reload`,
+one time for that transaction. After a rollback, it SHALL ask for no reload. With no open
+transaction, it SHALL call `PluginRoutes.request_reload` at once.
 
 #### Scenario: A request with no open transaction
 
@@ -732,12 +813,43 @@ post type. Else it SHALL come at the next call of `PluginRoutes`.
   back
 - **THEN** the routes are not drawn
 
+### Requirement: A reload request clears the cached data of the thread at once
+
+`PluginRoutes.reload_after_commit` SHALL clear the cached data of the thread at once, so that a later
+read in the transaction comes from the database.
+
+#### Scenario: A read after the request
+
+- **WHEN** code in a transaction calls `PluginRoutes.reload_after_commit`, and then reads a list that
+  `PluginRoutes` caches
+- **THEN** the list comes from the database, not from the cached data of the thread
+
+### Requirement: A reload request in a savepoint waits for the outermost transaction
+
+A `requires_new` transaction is a savepoint of the transaction around it. Its request SHALL wait for
+the commit of the outermost transaction. A rollback of that transaction SHALL drop the request.
+
 #### Scenario: A request in a savepoint
 
 - **WHEN** code in a `requires_new` transaction calls `PluginRoutes.reload_after_commit`, and the
   commit of the transaction around it is not over
 - **THEN** the routes are not drawn
 - **AND** they are drawn one time after that commit
+
+### Requirement: The call after the commit comes right after a save of a site or a post type
+
+The call after the commit SHALL come right after the commit when the transaction saved a site or a
+post type. Else it SHALL come at the next call of `PluginRoutes`.
+
+#### Scenario: A transaction that saved a site or a post type
+
+- **WHEN** a transaction saves a site or a post type and calls `PluginRoutes.reload_after_commit`
+- **THEN** `PluginRoutes.request_reload` runs right after the commit
+
+#### Scenario: A transaction that saved no site and no post type
+
+- **WHEN** a transaction saves no site and no post type, and calls `PluginRoutes.reload_after_commit`
+- **THEN** `PluginRoutes.request_reload` runs at the next call of `PluginRoutes`
 
 ### Requirement: A post type draws the routes in its transaction only for a create
 

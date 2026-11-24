@@ -105,29 +105,42 @@ The system SHALL determine whether a `data:` upload supplies a filename from the
 
 ### Requirement: A non-positive size limit means unlimited
 
-`cama_size_limit_error` SHALL treat a non-positive `maximum` (zero or negative) as "no limit"
-and accept any size, rather than rejecting every non-empty file. This is the single point every
-caller's size check flows through — core's `upload_file`/`cama_tmp_upload`/data-URI staging and
-plugin callers such as `cama_contact_form` that read `filesystem_max_size` and pass it as
-`maximum:` — so a site whose stored `filesystem_max_size` is blank or `0` can still upload and
-crop. A positive limit continues to reject sizes above it. The size comparison SHALL coerce
-`maximum`, so a positive numeric-string limit is enforced rather than raising a comparison
-error.
+`cama_size_limit_error` SHALL treat a non-positive `maximum` (zero or negative) as "no limit" and
+accept any size, rather than rejecting every non-empty file. A positive limit SHALL still reject
+sizes above it.
 
 #### Scenario: Zero limit accepts an upload
 
 - **WHEN** the size check runs with a `maximum` of `0` for a non-empty file
 - **THEN** no size error is returned
 
+#### Scenario: A positive limit still rejects an oversized file
+
+- **WHEN** the size check runs with a positive `maximum` and a file larger than it
+- **THEN** a size error is returned
+
+### Requirement: Every size check flows through cama_size_limit_error
+
+`cama_size_limit_error` SHALL be the single point that the size check of every caller flows through.
+The callers are `upload_file`, `cama_tmp_upload` and the data-URI staging of Camaleon, and plugin
+callers such as `cama_contact_form` that read `filesystem_max_size` and pass it as `maximum:`. A
+site whose stored `filesystem_max_size` is blank or `0` SHALL still be able to upload and crop.
+
 #### Scenario: A crop succeeds on a site whose max file size is zero
 
 - **WHEN** a site's `filesystem_max_size` option is `0` and a user crops an existing image
 - **THEN** the crop is not rejected with a "File size exceeded (0 Bytes)" error
 
-#### Scenario: A positive limit still rejects an oversized file
+#### Scenario: A plugin caller with a blank filesystem_max_size accepts an upload
 
-- **WHEN** the size check runs with a positive `maximum` and a file larger than it
-- **THEN** a size error is returned
+- **WHEN** a site's stored `filesystem_max_size` is blank, and a plugin caller such as
+  `cama_contact_form` passes it as `maximum:`
+- **THEN** no size error is returned
+
+### Requirement: The size comparison coerces the maximum
+
+The size comparison SHALL coerce `maximum`, so a positive numeric-string limit is enforced rather
+than raising a comparison error.
 
 #### Scenario: A numeric-string limit is enforced
 
@@ -148,4 +161,3 @@ string-keyed `remove_source` MUST NOT leave its staged file behind in the web-se
   (a string key), triggering the pre-symbolize content rejection
 - **THEN** the upload is rejected with an error
 - **AND** the uploader-owned staged file is removed from the staging root
-

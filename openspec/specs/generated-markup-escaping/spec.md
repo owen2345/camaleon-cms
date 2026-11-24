@@ -4,17 +4,14 @@
 
 Keep HTML fragments that are assembled outside a template safe at the point they are built, rather than at the point they are rendered. Camaleon escapes user data at the source — `the_title` returns an already-escaped `SafeBuffer` — because most themes and plugins live in separate gems and many render those values through `raw`. Escaping at the source is what makes those unseeable sinks safe, so a decorator, helper or model that builds markup by interpolation must uphold the same contract: escape every interpolated value that is not already a `SafeBuffer`, and return one.
 
-The second requirement records why fixing the sink is the property worth having for post statuses specifically: three writers reach `posts.status` without model validation, so no amount of validation at the model or controller layer makes the column trustworthy to rendering code.
+The requirement on the post status column records why the fix of the sink matters for post statuses. Three writers reach `posts.status` without model validation. So no validation at the model or controller layer makes the column trustworthy to rendering code.
 
 Escaping must not change the output for data containing no HTML metacharacters. Downstream themes have had years to match on the exact bytes of these fragments, and this repo cannot see them — so the fix is applied to the interpolated value, never by restructuring the surrounding markup. Complements [`html-attribute-escaping`](../html-attribute-escaping/spec.md), which covers the attribute context rather than the element body.
 ## Requirements
+
 ### Requirement: HTML fragments built outside a view MUST escape the data they interpolate
 
 Code that assembles an HTML string outside a template — a decorator, a helper, or a model — and whose result is rendered through `raw` or `html_safe` SHALL escape every interpolated value that is not already an `ActiveSupport::SafeBuffer`, and SHALL return a `SafeBuffer`.
-
-This applies to `PostDecorator#the_status`, `TermTaxonomyDecorator#the_status`, and `CustomFieldGroup#get_caption`.
-
-The escaped output MUST remain byte-identical to the current output for values that contain no HTML metacharacters, so that downstream themes matching on the rendered markup are unaffected.
 
 #### Scenario: A non-canonical post status renders as inert text
 
@@ -23,11 +20,9 @@ The escaped output MUST remain byte-identical to the current output for values t
 - **THEN** the response contains no `<script>` element inside `#posts-table-list`
 - **AND** the payload is present as escaped text within the status label
 
-#### Scenario: A canonical post status renders unchanged
+### Requirement: The status and caption builders MUST escape what they interpolate
 
-- **WHEN** a post's `status` is `published`, `pending`, `draft`, `draft_child`, or `trash`
-- **THEN** `the_status` returns exactly `<span class='label label-<color> label-form'><Label></span>` as before the change
-- **AND** the value is an `ActiveSupport::SafeBuffer`
+`PostDecorator#the_status`, `TermTaxonomyDecorator#the_status`, and `CustomFieldGroup#get_caption` MUST follow the escaping rule for HTML fragments built outside a view.
 
 #### Scenario: The poisoned status does not execute on the post edit form
 
@@ -70,6 +65,16 @@ The escaped output MUST remain byte-identical to the current output for values t
 - **THEN** the response contains no `<script>` element originating from the caption
 - **AND** the class name is present as escaped text inside the caption
 
+### Requirement: Escaped output MUST stay byte-identical for values without HTML metacharacters
+
+The escaped output MUST remain byte-identical to the current output for values that contain no HTML metacharacters. So downstream themes that match on the rendered markup are unaffected.
+
+#### Scenario: A canonical post status renders unchanged
+
+- **WHEN** a post's `status` is `published`, `pending`, `draft`, `draft_child`, or `trash`
+- **THEN** `the_status` returns exactly `<span class='label label-<color> label-form'><Label></span>` as before the change
+- **AND** the value is an `ActiveSupport::SafeBuffer`
+
 #### Scenario: A caption for a legitimate placement renders unchanged
 
 - **WHEN** a custom field group is placed on a nav menu named `Main Menu`
@@ -90,17 +95,7 @@ A submitted `post[status]` is now held to the editor's set, but `posts.status` i
 
 A helper that assembles an `<a href='…'>` HTML fragment by string interpolation, and whose result is
 rendered through `raw`, SHALL HTML-escape every interpolated value that reaches an attribute and is not
-already an `ActiveSupport::SafeBuffer` — in particular the `the_url` value in the `href`. A post slug
-and a taxonomy slug persist byte-for-byte, and Rails route generation does not percent-encode the single
-quote, so an un-escaped URL can close the attribute and introduce an event handler.
-
-This applies to `NavMenuHelper#breadcrumb_draw`, `CamaleonHelper#cama_sitemap_cats_generator` (both the
-post and the category URL), and the bundled default theme's `get_taxonomy` (the taxonomy URL and the
-`rel` value).
-
-The escaped output MUST remain byte-identical to the current output for URLs that contain no HTML
-metacharacters, so that downstream themes matching on the rendered markup are unaffected. Interpolated
-titles are already `SafeBuffer`s from `the_title` and are left unchanged.
+already an `ActiveSupport::SafeBuffer`, in particular the `the_url` value in the `href`.
 
 #### Scenario: A breadcrumb link escapes a quote-carrying URL
 
@@ -108,6 +103,12 @@ titles are already `SafeBuffer`s from `the_title` and are left unchanged.
 - **AND** it is not the last (active) item, so it renders as a link
 - **THEN** `breadcrumb_draw` emits the URL with the single quotes HTML-escaped (`&#39;`)
 - **AND** the rendered fragment contains no live `onmouseover` handler
+- **AND** the escape is necessary, because a post slug and a taxonomy slug persist byte-for-byte
+- **AND** Rails route generation does not percent-encode the single quote, so an un-escaped URL can close the attribute
+
+### Requirement: The link helpers MUST follow the link escaping rule
+
+`NavMenuHelper#breadcrumb_draw`, `CamaleonHelper#cama_sitemap_cats_generator` and the bundled default theme's `get_taxonomy` MUST follow the escaping rule for link fragments. `cama_sitemap_cats_generator` MUST escape both the post and the category URL. `get_taxonomy` MUST escape the taxonomy URL and the `rel` value.
 
 #### Scenario: The HTML sitemap escapes a quote-carrying post or category URL
 
@@ -123,9 +124,12 @@ titles are already `SafeBuffer`s from `the_title` and are left unchanged.
 - **THEN** the emitted `href` carries the single quotes HTML-escaped
 - **AND** the fragment contains no live `onmouseover` handler
 
+### Requirement: Escaped link output MUST stay byte-identical for URLs without HTML metacharacters
+
+The escaped output MUST remain byte-identical to the current output for URLs that contain no HTML metacharacters. So downstream themes that match on the rendered markup are unaffected. Interpolated titles are already `SafeBuffer`s from `the_title` and MUST be left unchanged.
+
 #### Scenario: A URL with no HTML metacharacters is unchanged
 
 - **WHEN** a breadcrumb, sitemap, or taxonomy link URL contains no HTML-significant characters (for
   example `/blog/my-post`)
 - **THEN** the emitted `href` is byte-identical to the pre-change output
-
