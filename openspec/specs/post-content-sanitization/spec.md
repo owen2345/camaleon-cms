@@ -225,8 +225,8 @@ would otherwise refuse.
 
 ### Requirement: The post summary from an untrusted user is held to the content scan
 
-A post save or draft save SHALL be refused when its `meta[summary]` fails the content scan. This
-holds when the current user lacks the `post_content_unfiltered_html` permission for the post type. The scan uses the
+For a user without `post_content_unfiltered_html` on the post type, a post or draft save SHALL be
+refused when its `meta[summary]` fails the content scan. The scan uses the
 same allowlist and size bound as `Post#content`. The refusal SHALL name the summary field. Nothing
 from the save SHALL be stored. The summary SHALL NEVER be sanitized or rewritten.
 
