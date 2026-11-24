@@ -791,13 +791,17 @@ The admin panel SHALL answer each refusal of a save in the same way, by the kind
 
 ### Requirement: The admin panel refuses an unsafe custom-field value
 
-The admin panel SHALL refuse a save with a custom-field value that has unsafe or too large content. It SHALL refuse a save with an invalid group number, or with a slug that names no custom field. It SHALL refuse custom-field `values`, or a field entry, in a shape that the shared permit cannot read.
+The admin panel SHALL refuse a save with a custom-field value that has unsafe or too large content. It SHALL refuse a save with an invalid group number. It SHALL refuse a value that `set_field_values` gets under a slug that names no custom field, with no field id. It SHALL refuse custom-field `values`, or a field entry, in a shape that the shared permit cannot read.
 
 #### Scenario: A custom-field value with a slug that names no custom field is refused
 
-- **WHEN** an admin save carries a custom-field value with a slug that names no custom field
+- **WHEN** an admin save gives `set_field_values` a value under a slug that names no custom field,
+  with no field id
 - **THEN** the save is refused
 - **AND** the refusal answers by the kind of the request
+- **AND** an example is the save of a plugin that does not use the shared permit
+- **AND** the shared permit drops an entry under a slug that it does not allow, with no refusal
+  (`custom-field-value-filtering`)
 
 ### Requirement: The admin panel refuses malformed options and containers
 
