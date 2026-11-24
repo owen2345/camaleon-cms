@@ -468,7 +468,7 @@ A list (Array) of group numbers SHALL read each group in the list. This applies 
 
 ### Requirement: A loaded association reads the same values as the database
 
-Each group number SHALL read the same stored values with or without a loaded `custom_field_values` association. A loaded association SHALL read a key as the database does. It reads `:note` as `'note'`, `5` as `'5'`, a Date as `'2020-01-01'` and a Range key as its slugs. It SHALL read each key of a list, and the keys of a list in a list.
+Each group number SHALL read the same stored values with or without a loaded `custom_field_values` association. The requirement "A loaded association can read other values than the database" gives the exceptions. A loaded association SHALL read a key as the database does. It reads `:note` as `'note'`, `5` as `'5'`, a Date as `'2020-01-01'` and a Range key as its slugs. It SHALL read each key of a list, and the keys of a list in a list.
 
 #### Scenario: A reader with a String of digits and a loaded association
 
@@ -1031,7 +1031,7 @@ The same dispatch SHALL back the `scan_content` audit task, so it reports exactl
 
 ### Requirement: A value of a kind with no URI rule gets no rule for a position inside a tag
 
-A value of another kind SHALL get no rule for a position inside a tag. Only an admin or a holder of `content_shortcodes` can place a shortcode, and that role chooses the position (intended).
+A value that is not URI-type (`url`, `image`, `audio`, `video`, `file`) SHALL get no rule for a position inside a tag. Only an admin or a holder of `content_shortcodes` can place a shortcode, and that role chooses the position (intended).
 
 #### Scenario: A quote in a text_box value is stored unchanged
 
