@@ -47,7 +47,8 @@ While that hook runs, the current theme of the request SHALL be the theme before
 ### Requirement: A theme preview is the current theme again after each install hook
 
 A user who can manage themes can preview a theme: the request then shows the site with that theme as
-its current theme. The two rules above SHALL also hold in such a request. After each hook, the
+its current theme. The rules of the three requirements above, on the `on_active` and `on_inactive`
+hooks, SHALL also hold in such a request. After each hook, the
 current theme of that request SHALL be the preview theme again, also when a handler raises.
 
 #### Scenario: A request with a theme preview installs a theme
@@ -350,9 +351,10 @@ SHALL run in the transaction.
 ### Requirement: A reload by a commit callback of the switch needs no second trial
 
 A commit callback of the switch can reload the routes after the commit, for example for a new slug
-of a post type. That reload reads the rows of the switch. So the draw of the switch SHALL NOT run a
-trial again, and it SHALL NOT draw the routes again. This holds while no other thread drew the
-routes after that reload.
+of a post type. That reload is another reload after the trial, but it reads the rows of the switch.
+So the draw of the switch SHALL NOT run a trial again, and it SHALL NOT draw the routes again. This
+holds while no other thread drew the routes after that reload. It is an exception to "The trial draw
+of the routes runs in the transaction of the switch".
 
 #### Scenario: A hook gives a post type a new slug
 
