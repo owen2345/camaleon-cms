@@ -31,7 +31,7 @@ Apply the standard to the prose that you add or change. These limits apply:
 
 - You can rewrite the description of an old spec only when your change edits that spec.
 - Never rewrite a commit message that is already on the remote.
-- Do not apply the standard to a file that a tool writes. An example is the output of `openspec update` under `.agents/`, `.claude/`, `.github/`, `.junie/` and `.opencode/`.
+- Do not apply the standard to a file that a tool writes. An example is the output of `openspec update` under `.agents/`, `.claude/` and `.junie/`.
 - Do not apply the standard to a file that another project wrote, for example the TinyMCE `readme.md` under `app/assets`.
 
 ## Sentences and paragraphs
