@@ -221,8 +221,9 @@ slug in the groups of its permit.
 
 ### Requirement: Other callers of the model save resolve slugs through the record's own lookup
 
-Other callers of the model save SHALL keep resolving slugs through the record's own lookup. Neither
-lookup SHALL point a row at a field group sharing the slug.
+Each save outside "A save resolves each slug in the groups it permits" SHALL keep resolving slugs
+through the record's own lookup. An example is a call of the model save outside the admin.
+Neither lookup SHALL point a row at a field group sharing the slug.
 
 #### Scenario: A caller of the model save outside the admin saves resolves through the own lookup
 
