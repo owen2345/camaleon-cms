@@ -175,7 +175,8 @@ class PluginRoutes
       r = cache_variable("enable_plugins_site_#{site.id}")
       return r if r
 
-      enabled_ps = site.plugins.active.pluck(:slug)
+      # The list goes to all threads, so the read uses no query cache.
+      enabled_ps = with_no_query_cache { site.plugins.active.pluck(:slug) }
       res = all_plugins.each_with_object([]) do |plugin, ary|
         ary << plugin if enabled_ps.include?(plugin['key'])
       end
@@ -230,8 +231,8 @@ class PluginRoutes
       # `site.plugins.active.pluck` per site (the N+1 that dominated multi-site route drawing). A
       # subquery over the site ids avoids marshaling every id into an IN(...) bind list, which can
       # exceed SQLite's SQLITE_MAX_VARIABLE_NUMBER on very large multi-site installs; Postgres and
-      # MySQL handle either form.
-      enabled_ps = CamaleonCms::Plugin.active.where(parent_id: CamaleonCms::Site.select(:id)).distinct.pluck(:slug)
+      # MySQL handle either form. The read uses no query cache (stored_plugin_slugs).
+      enabled_ps = stored_plugin_slugs
       res = all_plugins.each_with_object([]) do |plugin, ary|
         ary << plugin if enabled_ps.include?(plugin['key'])
       end

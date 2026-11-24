@@ -161,12 +161,14 @@ module CamaleonCms
     # return main site
     # The memo keeps no site that a read in a trial draw or in an open transaction gave: that site can
     # be data that is not committed.
+    #
+    # All threads share the memo. In a request, the query cache can hold the row from before a write of
+    # another request. So the read for the memo uses no query cache.
     def self.main_site
       return @main_site if @main_site
+      return CamaleonCms::Site.reorder(id: :asc).first if PluginRoutes.private_reads?
 
-      site = CamaleonCms::Site.reorder(id: :asc).first
-      @main_site = site unless PluginRoutes.private_reads?
-      site
+      @main_site = CamaleonCms::Site.uncached { CamaleonCms::Site.reorder(id: :asc).first }
     end
 
     # Makes main_site read the main site again. PluginRoutes calls it when it replaces or clears its

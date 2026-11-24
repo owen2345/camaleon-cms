@@ -445,6 +445,11 @@ that trial rolled back. It runs a trial of its own also after the commit of the 
 transaction that was open at that trial. It draws nothing when the last draw is a reload of the
 same thread that read the stored rows after that trial.
 
+A trial reads the database with no query cache. So a reload in a request draws the rows that
+another request stored, also when the request read the sites before. `PluginRoutes.get_sites` and
+the lists of the enabled plugins read the database the same way when they fill the data of all
+threads.
+
 A site runs the trial in the transaction that gives it a new slug or deletes it. When the trial
 fails, the site does not change.
 
@@ -1011,8 +1016,14 @@ site. After that commit, the routes also get the new slug of the main site as th
 It is still the site with the lowest id. A host app that redefines `main_site` with the same
 memo, `@main_site`, gets the same refresh: Camaleon clears that memo.
 
-**Who must act.** Nobody. Code that keeps the object that `main_site` returned still holds the
-old values of that object.
+The `main_site` of Camaleon reads the site for its memo with no query cache. So a request that read
+the main site before the new slug gives the other threads no old row. The routes then get the
+stored slug.
+
+**Who must act:** a host app that redefines `main_site` with the memo `@main_site`. The method of
+that host still reads through the query cache of a request, so the memo can keep an old row. Wrap
+the read of that method in `CamaleonCms::Site.uncached { ... }`. Code that keeps the object that
+`main_site` returned still holds the old values of that object.
 
 ### An XHR admin save that is refused gets a 422
 

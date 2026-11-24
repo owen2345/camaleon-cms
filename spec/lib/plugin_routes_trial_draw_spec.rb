@@ -121,6 +121,24 @@ RSpec.describe PluginRoutes do
       expect(described_class.loaded_sites).to equal(sites)
       expect(described_class.cache_variable('probe')).to eq('kept')
     end
+
+    # A trial reads with no query cache. Before Rails 7.2, uncached asks for a database connection, and
+    # a database that is not there raises an error.
+    it 'runs the trial with the query cache when a read with no query cache gets no connection' do
+      allow(CamaleonCms::Site).to receive(:uncached).and_raise(ActiveRecord::ConnectionNotEstablished)
+
+      expect(described_class.check_routes).to be_nil
+    end
+
+    # A route file can raise an error of Active Record in the trial. That error is the error of the
+    # trial, so the trial does not run again with the query cache.
+    it 'raises CamaleonCms::RouteDrawError with the Active Record error of a route file as its cause' do
+      break_the_routes("raise ActiveRecord::StatementInvalid, 'the route file read failed'")
+
+      expect { described_class.check_routes }.to raise_error(CamaleonCms::RouteDrawError) do |error|
+        expect(error.cause).to be_a(ActiveRecord::StatementInvalid)
+      end
+    end
   end
 
   # Code can check the routes in a transaction, and reload them after it with the data of that check.
