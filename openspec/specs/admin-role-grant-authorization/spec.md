@@ -91,11 +91,12 @@ refused — dropped from the user form's permitted parameters, and rejected by t
 
 ### Requirement: The user form disables the credential inputs that the user cannot use
 
-The user form SHALL disable the password, email and username inputs. It SHALL hide the
-change-password action. Both apply to anyone who cannot use them.
+When the acting user cannot change the credentials of the account, the user form SHALL disable the
+email and username inputs. It SHALL hide the change-password action. The form shows the password
+inputs only for a new user, so it has no password input to disable.
 
 #### Scenario: A non-admin opens the form of an admin
 
 - **WHEN** a non-admin holding `:manage, :users` opens the form of another admin
-- **THEN** the password and recovery inputs are disabled, and the change-password action is hidden
+- **THEN** the email and username inputs are disabled, and the change-password action is hidden
 
