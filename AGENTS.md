@@ -35,7 +35,7 @@ A push needs no new check run when each of its commits ran its own checks first,
 
 ## OpenSpec
 
-Plan with OpenSpec (`/opsx:explore`, `/opsx:propose` or `/opsx:new`, then `/opsx:apply`, `/opsx:verify`, `/opsx:archive`) when work has non-trivial behavior, contract or cross-cutting concerns; work directly on trivial or documentation-only changes. Run `openspec list --json` first and continue a matching active change instead of opening a duplicate. Archive on the branch, before merge, committed in the PR (`docs/ai/workflows.md` Phase 4). Lasting decisions go in the change's `design.md`; durable behavior becomes requirements in `openspec/specs/`, not journals under `docs/`.
+Plan with OpenSpec when work has non-trivial behavior, contract or cross-cutting concerns. Work directly on trivial or documentation-only changes. The skills are `openspec-explore`, `openspec-propose` or `openspec-new-change`, then `openspec-apply-change`, `openspec-verify-change` and `openspec-archive-change`. Run `openspec list --json` first and continue a matching active change instead of opening a duplicate. Archive on the branch, before merge, committed in the PR (`docs/ai/workflows.md` Phase 4). Lasting decisions go in the change's `design.md`; durable behavior becomes requirements in `openspec/specs/`, not journals under `docs/`.
 
 ## Load per task
 

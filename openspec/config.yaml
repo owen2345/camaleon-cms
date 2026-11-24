@@ -11,11 +11,15 @@ rules:
     - State the user-visible behavior, scope, and non-goals concisely.
     - Identify only capabilities that need testable specification requirements.
   specs:
-    - Define testable requirements and scenarios for behavior or contract changes.
+    - Define testable requirements and scenarios for behavior or contract
+      changes.
     - Do not create specifications for implementation-only details.
   design:
-    - Record decisions, alternatives, and risks only when they affect implementation.
+    - Record decisions, alternatives, and risks only when they affect
+      implementation.
     - Refer to AGENTS.md for detailed repository execution guidance.
   tasks:
     - Keep tasks small, ordered, and tied to specification requirements.
-    - Include verification appropriate to the affected code and AGENTS.md guidance.
+    - Include verification appropriate to the affected code and AGENTS.md
+      guidance.
+skillsScope: project

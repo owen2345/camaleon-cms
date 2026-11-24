@@ -31,7 +31,7 @@ Apply the standard to the prose that you add or change. These limits apply:
 
 - You can rewrite the description of an old spec only when your change edits that spec.
 - Never rewrite a commit message that is already on the remote.
-- Do not apply the standard to a file that a tool writes. An example is the output of `openspec update` under `.claude/`, `.github/`, `.junie/` and `.opencode/`.
+- Do not apply the standard to a file that a tool writes. An example is the output of `openspec update` under `.agents/`, `.claude/`, `.github/`, `.junie/` and `.opencode/`.
 - Do not apply the standard to a file that another project wrote, for example the TinyMCE `readme.md` under `app/assets`.
 
 ## Sentences and paragraphs
@@ -55,6 +55,7 @@ Judge its output. A template line, a fragment of a changelog entry and a line of
 - Use the simple present, the simple past or the simple future tense. Do not use the present perfect.
 - Use "can" for ability and "must" for obligation. Do not use "would", "should", "may" or "might".
 - In a requirement of an OpenSpec spec, write SHALL or MUST for an obligation. `openspec validate --strict` fails a requirement that has neither.
+- Keep the body of an OpenSpec requirement under 500 characters. `openspec validate --strict` fails a longer body. Put examples and edge cases in scenarios, or split the requirement.
 - Do not use the "-ing" form of a verb. A technical name such as "closing tag" is correct.
 
 ## Words and punctuation
