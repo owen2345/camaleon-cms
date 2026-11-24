@@ -53,10 +53,29 @@ module CamaleonCms
       route_set = ActionDispatch::Routing::RouteSet.new
       # Each route file calls draw, and a draw clears the route set unless this is set.
       route_set.disable_clear_and_finalize = true
-      with_draw(data, route_set) { route_files.each { |file| Kernel.load(file) } }
+      with_draw(data, route_set) { with_no_query_cache { route_files.each { |file| Kernel.load(file) } } }
       data
     rescue StandardError, ScriptError => e
       raise CamaleonCms::RouteDrawError.new(e, in_transaction: !open_transaction.nil?)
+    end
+
+    # Runs the block with no query cache. In a request, the cache holds the rows that the request read
+    # before, and a write of another thread does not clear it. A trial must read the stored rows. Else a
+    # reload draws old data over the newer draw of another thread. A read that fills the data of all
+    # threads must read the stored rows too. Else a request gives its old rows to each thread.
+    #
+    # Before Rails 7.2, uncached asks for a database connection, and a database that is not there
+    # raises an error. The reads of a trial rescue such an error, so the block then runs with the cache.
+    def with_no_query_cache
+      started = false
+      CamaleonCms::Site.uncached do
+        started = true
+        yield
+      end
+    rescue ActiveRecord::ActiveRecordError
+      raise if started
+
+      yield
     end
 
     # Runs the block as a draw of this thread: a trial with its route set, or the draw of the app routes.
@@ -83,9 +102,18 @@ module CamaleonCms
       !Thread.current[DRAW_KEY].nil?
     end
 
-    # The sites with the data that a draw reads from them (PluginRoutes.get_sites).
+    # The sites with the data that a draw reads from them (PluginRoutes.get_sites). The list can go to
+    # all threads, so the read uses no query cache.
     def stored_sites
-      CamaleonCms::Site.includes(:metas, :post_types).order(id: :asc).to_a
+      with_no_query_cache { CamaleonCms::Site.includes(:metas, :post_types).order(id: :asc).to_a }
+    end
+
+    # The slugs of the plugins that a site has active (PluginRoutes.all_enabled_plugins). The list goes
+    # to all threads, so the read uses no query cache.
+    def stored_plugin_slugs
+      with_no_query_cache do
+        CamaleonCms::Plugin.active.where(parent_id: CamaleonCms::Site.select(:id)).distinct.pluck(:slug)
+      end
     end
 
     # The text of the route files that the draw of this thread read, if a draw runs. The draw of the
@@ -95,10 +123,37 @@ module CamaleonCms
     end
 
     # The transaction of this thread that a rollback can undo, or nil. Other transactions can join
-    # such a transaction. The transaction that the test fixtures open is not one.
+    # such a transaction, or it runs in a transaction that they can join. The transaction that the test
+    # fixtures open is not one.
     def open_transaction
-      transaction = route_connection&.current_transaction
-      transaction if transaction&.joinable?
+      connection = route_connection
+      transaction = connection&.current_transaction
+      return unless transaction&.open?
+
+      transaction if transaction.joinable? || joinable_transaction?(connection)
+    end
+
+    # Whether a transaction that other transactions can join is open on the connection.
+    def joinable_transaction?(connection)
+      transaction_stack(connection).any?(&:joinable?)
+    end
+
+    # The state of the outermost transaction of this thread that a rollback can undo, or nil with no open
+    # transaction. A savepoint in that transaction commits only with it. With no stack to read, it is
+    # the state of the open transaction itself.
+    def outer_transaction_state
+      transaction = open_transaction
+      return unless transaction
+
+      (transaction_stack(route_connection).find(&:joinable?) || transaction).state
+    end
+
+    # The open transactions of the connection, the outermost first. Rails has no public reader for
+    # them, so this reads the stack of its transaction manager, as RouteTransactionData::Entry does.
+    # With no stack to read, the list is empty.
+    def transaction_stack(connection)
+      stack = connection.transaction_manager.instance_variable_get(:@stack)
+      stack.is_a?(Array) ? stack : []
     end
 
     # The database connection that this thread uses now, if any. PluginRoutes reads its settings while

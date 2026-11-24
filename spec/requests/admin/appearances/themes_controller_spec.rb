@@ -27,6 +27,39 @@ RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
       get cama_admin_appearances_themes_path, params: { set: 'default' }
     end
 
+    # The draw of the app routes waits for the other requests. In the savepoint of the switch, a request
+    # that waits for a row of the switch made that draw wait for 10 seconds.
+    it 'draws the routes of the app after the savepoint of the switch' do
+      depth = ActiveRecord::Base.connection.open_transactions
+      depths = []
+      allow(Rails.application).to receive(:reload_routes!).and_wrap_original do |original|
+        depths << ActiveRecord::Base.connection.open_transactions
+        original.call
+      end
+
+      get cama_admin_appearances_themes_path, params: { set: 'camaleon_first' }
+
+      expect(CamaleonCms::Site.find(@site.id).get_theme_slug).to eq('camaleon_first')
+      expect(depths).to eq([depth])
+    end
+
+    # The trial in the switch reads the rows as the transaction of the switch sees them. Another
+    # connection can commit a row after that read. So the draw after the commit of the switch runs a
+    # trial again. Here the example stores a name after the first trial, with no callback.
+    it 'draws the routes of the switch from a trial that runs after its commit' do
+      allow(PluginRoutes).to receive(:trial_routes).and_wrap_original do |original|
+        # rubocop:disable Rails/SkipsModelValidations
+        original.call.tap { CamaleonCms::Site.where(id: @site.id).update_all(name: 'Stored after the trial') }
+        # rubocop:enable Rails/SkipsModelValidations
+      end
+      expect(PluginRoutes).to receive(:trial_draw).twice.and_call_original
+
+      get cama_admin_appearances_themes_path, params: { set: 'camaleon_first' }
+
+      expect(CamaleonCms::Site.find(@site.id).get_theme_slug).to eq('camaleon_first')
+      expect(PluginRoutes.get_sites.find { |site| site.id == @site.id }.name).to eq('Stored after the trial')
+    end
+
     it 'redirects after installing a theme' do
       get cama_admin_appearances_themes_path, params: { set: 'default' }
       expect(response).to redirect_to(cama_admin_appearances_themes_path)
@@ -45,14 +78,43 @@ RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
     it 'redirects to the list with the error of the route file when the routes cannot be drawn' do
       break_the_routes("raise ArgumentError, '<b>broken</b>'")
 
-      get cama_admin_appearances_themes_path, params: { set: 'default' }
+      get cama_admin_appearances_themes_path, params: { set: 'camaleon_first' }
+
+      expect(response).to redirect_to(cama_admin_appearances_themes_path)
+      expect(flash[:error]).to eq(I18n.t('camaleon_cms.admin.message.route_draw_failed_change_not_saved',
+                                         error: 'ArgumentError: &lt;b&gt;broken&lt;/b&gt;'))
+      expect(flash[:notice]).to be_nil
+      expect(CamaleonCms::Site.find(@site.id).get_theme_slug).to eq('default')
+      follow_redirect!
+      expect(response).to have_http_status(:success)
+    end
+
+    # The draw after the commit of the switch runs a trial again. Here the route file breaks after the
+    # trial in the switch, as a change outside the switch can do.
+    it 'keeps the new theme and the routes when the trial after the savepoint fails' do
+      allow(PluginRoutes).to receive(:trial_routes).and_wrap_original do |original|
+        original.call.tap { break_the_routes }
+      end
+
+      get cama_admin_appearances_themes_path, params: { set: 'camaleon_first' }
 
       expect(response).to redirect_to(cama_admin_appearances_themes_path)
       expect(flash[:error]).to eq(I18n.t('camaleon_cms.admin.message.route_draw_failed_routes_kept',
-                                         error: 'ArgumentError: &lt;b&gt;broken&lt;/b&gt;'))
+                                         error: 'ArgumentError: broken plugin routes'))
+      expect(CamaleonCms::Site.find(@site.id).get_theme_slug).to eq('camaleon_first')
+    end
+
+    # A second switch waits for the switch that holds the lock of the route reload. After its wait time,
+    # the helper raises an error before its first write.
+    it 'redirects to the list with an error when another theme switch still holds the lock' do
+      allow_any_instance_of(CamaleonCms::Admin::Appearances::ThemesController).to receive(:site_install_theme)
+        .and_raise(CamaleonCms::RouteReloadLock::WaitTimeout, 'the lock is held')
+
+      get cama_admin_appearances_themes_path, params: { set: 'camaleon_first' }
+
+      expect(response).to redirect_to(cama_admin_appearances_themes_path)
+      expect(flash[:error]).to eq(I18n.t('camaleon_cms.admin.themes.message.another_switch_runs'))
       expect(flash[:notice]).to be_nil
-      follow_redirect!
-      expect(response).to have_http_status(:success)
     end
 
     it 'logs the error of the route file when the routes cannot be drawn' do
@@ -63,9 +125,9 @@ RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
       get cama_admin_appearances_themes_path, params: { set: 'default' }
     end
 
-    # The switch stores the theme before the on_active hook of the theme. A save of that hook can draw
-    # the routes in its transaction, and a draw that fails rolls only that save back.
-    it 'says that the routes stay as they were when a save of the on_active hook fails the draw' do
+    # A save of the on_active hook of the theme can draw the routes. A draw that fails rolls the whole
+    # switch back.
+    it 'keeps the old theme when a save of the on_active hook fails the draw' do
       break_the_routes
       site = @site
       allow_any_instance_of(CamaleonCms::Admin::Appearances::ThemesController).to receive(:hook_run) do |*args|
@@ -75,9 +137,9 @@ RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
       get cama_admin_appearances_themes_path, params: { set: 'camaleon_first' }
 
       expect(response).to redirect_to(cama_admin_appearances_themes_path)
-      expect(flash[:error]).to eq(I18n.t('camaleon_cms.admin.message.route_draw_failed_routes_kept',
+      expect(flash[:error]).to eq(I18n.t('camaleon_cms.admin.message.route_draw_failed_change_not_saved',
                                          error: 'ArgumentError: broken plugin routes'))
-      expect(CamaleonCms::Site.find(@site.id).get_theme_slug).to eq('camaleon_first')
+      expect(CamaleonCms::Site.find(@site.id).get_theme_slug).to eq('default')
       expect(@site.post_types.where(slug: 'books')).to be_empty
     end
   end

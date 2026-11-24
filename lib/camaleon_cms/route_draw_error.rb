@@ -6,7 +6,8 @@ module CamaleonCms
   # data of PluginRoutes did not change.
   class RouteDrawError < StandardError
     # Whether a transaction was open on the thread at the failure. The error then goes through that
-    # transaction, which rolls back.
+    # transaction, which rolls back. A theme switch gives false for its draw after the savepoint,
+    # because the switch stays (site_install_theme).
     attr_reader :in_transaction
     alias in_transaction? in_transaction
 

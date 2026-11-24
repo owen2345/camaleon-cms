@@ -45,6 +45,33 @@ RSpec.describe PluginRoutes do
       expect(draws.size).to eq(1)
     end
 
+    # A draw that waits for the end of the block does not use the trial of the call.
+    it 'runs a trial of its own at the end of the block for a call with a trial that adds no route' do
+      trial = described_class.trial_routes
+      expect(described_class).to receive(:trial_draw).once.and_call_original
+
+      described_class.reload_once do
+        described_class.request_reload(trial: trial)
+        expect(draws).to be_empty
+      end
+
+      expect(draws.size).to eq(1)
+    end
+
+    # A draw at once uses the trial of the call, so the reload runs no trial of its own.
+    it 'draws the routes at once from the trial of a call that adds a route' do
+      @site.set_option('_theme', 'camaleon_first')
+      trial = described_class.trial_routes
+      expect(described_class).not_to receive(:trial_draw)
+
+      described_class.reload_once do
+        described_class.request_reload(trial: trial)
+        expect(draws.size).to eq(1)
+      end
+
+      expect(draws.size).to eq(1)
+    end
+
     it 'clears the caches at once' do
       described_class.cache_variable('probe', 'old')
 

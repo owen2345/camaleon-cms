@@ -22,9 +22,15 @@ module CamaleonCms
           # The switch is a GET request, and AdminController raises this error again for a GET request.
           # The list has no draw of the routes, so the redirect leads to a page that works.
           log_route_draw_error(e)
-          # The switch stores the theme before the on_active hook of the theme. A save of that hook can
-          # fail the draw in its transaction, and the theme then stays switched.
-          flash[:error] = route_draw_error_message(e, as_text: false, rolled_back: false)
+          # A failed trial in the savepoint of the switch rolls the switch back, so the site keeps its old
+          # theme. The draw after the commit of the switch runs a trial again. A change outside the switch can
+          # fail that trial: the theme then stays switched, and the message says that Camaleon kept the routes.
+          flash[:error] = route_draw_error_message(e, as_text: false)
+          redirect_to action: :index
+        rescue CamaleonCms::RouteReloadLock::WaitTimeout
+          # Another theme switch held the lock of the route reload, and this switch wrote nothing.
+          flash[:error] = t('camaleon_cms.admin.themes.message.another_switch_runs',
+                            default: 'Another theme switch runs now, so Camaleon did not switch the theme. Try again.')
           redirect_to action: :index
         end
 

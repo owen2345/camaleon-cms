@@ -68,6 +68,7 @@ what theme/plugin developers should know.
 | Has a theme whose `on_active` handler installs a plugin, fires another hook, or reads `current_theme` or a theme helper | The handler now gets its own theme, and the theme gets the hooks that the handler fires. A handler that the theme also calls directly now runs two times ([details](#a-theme-is-the-current-theme-in-its-on_active-hook)) |
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 | Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
+| Has a theme or plugin hook that runs in a theme switch, or code that rescues an error of `site_install_theme` | A switch whose hook raises now rolls back, and the site keeps its old theme. A hook that undoes its work with `ActiveRecord::Rollback` must open its block with `requires_new: true` ([details](#a-theme-switch-that-fails-rolls-back)) |
 
 ---
 
@@ -438,6 +439,18 @@ its routes, and each request failed until the next good draw.
 The message of the error names the error of the route file, and `cause` is that error. The new
 `PluginRoutes.check_routes` runs the trial alone: it raises the same error, and it draws nothing.
 
+`PluginRoutes.trial_routes` runs the trial too, and returns it. `PluginRoutes.reload(trial:)` then
+draws from the data of that trial. It runs a trial of its own when another reload drew the routes
+after that trial, for example a reload of another thread. It also runs one when the transaction of
+that trial rolled back. It runs a trial of its own also after the commit of the outermost
+transaction that was open at that trial. It draws nothing when the last draw is a reload of the
+same thread that read the stored rows after that trial.
+
+A trial reads the database with no query cache. So a reload in a request draws the rows that
+another request stored, also when the request read the sites before. `PluginRoutes.get_sites` and
+the lists of the enabled plugins read the database the same way when they fill the data of all
+threads.
+
 A site runs the trial in the transaction that gives it a new slug or deletes it. When the trial
 fails, the site does not change.
 
@@ -447,9 +460,16 @@ route file, and it says that Camaleon did not save the change. A change such as 
 site is stored before the draw. The message then says that Camaleon kept the routes as they were.
 Before, such a request gave a server error.
 
-A theme switch that fails the trial redirects to the list of the themes with that message. The
-theme stays switched. Repair the route file that raises the error, or switch back when that file
-belongs to the new theme.
+A theme switch that fails the trial redirects to the list of the themes. Its message says that
+Camaleon did not save the change, because the switch rolls back, and the site keeps its old theme
+([details](#a-theme-switch-that-fails-rolls-back)). Repair the route file that raises the error.
+
+The switch draws the routes of the app after its transaction. After the commit of the switch, that
+draw runs a trial again, so it has the rows that other connections stored during the switch. A route
+file can start to raise an error after the trial in the switch. It then fails the trial of that
+draw. The theme then stays switched, and the message says that Camaleon kept the routes as they
+were. If your code lets that error through a transaction of its own, that transaction rolls the
+switch back.
 
 The trial loads `config/routes.rb`, `config/routes/admin.rb` and `config/routes/frontend.rb` of
 Camaleon. Those files read the `routes_*.txt` files of the enabled plugins and themes. The trial
@@ -479,6 +499,9 @@ After the commit, each thread reads the committed data. After a rollback, the th
 stored data again. Camaleon then draws the routes again when a draw used the data of the
 transaction. Before, a post type that a transaction created was in the site list of each thread
 before the commit. After a rollback, it stayed in that list, and the app kept its route.
+
+The rollback of a savepoint that used the data drops all of it. A `cache_variable` value that the
+transaction stored before the savepoint is gone too, and the next read fills the data again.
 
 The new `PluginRoutes.reload_after_commit` asks for a reload that waits for the commit of the open
 transaction. A rollback drops the request, and with no open transaction the method calls
@@ -1001,8 +1024,14 @@ site. After that commit, the routes also get the new slug of the main site as th
 It is still the site with the lowest id. A host app that redefines `main_site` with the same
 memo, `@main_site`, gets the same refresh: Camaleon clears that memo.
 
-**Who must act.** Nobody. Code that keeps the object that `main_site` returned still holds the
-old values of that object.
+The `main_site` of Camaleon reads the site for its memo with no query cache. So a request that read
+the main site before the new slug gives the other threads no old row. The routes then get the
+stored slug.
+
+**Who must act:** a host app that redefines `main_site` with the memo `@main_site`. The method of
+that host still reads through the query cache of a request, so the memo can keep an old row. Wrap
+the read of that method in `CamaleonCms::Site.uncached { ... }`. Code that keeps the object that
+`main_site` returned still holds the old values of that object.
 
 ### An XHR admin save that is refused gets a 422
 
@@ -1382,6 +1411,86 @@ A site create in the admin panel installs the default theme of `config/system.js
 installed, the form now shows again with an error, and the create makes no site. Before, the create made
 a site with a theme that had no config. If your code saves a site and then calls
 `site_after_install`, check the theme before the save.
+
+### A theme switch that fails rolls back
+
+`site_install_theme` now runs the uninstall of the old theme and the install of the new theme in
+one transaction. When a step raises, the site keeps its old theme, and no row that the hooks wrote
+stays. An example is an `on_active` handler that adds a `select_eval` field for a role without the
+`select_eval` permission. Before, the site kept the key of the new theme, and the new theme stayed
+half installed. The front page then could fail.
+
+The caller still gets the error, and the request keeps its old current theme. A hook that raises
+`ActiveRecord::Rollback` outside a `transaction` block of its own also rolls the switch back. The
+caller then gets `ActiveRecord::ActiveRecordError`. A `before_commit` callback that raises
+`ActiveRecord::Rollback` at the commit of the switch gives the same error. A theme switch that fails
+the route trial now rolls back too. Its flash says that Camaleon did not save the change.
+
+The draw after the commit of the switch runs a trial again, and that trial can fail too.
+The theme then stays switched ([details](#a-reload-of-the-routes-draws-them-on-trial-first)).
+
+A commit callback that raises after the commit of the switch also leaves the theme switched. The
+caller gets the error, and the request keeps the new current theme.
+
+A theme switch holds the lock of the route reload for its whole time. First it waits until the
+requests that run are done, for 10 seconds at most. When requests still run after that time, it
+starts, and it writes a warning to the log:
+`Camaleon CMS: a theme switch starts while N requests still run`. A request of the same process
+that starts during the switch waits until the switch is done, with no time limit. So a hook of the
+switch must not wait for a request to the same process. A reload of the routes by another request
+waits for the switch for 10 seconds at most.
+
+A request for a second theme switch can start in the same process during the first switch. That
+request waits until the first switch is done, and then it runs its own switch.
+
+Code of the same process can also call `site_install_theme` while another switch holds the lock.
+The request of that code started before the first switch asked for the lock, or the code runs
+outside a request. Such a second switch never runs with no lock. It waits for the first switch, for
+30 seconds at most. Then `site_install_theme` raises `CamaleonCms::RouteReloadLock::WaitTimeout`
+before its first write, and the admin panel shows an error. Code that calls `site_install_theme`
+can rescue that error and try again.
+
+After its wait, the second switch reads the theme of the site again. So it runs the `on_inactive`
+hook of the theme that the first switch stored.
+
+The wait for the requests and the wait for a thread that holds the lock have a time each. So a
+reload of the routes can wait for 20 seconds, and a second theme switch for 40 seconds. With
+`config.active_support.isolation_level = :fiber`, the lock counts each fiber, not each thread.
+
+Check these points in a theme or a plugin:
+
+- The rollback undoes only rows of the database. A file that a hook writes or a mail that it sends
+  stays.
+- The commit callbacks of the rows that a hook writes now run after the last hook, at the commit of
+  the switch. In a transaction of your code, they run at the commit of that transaction. A job that
+  a hook starts can run before that commit, and it then does not find the rows.
+- A hook that undoes its own work with `ActiveRecord::Rollback` now runs in the transaction of the
+  switch. Open its `transaction` block with `requires_new: true`, or the rollback undoes nothing.
+- On MySQL, a DDL statement in a hook, such as `create_table`, commits the transaction at once. A
+  switch that fails after that statement keeps every row that it wrote, also the rows after the
+  statement. The statement also commits a transaction of your code, so a later rollback undoes none
+  of the writes of that transaction. In a transaction of your code, the savepoint of the switch is
+  then gone. So the end of the switch raises an error of the database, also when no hook raises. A
+  switch whose hook raises then gives that error, not the error of the hook.
+- On PostgreSQL, a statement that fails stops the transaction of the switch. A hook that rescues the
+  error of a statement, for example `ActiveRecord::RecordNotUnique`, and raises no other error, now
+  fails the switch with `ActiveRecord::StatementInvalid`. Open a `transaction` block with
+  `requires_new: true` around the statement that can fail, and rescue the error outside that block.
+  Or check the row before the write.
+- Rails 8.1 permits no savepoint while the connection pool has a transaction isolation level
+  (`with_transaction_isolation_level`). A switch inside a transaction of your code then raises
+  `ActiveRecord::TransactionIsolationError`, and so does a `requires_new` block of a hook.
+- The transaction of the switch is on the connection pool of `ActiveRecord::Base`. It does not cover
+  a host that puts the Camaleon models on another pool.
+- After the rollback, a record that a hook created through an association, such as
+  `current_site.post_types`, stays in that association. The database has no row for it, and a later
+  save of the site can store it again. Camaleon resets the `themes` and the `plugins` of the current
+  site. If your code rescues the error and saves a record with another such association, reset that
+  association first.
+- On PostgreSQL, a transaction of your code under REPEATABLE READ can hold rows from before a switch
+  of another request. A switch in that transaction then raises `ActiveRecord::SerializationFailure`
+  at its first write to a row that the other switch changed, and it rolls back. The `on_inactive`
+  hook of the old theme ran before that write. Run your transaction again.
 
 ---
 

@@ -661,6 +661,7 @@ en:
         message:
           updated: 'Theme updated'
           not_installed: 'The theme is not installed.'
+          another_switch_runs: 'Another theme switch runs now, so Camaleon did not switch the theme. Try again.'
       users:
         impersonate: 'Impersonate'
         all_users: 'All Users'

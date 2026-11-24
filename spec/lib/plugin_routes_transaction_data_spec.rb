@@ -94,6 +94,116 @@ RSpec.describe PluginRoutes do
     end
   end
 
+  # A savepoint uses the data of the transaction around it, and a read there can fill that data with
+  # rows of the savepoint. A theme switch in a transaction of the caller is such a savepoint.
+  describe 'a savepoint in a transaction' do
+    let(:other_site) { create(:site) }
+
+    def slug_in(sites)
+      sites.find { |site| site.id == other_site.id }.slug
+    end
+
+    it 'reads the site list again after the rollback of a savepoint that loaded it' do
+      stored_slug = other_site.slug
+      described_class.instance_variable_set(:@all_sites, nil)
+
+      ActiveRecord::Base.transaction do
+        described_class.cache_variable('probe', 'before the savepoint')
+        ActiveRecord::Base.transaction(requires_new: true) do
+          other_site.update!(slug: 'renamed.example.test')
+          expect(slug_in(described_class.get_sites)).to eq('renamed.example.test')
+          raise ActiveRecord::Rollback
+        end
+
+        expect(slug_in(described_class.get_sites)).to eq(stored_slug)
+      end
+    end
+
+    # The entry drops its whole data, so a value that the transaction stored before the savepoint is gone
+    # too. The value is a cache, and the next read fills it again.
+    it 'drops a value that the transaction stored before a savepoint that used the data and rolled back' do
+      ActiveRecord::Base.transaction do
+        described_class.cache_variable('probe', 'before the savepoint')
+        ActiveRecord::Base.transaction(requires_new: true) do
+          described_class.get_sites
+          raise ActiveRecord::Rollback
+        end
+
+        expect(described_class.cache_variable('probe')).to be_nil
+      end
+    end
+
+    it 'drops a value of a savepoint in a savepoint when the outer savepoint rolls back' do
+      ActiveRecord::Base.transaction do
+        described_class.cache_variable('probe', 'before the savepoints')
+        ActiveRecord::Base.transaction(requires_new: true) do
+          ActiveRecord::Base.transaction(requires_new: true) do
+            described_class.cache_variable('probe_savepoint', 'in the inner savepoint')
+          end
+          raise ActiveRecord::Rollback
+        end
+
+        expect(described_class.cache_variable('probe_savepoint')).to be_nil
+      end
+    end
+
+    # A transaction that no other transaction can join was no open transaction for PluginRoutes, also
+    # inside a transaction that a rollback can undo. So a read in it filled the data of all threads.
+    it 'drops a value of a transaction that no other transaction can join, after its rollback' do
+      ActiveRecord::Base.transaction do
+        ActiveRecord::Base.transaction(requires_new: true, joinable: false) do
+          described_class.cache_variable('probe_not_joinable', 'in the transaction')
+          raise ActiveRecord::Rollback
+        end
+      end
+
+      expect(described_class.cache_variable('probe_not_joinable')).to be_nil
+    end
+
+    it 'keeps the data of a savepoint that the transaction keeps' do
+      ActiveRecord::Base.transaction do
+        described_class.cache_variable('probe', 'before the savepoint')
+        ActiveRecord::Base.transaction(requires_new: true) do
+          described_class.cache_variable('probe_savepoint', 'in the savepoint')
+        end
+
+        expect(described_class.cache_variable('probe')).to eq('before the savepoint')
+        expect(described_class.cache_variable('probe_savepoint')).to eq('in the savepoint')
+      end
+    end
+
+    # A savepoint that asks for a reload gets data of its own, in place of the data of the transaction.
+    # After its rollback, the thread had no data of the transaction, so it read the shared data.
+    it 'reads the site list from the database after the rollback of a savepoint that asked for a reload' do
+      created = nil
+
+      ActiveRecord::Base.transaction do
+        created = @site.post_types.create!(name: 'Books', slug: 'books')
+        ActiveRecord::Base.transaction(requires_new: true) do
+          described_class.reload_after_commit
+          raise ActiveRecord::Rollback
+        end
+
+        expect(post_type_ids(described_class.get_sites)).to include(created.id)
+        expect(post_type_ids(shared_sites)).not_to include(created.id)
+      end
+    end
+
+    it 'reads no shared value after the rollback of a savepoint that asked for a reload' do
+      described_class.cache_variable('probe', 'shared')
+
+      ActiveRecord::Base.transaction do
+        described_class.reload_after_commit
+        ActiveRecord::Base.transaction(requires_new: true) do
+          described_class.reload_after_commit
+          raise ActiveRecord::Rollback
+        end
+
+        expect(described_class.cache_variable('probe')).to be_nil
+      end
+    end
+  end
+
   describe '.cache_variable' do
     it 'keeps a value that a transaction stores with the thread of the transaction' do
       ActiveRecord::Base.transaction do
