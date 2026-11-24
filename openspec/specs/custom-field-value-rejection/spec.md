@@ -1000,7 +1000,7 @@ For such a value, the `field_attrs` template and `the_json_field` show a member 
 
 ### Requirement: A field_attrs pair that code stores as a Hash can be refused for its quotes
 
-A `field_attrs` pair that code stores as a Hash keeps `<` and writes each attribute quote as `\"`. So the scan of the stored value SHALL refuse a tag with an attribute in such a pair, such as a link (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
+A `field_attrs` pair that code stores as a Hash keeps `<` and writes each attribute quote as `\"`. So the scan of the stored value can refuse a tag with an attribute in such a pair, such as a link (intended). The `to_json` form of the pair, which escapes `<`, SHALL pass.
 
 #### Scenario: A pair that code stores as a Hash with a quoted attribute is refused
 
