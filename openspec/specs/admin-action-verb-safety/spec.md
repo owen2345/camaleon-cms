@@ -11,7 +11,9 @@ CSRF token.
 
 A state-changing admin endpoint SHALL be routed only over non-GET verbs (PATCH, POST or DELETE per
 its semantics, never `via: :all`). A GET or HEAD request to such a path SHALL NOT match the admin
-route and SHALL perform no state change. The first scenario lists the converted endpoints.
+route and SHALL perform no state change. The first scenario lists the converted endpoints. The logout
+and back_to_parent paths are the only exception. They stay routable over GET for a confirmation page,
+and the POST of that page does the action.
 
 #### Scenario: The converted endpoints are routed over non-GET verbs only
 
