@@ -327,8 +327,8 @@ When another reload drew the routes after the trial, a draw at once SHALL run a 
 
 #### Scenario: A draw at once in a transaction of the caller
 
-- **WHEN** a hook asks for a draw of the routes at once in a transaction of the caller that is still
-  open
+- **WHEN** code calls `site_install_theme` in a transaction of the caller, and the draw of the switch
+  runs at once
 - **THEN** the draw uses the data of the trial
 - **AND** when another reload drew the routes after the trial, the draw runs a trial again
 
