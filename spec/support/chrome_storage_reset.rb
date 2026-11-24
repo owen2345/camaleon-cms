@@ -4,7 +4,8 @@
 # Chrome driver sends the origin "*" to the DevTools command Storage.clearDataForOrigin. Chrome 158
 # refuses that origin ("* is not a valid URL"), so each browser example failed after its body.
 # When Chrome refuses the origin, this patch clears all the cookies. It also clears the local storage of
-# each origin in the history of the window, when Capybara clears the local storage.
+# each origin in the history of the first window, when Capybara clears the local storage. An origin that
+# only a second window visited keeps its local storage. The specs use one origin, the Capybara server.
 module CamaChromeStorageReset
   REFUSED_ORIGIN = '* is not a valid URL'
 
