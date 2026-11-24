@@ -205,9 +205,10 @@ mode; HTML-parsed uploads are decided entirely by the rejection rules applied to
 Every requirement in this capability SHALL apply to any upload a browser parses as markup, not only to files named `.svg`. The rejection rules are the same for an HTML, XHTML, XML or XSL upload as for an SVG. `upload-content-security` specifies which uploads reach this checker.
 
 #### Scenario: The same rules apply to every markup format
-- **WHEN** an HTML, XHTML, XML or XSL upload has a script element, an `on` attribute, a blocked URI scheme, or entity-expanded content
+- **WHEN** an HTML, XHTML, XML or XSL upload has a script element, an `on` attribute or a blocked URI scheme
 - **THEN** the checker reports it unsafe
 - **AND** the same holds for the elements `form`, `meta`, `base`, `style`, `link`, `foreignObject`, `handler`, `iframe`, `object` and `embed`
+- **AND** the rule for content that a DTD entity expands to is the rule of "Reject SVGs with DTD entities containing dangerous content"
 
 #### Scenario: An XHTML upload carrying a script element is rejected
 - **WHEN** an `.xhtml` upload contains a `<script>` element
