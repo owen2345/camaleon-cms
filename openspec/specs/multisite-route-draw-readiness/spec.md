@@ -549,13 +549,19 @@ A reload of the same thread, for example of a commit callback, can read its data
 It reads with no open transaction, and it can be the last draw of the routes. The reload with the
 trial SHALL then draw nothing: the routes already have the stored rows. It SHALL draw nothing also after the commit
 of the outermost transaction that was open at the trial, and in a later transaction. When the
-outermost transaction of the trial rolled back, the reload SHALL run a trial again.
+transaction that was open at the trial rolled back, the reload SHALL run a trial again.
 
 #### Scenario: A reload of the same thread between the trial and the draw
 
 - **WHEN** a thread runs a trial, and then reloads the routes with no trial and no open transaction
 - **AND** the thread gives the trial to `PluginRoutes.reload`, and no other thread drew the routes
 - **THEN** that reload runs no trial, and it draws no routes
+
+#### Scenario: The trial ran in a savepoint that rolled back
+
+- **WHEN** a thread runs a trial in a savepoint, the savepoint rolls back, and its transaction commits
+- **AND** the thread then reloads the routes with no trial, and gives the trial to `PluginRoutes.reload`
+- **THEN** that reload runs a trial again, and it draws the routes
 
 ### Requirement: The trial loads no route file of another app or gem
 
@@ -773,8 +779,8 @@ data while the transaction is open, because that data lacks the rows of the tran
 ### Requirement: Only some transactions count as open for the data of PluginRoutes
 
 The transaction that the test fixtures open for each example SHALL NOT count as an open transaction
-here. A transaction that no other transaction can join (`joinable: false`) SHALL count as an open
-transaction here, also when a transaction that others can join is open around it.
+here. A `joinable: false` transaction, which no other transaction can join, SHALL count as an open
+transaction here only inside a transaction that others can join.
 
 #### Scenario: A transaction that no other transaction can join
 
