@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The browser specs now pass on Chrome 158, which refuses the call that Capybara 3.40.0 sends to clear the cookies after each example. Development-only. [#1367](https://github.com/owen2345/camaleon-cms/pull/1367).
+
 - **Bug fix:** A refused site settings save now stores nothing, and a route file that raises an error no longer removes the app routes. [#1364](https://github.com/owen2345/camaleon-cms/pull/1364).
   - **Breaking change:** a post type draws the routes for a new slug or a delete after its commit.
   - Upgrade notes: [refused save](docs/upgrading-to-2.9.5.md#a-refused-site-settings-save-stores-nothing), [trial draw](docs/upgrading-to-2.9.5.md#a-reload-of-the-routes-draws-them-on-trial-first).
