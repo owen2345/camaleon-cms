@@ -463,6 +463,22 @@ Changes that look free from inside this repository and are not:
     slug with the host that the last reload read from that method. A redefinition that gives
     another host reloads the routes at each commit of a main site update.
 
+- **Running a theme switch in one transaction** breaks no surveyed theme. A grep of the local
+  checkouts of plugins, themes and host apps ran on 2026-11-23. Only Camaleon calls
+  `site_install_theme`. These are the `on_active` and `on_inactive` hooks that a switch runs:
+  - `cama-ecommerce-theme` and the `e_shop` theme of `camaleon_website` install `ecommerce`,
+    `cama_subscriber` and `cama_contact_form`. `camaleon-cms-efashion` installs `ecommerce` and
+    `cama_subscriber`. The `on_active` hook of `ecommerce` creates the post type `commerce`, with
+    its options, a category and custom fields. The `on_active` hooks of the other two plugins write
+    nothing.
+  - The other themes write custom fields, menus, post types, posts and options. No hook writes a
+    file, sends a mail or opens a transaction of its own.
+  - A new post type draws the routes in the transaction of the switch. The `ecommerce` hook does
+    this, and so do the `sky`, the `cv` and the `camaleon_cms` themes of `camaleon_website`.
+  - The `store` plugin of `camaleon_website` and `cama_layer_slider` call `create_table` in their
+    `on_active` hooks. No surveyed theme installs them. Both host apps run PostgreSQL, which rolls
+    back DDL with the transaction.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

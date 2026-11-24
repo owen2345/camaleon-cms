@@ -24,5 +24,17 @@ module CamaleonCms
         transaction.dirty!
       end
     end
+
+    # Raises ActiveRecord::TransactionIsolationError when Rails permits no savepoint in the transaction of
+    # the caller: the connection pool has a transaction isolation level (Rails 8.1). Rails raises that
+    # error for the requires_new transaction too. But Rails then drops the connection of the caller, and
+    # the transaction of the caller goes with it. After the error of this method, the caller keeps both.
+    def self.require_savepoint!
+      return unless ActiveRecord::Base.try(:pool_transaction_isolation_level)
+      return unless ActiveRecord::Base.connection_pool.active_connection?&.transaction_open?
+
+      raise ActiveRecord::TransactionIsolationError,
+            'Camaleon CMS - Rails permits no savepoint while the connection pool has a transaction isolation level'
+    end
   end
 end
