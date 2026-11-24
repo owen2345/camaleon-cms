@@ -13,6 +13,11 @@ module CamaleonCms
   #   data of the thread. It also does the reload that reload_after_commit asked for.
   # - After a rollback, it draws the routes again when a draw of the app routes used that data.
   #
+  # A savepoint in the transaction uses the data of the transaction. After the rollback of a savepoint
+  # that used the data, the thread reads the data from the database again (Entry#data). A savepoint
+  # that asks for a reload gets data of its own. After its rollback, the thread gets empty data for the
+  # transaction that is still open (entry_after).
+  #
   # The state object of the transaction says when it is over, as in CamaleonCms::Metas. Rails gives no
   # callback for that moment before version 7.2.
   module RouteTransactionData
@@ -24,7 +29,6 @@ module CamaleonCms
 
     # The data of one transaction, and what PluginRoutes must do when that transaction is over.
     class Entry
-      attr_reader :data
       # cleared: a reload or a reload request made the data, so the data of all threads is old after
       # the commit. drew: a draw of the app routes used the data. reload_due: reload_after_commit
       # asked for a reload. settled: the settle step took the entry.
@@ -36,6 +40,27 @@ module CamaleonCms
         @outer_state = outer_state_of(connection) || @state
         @connection = connection
         @thread = Thread.current
+        # The states of the savepoints that used the data.
+        @user_states = []
+      end
+
+      # The data, for a read or a write on the thread of the entry. A savepoint in the transaction,
+      # such as a requires_new transaction, uses the data too. A read in a savepoint can fill the data
+      # with rows of that savepoint. After the rollback of such a savepoint, the entry drops its data,
+      # and the next reads come from the database again.
+      def data
+        if @user_states.any? { |state| over_without_commit?(state) }
+          @data = CamaleonCms::RouteData.new
+          @user_states = []
+        else
+          # A released savepoint rolls back only with a transaction around it. The list holds each
+          # savepoint around it, and the rollback of the outermost transaction ends the entry.
+          @user_states.reject!(&:committed?)
+        end
+        open_savepoint_states.each do |state|
+          @user_states << state unless @user_states.any? { |noted| noted.equal?(state) }
+        end
+        @data
       end
 
       # :open, :committed or :rolled_back. A requires_new transaction is a savepoint, and only the
@@ -63,6 +88,12 @@ module CamaleonCms
         !settled && outcome == :open
       end
 
+      # Whether the transaction of the entry rolled back as a savepoint, and the outermost transaction
+      # that a rollback can undo is still open.
+      def savepoint_rolled_back?
+        over_without_commit?(@state) && !@outer_state.completed? && !over_without_commit?(@outer_state)
+      end
+
       private
 
       def over_without_commit?(state)
@@ -73,8 +104,21 @@ module CamaleonCms
       # no public reader for that transaction, so this reads the stack of its transaction manager.
       # With no such stack, the entry reads only the state of its own transaction.
       def outer_state_of(connection)
+        stack = transaction_stack(connection)
+        stack&.find(&:joinable?)&.state
+      end
+
+      # The states of the open transactions in the outermost transaction that a rollback can undo, from
+      # the stack of the transaction manager (above). With no such stack, the list is empty.
+      def open_savepoint_states
+        stack = transaction_stack(@connection)
+        outer = stack&.index(&:joinable?)
+        outer ? stack.drop(outer + 1).map(&:state) : []
+      end
+
+      def transaction_stack(connection)
         stack = connection.transaction_manager.instance_variable_get(:@stack)
-        stack.find(&:joinable?)&.state if stack.is_a?(Array)
+        stack if stack.is_a?(Array)
       end
     end
 
@@ -203,12 +247,20 @@ module CamaleonCms
       reload_monitor.synchronize do
         own = Thread.current[TRANSACTION_KEY]
         own = nil if own&.open?
-        Thread.current[TRANSACTION_KEY] = nil if own
+        Thread.current[TRANSACTION_KEY] = entry_after(own) if own
         finished = (@unsettled || []).reject(&:open?)
         @unsettled -= finished if @unsettled
         finished |= [own] if own
         finished.reject(&:settled).each { |entry| entry.settled = true }
       end
+    end
+
+    # The entry of this thread after its entry is over: nil, or an entry with empty data. A savepoint
+    # that rolled back leaves a transaction open, and the shared data lacks the rows of that
+    # transaction. With empty data, its next reads come from the database.
+    def entry_after(entry)
+      transaction = open_transaction if entry.savepoint_rolled_back?
+      Entry.new(CamaleonCms::RouteData.new, transaction, route_connection) if transaction
     end
 
     # A reload after a rollback does not raise: its error can hide the error that caused the rollback.

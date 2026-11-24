@@ -95,10 +95,27 @@ module CamaleonCms
     end
 
     # The transaction of this thread that a rollback can undo, or nil. Other transactions can join
-    # such a transaction. The transaction that the test fixtures open is not one.
+    # such a transaction, or it runs in a transaction that they can join. The transaction that the test
+    # fixtures open is not one.
     def open_transaction
-      transaction = route_connection&.current_transaction
-      transaction if transaction&.joinable?
+      connection = route_connection
+      transaction = connection&.current_transaction
+      return unless transaction&.open?
+
+      transaction if transaction.joinable? || joinable_transaction?(connection)
+    end
+
+    # Whether a transaction that other transactions can join is open on the connection.
+    def joinable_transaction?(connection)
+      transaction_stack(connection).any?(&:joinable?)
+    end
+
+    # The open transactions of the connection, the outermost first. Rails has no public reader for
+    # them, so this reads the stack of its transaction manager, as RouteTransactionData::Entry does.
+    # With no stack to read, the list is empty.
+    def transaction_stack(connection)
+      stack = connection.transaction_manager.instance_variable_get(:@stack)
+      stack.is_a?(Array) ? stack : []
     end
 
     # The database connection that this thread uses now, if any. PluginRoutes reads its settings while

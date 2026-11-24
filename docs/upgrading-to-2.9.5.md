@@ -480,6 +480,9 @@ stored data again. Camaleon then draws the routes again when a draw used the dat
 transaction. Before, a post type that a transaction created was in the site list of each thread
 before the commit. After a rollback, it stayed in that list, and the app kept its route.
 
+The rollback of a savepoint that used the data drops all of it. A `cache_variable` value that the
+transaction stored before the savepoint is gone too, and the next read fills the data again.
+
 The new `PluginRoutes.reload_after_commit` asks for a reload that waits for the commit of the open
 transaction. A rollback drops the request, and with no open transaction the method calls
 `PluginRoutes.request_reload` at once. A `requires_new` transaction is a savepoint: its request
