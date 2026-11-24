@@ -37,7 +37,7 @@ The default allowed roots are the Rails public directory and the system temp dir
 
 ### Requirement: Trusted code can extend the allowed roots for a single call
 
-Trusted application code SHALL be able to extend the root set for a single call by passing additional roots (`allowed_roots:`). Plugins, background jobs and imports can then stage files elsewhere.
+The system SHALL accept additional roots (`allowed_roots:`) that trusted application code passes for a single call. Plugins, background jobs and imports can then stage files elsewhere.
 
 #### Scenario: A trusted caller stages a file outside the default roots
 
