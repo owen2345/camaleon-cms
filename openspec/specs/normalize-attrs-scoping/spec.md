@@ -65,7 +65,8 @@ The following model attributes SHALL NOT have `normalize_attrs` applied:
 Description fields (`:description`) on the models above SHALL retain `normalize_attrs` unchanged, because they can legitimately contain user HTML content.
 
 #### Scenario: A description is still sanitized
-- **WHEN** a description of one of the listed models is set to `<script>alert(1)</script>text`
+- **WHEN** the description of a listed model that has `normalize_attrs(:description)`, for example
+  `Category`, is set to `<script>alert(1)</script>text`
 - **THEN** the persisted description SHALL NOT contain `<script>`
 - **AND** the text `"text"` SHALL be preserved
 
