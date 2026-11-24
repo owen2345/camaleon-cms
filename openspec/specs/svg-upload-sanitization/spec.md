@@ -233,8 +233,6 @@ The checker SHALL reject event handlers by shape: any attribute whose name begin
 - **WHEN** an `.html` upload contains an attribute named `onsomethingnotyetinvented`
 - **THEN** the checker reports it unsafe, because the match is on the `on` prefix and not on a name list
 
-
-
 ### Requirement: HTML-family markup is evaluated with an HTML parser
 
 The system SHALL parse `html`, `htm` and `shtml` uploads with an HTML parser rather than an XML parser. The XML parser SHALL remain in use for `svg`, `svgz`, `xhtml`, `xht`, `xml`, `xsl` and `xslt`.
