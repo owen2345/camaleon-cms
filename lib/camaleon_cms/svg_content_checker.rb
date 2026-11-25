@@ -90,6 +90,12 @@ module CamaleonCms
     # libxml2 stops its reports after 100 of one level.
     PARSER_REPORT_LIMIT = 100
 
+    # The libxml2 codes of two reports for an attribute declaration of the DTD. With the first, a
+    # default does not fit the type of its attribute, and the tree holds the declaration with no
+    # default. With the second, an earlier declaration has the same attribute, and the tree does
+    # not hold the later one.
+    UNREADABLE_DEFAULT_CODES = [500, 501].freeze
+
     # The start of an attribute default that declares a namespace, such as
     # `<!ATTLIST svg xmlns:onix CDATA "urn:onix">`.
     NAMESPACE_DEFAULT = /\A<!ATTLIST\s+\S+\s+xmlns:/
@@ -239,9 +245,14 @@ module CamaleonCms
     # refuses a file at PARSER_REPORT_LIMIT, because the parser does not report the names after it.
     def scheme_reference_dropped?(doc)
       reports = doc.errors
-      return true if reports.map(&:level).tally.values.any? { |count| count >= PARSER_REPORT_LIMIT }
+      return true if report_limit_reached?(reports)
 
       reports.any? { |report| report.code == UNDECLARED_ENTITY && SCHEME_REFERENCE_NAMES.include?(report.str1) }
+    end
+
+    # The parser gives no report after PARSER_REPORT_LIMIT reports of one level.
+    def report_limit_reached?(reports)
+      reports.map(&:level).tally.values.any? { |count| count >= PARSER_REPORT_LIMIT }
     end
 
     # A browser gives an element each attribute default that the DTD of the file declares for it.
@@ -254,11 +265,30 @@ module CamaleonCms
     # The caller gives the expanded document when the file declares an entity, so a default holds
     # the value of each entity that it refers to.
     def dangerous_attribute_default?(doc)
-      doc.internal_subset&.children.to_a.grep(Nokogiri::XML::AttributeDecl).any? do |declaration|
+      declarations = doc.internal_subset&.children.to_a.grep(Nokogiri::XML::AttributeDecl)
+      return false if declarations.empty?
+      return true if default_unreadable?(doc)
+
+      declarations.any? do |declaration|
         next false if declaration.default.nil?
 
         handler_default?(declaration) || ContentSecurity.blocked_scheme?(declaration.default)
       end
+    end
+
+    # The tree does not hold each default that a browser gives to an element:
+    #   - The parser keeps a declaration with no default when the default does not fit the type of
+    #     the attribute, as in `<!ATTLIST svg onload NMTOKEN "alert(1)">`. It still gives the
+    #     element that default.
+    #   - The parser keeps only the first declaration of an attribute. A browser uses the first
+    #     declaration that has a default, so `#IMPLIED` in the first one hides the second.
+    #
+    # The parser reports both cases, so the checker refuses a file with a report of
+    # UNREADABLE_DEFAULT_CODES. It also refuses a file at PARSER_REPORT_LIMIT, because the parser
+    # then gives no such report.
+    def default_unreadable?(doc)
+      reports = doc.errors
+      report_limit_reached?(reports) || reports.any? { |report| UNREADABLE_DEFAULT_CODES.include?(report.code) }
     end
 
     # A default with the `xmlns` prefix declares a namespace, so it gives no handler: `xmlns:onix`
@@ -272,6 +302,7 @@ module CamaleonCms
 
     private_class_method :dangerous_document?, :stylesheet?, :xslt_namespace?, :dangerous_serialization?,
                          :parse_document, :entity_declarations, :expanded_document, :scheme_reference_dropped?,
-                         :dangerous_attribute_default?, :handler_default?
+                         :report_limit_reached?, :dangerous_attribute_default?, :default_unreadable?,
+                         :handler_default?
   end
 end

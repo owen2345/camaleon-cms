@@ -138,3 +138,29 @@ scheme. A declaration without a default gives no attribute, and the system SHALL
 - **THEN** the system stores the file normally
 - **AND** the same holds for `<!ATTLIST svg onload CDATA #IMPLIED>`, which has no default
 - **AND** the same holds for `<!ATTLIST svg xmlns:onix CDATA #FIXED "urn:onix">`, which declares a namespace
+
+### Requirement: A default that the scan cannot read is refused
+
+The XML parser of the scan keeps no default for a declaration whose default does not fit the type
+of the attribute. It keeps only the first declaration of an attribute. A browser uses the default
+in both cases. The system SHALL reject an upload whose DTD declares an attribute when the parser
+reports one of the two cases. It SHALL also reject such an upload when the parser reaches its
+limit of 100 reports.
+
+#### Scenario: A default that does not fit the type of the attribute is rejected
+- **WHEN** a user uploads an SVG file with `<!ATTLIST svg onload NMTOKEN "alert(1)">`
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds for `<!ATTLIST svg onload (a|b) "alert(1)">`
+
+#### Scenario: A second declaration of an attribute is rejected
+- **WHEN** a user uploads an SVG file with `<!ATTLIST svg onload CDATA #IMPLIED>` and then `<!ATTLIST svg onload CDATA "alert(1)">`
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds when a parameter entity gives the second declaration
+
+#### Scenario: The parser reaches its report limit before the declaration
+- **WHEN** a user uploads an SVG file with 100 references to an undeclared parameter entity, and then the two declarations of `onload`
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: A default that fits its type follows the attribute rules
+- **WHEN** a user uploads an SVG file with `<!ATTLIST rect fill NMTOKEN "red">`
+- **THEN** the system stores the file normally

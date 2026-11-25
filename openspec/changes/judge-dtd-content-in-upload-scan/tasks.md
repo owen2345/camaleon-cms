@@ -31,11 +31,22 @@
 - [x] 3.3 Name the rule in the section of `docs/upgrading-to-2.9.5.md` and in
   `docs/security/permissions.md`. Verify: the Markdown gate prints no line
 
-## 4. Verify
+## 4. Refuse a default that the tree does not hold
 
-- [x] 4.1 Run the checks of `AGENTS.md` "Verify before pushing". Verify: each of the four checks
+- [x] 4.1 Add the examples for a default that does not fit its type, and for a second declaration
+  of an attribute. They go in `spec/requests/security/upload_dtd_entity_scan_spec.rb` and in
+  `spec/lib/svg_content_checker_spec.rb`. Verify: the examples for a refusal fail on the current code
+- [x] 4.2 In `CamaleonCms::SvgContentChecker`, refuse a file whose DTD declares an attribute when
+  the parser reports one of the two cases (design D5). Refuse it also at the report limit. Verify:
+  the specs of 4.1 pass, and the adjacent upload specs pass
+- [x] 4.3 Name the rule in the section of `docs/upgrading-to-2.9.5.md`. Verify: the Markdown gate
+  prints no line for the new text
+
+## 5. Verify
+
+- [x] 5.1 Run the checks of `AGENTS.md` "Verify before pushing". Verify: each of the four checks
   passes
-- [x] 4.2 Run `openspec validate --all --strict`. Verify: no error and no warning
+- [x] 5.2 Run `openspec validate --all --strict`. Verify: no error and no warning
 
 ## Workflow follow-up
 

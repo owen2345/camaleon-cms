@@ -610,6 +610,14 @@ browser then gives the `svg` element that `onload` handler. Before, the scan did
 default. Now it refuses a default for an attribute whose name starts with `on`, and a default with
 a blocked URI scheme.
 
+The XML parser of the scan cannot read each default. It keeps no default that does not fit the type
+of its attribute, as in `<!ATTLIST svg onload NMTOKEN "alert(1)">`. It keeps only the first
+declaration of an attribute. A browser uses the default in both cases. So the scan refuses a file
+with such a declaration.
+
+The scan also refuses a file that declares an attribute when the XML parser gives 100 reports of an
+error. The parser gives no report after them.
+
 The scan now also refuses these files:
 
 - A file that declares an entity of another resource, with `SYSTEM` or `PUBLIC`.

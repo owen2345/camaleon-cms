@@ -531,6 +531,60 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
     end
 
+    # The tree keeps such a declaration with no default, and the parser still gives the element
+    # that default.
+    context 'with a default that does not fit the type of the attribute' do
+      {
+        'a name token' => '<!ATTLIST svg onload NMTOKEN "alert(1)">',
+        'an enumeration' => '<!ATTLIST svg onload (a|b) "alert(1)">',
+        'a fixed name token' => '<!ATTLIST svg onload NMTOKEN #FIXED "alert(1)">'
+      }.each do |type, dtd|
+        it "rejects a handler default for #{type}" do
+          expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+        end
+      end
+
+      # The parser stops its reports after 100 of one level. Each report before the declaration is
+      # an error, as the report for the default is.
+      it 'rejects the default after 100 reports of an error' do
+        dtd = %(#{'<!ELEMENT a ANY>' * 101}<!ATTLIST svg onload NMTOKEN "alert(1)">)
+
+        expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+      end
+
+      it 'accepts a default that fits its type, for an attribute that is no handler' do
+        expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST rect fill NMTOKEN "red">'))).to be(false)
+      end
+    end
+
+    # The tree keeps the first declaration of an attribute. A browser uses the first declaration
+    # that has a default.
+    context 'with a second declaration of one attribute' do
+      let(:second_default) { '<!ATTLIST svg onload CDATA #IMPLIED><!ATTLIST svg onload CDATA "alert(1)">' }
+
+      it 'rejects a handler default of the second declaration' do
+        expect(described_class.unsafe?(svg_with_defaults(second_default))).to be(true)
+      end
+
+      it 'rejects a second declaration that a parameter entity gives' do
+        dtd = %(<!ATTLIST svg onload CDATA #IMPLIED><!ENTITY % p "<!ATTLIST svg onload CDATA 'alert(1)'>"> %p;)
+
+        expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+      end
+
+      # Each report before the two declarations is a warning, as the report for the second one is.
+      it 'rejects the second declaration after 100 reports of a warning' do
+        expect(described_class.unsafe?(svg_with_defaults("#{'%u; ' * 100}#{second_default}"))).to be(true)
+      end
+    end
+
+    it 'accepts 100 reports of a warning in a file whose DTD declares no attribute' do
+      doctype = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+      svg = %(#{doctype}<svg xmlns="http://www.w3.org/2000/svg"><desc>#{'&nbsp;' * 100}</desc></svg>)
+
+      expect(described_class.unsafe?(svg)).to be(false)
+    end
+
     it 'accepts a required handler attribute, which has no default' do
       expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg onload CDATA #REQUIRED>'))).to be(false)
     end

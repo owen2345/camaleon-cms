@@ -98,8 +98,23 @@ default also when no element of the file has the name that the declaration gives
 A default with the `xmlns` prefix declares a namespace, so the handler rule does not apply to its
 name.
 
+The tree does not hold each default that a browser uses. For a default that does not fit the type
+of its attribute, as in `<!ATTLIST svg onload NMTOKEN "alert(1)">`, the tree holds the declaration
+with no default. The parser still gives the element that default, and Chrome 158 ran the handler.
+For two declarations of one attribute, the tree holds only the first one. Chrome 158 uses the first
+declaration that has a default, so `#IMPLIED` in the first one hid the default of the second.
+
+libxml2 reports both cases, with the codes 500 and 501. So the checker refuses a file whose DTD
+declares an attribute when a report has one of these codes.
+
+The parser stops its reports after 100 of one level, and 100 reports before the declaration hid its
+report. So the checker also refuses such a file when the reports of one level reach 100.
+
 - *Alternative: the `dtdattr` option, which puts each default in the tree.* Rejected: the option
   makes the parser load the external DTD, from the network or from a local file.
+- *Alternative: refuse each declaration of a handler attribute, with or without a default.*
+  Rejected: the rule refuses `<!ATTLIST svg onload CDATA #IMPLIED>`, and it does not cover a second
+  declaration of an `href` attribute or of a namespace.
 
 ## Risks / Trade-offs
 

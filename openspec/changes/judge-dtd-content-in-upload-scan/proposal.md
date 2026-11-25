@@ -31,6 +31,10 @@ and the upload request did not return.
   entity refers to itself. The parser stops at the limit.
 - The scan refuses a file whose DTD declares a default for an attribute with a name that starts
   with `on`. It also refuses a default with a blocked URI scheme.
+- **BREAKING**: the scan refuses a file whose DTD holds a default that the XML parser does not
+  keep. The parser does not keep a default that does not fit the type of its attribute, or a second
+  declaration of one attribute. The scan also refuses a file that declares an attribute when the
+  parser gives 100 reports of an error.
 - **BREAKING**: the scan refuses a file that declares an entity and has a fatal XML error.
   Before, the scan read such a file up to the error.
 - A file with harmless entities passes as before. An example is an SVG file of Adobe Illustrator,
@@ -46,7 +50,7 @@ None.
 
 - `svg-upload-sanitization`: the rule for DTD entities names what the scan reads. New requirements
   cover an entity of another resource, the limit of the expansion, a file with harmless entities,
-  and an attribute default of the DTD.
+  an attribute default of the DTD, and a default that the scan cannot read.
 
 ## Impact
 

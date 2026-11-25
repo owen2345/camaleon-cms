@@ -137,6 +137,22 @@ RSpec.describe 'Upload scan of the content of a DTD', type: :request do
       expect(response.body).to include(refusal)
     end
 
+    # The parser keeps this declaration with no default, because `alert(1)` is no name token. It
+    # still gives the element that default.
+    it 'refuses a handler default that does not fit the type of the attribute' do
+      upload(svg('<!ATTLIST svg onload NMTOKEN "alert(1)">', shape))
+
+      expect(response.body).to include(refusal)
+    end
+
+    # The parser keeps only the first declaration of an attribute. A browser uses the first
+    # declaration that has a default.
+    it 'refuses a handler default in a second declaration of the attribute' do
+      upload(svg('<!ATTLIST svg onload CDATA #IMPLIED><!ATTLIST svg onload CDATA "alert(1)">', shape))
+
+      expect(response.body).to include(refusal)
+    end
+
     it 'accepts a default for an attribute that is no handler' do
       upload(svg('<!ATTLIST svg xmlns:xlink CDATA #FIXED "http://www.w3.org/1999/xlink">', shape))
 
