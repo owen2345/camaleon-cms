@@ -192,8 +192,9 @@ error, and they SHALL create no site.
 ### Requirement: The default theme of the system config can be a theme that is not installed
 
 A site create with no theme of its own installs the default theme of the system config
-(`default_template`). A host can name a theme there that is not installed, and the rules above SHALL
-also hold for that theme.
+(`default_template`). A host can name a theme there that is not installed. `site_after_install`
+SHALL then raise `ArgumentError` before its first write. The installer and the site create of the
+admin panel SHALL show their form again with an error, and they SHALL create no site.
 
 #### Scenario: The default theme of the system config is not installed
 
