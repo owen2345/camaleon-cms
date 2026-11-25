@@ -8,7 +8,7 @@ Keep the metas and options an admin post save takes from the request to what the
 
 ### Requirement: Template and layout choices from non-admins are limited to the offered lists
 
-A post save or draft save by a user who is not an administrator SHALL be refused when it carries a non-blank `meta[template]`, `meta[layout]`, `options[default_template]` or `options[default_layout]` value that is not in the list the post editor offers for the post's type. The offered lists are the current theme's post templates and layouts, as extended by the `post_get_list_templates` and `post_get_list_layouts` hooks. An offered entry's value SHALL be derived the way the editor's select derives it, so every entry shape the select renders (a plain name, a `[label, value]` pair, a pair followed by HTML attributes, a name followed by HTML attributes, a grouped list) is accepted when chosen; a list given as pre-rendered option markup SHALL offer nothing but blank, without raising. The refusal SHALL name the field, and nothing from the save SHALL be stored: not the post's attributes, its metas, its custom-field values, or its options. A blank value SHALL be accepted. An administrator's values SHALL be stored as written. Values stored before this requirement SHALL NOT be rewritten.
+A user who is not an administrator SHALL be refused a post save or draft save with a non-blank value in some fields. The fields are `meta[template]`, `meta[layout]`, `options[default_template]` and `options[default_layout]`. This applies when the post editor does not offer the value for the post's type. The refusal SHALL name the field. Nothing from the save SHALL be stored: not the post's attributes, its metas, its custom-field values, or its options.
 
 #### Scenario: Non-admin names a template outside the offered list
 
@@ -26,34 +26,51 @@ A post save or draft save by a user who is not an administrator SHALL be refused
 - **WHEN** an editor saves a post with `meta[layout]` set to `camaleon_cms/admin`
 - **THEN** the save is refused with an error naming the layout field and nothing is stored
 
-#### Scenario: Offered and blank values are accepted
+#### Scenario: Draft autosave is held to the same lists
 
-- **WHEN** a non-admin saves a post whose template is one of the theme's offered templates, whose layout is blank, or whose template comes from the `post_get_list_templates` hook
-- **THEN** the save succeeds and the values are stored as submitted
+- **WHEN** a non-admin's draft save carries a template outside the offered list
+- **THEN** the draft save answers with an error naming the field and stores none of the submitted metas or options
+
+### Requirement: The offered lists are derived as the editor derives them
+
+The offered lists are the current theme's post templates and layouts, as extended by the `post_get_list_templates` and `post_get_list_layouts` hooks. An offered entry's value SHALL be derived the way the editor's select derives it, so every entry shape the select renders is accepted when chosen. A list given as pre-rendered option markup SHALL offer nothing but blank, without raising.
 
 #### Scenario: Every option shape the editor renders is accepted
 
 - **WHEN** a hook offers a template as `['Landing', 'template_landing', { 'data-x' => '1' }]` or as `['template_y', { class: 'y' }]` and a non-admin saves a post choosing `template_landing` or `template_y`
 - **THEN** the save succeeds and the chosen value is stored
+- **AND** each shape the select renders is accepted when chosen
+- **AND** these shapes are a plain name, a `[label, value]` pair, and a pair followed by HTML attributes
+- **AND** they also include a name followed by HTML attributes, and a grouped list
 
 #### Scenario: A pre-rendered option list offers nothing
 
 - **WHEN** a hook replaces the template list with a string of option markup and a non-admin saves a post with a non-blank template
 - **THEN** the save is refused naming the template field, and a blank template is accepted
 
+### Requirement: Blank, administrator and earlier values are unaffected
+
+A blank value SHALL be accepted. An administrator's values SHALL be stored as written. Values stored before the offered-list requirement SHALL NOT be rewritten.
+
+#### Scenario: Offered and blank values are accepted
+
+- **WHEN** a non-admin saves a post with a blank layout, or with a template that the theme or the
+  `post_get_list_templates` hook offers
+- **THEN** the save succeeds and the values are stored as submitted
+
 #### Scenario: Administrator values are not restricted
 
 - **WHEN** an administrator saves a post with a template name outside the offered list
 - **THEN** the save succeeds and the value is stored as written
 
-#### Scenario: Draft autosave is held to the same lists
+#### Scenario: Earlier stored values are not rewritten
 
-- **WHEN** a non-admin's draft save carries a template outside the offered list
-- **THEN** the draft save answers with an error naming the field and stores none of the submitted metas or options
+- **WHEN** a post saved before the offered-list requirement holds a template outside the offered list
+- **THEN** the stored value is not rewritten
 
 ### Requirement: Engine-maintained metas and options are never taken from request params
 
-A post save or draft save SHALL be refused, for every user including administrators, when its `meta` params carry a key starting with `_` or one of the engine-maintained counters `visits` and `comments_count`, or when its `options` params carry `status_default` or `draft_status`. Keys SHALL be matched case- and surrounding-space-insensitively (the store resolves a meta key that way). A `meta` or `options` key that is not an ASCII word (letters, digits, `_`, `-` and `.`) SHALL be refused for every user, naming the key, because the store resolves keys under database collations that also fold accents and compatibility variants, which no request-side folding reproduces. A `meta` or `options` param that is not a set of fields (for example an array of pairs) SHALL be refused before anything is written. The refusal SHALL name the key, and nothing from the save SHALL be stored. Every other `meta` and `options` key SHALL be stored as submitted. The engine's own writes to these keys (trashing a post, counting a visit or a comment, autosaving a draft) SHALL be unaffected.
+A post save or draft save SHALL be refused for every user, including administrators, in two cases. In the first case, its `meta` params carry a key that starts with `_`, or one of the engine-maintained counters `visits` and `comments_count`. In the second case, its `options` params carry `status_default` or `draft_status`. The refusal SHALL name the key. Nothing from the save SHALL be stored.
 
 #### Scenario: A submitted options hash replacement is refused
 
@@ -66,15 +83,28 @@ A post save or draft save SHALL be refused, for every user including administrat
 - **WHEN** a contributor saves a post with `options[status_default]=published`
 - **THEN** the save is refused and `status_default` is not stored
 
-#### Scenario: A non-hash meta or options container is refused
+### Requirement: Request keys are matched as the store resolves them
 
-- **WHEN** a save carries `meta` or `options` as an array of pairs rather than a set of fields
-- **THEN** the save is refused before anything is written, rather than storing the pairs or raising
+Keys SHALL be matched case- and surrounding-space-insensitively, because the store resolves a meta key that way. A `meta` or `options` key that is not an ASCII word SHALL be refused for every user, naming the key. An ASCII word has letters, digits, `_`, `-` and `.`.
 
 #### Scenario: A key that is not an ASCII word is refused
 
 - **WHEN** an editor saves a post with `meta[témplate]` or `meta[＿default]`, or an administrator saves one with `meta[vísits]`
 - **THEN** the save is refused with an error naming the key and nothing is stored
+- **AND** the reason is that the store resolves keys under database collations that also fold accents and compatibility variants, which no request-side folding reproduces
+
+### Requirement: A non-hash meta or options container is refused
+
+A `meta` or `options` param that is not a set of fields (for example an array of pairs) SHALL be refused before anything is written.
+
+#### Scenario: A non-hash meta or options container is refused
+
+- **WHEN** a save carries `meta` or `options` as an array of pairs rather than a set of fields
+- **THEN** the save is refused before anything is written, rather than storing the pairs or raising
+
+### Requirement: Other keys and the engine's own writes are unaffected
+
+Every other `meta` and `options` key SHALL be stored as submitted. The engine's own writes to the guarded keys (trashing a post, counting a visit or a comment, autosaving a draft) SHALL be unaffected.
 
 #### Scenario: Ecosystem keys keep being stored
 
@@ -88,47 +118,47 @@ A post save or draft save SHALL be refused, for every user including administrat
 
 ### Requirement: A post type's default template and layout options are held to the offered lists
 
-A save of a post type's `meta[default_template]` or `meta[default_layout]` by a user who is not an administrator SHALL be refused unless the value is blank or one the post editor offers, because a post whose own template or layout is blank falls back to the post type's option and the frontend renders it. When the post type is being created, the offered lists SHALL be computed for the post type under creation, as the create form computed them. The refusal SHALL name the field, and the option SHALL NOT be stored. An administrator's value SHALL be stored as written.
+A user who is not an administrator SHALL be refused a save of a post type's `meta[default_template]` or `meta[default_layout]`. This does not apply when the value is blank or one the post editor offers. The refusal SHALL name the field, and the option SHALL NOT be stored. An administrator's value SHALL be stored as written.
 
 #### Scenario: Non-admin sets a post type default template outside the offered list
 
 - **WHEN** a non-admin settings manager saves a post type with `meta[default_template]` set to an admin view
 - **THEN** the save is refused with an error naming the field and the option is not stored
-
-#### Scenario: Non-admin creates a post type with an offered default template
-
-- **WHEN** a non-admin settings manager creates a post type with `meta[default_template]` set to a value a `post_get_list_templates` hook offers by reading the post type it is handed
-- **THEN** the post type is created with that option stored
+- **AND** the reason is that a post whose own template or layout is blank falls back to the post type's option
+- **AND** the frontend renders that option
 
 #### Scenario: Administrator sets a post type default template freely
 
 - **WHEN** an administrator saves a post type with a `meta[default_template]` outside the offered list
 - **THEN** the option is stored as written
 
+### Requirement: The offered lists of a new post type are computed for it
+
+When the post type is being created, the offered lists SHALL be computed for the post type under creation, as the create form computed them.
+
+#### Scenario: Non-admin creates a post type with an offered default template
+
+- **WHEN** a non-admin settings manager creates a post type with a value in `meta[default_template]`
+- **AND** a `post_get_list_templates` hook offers that value after it reads the post type that it gets
+- **THEN** the post type is created with that option stored
+
 ### Requirement: Restore returns only a trashed post, and only to a status the user may give it
 
-`restore` SHALL act only on a post whose status is `trash`. For any other post it SHALL change nothing and report that the post is not in the trash. It SHALL restore the stored previous status only when that status is `published`, `pending`, `draft` or the `draft_child` autosave buffer, and only `published` when the acting user holds the publish permission for the post's type. In every other case the post SHALL return as `pending`. A create or update SHALL accept a submitted `post[status]` only when it is exactly one of the statuses the editor offers (`published`, `pending`, `draft`) and SHALL refuse any other value, naming the field, so no variant spelling reaches the column. A blank or absent status on update SHALL leave the post's current status unchanged (a draft being saved with no status is promoted through the publish rule); on create it SHALL take the column default. The same publish rule SHALL apply to every status a create or update would give a post, so a user without the publish permission cannot reach `published` by omitting the status either.
+`restore` SHALL act only on a post whose status is `trash`. For any other post it SHALL change nothing and report that the post is not in the trash.
+
+#### Scenario: Restore does not touch a post outside the trash
+
+- **WHEN** any user restores a post whose status is `pending`
+- **THEN** the post's status is unchanged and the response reports that the post is not in the trash
+
+### Requirement: Restore gives back the stored previous status only when permitted
+
+`restore` SHALL restore the stored previous status only when that status is `published`, `pending`, `draft` or the `draft_child` autosave buffer. It SHALL restore `published` only when the acting user holds the publish permission for the post's type. In every other case the post SHALL return as `pending`.
 
 #### Scenario: A non-publisher cannot publish through restore
 
 - **WHEN** a contributor without the publish permission restores a trashed post whose stored previous status is `published`
 - **THEN** the post returns as `pending`
-
-#### Scenario: A non-publisher cannot publish by omitting the status on create or update
-
-- **WHEN** a contributor without the publish permission creates a post with no status, or updates a draft with a blank status
-- **THEN** the post is saved as `pending`, not `published`
-
-#### Scenario: A status outside the editor's set is refused
-
-- **WHEN** a contributor creates a post with `post[status]=Published`, or an editor updates one with `post[status]` set to `published ` or to a script payload
-- **THEN** the save is refused with an error naming the status field and nothing is stored
-
-#### Scenario: A blank status on update keeps the current status
-
-- **WHEN** an editor updates a published post with `post[status]` submitted empty
-- **THEN** the post stays `published`
-- **AND** updating a draft with an empty status promotes it through the publish rule, as omitting the status does
 
 #### Scenario: A publisher restores a published post
 
@@ -140,15 +170,34 @@ A save of a post type's `meta[default_template]` or `meta[default_layout]` by a 
 - **WHEN** a trashed post whose stored previous status is `draft_child` is restored
 - **THEN** it returns as `draft_child`, not a standalone post
 
-#### Scenario: Restore does not touch a post outside the trash
-
-- **WHEN** any user restores a post whose status is `pending`
-- **THEN** the post's status is unchanged and the response reports that the post is not in the trash
-
 #### Scenario: A non-canonical stored status restores as pending
 
 - **WHEN** a trashed post's stored previous status is missing, unreadable, or not one of `published`, `pending`, `draft` or `draft_child`
 - **THEN** restore returns the post as `pending` without raising
+
+### Requirement: A create or update accepts only the statuses the editor offers
+
+A create or update SHALL accept a submitted `post[status]` only when it is exactly one of the statuses the editor offers (`published`, `pending`, `draft`). It SHALL refuse any other value, naming the field, so no variant spelling reaches the column.
+
+#### Scenario: A status outside the editor's set is refused
+
+- **WHEN** a contributor creates a post with `post[status]=Published`, or an editor updates one with `post[status]` set to `published ` or to a script payload
+- **THEN** the save is refused with an error naming the status field and nothing is stored
+
+### Requirement: A blank status keeps the current status or takes the default
+
+A blank or absent status on update SHALL leave the post's current status unchanged. The exception is a draft saved with no status, which the publish rule promotes. On create, a blank status SHALL take the column default. The same publish rule SHALL apply to every status that a create or update gives a post. So a user without the publish permission cannot reach `published` by omitting the status.
+
+#### Scenario: A non-publisher cannot publish by omitting the status on create or update
+
+- **WHEN** a contributor without the publish permission creates a post with no status, or updates a draft with a blank status
+- **THEN** the post is saved as `pending`, not `published`
+
+#### Scenario: A blank status on update keeps the current status
+
+- **WHEN** an editor updates a published post with `post[status]` submitted empty
+- **THEN** the post stays `published`
+- **AND** updating a draft with an empty status promotes it through the publish rule, as omitting the status does
 
 ### Requirement: A refused save is decided before the save hooks and shown without re-authorizing
 

@@ -15,20 +15,27 @@ accepted only from the post type's own tree.
 The admin term controllers SHALL NOT let the `parent_id` foreign key that carries a taxonomy's tenancy
 be reassigned across sites through mass assignment.
 
-For a **post type**, `parent_id` is its `site_id` (`alias_attribute`); for a **post tag**, it is the
+For a **post type**, `parent_id` is its `site_id` (`alias_attribute`). For a **post tag**, it is the
 owning post type. On both, `parent_id` is set from the owning association at create and SHALL NOT be
-accepted from the request on `create` or `update` — the admin form submits it only as a hidden mirror
+accepted from the request on `create` or `update`. The admin form submits it only as a hidden mirror
 of the current value.
-
-For a **category**, `parent_id` is a hierarchy choice, so it SHALL be accepted only when it names the
-category's own post type or a category within that post type (the post type's site- and id-scoped set,
-`full_categories`); any other value SHALL be rejected before the record is written. This applies to
-`create` and `update`.
 
 #### Scenario: A submitted parent_id cannot move a post type to another site
 
 - **WHEN** a manager sends `PATCH /admin/settings/post_types/<ID>` with `post_type[parent_id]` naming another site
 - **THEN** the post type's `site_id` is unchanged
+
+#### Scenario: A submitted parent_id cannot move a post tag to another post type
+
+- **WHEN** a manager sends `PATCH /admin/post_type/<PT>/post_tags/<ID>` with `post_tag[parent_id]` naming another site's post type
+- **THEN** the tag's `parent_id` is unchanged and stays its own post type
+
+### Requirement: A category parent_id is accepted only from the tree of its own post type
+
+For a **category**, `parent_id` is a hierarchy choice. It SHALL be accepted only when it names the
+category's own post type or a category within that post type. That set is the site- and id-scoped
+set of the post type, `full_categories`. Any other value SHALL be rejected before the record is written. This applies to
+`create` and `update`.
 
 #### Scenario: A category cannot be reparented under another site's post type or category
 
@@ -39,11 +46,6 @@ category's own post type or a category within that post type (the post type's si
 
 - **WHEN** a manager sends `PATCH /admin/post_type/<PT>/categories/<ID>` with `category[parent_id]` naming another category of the same post type
 - **THEN** the category is reparented under that category
-
-#### Scenario: A submitted parent_id cannot move a post tag to another post type
-
-- **WHEN** a manager sends `PATCH /admin/post_type/<PT>/post_tags/<ID>` with `post_tag[parent_id]` naming another site's post type
-- **THEN** the tag's `parent_id` is unchanged and stays its own post type
 
 ### Requirement: A widget assignment cannot be re-pointed to another tenant's sidebar or widget
 

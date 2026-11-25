@@ -8,13 +8,9 @@ who merely reaches the application over the web.
 
 ### Requirement: Installer requires a setup token for remote requests on a fresh deploy
 
-While no site exists (a fresh deploy), the installer SHALL refuse to provision a site in response to a
-remote request unless that request supplies a valid setup token. The setup token SHALL be obtainable
-only from the server's environment or filesystem, never from the web surface, so that possession of it
-demonstrates operator-level access to the host. A request originating from the local host (loopback)
-is exempt, because local access already demonstrates that same operator-level access. The token SHALL
-be single-use for provisioning: once a site is successfully created, the token SHALL no longer be
-accepted.
+While no site exists (a fresh deploy), the installer SHALL refuse a remote request to provision a
+site without a valid setup token. A request originating from the local host (loopback) SHALL be
+exempt, because local access already demonstrates operator-level access to the host.
 
 #### Scenario: A remote request without a valid token is refused
 - **WHEN** a remote request submits the installer's create action on a fresh deploy with no setup token, or an incorrect one
@@ -28,6 +24,21 @@ accepted.
 #### Scenario: A local request may provision without a token
 - **WHEN** a request from the local host submits the installer's create action on a fresh deploy without a setup token
 - **THEN** the site is provisioned
+
+### Requirement: The setup token comes only from the server
+
+The setup token SHALL be obtainable only from the server's environment or filesystem, never from the
+web surface. So possession of it demonstrates operator-level access to the host.
+
+#### Scenario: The web surface does not disclose the setup token
+
+- **WHEN** any party reads a page or a response of the web surface of the installer
+- **THEN** the setup token is not in it
+
+### Requirement: The setup token is single-use for provisioning
+
+The setup token SHALL be single-use for provisioning. Once a site is successfully created, the token
+SHALL no longer be accepted.
 
 #### Scenario: The token cannot be replayed after setup completes
 - **WHEN** a site already exists and a request submits the installer's create action with the previously valid setup token

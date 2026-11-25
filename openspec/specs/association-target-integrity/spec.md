@@ -52,14 +52,14 @@ remain the draft's author user — loading drafts through the association SHALL 
 ### Requirement: Category and tag writers reset through-proxies so post-write reads reflect the database
 
 The `CategoriesTagsForPosts` writers (`update_categories`, `update_tags`, `assign_category`,
-`unassign_category`) mutate `term_relationships` directly, which does not invalidate an already-loaded
-`categories` / `post_tags` / `term_relationships` proxy — and frontend reads preload `categories` via
-`with_eager`, so the proxy is routinely loaded before a write. Each writer SHALL reset those proxies
-before it snapshots or recounts, so `post.categories` / `post.the_tags`, their published counts, and
-`term_relationships` reflect the database after the write rather than a stale in-memory target.
+`unassign_category`) SHALL reset the `categories`, `post_tags` and `term_relationships` proxies
+before they snapshot or recount. `post.categories`, `post.the_tags`, their published counts, and
+`term_relationships` then reflect the database after the write rather than a stale in-memory target.
 
 #### Scenario: A removed tag is dropped and its count refreshed on a preloaded proxy
 
 - **WHEN** a post's `post_tags` proxy is loaded before a tag is added, then the tag is added and removed
 - **THEN** the removed tag's published `count` is `0`
 - **AND** `post.term_relationships` no longer contains the destroyed relationship
+- **AND** the reset is needed because the writers mutate `term_relationships` directly, which does not invalidate an already-loaded proxy
+- **AND** frontend reads preload `categories` via `with_eager`, so the proxy is routinely loaded before a write

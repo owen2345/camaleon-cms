@@ -9,14 +9,9 @@ belongs to.
 ### Requirement: Admin search returns only results the caller may manage
 
 `AdminController#search` SHALL scope every result kind to the caller's authorized post types. Content
-and post-type results SHALL be limited to the post types the caller may list (`can? :posts`), and
-content — for a non-administrator — further to the caller's own posts on any post type where they lack
-`edit_other`. Category and tag results SHALL be limited to the post types where the caller holds the
-matching taxonomy ability (`can? :categories` / `can? :post_tags`), so a taxonomy-manager role with no
-post edit grants still finds what it manages; category results SHALL cover every nesting level (a
-category belongs to a post type at every level, regardless of whether its direct parent is the post
-type or another category). A caller holding none of these abilities SHALL receive no results of any
-kind.
+and post-type results SHALL be limited to the post types the caller may list (`can? :posts`). A caller
+who holds none of `can? :posts`, `can? :categories` and `can? :post_tags` SHALL receive no results of
+any kind.
 
 #### Scenario: A user without content permissions sees no content
 
@@ -29,11 +24,40 @@ kind.
 - **WHEN** an administrator searches content for a term matching a post in any status
 - **THEN** the post appears in the results
 
+#### Scenario: A caller with no search abilities gets no results
+
+- **WHEN** a caller who holds none of `can? :posts`, `can? :categories` and `can? :post_tags` searches
+- **THEN** the results of every kind are empty
+
+### Requirement: Admin search limits content of a non-administrator to own posts
+
+For a non-administrator, content results SHALL be limited to the caller's own posts on any post type
+where the caller lacks `edit_other`.
+
+#### Scenario: A caller without edit_other finds only own posts
+
+- **WHEN** a non-administrator who lacks `edit_other` on a post type searches content
+- **THEN** only the caller's own posts of that post type appear in the results
+
+### Requirement: Admin search scopes taxonomy results by taxonomy ability
+
+Category and tag results SHALL be limited to the post types where the caller holds the matching
+taxonomy ability (`can? :categories` / `can? :post_tags`). A taxonomy-manager role with no post edit
+grants SHALL still find what it manages. Category results SHALL cover every nesting level.
+
 #### Scenario: A taxonomy manager finds the taxonomies they manage
 
 - **WHEN** a user whose role grants only `manage_categories` / `manage_tags` on a post type searches
   categories or tags
 - **THEN** that post type's matching categories and tags appear in the results
+
+#### Scenario: Nested categories are found
+
+- **WHEN** a caller with `can? :categories` searches for a category whose direct parent is another
+  category
+- **THEN** the category appears in the results
+- **AND** the cause is that a category belongs to a post type at every level
+- **AND** this holds whether its direct parent is the post type or another category
 
 ### Requirement: The drafts index is authorized
 

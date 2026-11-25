@@ -8,7 +8,7 @@ Define the security requirements for validating file upload source paths. The sy
 
 The system SHALL canonicalize string paths using `File.expand_path` before comparing them against allowed directory prefixes. The canonicalized path MUST equal the allowed root or start with the root followed by the path separator.
 
-The default allowed roots are the Rails public directory and the system temp directory. Trusted application code MAY extend the root set for a single call by passing additional roots (`allowed_roots:`), so plugins, background jobs and imports can stage files elsewhere. Additional roots SHALL originate only from application code or operator configuration: a value derived from request parameters MUST NOT be able to widen the root set, and the roots applied to a request-driven upload SHALL be the defaults. While the uploader is in private mode, the private-media directory SHALL also be an allowed root.
+The default allowed roots are the Rails public directory and the system temp directory.
 
 #### Scenario: Path with .. after allowed prefix is rejected
 
@@ -35,6 +35,10 @@ The default allowed roots are the Rails public directory and the system temp dir
 - **WHEN** a temp file under `Rails.public_path/tmp/` is passed as a string
 - **THEN** `File.expand_path` returns the canonical path, the prefix check passes, and the file is accepted
 
+### Requirement: Trusted code can extend the allowed roots for a single call
+
+The system SHALL accept additional roots (`allowed_roots:`) that trusted application code passes for a single call. Plugins, background jobs and imports can then stage files elsewhere.
+
 #### Scenario: A trusted caller stages a file outside the default roots
 
 - **WHEN** application code calls `upload_file(path, allowed_roots: [Rails.root.join('storage').to_s])` with a path under `Rails.root/storage`
@@ -46,10 +50,18 @@ The default allowed roots are the Rails public directory and the system temp dir
 - **AND** a later call for a path in that same directory passes no `allowed_roots:`
 - **THEN** the later call is rejected, because the extension applies only to the call that requested it
 
+### Requirement: Additional roots come only from trusted code
+
+Additional roots SHALL originate only from application code or operator configuration. A value derived from request parameters MUST NOT be able to widen the root set. The roots applied to a request-driven upload SHALL be the defaults.
+
 #### Scenario: A request cannot widen the root set
 
 - **WHEN** a request supplies parameters attempting to add an allowed root (e.g. an `allowed_roots` form field)
 - **THEN** the upload is validated against the default roots only, and a path outside them is rejected
+
+### Requirement: Private mode adds the private-media directory as an allowed root
+
+While the uploader is in private mode, the private-media directory SHALL also be an allowed root.
 
 #### Scenario: Private media is readable while private mode is active
 

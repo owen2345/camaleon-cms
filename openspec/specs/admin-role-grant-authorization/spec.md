@@ -13,9 +13,7 @@ since either would let them take over the account.
 Setting a user's role to `admin`, or changing the role of a user who is already an admin, SHALL be
 permitted only when the acting user is an admin. A non-admin who holds `:manage, :users` SHALL still
 create and edit users and change roles among non-admin roles, but any such change that would grant or
-remove the `admin` role SHALL be dropped, leaving the account's existing or default role. The role
-selector SHALL NOT offer the `admin` option to a user who cannot grant it (and SHALL be disabled when a
-non-admin edits an admin), except that the admin role stays listed when the edited user already holds it.
+remove the `admin` role SHALL be dropped, leaving the account's existing or default role.
 
 #### Scenario: A non-admin user manager cannot mint an admin account
 
@@ -47,14 +45,28 @@ non-admin edits an admin), except that the admin role stays listed when the edit
 - **WHEN** a user update submits a non-scalar `role` (for example a nested `user[role][x]` value)
 - **THEN** the role is left unchanged and the request does not error
 
+### Requirement: The role selector does not offer the admin role to a user who cannot grant it
+
+The role selector SHALL NOT offer the `admin` option to a user who cannot grant it. It SHALL be
+disabled when a non-admin edits an admin. The admin role stays listed when the edited user already
+holds it.
+
+#### Scenario: A non-admin sees no admin option
+
+- **WHEN** a non-admin holding `:manage, :users` opens the form of a user who is not an admin
+- **THEN** the role selector does not offer the `admin` option
+
+#### Scenario: A non-admin edits an admin
+
+- **WHEN** a non-admin holding `:manage, :users` opens the form of an admin
+- **THEN** the role selector is disabled, and it still lists the admin role that the user holds
+
 ### Requirement: Only an admin may edit an admin's account
 
 Changing an existing admin's password or recovery identifiers (email, username) SHALL be permitted only
 when the acting user is an admin. A non-admin who holds `:manage, :users` SHALL still edit those fields on
 non-admin accounts and on their own account, but any such change to another admin's account SHALL be
 refused — dropped from the user form's permitted parameters, and rejected by the AJAX password endpoint.
-The user form SHALL disable those inputs and hide the change-password action for anyone who cannot use
-them.
 
 #### Scenario: A non-admin user manager cannot reset an admin's password
 
@@ -76,4 +88,15 @@ them.
 
 - **WHEN** an admin resets another admin's password or changes their email
 - **THEN** the change is applied
+
+### Requirement: The user form disables the credential inputs that the user cannot use
+
+When the acting user cannot change the credentials of the account, the user form SHALL disable the
+email and username inputs. It SHALL hide the change-password action. The form shows the password
+inputs only for a new user, so it has no password input to disable.
+
+#### Scenario: A non-admin opens the form of an admin
+
+- **WHEN** a non-admin holding `:manage, :users` opens the form of another admin
+- **THEN** the email and username inputs are disabled, and the change-password action is hidden
 

@@ -12,15 +12,14 @@ States as a checkable rule the convention the five existing permissions
 `select_eval`, `content_shortcodes`) already follow, so a new dangerous capability must conform to it
 and cite it rather than ship ungated, gate by a proxy, or fail open.
 ## Requirements
+
 ### Requirement: Security-sensitive actions are gated by a default-off role permission
+
 Any action or method that presents a security threat SHALL be permitted for a non-administrator role
 only when that role holds a dedicated permission for it. The permission SHALL be off by default: it
 SHALL NOT be seeded onto any non-administrator role, so an existing installation reads it as
 not-granted without a migration. Administrators SHALL satisfy the check through `can :manage, :all`
 without the permission being present in role meta.
-
-Conformant examples: `post_content_unfiltered_html`, `contact_form_unfiltered_html`,
-`media_unfiltered_upload`, `select_eval`, `content_shortcodes`.
 
 #### Scenario: An administrator performs the action
 - **WHEN** a user with the `admin` role performs a gated security-sensitive action
@@ -39,7 +38,14 @@ Conformant examples: `post_content_unfiltered_html`, `contact_form_unfiltered_ht
 - **WHEN** a role's stored permission meta predates the new permission
 - **THEN** the absent key SHALL read as not-granted, with no migration required
 
+#### Scenario: The existing permissions conform
+
+- **WHEN** `post_content_unfiltered_html`, `contact_form_unfiltered_html`, `media_unfiltered_upload`,
+  `select_eval` and `content_shortcodes` are checked against this requirement
+- **THEN** each is a conformant example of a dedicated, default-off permission
+
 ### Requirement: The permission check fails closed
+
 The gate SHALL read the acting user and site from `CurrentRequest` and SHALL treat the caller as
 untrusted when either is absent, so background jobs, rake tasks and the console get the restricted
 behavior by default. A failure while evaluating the permission — for example malformed role meta —
@@ -54,6 +60,7 @@ SHALL resolve to untrusted rather than raising.
 - **THEN** the gate SHALL resolve to untrusted rather than aborting the request
 
 ### Requirement: Authorization decides, not a proxy signal
+
 The gate SHALL be an authorization check on the acting user. It SHALL NOT be decided by a filesystem
 path, an output filename, a client-supplied parameter, a network location, or the mere fact that a
 hook or handler ran. Where content or an action can be substituted after the check — such as a
@@ -69,19 +76,10 @@ against the permission rather than trusted.
 - **THEN** the substituted content SHALL be re-checked rather than accepted unscanned
 
 ### Requirement: New security-sensitive capabilities conform to this rule
+
 When a change introduces an action or method that presents a security threat to non-administrator
 roles, it SHALL gate it per this capability and SHALL cite this capability. It SHALL NOT ship the
 action ungated, gate it by a non-authorization proxy, or let the check fail open.
-
-A permission gate SHALL be the last resort, not the first. Where the threat is **content** and that
-content can be judged, the save-time scan SHALL judge it; a blanket refusal by file type, format or
-category SHALL NOT be introduced in its place. A dedicated permission is the remedy only where no
-scan can reach a verdict at all — where the input has no safe subset and no static rule can decide
-it — and there the check SHALL fail closed.
-
-Where an existing permission's holders already possess the capability being gated, a change SHALL
-extend that permission rather than introduce a new one, because a new permission would revoke the
-capability from installs that already granted the existing one.
 
 #### Scenario: A proposal adds a dangerous action
 - **WHEN** a proposal introduces a security-sensitive action available to non-administrators
@@ -90,6 +88,14 @@ capability from installs that already granted the existing one.
 #### Scenario: A proposal gates by a proxy signal
 - **WHEN** a proposal would gate such an action by a path, filename, or client flag
 - **THEN** it SHALL be revised to gate on the acting user's permission instead
+
+### Requirement: A permission gate is the last resort
+
+A permission gate SHALL be the last resort, not the first. Where the threat is **content** and that
+content can be judged, the save-time scan SHALL judge it. A change SHALL NOT introduce a blanket refusal by
+file type, format or category in its place. A dedicated permission is the remedy only where no scan can
+reach a verdict at all. That is the case when the input has no safe subset and no static rule can decide it.
+There the check SHALL fail closed.
 
 #### Scenario: A proposal gates content a scan could judge
 - **WHEN** a proposal would refuse a whole content format by permission, and that format has a
@@ -102,6 +108,12 @@ capability from installs that already granted the existing one.
   dynamic construction)
 - **THEN** a default-off, fail-closed permission is the conforming remedy
 
+### Requirement: An existing permission is extended rather than replaced
+
+Where the holders of an existing permission already possess the capability being gated, a change SHALL
+extend that permission rather than introduce a new one. A new permission would revoke the capability from
+installs that already granted the existing one.
+
 #### Scenario: An existing permission already confers the capability
 - **WHEN** the holders of an existing permission can already perform the action being gated
 - **THEN** the change SHALL extend that permission rather than add one that would revoke the
@@ -111,20 +123,9 @@ capability from installs that already granted the existing one.
 
 When a gate must stop dangerous content submitted by an untrusted user, the remedy SHALL be a
 save-time refusal with an error naming the problem. The content SHALL NOT be sanitized, stripped,
-escaped-away, or otherwise rewritten, at save or at render: stored content always equals authored
-content, and the frontend may emit it verbatim. Output encoding the platform applies by default to
-non-markup values (standard ERB escaping) is not a remedy and carries no gate. Content stored
-before a gate existed SHALL be reported for operator review (read-only scan), not rewritten. New
-proposals that stop dangerous content SHALL conform to this remedy and cite this requirement,
-rather than introduce a sanitizing or transforming step.
-
-The save-time decision SHALL be the only lever. Content that passes a gate is stored **and served**
-verbatim: no response header, content-security policy, `X-Content-Type-Options`,
-`Content-Disposition`, separate media origin, or other serving-side control SHALL be introduced to
-constrain what stored content does in the browser. A trusted user was permitted to store it, so it
-SHALL behave exactly as that user intended. This bounds the remedy rule from below in the same way
-the no-transform clause bounds it from above: a control that constrains a **trusted** user's content
-is outside this capability regardless of its merit as general security hygiene.
+escaped-away, or otherwise rewritten, at save or at render. Stored content always equals authored
+content, and the frontend can emit it verbatim.
+A new proposal that stops dangerous content SHALL use this remedy and cite this requirement.
 
 #### Scenario: A proposal remedies dangerous content with a transform
 
@@ -138,10 +139,33 @@ is outside this capability regardless of its merit as general security hygiene.
 - **THEN** the save fails with an error naming the problem, nothing derived from the content is
   stored, and previously stored content is left exactly as it was
 
+### Requirement: Default output encoding is not a remedy
+
+Output encoding that the platform applies by default to non-markup values (standard ERB escaping) SHALL
+NOT count as a remedy and SHALL carry no gate.
+
+#### Scenario: A change relies on standard ERB escaping
+
+- **WHEN** a change names the standard ERB escaping of non-markup values as its remedy for dangerous content
+- **THEN** that escaping is not a remedy and carries no gate
+
+### Requirement: Content stored before a gate existed is reported, not rewritten
+
+Content stored before a gate existed SHALL be reported for operator review (read-only scan), not
+rewritten.
+
 #### Scenario: Historical data is reported, not rewritten
 
 - **WHEN** a new gate ships and stored content predating it would now be refused
 - **THEN** the stored content is left untouched and a read-only scan lists it for operator review
+
+### Requirement: Content that passes a gate is stored and served verbatim
+
+The save-time decision SHALL be the only lever. Content that passes a gate is stored **and served**
+verbatim. No serving-side control SHALL be introduced to constrain what stored content does in the browser.
+Examples are a response header, a content-security policy, `X-Content-Type-Options`, `Content-Disposition`
+and a separate media origin. A trusted user was permitted to store it, so it SHALL behave exactly as that user
+intended.
 
 #### Scenario: A proposal adds a serving-side control over stored content
 
@@ -156,3 +180,13 @@ is outside this capability regardless of its merit as general security hygiene.
 - **THEN** it conforms only if it leaves content a trusted user was permitted to store behaving
   exactly as that user intended
 
+### Requirement: A control over trusted content is outside this capability
+
+A control that constrains a **trusted** user's content SHALL be outside this capability, regardless of its
+merit as general security hygiene. This bounds the remedy rule from below in the same way the no-transform
+clause bounds it from above.
+
+#### Scenario: A control constrains trusted content
+
+- **WHEN** a proposed control constrains the content of a trusted user
+- **THEN** the control is outside this capability, whatever its merit as general security hygiene

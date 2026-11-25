@@ -34,13 +34,7 @@ way rather than thrown.
 
 The colorpicker field SHALL initialise for any stored value — a colour, free text, a number-like
 string, `true`, `null` or JSON — and show the stored value verbatim in its input, treating it as
-text no matter what type the value arrives as. A stored colour SHALL render on the swatch. A field
-with no stored value SHALL keep the markup's declared default colour (white) rather than an empty
-value, and a falsy-but-real value such as `0` SHALL be preserved as the text `0`. The plain
-initialiser that themes can name as a render callback SHALL tolerate markup whose colour
-attribute is coercible or absent. Markup missing the swatch internals (no addon, or an addon
-without its icon) SHALL still initialise, an unrecognised colour format SHALL fall back to hex,
-and rendering the field again with a new value SHALL repaint the swatch.
+text no matter what type the value arrives as. A stored colour SHALL render on the swatch.
 
 #### Scenario: A number-like stored value initialises the picker
 
@@ -57,6 +51,11 @@ and rendering the field again with a new value SHALL repaint the swatch.
 - **WHEN** the stored value is `#00ff00`
 - **THEN** the input shows `#00ff00` and the swatch is green
 
+### Requirement: The colorpicker keeps the default colour and falsy values
+
+A field with no stored value SHALL keep the markup's declared default colour (white) rather than an
+empty value. A falsy-but-real value such as `0` SHALL be preserved as the text `0`.
+
 #### Scenario: No stored value keeps the default white
 
 - **WHEN** the field has no stored value
@@ -66,6 +65,12 @@ and rendering the field again with a new value SHALL repaint the swatch.
 
 - **WHEN** the field is rendered with the value `0`
 - **THEN** the widget's colour reads as the text `0`
+
+### Requirement: The colorpicker tolerates unusual markup and colour formats
+
+The plain initialiser that themes can name as a render callback SHALL tolerate markup whose colour
+attribute is coercible or absent. Markup missing the swatch internals (no addon, or an addon without
+its icon) SHALL still initialise. An unrecognised colour format SHALL fall back to hex.
 
 #### Scenario: The plain initialiser tolerates a coercible or missing colour attribute
 
@@ -82,6 +87,10 @@ and rendering the field again with a new value SHALL repaint the swatch.
 - **WHEN** the markup declares an unrecognised colour format, a colour is picked and the picker
   closes
 - **THEN** the input holds the picked colour in hex
+
+### Requirement: Rendering the colorpicker again repaints the swatch
+
+Rendering the colorpicker field again with a new value SHALL repaint the swatch.
 
 #### Scenario: Re-rendering with a new value repaints
 

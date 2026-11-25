@@ -7,9 +7,27 @@ Authoring shortcodes in content that the CMS later expands is a privileged capab
 
 ### Requirement: Publishing content with shortcodes requires the content_shortcodes permission
 
-Saving authored content that will be expanded by `do_shortcode` — post content, custom-field values, taxonomy content, or widget descriptions — and that contains one or more registered shortcodes SHALL be permitted for a non-administrator role only when that role holds the `content_shortcodes` permission. When the acting user is neither an administrator nor a holder of the permission, the save SHALL be rejected with a validation error that names the reason, and the content SHALL NOT be persisted. Content that contains no registered shortcode SHALL be unaffected by this gate.
+Authored content that `do_shortcode` expands is post content, custom-field values, taxonomy content
+or widget descriptions. Saving such content with one or more registered shortcodes SHALL be
+permitted for a non-administrator role only when that role holds the `content_shortcodes`
+permission. The requirement "An unchanged custom field value is not checked again" gives an
+exception for a custom field value.
 
-The requirement "An unchanged custom field value is not checked again" gives an exception for a custom field value.
+#### Scenario: A non-administrator with the permission is allowed
+
+- **WHEN** a non-administrator role that holds `content_shortcodes` saves content containing a registered shortcode
+- **THEN** the save SHALL succeed
+
+#### Scenario: An administrator is allowed
+
+- **WHEN** an administrator saves content containing a registered shortcode
+- **THEN** the save SHALL succeed without the permission being present in any role meta
+
+### Requirement: A save without the permission is rejected with a validation error
+
+The acting user can be neither an administrator nor a holder of the `content_shortcodes` permission.
+A save of content with a registered shortcode SHALL then be rejected with a validation error that
+names the reason. The content SHALL NOT be persisted.
 
 #### Scenario: A non-administrator without the permission is refused
 
@@ -22,15 +40,9 @@ The requirement "An unchanged custom field value is not checked again" gives an 
 - **WHEN** a non-administrator without `content_shortcodes` saves a registered shortcode into a custom-field value, taxonomy content, or a widget description
 - **THEN** that save SHALL be rejected the same way as post content
 
-#### Scenario: A non-administrator with the permission is allowed
+### Requirement: Content without a registered shortcode is unaffected by the gate
 
-- **WHEN** a non-administrator role that holds `content_shortcodes` saves content containing a registered shortcode
-- **THEN** the save SHALL succeed
-
-#### Scenario: An administrator is allowed
-
-- **WHEN** an administrator saves content containing a registered shortcode
-- **THEN** the save SHALL succeed without the permission being present in any role meta
+Content that contains no registered shortcode SHALL be unaffected by this gate.
 
 #### Scenario: Content without a registered shortcode is unaffected
 
@@ -49,12 +61,26 @@ The set of registered shortcode names SHALL be available in the save path withou
 
 ### Requirement: The content_shortcodes permission conforms to security-capability-gating
 
-The `content_shortcodes` permission SHALL be default-off and SHALL follow `security-capability-gating`: seeded onto no role; an administrator satisfies the check through `can :manage, :all` without the key present; an installation whose stored role meta predates the permission reads the absent key as not-granted without a migration; and the gate fails closed — an absent authorization context, a failure while evaluating the permission, or an unavailable shortcode registry SHALL resolve to not-granted / gated, and the save SHALL be refused for a non-administrator.
+The `content_shortcodes` permission SHALL be default-off and SHALL follow
+`security-capability-gating`. It SHALL be seeded onto no role. An administrator satisfies the check
+through `can :manage, :all` without the key present. An installation whose stored role meta predates
+the permission SHALL read the absent key as not-granted, with no migration.
 
 #### Scenario: An upgraded installation reads the absent key as not-granted
 
 - **WHEN** a role whose stored permission meta predates `content_shortcodes` is evaluated
 - **THEN** the permission SHALL read as not-granted with no migration required
+
+#### Scenario: A new role has no content_shortcodes permission
+
+- **WHEN** Camaleon seeds the roles of a new installation
+- **THEN** no role holds `content_shortcodes`
+
+### Requirement: The content_shortcodes gate fails closed
+
+The gate SHALL fail closed. An absent authorization context, a failure while it evaluates the
+permission, or an unavailable shortcode registry SHALL resolve to not-granted / gated. The save
+SHALL then be refused for a non-administrator.
 
 #### Scenario: The gate fails closed
 
@@ -72,12 +98,21 @@ The gate SHALL act only as a save-time authorization decision. It SHALL NOT alte
 
 ### Requirement: Shortcodes are neither escaped nor sanitized
 
-Because authorship is gated rather than filtered, the CMS SHALL NOT escape, sanitize, strip, or otherwise transform shortcode syntax, shortcode attributes, or shortcode output — neither when content is saved/updated nor when it is expanded at render. Any pre-existing escaping or sanitizing applied specifically to shortcodes SHALL be removed, provided the authorization gate covers the threat it addressed; any instance the gate does not cover SHALL be recorded rather than silently removed. The `content_shortcodes` authorization check SHALL be the only save-time control specific to shortcodes.
+Because authorship is gated rather than filtered, the CMS SHALL NOT escape, sanitize, strip, or
+otherwise transform shortcode syntax, shortcode attributes, or shortcode output. This holds when
+content is saved or updated and when it is expanded at render. The `content_shortcodes`
+authorization check SHALL be the only save-time control specific to shortcodes.
 
 #### Scenario: Shortcode output is emitted verbatim
 
 - **WHEN** a permitted author's shortcode is expanded at render
 - **THEN** the shortcode's syntax, attributes, and output SHALL appear exactly as the theme/plugin emits them, with no escaping or sanitizing applied by the CMS
+
+### Requirement: Escaping that the gate makes redundant is removed
+
+Any pre-existing escaping or sanitizing applied specifically to shortcodes SHALL be removed,
+provided the authorization gate covers the threat it addressed. Any instance that the gate does not
+cover SHALL be recorded and SHALL NOT be removed silently.
 
 #### Scenario: No shortcode-specific escaping remains on save or render
 

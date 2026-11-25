@@ -26,17 +26,20 @@ be findable at all.
 - **THEN** the lookup MUST NOT return User B's draft
 
 ### Requirement: Draft create requires authorization
-The `DraftsController#create` SHALL authorize against the post being edited before mutating any
-draft data:
-- When the request carries a validated parent post: `authorize! :update, <parent post>` — for
-  both overwriting the user's own existing buffer and creating the user's first buffer under that
-  post
-- When the request has no validated parent post (parentless new-post draft):
-  `authorize! :create_post, @post_type`
+The `DraftsController#create` SHALL authorize against the post being edited before it changes any
+draft data. The `user_id` of a draft row MUST NOT decide authorization. Holding a draft row SHALL
+grant nothing under a post the user cannot update. Lacking a draft row SHALL block nothing on a post
+the user can update.
 
-The draft row's own `user_id` MUST NOT decide authorization: holding a draft row SHALL grant
-nothing under a post the user cannot update, and lacking the draft row SHALL block nothing on a
-post the user can update.
+#### Scenario: A request with a parent post checks update on that post
+- **WHEN** a create request carries a validated parent post
+- **THEN** the controller MUST call `authorize! :update, <parent post>`
+- **AND** it MUST do so when the request overwrites the user's own existing buffer
+- **AND** it MUST do so when the request creates the user's first buffer under that post
+
+#### Scenario: A request without a parent post checks create_post
+- **WHEN** a create request has no validated parent post (a parentless new-post draft)
+- **THEN** the controller MUST call `authorize! :create_post, @post_type`
 
 #### Scenario: Unauthorized user cannot overwrite another's draft
 - **WHEN** User B (no `:update` permission on post 5) sends `POST /admin/post_type/1/drafts` with
@@ -100,9 +103,14 @@ user's buffer — and its `user_id` — untouched.
 The `DraftsController#update` SHALL scope its draft finder to the requested post type AND the
 current user's drafts, and SHALL call `authorize! :update` on the draft's parent post (the draft
 itself when parentless) before saving changes. A draft outside that scope MUST be treated as not
-found: the request SHALL respond exactly like a request for a nonexistent draft id (the
-endpoint's standard missing-record response), never as an authorization denial — revealing
-neither the draft's existence nor its owner — and the draft MUST NOT be mutated.
+found, and the draft MUST NOT be mutated.
+
+#### Scenario: A draft outside the scope gets the missing-record response
+- **WHEN** a request targets a draft outside the post type and user scope
+- **THEN** the response MUST equal the response for a nonexistent draft id (the endpoint's standard
+  missing-record response)
+- **AND** the response MUST NOT be an authorization denial
+- **AND** the response MUST NOT reveal the draft's existence or its owner
 
 #### Scenario: Update scoped to post type
 - **WHEN** User A sends `PATCH /admin/post_type/1/drafts/42` and draft 42 is in post type 2
@@ -185,15 +193,16 @@ user's own buffer only.
 `Posts::DraftsController#create` and `#update` SHALL filter `field_options` through the post type's
 registered-slug allow-list (`cama_permitted_field_options('PostType_Post', field_groups:)` given the
 post type's post groups) before persisting them, exactly as the main post save does. A `field_options`
-entry whose slug is not a registered custom field of the post type SHALL be dropped rather than written
-as a `custom_field_value`, so a hand-crafted payload cannot introduce rows with attacker-chosen slugs,
-ids or group numbers.
+entry whose slug is not a registered custom field of the post type SHALL be dropped. Camaleon SHALL NOT
+write it as a `custom_field_value`.
 
 #### Scenario: An unregistered slug is dropped
 
 - **WHEN** a draft create or update submits `field_options` carrying a registered slug and a slug
   not registered on the post type
 - **THEN** the registered slug's value is stored and the unregistered slug is not written
+- **AND** a hand-crafted payload cannot introduce rows with attacker-chosen slugs, ids or group
+  numbers
 
 #### Scenario: Registered fields still persist
 

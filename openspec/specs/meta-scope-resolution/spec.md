@@ -51,14 +51,11 @@ breakage).
 
 ### Requirement: User custom-field surfaces agree with the scope names
 
-The user custom-fields flows that reference the user scope by string — the settings form's users
-placement option (where new groups are stored), the user edit page's field-group read, and the
-users save's allowed-slugs filter — SHALL use the demodulized user-model name the association
-scope produces (`'User'` for a host `Admin::User`, for the engine-default `CamaleonCms::User`,
-and for a top-level host `User`).
-A field group placed on users MUST render on the user edit page and MUST have its submitted
-values accepted by the save filter; values MUST NOT be silently discarded by a scope-name
-mismatch between placement, read, and save.
+The user custom-fields flows that reference the user scope by string SHALL use the demodulized
+user-model name that the association scope produces. That name is `'User'` for a host `Admin::User`,
+for the engine-default `CamaleonCms::User`, and for a top-level host `User`. The flows are the
+settings form's users placement option (where new groups are stored). They also include the user edit page's
+field-group read and the users save's allowed-slugs filter.
 
 #### Scenario: Namespaced host user model reads groups placed under the demodulized name
 
@@ -71,6 +68,12 @@ mismatch between placement, read, and save.
 - **WHEN** the custom-fields settings form renders with a namespaced user model configured
 - **THEN** the users placement option's value carries the demodulized name (`'User'`), not the
   qualified one
+
+### Requirement: A user field value is not discarded by a scope-name mismatch
+
+A field group placed on users MUST render on the user edit page and MUST have its submitted
+values accepted by the save filter. Values MUST NOT be silently discarded by a scope-name
+mismatch between placement, read, and save.
 
 #### Scenario: User field value round-trips through the admin save
 
@@ -115,15 +118,7 @@ the re-keyed count, or the no-op, on standard output.
 `CamaleonRecord.polymorphic_class_for` SHALL resolve a short scope name to the Camaleon class of
 that name before it tries a top-level constant. `User` SHALL resolve to the configured user class,
 `Main`, `Sidebar` and `Assigned` to their `CamaleonCms::Widget` classes, and another name to
-the `CamaleonCms` Active Record model of that name. A name with `::`, and a short name with no
-`CamaleonCms` Active Record model, MUST resolve as Rails resolves it. When Rails finds no class, the
-legacy fallback MUST try it: it resolves `PostType_Post` to
-`CamaleonCms::PostType`, and a marker such as `_fields` to nil. A name that the fallback does not
-find either, such as `NoSuchOwner`, MUST raise `NameError`.
-When the configured user class does not exist, `User` resolves as Rails resolves it, and then
-through the legacy fallback.
-The lookup SHALL apply to each subclass of `CamaleonRecord`, also to a plugin model, because
-`polymorphic_name` writes the short Camaleon names in each table.
+the `CamaleonCms` Active Record model of that name.
 
 #### Scenario: A host model has the name of a Camaleon model
 
@@ -143,11 +138,26 @@ The lookup SHALL apply to each subclass of `CamaleonRecord`, also to a plugin mo
   top-level `Main` class
 - **THEN** the `owner` of that row is the widget
 
+### Requirement: Other names resolve as Rails resolves them
+
+A name with `::`, and a short name with no `CamaleonCms` Active Record model, MUST resolve as Rails resolves it.
+
 #### Scenario: A short name with no Camaleon model
 
 - **WHEN** a short name has no `CamaleonCms` Active Record model, such as `Ability`, and the host
   app defines a top-level class of that name
 - **THEN** it resolves to the top-level class of that name
+
+#### Scenario: A name with a namespace
+
+- **WHEN** a name has `::`, such as `Plugins::Shop::Post`
+- **THEN** it resolves to the class of that name
+
+### Requirement: The legacy fallback resolves names that Rails does not find
+
+When Rails finds no class, the legacy fallback MUST try the name. It resolves `PostType_Post` to
+`CamaleonCms::PostType`, and a marker such as `_fields` to nil. A name that the fallback does not
+find either, such as `NoSuchOwner`, MUST raise `NameError`.
 
 #### Scenario: A name that Rails does not find
 
@@ -159,10 +169,19 @@ The lookup SHALL apply to each subclass of `CamaleonRecord`, also to a plugin mo
 - **WHEN** a row has the `object_class` `NoSuchOwner`
 - **THEN** `polymorphic_class_for` raises `NameError`
 
-#### Scenario: A name with a namespace
+### Requirement: A missing user class falls back to Rails and the legacy fallback
 
-- **WHEN** a name has `::`, such as `Plugins::Shop::Post`
-- **THEN** it resolves to the class of that name
+When the configured user class does not exist, `User` MUST resolve as Rails resolves it, and then through the legacy fallback.
+
+#### Scenario: The configured user class does not exist
+
+- **WHEN** the configured user class does not exist and a row has the `object_class` `User`
+- **THEN** `User` resolves as Rails resolves it, and then through the legacy fallback
+
+### Requirement: The lookup applies to each subclass of CamaleonRecord
+
+The lookup SHALL apply to each subclass of `CamaleonRecord`, also to a plugin model, because
+`polymorphic_name` writes the short Camaleon names in each table.
 
 #### Scenario: A polymorphic association of a plugin model
 

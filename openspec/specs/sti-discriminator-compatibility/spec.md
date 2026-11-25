@@ -46,23 +46,19 @@ The base-class fallback SHALL NOT change resolution for known values: built-in t
 ### Requirement: STI root instances support the plain record lifecycle
 
 A record instantiated as the STI root because its discriminator maps to no known class SHALL be
-readable, savable and destroyable as a plain record — loaded, persisted and removed through its
-column attributes. Lifecycle callbacks shared between the root and its subclasses SHALL NOT
-assume associations that only subclasses receive: `CamaleonCms::TermTaxonomy` and
-`CamaleonCms::PostDefault` include `CustomFieldsRead` themselves but gain `CommonRelationships`
-(and therefore `custom_field_groups`, `custom_field_values`, `metas`, `custom_fields`) only through
-their `inherited` hook, so root instances respond to neither. Such records own no custom field
-groups, so lifecycle callbacks SHALL skip that teardown rather than raise.
+readable, savable and destroyable as a plain record. Camaleon SHALL load, persist and remove it
+through its column attributes. Lifecycle callbacks shared between the root and its subclasses SHALL
+NOT assume associations that only subclasses receive. Such records own no custom field groups, so
+lifecycle callbacks SHALL skip that teardown rather than raise.
 
-The custom-field and meta APIs are subclass surface, not part of this contract: on a root
-instance, readers and writers such as `get_meta`, `set_meta` and `get_field_values` raise
-`NameError`, and a save carrying `data_options`/`data_metas` raises through the metas callbacks.
-Code handling unmapped rows SHALL work with column attributes only.
+#### Scenario: A root instance lacks the subclass associations
 
-#### Scenario: Saving a root with a meta payload fails loudly
-
-- **WHEN** a record instantiated as the STI root is saved with `data_options` or `data_metas` set
-- **THEN** the save raises `NameError` rather than silently dropping the payload
+- **WHEN** a record is instantiated as the STI root (`CamaleonCms::TermTaxonomy` or
+  `CamaleonCms::PostDefault`)
+- **THEN** it responds to neither `custom_field_groups`, `custom_field_values`, `metas` nor
+  `custom_fields`
+- **AND** the cause is that both classes include `CustomFieldsRead` themselves but gain
+  `CommonRelationships` only through their `inherited` hook
 
 #### Scenario: Destroying a row whose taxonomy maps to no subclass
 
@@ -80,6 +76,22 @@ Code handling unmapped rows SHALL work with column attributes only.
 - **WHEN** a `posts` row whose `post_class` matches no loaded class is loaded through the base
   `CamaleonCms::PostDefault` and destroyed
 - **THEN** the row is deleted and no `NameError` is raised
+
+### Requirement: The custom-field and meta APIs are not part of the root-instance contract
+
+The custom-field and meta APIs SHALL be subclass surface only. Code that handles unmapped rows SHALL
+work with column attributes only.
+
+#### Scenario: Meta and field readers and writers raise on a root instance
+
+- **WHEN** code calls `get_meta`, `set_meta` or `get_field_values` on a record instantiated as the STI
+  root
+- **THEN** the call raises `NameError`
+
+#### Scenario: Saving a root with a meta payload fails loudly
+
+- **WHEN** a record instantiated as the STI root is saved with `data_options` or `data_metas` set
+- **THEN** the save raises `NameError` through the metas callbacks rather than silently dropping the payload
 
 ### Requirement: A discriminator resolving to a non-descendant class is treated as unknown
 

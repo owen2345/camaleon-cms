@@ -6,6 +6,7 @@ derived from the body — to a visitor who has not supplied the post's password.
 and title remain visible (listings, feeds), matching the plugin's model of replacing the body with a
 password prompt.
 ## Requirements
+
 ### Requirement: Excerpts of a locked password post are replaced
 
 While a password-protected post is locked for the current request, `the_excerpt` SHALL return a
@@ -29,14 +30,11 @@ pages, search results, and RSS feeds cannot leak the body. The post's title SHAL
 - **THEN** the public excerpt still shows its body-derived text and only the locked post carries the
   notice
 
-### Requirement: Unlocking a password post uses POST, constant-time comparison, and session state
+### Requirement: Unlocking a password post uses POST
 
 The password prompt SHALL submit the password in a POST body to a dedicated unlock endpoint, using a
-`type='password'` input and a CSRF token; the URL SHALL never carry the password. The endpoint SHALL
-scope the post to the current site's frontend-visible posts, respond 404 for a post that is not
-password-protected, compare the submitted password in constant time, and record a successful unlock
-as a session-side marker (post id) — never the password. The previous query-string unlock parameter
-SHALL NOT unlock a post.
+`type='password'` input and a CSRF token. The URL SHALL never carry the password. The previous query-string
+unlock parameter SHALL NOT unlock a post.
 
 #### Scenario: GET parameter no longer unlocks
 
@@ -44,11 +42,10 @@ SHALL NOT unlock a post.
   the correct password
 - **THEN** the body stays locked and the password prompt is shown
 
-#### Scenario: Correct password unlocks for the session
+### Requirement: The unlock endpoint scopes the post and compares the password in constant time
 
-- **WHEN** the visitor posts the correct password to the unlock endpoint
-- **THEN** they are redirected to the post with its body visible, and later plain GETs of the post in
-  the same session stay unlocked without any password in the URL
+The unlock endpoint SHALL scope the post to the current site's frontend-visible posts and respond 404 for a
+post that is not password-protected. It SHALL compare the submitted password in constant time.
 
 #### Scenario: Wrong password stays locked with feedback
 
@@ -62,6 +59,16 @@ SHALL NOT unlock a post.
   this site's frontend)
 - **THEN** it responds 404 and no session marker is written
 
+### Requirement: A successful unlock is recorded as a session marker
+
+The unlock endpoint SHALL record a successful unlock as a session-side marker (post id), never the password.
+
+#### Scenario: Correct password unlocks for the session
+
+- **WHEN** the visitor posts the correct password to the unlock endpoint
+- **THEN** they are redirected to the post with its body visible
+- **AND** later plain GETs of the post in the same session stay unlocked without any password in the URL
+
 ### Requirement: Password-protected posts are excluded from page caching
 
 Because a password post is unlocked per session while the page cache is keyed on the URL alone, a
@@ -74,4 +81,3 @@ exclude `password` visibility as it already excludes `private`.
 - **WHEN** the page-cache plugin evaluates whether to cache a `password`-visibility post
 - **THEN** it SHALL NOT cache it, so a later visitor without the session unlock never receives a
   cached body
-

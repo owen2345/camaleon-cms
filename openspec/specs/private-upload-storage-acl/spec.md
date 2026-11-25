@@ -11,8 +11,7 @@ private media actually private.
 The cloud (S3) uploader SHALL store a private-mode upload with an owner-only canned ACL (`private`), and
 a public-mode upload with a `public-read` ACL. The ACL SHALL be derived from the uploader's private
 mode, independent of the object key or folder prefix, and SHALL apply to both content files and their
-thumbnails. Serving a private file SHALL use the authenticated storage API rather than a public object
-URL, so the owner-only ACL does not prevent an authorized download through the private-file gate.
+thumbnails.
 
 #### Scenario: A private upload is not world-readable
 
@@ -23,6 +22,16 @@ URL, so the owner-only ACL does not prevent an authorized download through the p
 
 - **WHEN** the uploader is in public (default) mode and stores a file
 - **THEN** the object is written with a `public-read` ACL
+
+### Requirement: A private file is served through the authenticated storage API
+
+Serving a private file SHALL use the authenticated storage API rather than a public object URL. So the
+owner-only ACL does not prevent an authorized download through the private-file gate.
+
+#### Scenario: An authorized user downloads a private file
+
+- **WHEN** a user that the private-file gate authorizes downloads a private file
+- **THEN** the download uses the authenticated storage API, not a public object URL
 
 ### Requirement: Pre-existing private objects can be swept back to owner-only
 

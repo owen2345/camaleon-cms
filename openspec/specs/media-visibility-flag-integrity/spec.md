@@ -43,12 +43,9 @@ read of either association SHALL NOT return files of the opposite visibility.
 
 ### Requirement: A convergent repair derives stored flags from storage
 
-The system SHALL provide a rake task `camaleon_cms:repair_media_visibility` that purges cached
-media rows and rebuilds the cache from storage through the corrected routing, so every rebuilt
-row's `is_public` derives from where the file actually lives. The repair SHALL be convergent:
-it SHALL NOT transform any row in place, SHALL NOT rely on a run-once guard, and re-running it —
-including on an already-correct database — SHALL reproduce the same correct state and never turn
-a correct flag into a wrong one.
+The system SHALL provide a rake task `camaleon_cms:repair_media_visibility` that purges cached media
+rows and rebuilds the cache from storage through the corrected routing. So the `is_public` of every
+rebuilt row derives from where the file actually lives.
 
 #### Scenario: Pre-fix rows are replaced by storage-derived rows
 
@@ -56,13 +53,19 @@ a correct flag into a wrong one.
 - **THEN** the cached rows are purged and the rebuilt rows carry the `is_public` value matching
   each file's real storage location
 
+#### Scenario: A phantom row is removed
+
+- **WHEN** the repair encounters a cached row whose file no longer exists in storage
+- **THEN** the row is purged and not recreated by the rebuild
+
+### Requirement: The media visibility repair is convergent
+
+The repair SHALL be convergent. It SHALL NOT transform any row in place, and it SHALL NOT rely on a
+run-once guard. Re-running it, including on an already-correct database, SHALL reproduce the same
+correct state and never turn a correct flag into a wrong one.
+
 #### Scenario: Re-running the repair converges
 
 - **WHEN** the repair has already completed and is invoked again
 - **THEN** the resulting rows are identical to the first run's, with no duplicates
 - **AND** no correct flag is inverted
-
-#### Scenario: A phantom row is removed
-
-- **WHEN** the repair encounters a cached row whose file no longer exists in storage
-- **THEN** the row is purged and not recreated by the rebuild

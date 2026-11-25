@@ -25,15 +25,6 @@ an element to the form. A click on a tag opens it: the editor puts the name into
 that input SHALL hold the whole name. A name that the admin types again, alone or in a list with a
 delimiter, SHALL replace its tag.
 
-The editor SHALL give a tag name as text to the `beforeTagDelete` callback, and its `removeTag`
-method SHALL take a name as text. For an open tag, the callback SHALL get the name that the tag had
-when the admin opened it. The editor SHALL NOT call the callback for a new tag, which has no such
-name. A right click SHALL delete an open tag with no text, and MUST NOT throw an error. A right
-click on an open tag SHALL delete only that tag, and MUST NOT call the `beforeTagSave` callback.
-
-The editor SHALL give the name that a tag had to the `old_tag` argument of the `beforeTagSave`
-callback, as text.
-
 #### Scenario: A stored tag name with markup
 
 - **WHEN** an admin opens the edit form of a post with a tag whose name holds `img` markup with an
@@ -69,6 +60,13 @@ callback, as text.
 - **AND** the admin then types the name of a tag again
 - **THEN** the tag editor holds one tag for each of these names, also for a name with `&`
 
+### Requirement: The tag editor gives a tag name as text to the delete callback
+
+The editor SHALL give a tag name as text to the `beforeTagDelete` callback, and its `removeTag`
+method SHALL take a name as text. For an open tag, the callback SHALL get the name that the tag had
+when the admin opened it. The editor SHALL NOT call the callback for a new tag, which has no such
+name.
+
 #### Scenario: The code of a plugin deletes tags
 
 - **WHEN** a tag editor with a `beforeTagDelete` callback holds tags with `&` or `<` in their names
@@ -82,6 +80,11 @@ callback, as text.
   changed, and a new tag with typed text
 - **AND** a right click deletes each of the two tags
 - **THEN** the callback gets one call, with the name that the first tag had when the admin opened it
+
+### Requirement: A right click deletes an open tag without a save callback
+
+A right click SHALL delete an open tag with no text, and MUST NOT throw an error. A right click on
+an open tag SHALL delete only that tag, and MUST NOT call the `beforeTagSave` callback.
 
 #### Scenario: A right click deletes an open tag with no text
 
@@ -98,6 +101,11 @@ callback, as text.
 - **THEN** the editor removes only the open tag
 - **AND** the `beforeTagSave` callback gets no call
 
+### Requirement: The tag editor gives the old name of a tag as text to the save callback
+
+The editor SHALL give the name that a tag had to the `old_tag` argument of the `beforeTagSave`
+callback, as text.
+
 #### Scenario: The code of a plugin reads the old name of a tag
 
 - **WHEN** a tag editor with a `beforeTagSave` callback holds a tag with `&` in its name
@@ -107,15 +115,7 @@ callback, as text.
 ### Requirement: The permalink line of the post form shows the slug as text
 
 The permalink line of the post form SHALL show the slug of the post as text, inside the URL of the
-post. A slug with markup MUST NOT add an element to the form. The Preview link and the View link of
-the line SHALL hold the slug as one segment of the path of the URL. A slug with `?` or `#` MUST NOT
-change the query or the fragment of a link. The characters that Rails writes as they are in a
-segment of a path SHALL stay as they are in the links. A draft save SHALL change only the draft id
-of the Preview link.
-
-For a URL with no place for the slug, the line and the links SHALL hold that URL as it is. The line
-SHALL then have no Edit link. With no URL for the language of the form, the form SHALL start. The
-line SHALL then show the slug alone, with no Preview link and no View link.
+post. A slug with markup MUST NOT add an element to the form.
 
 #### Scenario: A stored slug with a tag
 
@@ -127,6 +127,20 @@ line SHALL then show the slug alone, with no Preview link and no View link.
 
 - **WHEN** an admin opens the edit form of a post with a plain slug
 - **THEN** the permalink line shows the URL of the post, with the slug in it
+
+#### Scenario: The admin edits the slug
+
+- **WHEN** an admin clicks Edit in the permalink line, types a slug and clicks Cancel
+- **THEN** the line shows the same URL as before
+- **WHEN** the admin clicks Edit again, types a slug and clicks Accept
+- **THEN** the line shows one URL, with the new slug in it
+
+### Requirement: The Preview link and the View link hold the slug as one path segment
+
+The Preview link and the View link of the line SHALL hold the slug as one segment of the path of the
+URL. A slug with `?` or `#` MUST NOT change the query or the fragment of a link. The characters that
+Rails writes as they are in a segment of a path SHALL stay as they are in the links. A draft save
+SHALL change only the draft id of the Preview link.
 
 #### Scenario: A stored slug with a replacement pattern
 
@@ -156,12 +170,11 @@ line SHALL then show the slug alone, with no Preview link and no View link.
 - **WHEN** other code adds a param after the draft id of the Preview link, and the form saves a draft
 - **THEN** the Preview link holds the id of the draft and keeps that param
 
-#### Scenario: The admin edits the slug
+### Requirement: The permalink line handles a URL with no slug place or no language URL
 
-- **WHEN** an admin clicks Edit in the permalink line, types a slug and clicks Cancel
-- **THEN** the line shows the same URL as before
-- **WHEN** the admin clicks Edit again, types a slug and clicks Accept
-- **THEN** the line shows one URL, with the new slug in it
+For a URL with no place for the slug, the line and the links SHALL hold that URL as it is. The line
+SHALL then have no Edit link. With no URL for the language of the form, the form SHALL start. The
+line SHALL then show the slug alone, with no Preview link and no View link.
 
 #### Scenario: A URL with no place for the slug
 
