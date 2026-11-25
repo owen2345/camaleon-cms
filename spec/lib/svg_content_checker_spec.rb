@@ -508,4 +508,34 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       end
     end
   end
+
+  describe 'a file that is not well-formed XML' do
+    it 'rejects an element that has no end tag' do
+      expect(described_class.unsafe?(svg_wrapping('<g><rect/>'))).to be(true)
+    end
+
+    it 'rejects text after the root element' do
+      expect(described_class.unsafe?("#{svg_wrapping('<rect/>')}text")).to be(true)
+    end
+
+    it 'rejects bytes that are not valid in the encoding of the file' do
+      expect(described_class.unsafe?(svg_wrapping("<desc>\xFF</desc>"))).to be(true)
+    end
+
+    it 'accepts a file in an encoding that it declares' do
+      xml = %(<?xml version="1.0" encoding="ISO-8859-1"?>#{svg_wrapping("<desc>\xE9</desc>".b)})
+
+      expect(described_class.unsafe?(xml.b)).to be(false)
+    end
+
+    it 'accepts a prefix with no namespace, which is no fatal error' do
+      svg = '<svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#a"/></svg>'
+
+      expect(described_class.unsafe?(svg)).to be(false)
+    end
+
+    it 'gives a verdict on a file with an element that has no end tag in HTML mode' do
+      expect(described_class.unsafe?('<div><p>text', mode: :html)).to be(false)
+    end
+  end
 end

@@ -12,27 +12,11 @@
 RSpec.describe 'Upload scan of the content of a DTD', type: :request do
   init_site
 
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:role) { current_site.user_roles.create!(name: 'Media only', slug: 'media-only-dtd') }
-  let(:user) { create(:user, role: role.slug, site: current_site) }
-  let(:refusal) { 'Potentially malicious content found!' }
-
-  before { role.set_meta("_manager_#{current_site.id}", { 'media' => 1 }) }
+  include_context 'with a media-only uploader'
 
   def svg(dtd, body, doctype_id: '')
     %(<?xml version="1.0"?><!DOCTYPE svg #{doctype_id}[#{dtd}]>) +
       %(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">#{body}</svg>)
-  end
-
-  def upload(content, extension: '.svg')
-    sign_in_as(user, site: current_site)
-    file = Tempfile.new(['dtd-entity', extension], binmode: true)
-    file.write(content)
-    file.rewind
-    post '/admin/media/upload',
-         params: { file_upload: Rack::Test::UploadedFile.new(file.path, 'application/octet-stream'), folder: '' }
-  ensure
-    file&.close!
   end
 
   describe 'an entity that expands to markup' do

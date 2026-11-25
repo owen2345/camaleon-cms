@@ -71,7 +71,7 @@ module CamaleonCms
       return true if content.nil? || content.empty? # rubocop:disable Rails/Blank
 
       doc = parse_document(content, mode)
-      return true if doc.nil? # XML syntax error -- fail closed
+      return true if doc.nil? # a fatal XML error -- fail closed
 
       # XML mode only. A document that parses to nothing is not a valid document of its format, so
       # refusing it fails closed. HTML has no such signal — Nokogiri::HTML never raises and reports
@@ -126,10 +126,16 @@ module CamaleonCms
 
     # The rescue is confined to XML mode on purpose: Nokogiri::HTML never raises, so a shared rescue
     # would be dead code implying a fail-closed guarantee that HTML mode cannot provide.
+    #
+    # The XML parse is strict. The default options of Nokogiri hold `RECOVER`: the parser then
+    # repairs a file with a fatal XML error, and it raises nothing. A browser does not repair such a
+    # file, so a verdict on the repaired tree is a verdict on another document. With `strict`, a
+    # fatal error raises, and the checker refuses the file. An error that is not fatal, such as a
+    # prefix with no namespace, does not raise.
     def parse_document(content, mode)
       return Nokogiri::HTML(content) if mode == HTML_MODE
 
-      Nokogiri::XML(content, &:nonet)
+      Nokogiri::XML(content) { |config| config.strict.nonet }
     rescue Nokogiri::XML::SyntaxError
       nil
     end

@@ -437,6 +437,8 @@ web server will serve the bytes under. There are three:
   compressed upload is decompressed first, under a size ceiling, since compressed bytes are opaque to every rule and a compliant decoder concatenates
   all members.
 
+  A file in an XML format with a fatal XML error is refused, because a browser does not show the document that a parser repairs.
+
   A file in an XML format can declare an entity in its DTD. The scan reads such a file as a browser reads it, with each entity reference replaced by
   the value of the entity. It refuses a file that declares an entity of another resource, and a file whose entities expand past the limit of the
   parser. An attribute default that the DTD declares follows the rules for an attribute.

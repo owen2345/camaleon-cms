@@ -69,7 +69,7 @@ what theme/plugin developers should know.
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 | Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 | Has a theme or plugin hook that runs in a theme switch, or code that rescues an error of `site_install_theme` | A switch whose hook raises now rolls back, and the site keeps its old theme. A hook that undoes its work with `ActiveRecord::Rollback` must open its block with `requires_new: true` ([details](#a-theme-switch-that-fails-rolls-back)) |
-| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)) |
+| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)) |
 
 ---
 
@@ -616,7 +616,6 @@ The scan now also refuses these files:
 - A file whose entities expand past the limit of the XML parser (an entity bomb), or refer to
   themselves. Before, the scan accepted such a file, and ImageMagick then read it for the thumbnail
   for a long time.
-- A file that declares an entity and has a fatal XML error.
 
 A file with harmless entities passes as before. An example is an SVG file of Adobe Illustrator,
 which declares its namespaces as entities.
@@ -635,6 +634,35 @@ an attribute, and delete each file that you do not trust:
 
 ```bash
 grep -rlIE '<!(ENTITY|ATTLIST)' public/contact_form
+```
+
+---
+
+## An upload that is not well-formed XML is refused
+
+The upload scan parses an SVG, XHTML, XML or XSL file as XML. Before, its parser repaired a file
+with a fatal XML error, and the scan gave its verdict on the repaired document. A browser does not
+read the repaired document. Now the scan refuses the file. As before, the scan runs
+only for a user who does not have the `media_unfiltered_upload` permission, and for a visitor.
+
+Examples of a fatal error are an element with no end tag, and text after the root element. An
+entity that the file does not declare is one too in a file with no DOCTYPE, such as `&nbsp;` in an
+SVG file. Chrome 158 shows an error for a file with one of these errors.
+
+The parser of the scan has limits, and it reports a fatal error for a file past a limit. So the
+scan also refuses an SVG file with 300 levels of `g` elements, and an SVG file with an attribute
+value of 11 MB. Chrome 158 shows these two files with no error.
+
+A file with an error that is not fatal passes as before. An example is a prefix with no namespace.
+Another is `&nbsp;` in an SVG file with the public SVG 1.1 DOCTYPE and without `standalone="yes"`.
+The parser does not load the DTD of that DOCTYPE, so it does not know which entities the DTD
+declares. The scan of an HTML file does not change.
+
+**Who must act.** A user whose upload is now refused. Correct the error in the file. For a file
+past a limit of the parser, let an administrator upload it. This command names the error:
+
+```bash
+xmllint --noout file.svg
 ```
 
 ---

@@ -7,7 +7,9 @@ See `proposal.md`, "Why". `CamaleonCms::SvgContentChecker` parses a file in an X
 tree: the banned elements, each attribute whose name starts with `on`, the scheme of each `href`,
 and the serialized document.
 
-These facts come from probes with Nokogiri 1.19.7 (libxml2 2.13.9) and Chromium 156:
+These facts come from probes with Nokogiri 1.19.7 (libxml2 2.13.9) and two browsers. The browsers
+are Chromium 156, in the Claude desktop app, and Chrome 158.0.8127.89 in headless mode. Both gave
+the same results:
 
 - Chromium ran the handler of three files that the server sent as `image/svg+xml`. Their entity
   values held `&#111;nerror`, a `foreignObject` element, and an entity that a parameter entity
@@ -18,7 +20,7 @@ These facts come from probes with Nokogiri 1.19.7 (libxml2 2.13.9) and Chromium 
 - With the `noent` option, the tree holds the elements and the attributes of each entity value. An
   attribute default then holds the value of each entity that it refers to.
 - With the `noent` option, the parser reads a local file that an entity with `SYSTEM` names.
-- Chromium 156 did not load an entity with `SYSTEM` from the same origin.
+- Chromium did not load an entity with `SYSTEM` from the same origin.
 - libxml2 reports a fatal error for entities that expand past its limit. It reports that error with
   and without `noent`, and it stops at the limit.
 
@@ -34,8 +36,8 @@ These facts come from probes with Nokogiri 1.19.7 (libxml2 2.13.9) and Chromium 
 
 **Non-Goals:**
 
-- A file that declares no entity keeps its parse in recover mode. The scan still accepts such a
-  file with a fatal XML error when a root element is there.
+- The parse of a file that declares no entity is not a part of this change. The change
+  `harden-upload-scan-for-xml-and-contact-form-files` makes that parse strict too.
 - The byte patterns of `CamaleonCms::ContentSecurity` do not change.
 - A stored file is not scanned again and is not changed.
 
@@ -59,7 +61,7 @@ entity declarations of the first parse. That parse loads no resource. When a dec
 other than internal general or internal parameter, the checker refuses the file and does not parse
 it again. The list of the first parse holds the entities that a parameter entity declares.
 
-Chromium 156 did not load such an entity, but the scan cannot know the content that another client
+Chromium did not load such an entity, but the scan cannot know the content that another client
 loads. So the scan fails closed.
 
 **D3. The parser limit is the limit of the expansion.**
@@ -80,8 +82,12 @@ and it still ran after 20 seconds with 258 MB of memory.
 
 **D4. The second parse is strict.** A fatal error in a file that declares an entity refuses the
 file. The checker can tell an entity bomb from another fatal error only with a list of libxml2
-error codes. A browser shows an error page for each fatal error. An undeclared entity in a file
-with an internal DTD and no external DTD is such an error.
+error codes.
+
+An undeclared entity is a fatal error in a file whose DTD is internal and has no parameter entity
+reference. Chrome 158 shows an error page for that file. A fatal error can also come from a limit
+of the parser, and the checker fails closed there. Chrome 158 shows a file with 300 levels of
+elements, which the checker refuses.
 
 **D5. The checker reads an attribute default from its declaration.** For each `ATTLIST`
 declaration with a default, the checker applies the handler rule to the name and the scheme rule to
