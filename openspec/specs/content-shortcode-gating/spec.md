@@ -25,8 +25,9 @@ exception for a custom field value.
 
 ### Requirement: A save without the permission is rejected with a validation error
 
-The acting user can be neither an administrator nor a holder of the permission. The save SHALL then
-be rejected with a validation error that names the reason, and the content SHALL NOT be persisted.
+The acting user can be neither an administrator nor a holder of the `content_shortcodes` permission.
+A save of content with a registered shortcode SHALL then be rejected with a validation error that
+names the reason. The content SHALL NOT be persisted.
 
 #### Scenario: A non-administrator without the permission is refused
 
