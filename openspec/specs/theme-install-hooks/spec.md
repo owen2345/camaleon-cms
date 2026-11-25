@@ -107,8 +107,9 @@ record SHALL have the name that the config of the theme gives.
 
 ### Requirement: A site create in a request with a theme preview keeps the preview theme
 
-A theme preview is a theme of the site of the request. The rules above SHALL also hold in a request
-with a theme preview. No hook of the create SHALL go to the preview theme. After the create, the
+A theme preview is a theme of the site of the request. In a request with a theme preview, the theme
+of the new site SHALL also get the hooks of the create. The create SHALL also make one theme record
+for the new site. No hook of the create SHALL go to the preview theme. After the create, the
 current theme of that request SHALL be the preview theme again, also when a handler raises.
 
 #### Scenario: A request with a theme preview creates a site
