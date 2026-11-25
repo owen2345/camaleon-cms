@@ -100,6 +100,17 @@ module CamaleonCms
     # `<!ATTLIST svg xmlns:onix CDATA "urn:onix">`.
     NAMESPACE_DEFAULT = /\A<!ATTLIST\s+\S+\s+xmlns:/
 
+    # The byte order marks that the HTML5 parser of Nokogiri reads: UTF-8, UTF-16BE and UTF-16LE.
+    BYTE_ORDER_MARKS = ["\xEF\xBB\xBF".b, "\xFE\xFF".b, "\xFF\xFE".b].freeze
+
+    # True when the HTML5 parser of Nokogiri reads the content of a `noscript` element as text, as a
+    # browser with scripting on does. Nokogiri before 1.17 ignores `parse_noscript_content_as_text`,
+    # and its tree then holds the elements of a `noscript` element.
+    NOSCRIPT_PROBE = '<body><noscript><p></p></noscript>'
+    NOSCRIPT_CONTENT_AS_TEXT = defined?(Nokogiri::HTML5) &&
+                               Nokogiri::HTML5::Document.parse(NOSCRIPT_PROBE, parse_noscript_content_as_text: true)
+                                                        .at_css('noscript p').nil?
+
     module_function
 
     # `mode:` defaults to :xml so the pre-existing single-argument call (`unsafe?(content)`) keeps
@@ -121,8 +132,60 @@ module CamaleonCms
         return true if doc.nil? # an entity that the checker cannot read or expand -- fail closed
       end
       return true if mode != HTML_MODE && dangerous_attribute_default?(doc)
+      return true if dangerous_document?(doc, mode)
 
-      dangerous_document?(doc, mode)
+      mode == HTML_MODE && dangerous_browser_document?(content)
+    end
+
+    # The tree of an HTML file as a browser builds it. The HTML parser of libxml2 follows HTML 4,
+    # and a browser follows the HTML5 rules. Inside an `xmp`, `title`, `textarea` or `noscript`
+    # element, a browser reads `<!--` as text, and libxml2 reads the start of a comment. So an
+    # element after the end tag is in the page of the browser, and in a comment of the libxml2
+    # tree. HTML mode therefore reads both trees, and each check runs on both.
+    #
+    # The checker refuses a file that the HTML5 parser gives no tree for, because it cannot judge
+    # that file. For the same reason, it refuses a file with a `noscript` element when the parser
+    # cannot read the content of that element as text: see NOSCRIPT_CONTENT_AS_TEXT. Nokogiri has
+    # no HTML5 parser on JRuby, and this check does not run there.
+    #
+    # Chrome 158 keeps most elements in a `select` element. The HTML5 parser of Nokogiri drops most
+    # elements there, such as `xmp` and `img`, and it does not read the content of a dropped `xmp`
+    # element as text. So in `<select><xmp><!--</xmp><img ...>`, its tree holds a comment, and the
+    # page of the browser holds the `img` element. Neither tree shows the page of the browser there,
+    # so the checker refuses each `select` element. A file that passes holds no `form` element and
+    # no handler, so a `select` element in it has no use.
+    def dangerous_browser_document?(content)
+      return false unless defined?(Nokogiri::HTML5)
+
+      doc = browser_document(content)
+      return true if doc.nil?
+      return true if !NOSCRIPT_CONTENT_AS_TEXT && doc.at_xpath('//noscript')
+      return true if doc.at_xpath('//select')
+
+      dangerous_document?(doc, HTML_MODE)
+    end
+
+    # `parse_noscript_content_as_text` gives the tree of a browser with scripting on. The libxml2
+    # tree holds the elements of a `noscript` element, which a browser with scripting off shows.
+    #
+    # A file can name its encoding in a BOM, or in a `meta` element, which the checker refuses.
+    # Without an encoding, Nokogiri also reads a charset from each tag whose name starts with
+    # `meta`, such as `<metadata charset=IBM037>`, and its tree then holds other characters. So a
+    # file with a BOM goes to the parser as a binary String, and the parser reads the BOM. Each
+    # other file gets ISO-8859-1, the default of the parser. The encoding is the third argument,
+    # because Nokogiri before 1.17 drops an `encoding:` keyword.
+    #
+    # Returns nil in two cases:
+    #   - ArgumentError: the file is past a limit of the parser, which is 400 nested elements and
+    #     400 attributes on one element.
+    #   - EncodingError: the file has a byte that is not valid in its encoding, such as half of a
+    #     character in a UTF-16 file.
+    def browser_document(content)
+      bytes = content.b
+      encoding = Encoding::ISO_8859_1 unless BYTE_ORDER_MARKS.any? { |mark| bytes.start_with?(mark) }
+      Nokogiri::HTML5::Document.parse(bytes, nil, encoding, parse_noscript_content_as_text: true)
+    rescue ArgumentError, EncodingError
+      nil
     end
 
     def dangerous_document?(doc, mode)
@@ -300,7 +363,8 @@ module CamaleonCms
         !declaration.to_xml(encoding: 'UTF-8').match?(NAMESPACE_DEFAULT)
     end
 
-    private_class_method :dangerous_document?, :stylesheet?, :xslt_namespace?, :dangerous_serialization?,
+    private_class_method :dangerous_browser_document?, :browser_document, :dangerous_document?,
+                         :stylesheet?, :xslt_namespace?, :dangerous_serialization?,
                          :parse_document, :entity_declarations, :expanded_document, :scheme_reference_dropped?,
                          :report_limit_reached?, :dangerous_attribute_default?, :default_unreadable?,
                          :handler_default?

@@ -643,6 +643,96 @@ RSpec.describe CamaleonCms::SvgContentChecker do
     end
   end
 
+  # The HTML parser of libxml2 reads `<!--` as the start of a comment inside these elements. A
+  # browser reads it as text there, so the element after the end tag is in its page.
+  describe 'an HTML file that a browser parses in another way' do
+    def html(markup)
+      described_class.unsafe?(markup, mode: :html)
+    end
+
+    %w[xmp title textarea noscript noembed noframes].each do |tag|
+      it "rejects a handler after a comment start in a #{tag} element" do
+        expect(html("<#{tag}><!--</#{tag}><img src=x onpointerdown=alert(1)>--></#{tag}>")).to be(true)
+      end
+    end
+
+    it 'accepts a handler name in a comment' do
+      expect(html('<p>text</p><!-- <img src=x onpointerdown=alert(1)> -->')).to be(false)
+    end
+
+    # Chrome 158 keeps most elements in a `select` element. The HTML5 parser of Nokogiri drops an
+    # `xmp` element there, and it does not read the content of that element as text. In each
+    # example, Chrome 158 shows the `img` element with its handler.
+    {
+      'a comment start in an xmp element' =>
+        '<select><xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></select>',
+      'a comment start in an xmp element in an option element' =>
+        '<select><option><xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></option></select>',
+      'a select end tag in an xmp element' =>
+        '<select><xmp></select><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></select>',
+      'an input start tag in an xmp element' =>
+        '<select><xmp><input><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></select>',
+      'an xmp end tag in an option attribute' =>
+        '<select><xmp><option title="</xmp><img src=x onpointerdown=alert(1)>"></option></xmp></select>'
+    }.each do |content, markup|
+      it "rejects a handler after #{content} in a select element" do
+        expect(html(markup)).to be(true)
+      end
+    end
+
+    it 'rejects a select element that holds only option elements' do
+      expect(html('<select><optgroup><option>a</option></optgroup></select>')).to be(true)
+    end
+
+    # The HTML5 parser raises an error past 400 nested elements, so the checker cannot judge the file.
+    it 'rejects a file past the nesting limit of the HTML5 parser' do
+      expect(html("#{'<div>' * 500}text")).to be(true)
+    end
+
+    # The last two bytes are half of a character, so the HTML5 parser cannot read the file.
+    it 'rejects a UTF-16 file with a byte sequence that is not valid' do
+      page = "\xFF\xFE".b + '<p>text</p>'.encode(Encoding::UTF_16LE).b + "\x00\xD8".b
+
+      expect(html(page)).to be(true)
+    end
+
+    it 'accepts a UTF-16 file with no rejected content' do
+      expect(html("\xFF\xFE".b + '<p>text</p>'.encode(Encoding::UTF_16LE).b)).to be(false)
+    end
+
+    # Nokogiri reads a charset from each tag whose name starts with `meta`. A browser reads it only
+    # from a `meta` element.
+    it 'rejects a handler after a comment start when a metadata element names a charset' do
+      markup = '<metadata charset=IBM037></metadata><xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp>'
+
+      expect(html(markup)).to be(true)
+    end
+
+    it 'accepts a metadata element that names a charset, with no rejected content' do
+      expect(html('<metadata charset=IBM037></metadata><p>text</p>')).to be(false)
+    end
+
+    it 'accepts a noscript element with no rejected content' do
+      expect(html('<noscript><p>text</p></noscript>')).to be(false)
+    end
+
+    # Nokogiri before 1.17 ignores `parse_noscript_content_as_text`, so its tree is the tree of a
+    # browser with scripting off.
+    it 'rejects a noscript element when the HTML5 parser cannot read its content as text' do
+      stub_const('CamaleonCms::SvgContentChecker::NOSCRIPT_CONTENT_AS_TEXT', false)
+
+      expect(html('<noscript><p>text</p></noscript>')).to be(true)
+    end
+
+    # Nokogiri before 1.17 drops an `encoding:` keyword, and it reads the third argument.
+    it 'gives the HTML5 parser the encoding as its third argument' do
+      expect(Nokogiri::HTML5::Document).to receive(:parse)
+        .with(anything, nil, Encoding::ISO_8859_1, parse_noscript_content_as_text: true).and_call_original
+
+      html('<p>text</p>')
+    end
+  end
+
   describe 'stylesheets' do
     let(:xslt) { 'http://www.w3.org/1999/XSL/Transform' }
 

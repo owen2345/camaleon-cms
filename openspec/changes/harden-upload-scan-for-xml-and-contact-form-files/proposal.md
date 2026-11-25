@@ -24,6 +24,11 @@ reference before the match, and it did not decode a named one. A browser reads `
 in an HTML file, and in an XML file with a public XHTML DOCTYPE. So a file with
 `href="javascript&colon;alert(1)"` passed the scan, and a click on that link ran the script.
 
+The scan parses an HTML file with the HTML parser of libxml2, which follows HTML 4. A browser
+follows the HTML5 rules, and the two parsers do not build the same tree. Inside an `xmp` element,
+a browser reads `<!--` as text, and libxml2 reads the start of a comment. So an element with a
+handler after the end tag passed the scan.
+
 The `camaleon_cms:security:scan_uploads` task lists the stored files that the scan now refuses. It
 read the media folders, and it did not read `public/contact_form`. The `cama_contact_form` plugin
 stores the files of visitors there, and Camaleon installs that plugin as a dependency.
@@ -46,6 +51,10 @@ stores the files of visitors there, and Camaleon installs that plugin as a depen
 - **BREAKING**: the scan refuses an XML file that declares an entity and uses one of the eight
   names with no declaration.
 
+- **BREAKING**: the scan also reads an HTML file with an HTML5 parser, and it applies its rules to
+  that tree too. It refuses an HTML file past a limit of that parser, such as 400 nested elements.
+  It also refuses an HTML file with a `select` element.
+
 - The `camaleon_cms:security:scan_uploads` task also reads the whole `public/contact_form` folder.
 
 ## Capabilities
@@ -59,6 +68,7 @@ None.
 - `svg-upload-sanitization`: the requirement "XML parse errors reject the upload" gets scenarios for
   a fatal error in a file that has a root element. New requirements cover the stylesheet
   instruction, the XSLT namespace, and a dropped named reference in a file that declares an entity.
+  A new requirement covers the HTML5 parse of an HTML file.
 
 - `upload-content-security`: the task that lists stored files also reads the contact form folder.
   The requirement "Content is normalized before pattern matching" names the named references.

@@ -67,9 +67,21 @@
 - [x] 6.3 Name the rule in `docs/upgrading-to-2.9.5.md`. Verify: the Markdown gate prints no line
   for the new text
 
-## 7. Verify
+## 7. Read an HTML file with the HTML5 parser too
 
-- [x] 7.1 Run the checks of `AGENTS.md` "Verify before pushing", and `openspec validate --all
+- [x] 7.1 Add `spec/requests/security/upload_html_parser_scan_spec.rb`, and the examples for an HTML
+  file that a browser parses in another way to `spec/lib/svg_content_checker_spec.rb`. Verify: the
+  examples for a refusal fail on the current code
+- [x] 7.2 In `CamaleonCms::SvgContentChecker`, parse an HTML file with `Nokogiri::HTML5` too, and
+  run each check on both trees (design D8). Verify: the specs of 7.1 pass, and the adjacent upload
+  specs pass
+- [x] 7.3 Add a section to `docs/upgrading-to-2.9.5.md`, and name the rule in
+  `docs/security/permissions.md`. Verify: the anchor of the at-a-glance row resolves, and the
+  Markdown gate prints no line for the new text
+
+## 8. Verify
+
+- [x] 8.1 Run the checks of `AGENTS.md` "Verify before pushing", and `openspec validate --all
   --strict`. Verify: each check passes
 
 ## Workflow follow-up

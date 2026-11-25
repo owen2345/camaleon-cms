@@ -20,7 +20,8 @@ strict mode.
 
 - No probe found a file that runs a script in a browser and passes the scan because of the recover
   mode. This change makes the code do what the requirement says.
-- The scan of an HTML file does not change. An HTML parser reports no fatal error.
+- The XML rules of this change do not apply to an HTML file. An HTML parser reports no fatal
+  error. D8 gives an HTML file a second parse.
 
 ## Decisions
 
@@ -159,10 +160,72 @@ stylesheet: the rule fails closed, as D3 does.
 - *Alternative: refuse each file with a dropped reference to one of the eight names.* Rejected:
   the rule refuses an XHTML file with `10&colon;30` in its text.
 
+**D8. HTML mode also reads the tree of the HTML5 parser.** The HTML parser of libxml2 follows
+HTML 4. Inside an `xmp`, `title`, `textarea` or `noscript` element, it reads `<!--` as the start of
+a comment, and a browser reads it as text.
+
+So `<xmp><!--</xmp><img src=x onpointerdown=alert(1)>` gave the scan a comment, and it gave
+Chrome 158 an `img` element with its handler. The byte patterns do not list `onpointerdown`, so the
+file passed. The code before this change had the gap too.
+
+The checker now parses an HTML file a second time, with `Nokogiri::HTML5`, and each check runs on
+both trees. The second parse reads the content of a `noscript` element as text, as a browser with
+scripting on does. The libxml2 tree holds the elements of a `noscript` element, which a browser
+with scripting off shows.
+
+The HTML5 parser raises an error past 400 nested elements, and past 400 attributes on one element.
+It also raises an error for a byte sequence that is not valid in the encoding of the file. An
+example is half of a character in a UTF-16 file. The checker has no tree then, so it refuses the
+file.
+
+A file can name its encoding in a BOM, or in a `meta` element, which the checker refuses. Without
+an encoding, Nokogiri also reads a charset from each tag whose name starts with `meta`.
+With `<metadata charset=IBM037>`, its tree held other characters, and a handler after a comment
+start in an `xmp` element passed. So the checker gives the parser ISO-8859-1, its default, for
+each file with no BOM. It gives the encoding as the third argument, because Nokogiri before 1.17
+drops an `encoding:` keyword.
+
+Nokogiri before 1.17 also ignores the option that reads the content of a `noscript` element as
+text. Its tree is then the tree of a browser with scripting off, and the checker has no tree of a
+browser with scripting on. So with such a version, the checker refuses a file with a `noscript`
+element. At load, it parses a `noscript` element with a `p` element to test the option.
+
+Nokogiri 1.17.0 added the option and the keyword arguments of the HTML5 parse, as its changelog
+says. Probes with 1.15.1 showed that both are missing. The CI matrix asks for Nokogiri 1.19.7 or
+later, the current release. So CI tests the case of an older version only through the stubbed
+constant.
+
+Chrome 158 keeps most elements in a `select` element. The HTML5 parser of Nokogiri drops most
+elements there, such as `xmp` and `img`. It then does not read the content of a dropped `xmp` element
+as text. So `<select><xmp><!--</xmp><img ...>` gave that tree a comment, and it gave the page of
+Chrome an `img` element. In `<select><xmp><option title="</xmp><img ...>">`, both trees held the
+`img` element in an attribute value. Neither tree shows the page of Chrome there.
+
+So the checker refuses each `select` element. The scan refuses `form` and each handler, so a
+`select` element in a file that passes has no use. The maintainer chose this rule on 2026-11-26.
+
+- *Alternative: replace the libxml2 parse.* Rejected: the HTML5 parser reads an `xml-stylesheet`
+  instruction as a comment, so the rule of D2 gets no node. The libxml2 tree also shows the
+  `noscript` content of a browser with scripting off.
+- *Alternative: match a handler by its shape in the byte patterns.* Rejected: the pattern refuses
+  text such as `?only=1` in a link, and the two parsers still do not agree.
+- *Alternative: read the parse errors of the HTML5 parser, which name each dropped element.*
+  Rejected: each error holds a copy of its source line. 100 errors on a line of 3 MB took 300 MB.
+- *Alternative: refuse each comment in a `select` element.* Rejected: the option attribute above
+  holds no comment. The HTML5 parser also closes the `select` element at a `select` end tag or an
+  `input` start tag in the dropped `xmp` element. The comment is then outside the `select` element.
+- *Alternative: parse a copy in which the `select` element has another name.* Rejected: the copy
+  must follow each rule that Chrome keeps for a `select` element. The rename must also read the
+  encoding of the file.
+- *Alternative: refuse a raw-text element in a `select` element.* Rejected: that list holds only
+  the differences that probes found.
+
 ## Risks / Trade-offs
 
 - [A role without `media_unfiltered_upload` uploads XSLT stylesheets today] → Each stylesheet with
   an `xsl:template` element was refused already. The upgrade guide names the permission.
+- [An HTML file has more than 400 nested elements] → The checker refuses it. The upgrade guide
+  names the limit.
 - [A user uploads an SVG file with a fatal XML error that an editor tolerated] → Chrome 158 shows
   an error for a file with an element that has no end tag. The upgrade guide names the change, the
   limits of the parser and a command that shows the error.

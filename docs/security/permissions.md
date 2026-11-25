@@ -439,6 +439,11 @@ web server will serve the bytes under. There are three:
 
   A file in an XML format with a fatal XML error is refused, because a browser does not show the document that a parser repairs.
 
+  An HTML file is parsed two times: with an HTML 4 parser, and with an HTML5 parser, which builds the tree of a browser. The rules apply to both
+  trees. A file that gives the HTML5 parser no tree is refused, for example a file with more than 400 nested elements. A file with a `select`
+  element is refused, because Chrome 158 keeps most elements there and the HTML5 parser drops them. With Nokogiri before 1.17, a file with a
+  `noscript` element is refused, because that parser cannot read its content as text.
+
   An `xml-stylesheet` processing instruction is refused, as the `link` and `style` elements are. A file that declares the XSLT namespace is refused
   too: a stylesheet is a program, and the scan cannot judge the page that it gives.
 

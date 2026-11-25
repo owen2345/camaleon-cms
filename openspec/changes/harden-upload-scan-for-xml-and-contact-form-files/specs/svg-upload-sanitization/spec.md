@@ -7,7 +7,7 @@ file that does not parse is not a valid document of that format, so refusing it 
 
 This signal SHALL NOT be relied upon for HTML-parsed formats. An HTML parser accepts any byte
 sequence and never reports a parse error, so there is no parse-failure signal available in that
-mode; HTML-parsed uploads are decided entirely by the rejection rules applied to the resulting tree.
+mode; HTML-parsed uploads are decided by the rejection rules and by the HTML5 requirement below.
 
 #### Scenario: Malformed SVG is rejected
 - **WHEN** a user uploads a `.svg` file that cannot be parsed as valid XML
@@ -129,3 +129,52 @@ parser reaches its limit of 100 reports.
 #### Scenario: A name that the file declares is accepted
 - **WHEN** a user uploads an `.xhtml` file with the public XHTML 1.0 Strict DOCTYPE, `<!ENTITY colon ":">` and `<p>10&colon;30</p>`
 - **THEN** the system stores the file normally
+
+### Requirement: An HTML upload is judged as a browser parses it
+
+The HTML parser of the scan follows HTML 4, and a browser follows the HTML5 rules. For an
+HTML-parsed format, the system SHALL also build the tree of an HTML5 parser, with the content of a
+`noscript` element as text. The rejection rules SHALL apply to both trees. The system SHALL reject
+an upload that gives the HTML5 parser no tree, because the scan cannot judge it. For the same
+reason, it SHALL reject an upload with a `noscript` element when that parser cannot read its
+content as text.
+
+#### Scenario: A handler after a comment start in a raw text element is rejected
+- **WHEN** a user uploads an `.html` file with `<xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp>`
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds for a `title`, a `textarea` or a `noscript` element in place of `xmp`
+
+#### Scenario: A charset in a tag that is not a meta element does not change the HTML5 tree
+- **WHEN** a user uploads an `.html` file with `<metadata charset=IBM037></metadata>` before that `xmp` element
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: A handler name in a comment is accepted
+- **WHEN** a user uploads an `.html` file with `<!-- <img src=x onpointerdown=alert(1)> -->` and no rejected content
+- **THEN** the system stores the file normally
+
+#### Scenario: A file past the nesting limit of the HTML5 parser is rejected
+- **WHEN** a user uploads an `.html` file with 500 nested `div` elements
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: A file that the HTML5 parser cannot read is rejected
+- **WHEN** a user uploads an `.html` file in UTF-16 that ends with half of a character
+- **THEN** the system returns an error and does NOT store the file
+
+### Requirement: A select element of an HTML upload is rejected
+
+Chrome 158 keeps most elements in a `select` element. The HTML5 parser of the scan drops most
+elements there, such as `xmp` and `img`, and it does not read the content of a dropped `xmp`
+element as text. So neither tree of the scan shows the page of the browser there. For an
+HTML-parsed format, the system SHALL reject an upload with a `select` element.
+
+#### Scenario: A comment start in a select element is rejected
+- **WHEN** a user uploads an `.html` file with `<select><xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></select>`
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: An xmp end tag in an option attribute is rejected
+- **WHEN** a user uploads an `.html` file with `<select><xmp><option title="</xmp><img src=x onpointerdown=alert(1)>"></option></xmp></select>`
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: A select element with only option elements is rejected
+- **WHEN** a user uploads an `.html` file with a `select` element that holds only `option` elements
+- **THEN** the system returns an error and does NOT store the file

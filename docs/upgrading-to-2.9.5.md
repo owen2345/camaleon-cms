@@ -69,7 +69,7 @@ what theme/plugin developers should know.
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 | Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 | Has a theme or plugin hook that runs in a theme switch, or code that rescues an error of `site_install_theme` | A switch whose hook raises now rolls back, and the site keeps its old theme. A hook that undoes its work with `ActiveRecord::Rollback` must open its block with `requires_new: true` ([details](#a-theme-switch-that-fails-rolls-back)) |
-| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)), a file with an `xml-stylesheet` instruction and an XSLT stylesheet ([details](#an-upload-with-a-stylesheet-instruction-or-an-xslt-stylesheet-is-refused)). In a file of each type, the scan also refuses a blocked URI scheme that a named reference such as `&colon;` completes ([details](#the-upload-scan-reads-a-named-reference-in-a-uri-scheme)) |
+| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML, XSL or HTML files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)), a file with an `xml-stylesheet` instruction and an XSLT stylesheet ([details](#an-upload-with-a-stylesheet-instruction-or-an-xslt-stylesheet-is-refused)). In a file of each type, the scan also refuses a blocked URI scheme that a named reference such as `&colon;` completes ([details](#the-upload-scan-reads-a-named-reference-in-a-uri-scheme)). It also reads an HTML file as a browser parses it ([details](#the-upload-scan-reads-an-html-file-as-a-browser-parses-it)) |
 
 ---
 
@@ -718,6 +718,35 @@ it does not declare.
 **Who must act.** The operator of a site where a role without `media_unfiltered_upload`, or a
 visitor, can upload files. List the stored files that the scan now refuses, with the task of the
 section [The upload scan reads the content of a DTD](#the-upload-scan-reads-the-content-of-a-dtd).
+
+---
+
+## The upload scan reads an HTML file as a browser parses it
+
+The upload scan parses an HTML file with an HTML 4 parser. A browser follows the HTML5 rules, and
+the two do not build the same tree. Inside an `xmp`, `title`, `textarea` or `noscript` element, a
+browser reads `<!--` as text. The parser of the scan read the start of a comment there. So an
+element after the end tag was in the page of the browser, and in a comment for the scan. Such an
+element passed with an event handler whose name the byte patterns of the scan do not list.
+
+Now the scan also parses an HTML file with an HTML5 parser, and it applies its rules to both trees.
+As before, the scan runs only for a user who does not have the `media_unfiltered_upload`
+permission, and for a visitor.
+
+The HTML5 parser has limits. So the scan now refuses an HTML file with more than 400 nested
+elements, and one with more than 400 attributes on one element. It also refuses a UTF-16 file with
+a byte sequence that is not valid. Nokogiri before 1.17 cannot read the content of a `noscript`
+element as text, as a browser with scripting on does. With such a version, the scan also refuses an
+HTML file with a `noscript` element. Use Nokogiri 1.19.7 or later, which CI tests.
+
+Chrome 158 keeps most elements in a `select` element, and the HTML5 parser drops most elements there,
+such as `xmp` and `img`. So the scan also refuses an HTML file with a `select` element. The scan
+refuses a `form` element and each handler, so a `select` element in a file that passes has no use.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload`, or a
+visitor, can upload HTML files. List the stored files that the scan now refuses, with the task of
+the section [The upload scan reads the content of a DTD](#the-upload-scan-reads-the-content-of-a-dtd).
+For a file past a limit of the parser, let an administrator upload it.
 
 ---
 
