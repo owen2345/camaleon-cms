@@ -29,10 +29,10 @@ A part of a multipart request can name a charset, and Rack gives that charset to
 part too. The param parser of Rack then raises an encoding error. The system SHALL answer with a
 400 a request that has any of these:
 
-- a part in a charset that is not ASCII-compatible (UTF-16, UTF-32, UTF-7)
+- a part in a charset that is not ASCII-compatible and that Rack does not convert (UTF-16, UTF-32,
+  UTF-7)
 - a part in ISO-2022-JP with bytes that Rack cannot convert
-- a file part whose file name is in a charset that is not ASCII-compatible, such as
-  `filename*=UTF-16LE''a.txt`
+- a file part whose file name is in a charset that is not ASCII-compatible
 
 #### Scenario: A file name in UTF-16 gets a 400
 
