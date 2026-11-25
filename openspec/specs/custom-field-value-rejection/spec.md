@@ -636,9 +636,9 @@ The group number attribute SHALL have the range of a 4-byte integer on each supp
   inside that transaction and commits
 - **THEN** the stored values of the record are unchanged
 
-### Requirement: The two methods run one statement before the savepoint
+### Requirement: The two methods get a savepoint in a transaction that ran no statement
 
-Inside a transaction of the caller, the two methods SHALL run one statement in that transaction first. The cause is that Rails 7.2 and later open no savepoint before the first statement.
+Rails 7.1 and later open no savepoint in a joinable transaction that ran no statement: a failed block restarts that transaction. Inside such a transaction of the caller, the two methods SHALL still roll back to a savepoint of their own. They begin that transaction and mark it as dirty first, as a statement does, with no added query.
 
 #### Scenario: A failed call that is the first statement of a transaction rolls back to a savepoint
 
