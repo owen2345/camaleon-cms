@@ -127,7 +127,7 @@ An admin post save SHALL be atomic across the parent post and its metas, field v
 
 ### Requirement: A refused draft save rolls the whole draft save back
 
-The draft save of the post editor SHALL be atomic in the same way, for a draft create and for a draft update. A refused custom-field value SHALL roll the whole draft save back. So SHALL custom-field `values` in a shape that the shared permit does not keep.
+The draft save of the post editor SHALL be atomic, for a draft create and for a draft update. A refused custom-field value SHALL roll the whole draft save back. So SHALL custom-field `values` in a shape that the shared permit does not keep.
 
 #### Scenario: A refused draft create stores no draft row
 
@@ -170,7 +170,7 @@ A refused draft create MUST store no draft row, no meta and no link to a categor
 
 ### Requirement: The site settings save is atomic
 
-The site settings save SHALL be atomic in the same way across the site and its options, metas and custom-field values. Each refused part SHALL roll the whole save back.
+The site settings save SHALL be atomic across the site and its options, metas and custom-field values. Each refused part SHALL roll the whole save back.
 
 #### Scenario: Each kind of refusal rolls the whole site settings save back
 
