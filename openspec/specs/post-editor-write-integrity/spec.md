@@ -54,8 +54,8 @@ A blank value SHALL be accepted. An administrator's values SHALL be stored as wr
 
 #### Scenario: Offered and blank values are accepted
 
-- **WHEN** a non-admin saves a post with a template that the theme offers, or with a blank layout
-- **OR** the template of the post comes from the `post_get_list_templates` hook
+- **WHEN** a non-admin saves a post with a blank layout, or with a template that the theme or the
+  `post_get_list_templates` hook offers
 - **THEN** the save succeeds and the values are stored as submitted
 
 #### Scenario: Administrator values are not restricted

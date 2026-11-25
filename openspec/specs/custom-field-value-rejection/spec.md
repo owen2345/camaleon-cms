@@ -174,10 +174,11 @@ The site settings save SHALL be atomic across the site and its options, metas an
 
 #### Scenario: Each kind of refusal rolls the whole site settings save back
 
-- **WHEN** a site settings save carries a refused custom-field value
-- **OR** it carries custom-field `values` in a shape that the shared permit does not keep
-- **OR** it carries an options or metas container that is not a set of fields
+- **WHEN** a site settings save carries a part that Camaleon refuses
 - **THEN** the whole save is rolled back
+- **AND** such a part is a refused custom-field value, or custom-field `values` in a shape that the
+  shared permit does not keep
+- **AND** an options or metas container that is not a set of fields is such a part too
 
 #### Scenario: A site settings save that passes stores each part
 
