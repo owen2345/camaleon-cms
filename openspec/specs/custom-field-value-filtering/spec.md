@@ -395,8 +395,8 @@ non-empty scalar, are such shapes.
 
 ### Requirement: A save with a field entry that is a non-empty scalar or a list is refused
 
-A save that submits the entry of an allowed slug as a non-empty scalar or as a list SHALL be refused
-in the same way.
+A save that submits the entry of an allowed slug as a non-empty scalar or as a list SHALL be
+refused. The stored custom-field values of the record MUST stay.
 
 #### Scenario: A save with a field entry that is a non-empty scalar or a list keeps the stored values
 
