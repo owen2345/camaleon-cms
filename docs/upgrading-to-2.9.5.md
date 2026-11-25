@@ -69,6 +69,7 @@ what theme/plugin developers should know.
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 | Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 | Has a theme or plugin hook that runs in a theme switch, or code that rescues an error of `site_install_theme` | A switch whose hook raises now rolls back, and the site keeps its old theme. A hook that undoes its work with `ActiveRecord::Rollback` must open its block with `requires_new: true` ([details](#a-theme-switch-that-fails-rolls-back)) |
+| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)) |
 
 ---
 
@@ -589,6 +590,52 @@ CamaleonCms::Site.order(:id).pluck(:id, :name, :slug)
 ```
 
 The settings form of such a site is on the host that its slug names. Store the old slug there.
+
+---
+
+## The upload scan reads the content of a DTD
+
+Camaleon scans each upload of a user who does not have the `media_unfiltered_upload` permission. A
+visitor who sends a file through a contact form gets the same scan. The scan refuses a markup file
+(SVG, XHTML, XML or XSL) that holds a script, an event handler or another unsafe construct.
+
+A markup file can declare an entity in its DTD, such as `<!ENTITY x "...">`, and use it as `&x;`. A
+browser replaces `&x;` with the value of the entity. Before, the scan did not read that value as
+markup. So a file passed when its entity value held an element with an event handler, and a
+character reference hid the name of the handler. Now the scan reads the file with each entity
+replaced by its value.
+
+A DTD can also declare a default for an attribute, such as `<!ATTLIST svg onload CDATA "...">`. A
+browser then gives the `svg` element that `onload` handler. Before, the scan did not read the
+default. Now it refuses a default for an attribute whose name starts with `on`, and a default with
+a blocked URI scheme.
+
+The scan now also refuses these files:
+
+- A file that declares an entity of another resource, with `SYSTEM` or `PUBLIC`.
+- A file whose entities expand past the limit of the XML parser (an entity bomb), or refer to
+  themselves. Before, the scan accepted such a file, and ImageMagick then read it for the thumbnail
+  for a long time.
+- A file that declares an entity and has a fatal XML error.
+
+A file with harmless entities passes as before. An example is an SVG file of Adobe Illustrator,
+which declares its namespaces as entities.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload`, or a
+visitor, can upload files. Camaleon does not scan a stored file again. List the stored media files
+that the scan now refuses:
+
+```bash
+RAILS_ENV=production bundle exec rake camaleon_cms:security:scan_uploads
+```
+
+The task reads the media folders of each site. It does not read `public/contact_form`, where
+`cama_contact_form` stores the files of visitors. List the files there that declare an entity or
+an attribute, and delete each file that you do not trust:
+
+```bash
+grep -rlIE '<!(ENTITY|ATTLIST)' public/contact_form
+```
 
 ---
 

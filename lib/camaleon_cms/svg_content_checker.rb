@@ -53,6 +53,16 @@ module CamaleonCms
       "translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}') = '#{tag.downcase}'"
     end.join(' or ')}]".freeze
 
+    # The entity types whose value the DTD of the file holds. Each other type points to another
+    # resource, which the checker cannot read.
+    INTERNAL_ENTITY_TYPES = [
+      Nokogiri::XML::EntityDecl::INTERNAL_GENERAL, Nokogiri::XML::EntityDecl::INTERNAL_PARAMETER
+    ].freeze
+
+    # The start of an attribute default that declares a namespace, such as
+    # `<!ATTLIST svg xmlns:onix CDATA "urn:onix">`.
+    NAMESPACE_DEFAULT = /\A<!ATTLIST\s+\S+\s+xmlns:/
+
     module_function
 
     # `mode:` defaults to :xml so the pre-existing single-argument call (`unsafe?(content)`) keeps
@@ -68,6 +78,12 @@ module CamaleonCms
       # a nil root for input as ordinary as a whitespace-only or comment-only file, which must be
       # accepted. See design.md D3: the guarantee does not exist in HTML mode and is not faked.
       return true if mode != HTML_MODE && doc.root.nil?
+
+      if mode != HTML_MODE && entity_declarations(doc).any?
+        doc = expanded_document(content, doc)
+        return true if doc.nil? # an entity that the checker cannot read or expand -- fail closed
+      end
+      return true if mode != HTML_MODE && dangerous_attribute_default?(doc)
 
       dangerous_document?(doc, mode)
     end
@@ -99,8 +115,8 @@ module CamaleonCms
     # Encoding::CompatibilityError, which the rescue below does not catch -- surfacing as a 500
     # on upload instead of a verdict. Force BINARY first: the byte scan stays correct (BANNED_TAGS
     # already caught any <script> element, and normalize strips the interleaved NUL bytes of a
-    # non-UTF-8 encoding before the scheme match). Catches DTD entity declarations and CDATA
-    # sections, whose expansion is only visible after the parse.
+    # non-UTF-8 encoding before the scheme match). The serialization also holds the text of each
+    # CDATA section and the declarations of the DTD.
     def dangerous_serialization?(doc, mode)
       serialized = (mode == HTML_MODE ? doc.to_html : doc.to_xml).b
       return true if serialized.match?(/<script[\s>]/i)
@@ -118,6 +134,62 @@ module CamaleonCms
       nil
     end
 
-    private_class_method :dangerous_document?, :dangerous_serialization?, :parse_document
+    # The entity declarations of the DTD in the file. The list holds the entities that a parameter
+    # entity declares, because the parser adds them to the DTD when it reads the reference.
+    def entity_declarations(doc)
+      doc.internal_subset&.children.to_a.grep(Nokogiri::XML::EntityDecl)
+    end
+
+    # The document as a browser reads it, with each entity reference replaced by the entity value.
+    # Without this parse, an entity reference stays one node, and no check sees the elements and
+    # the attributes that the entity value holds. The parser decodes a character reference in an
+    # entity value before it reads the value as markup. So `&#111;nerror` in an entity value becomes
+    # an `onerror` attribute, which the byte patterns of the scan do not see.
+    #
+    # Returns nil for a file that the checker must refuse:
+    #   - The file declares an entity that points to another resource (`SYSTEM` or `PUBLIC`). The
+    #     checker cannot read that resource, and the `noent` option makes the parser read a local
+    #     file that such an entity names. So the check runs before the parse.
+    #   - The parser reports a fatal error. libxml2 reports one for an entity that refers to
+    #     itself, and for entities that expand to more than its limit permits (an entity bomb).
+    #     It stops at the limit, so the parse does not use the memory of the expanded text. Never
+    #     add the `huge` option here: it removes the limit.
+    def expanded_document(content, doc)
+      return nil unless entity_declarations(doc).all? { |decl| INTERNAL_ENTITY_TYPES.include?(decl.entity_type) }
+
+      expanded = Nokogiri::XML(content) { |config| config.strict.nonet.noent }
+      expanded.root && expanded
+    rescue Nokogiri::XML::SyntaxError
+      nil
+    end
+
+    # A browser gives an element each attribute default that the DTD of the file declares for it.
+    # So `<!ATTLIST svg onload CDATA "...">` puts an `onload` handler on the `svg` element, and no
+    # tag of the file holds that attribute. The parser keeps a default out of the tree. Its
+    # `dtdattr` option adds the defaults, but that option also loads the external DTD. So this
+    # method reads the declarations. It applies the handler rule and the scheme rule of an
+    # attribute to each default. A declaration with `#IMPLIED` or `#REQUIRED` has no default.
+    #
+    # The caller gives the expanded document when the file declares an entity, so a default holds
+    # the value of each entity that it refers to.
+    def dangerous_attribute_default?(doc)
+      doc.internal_subset&.children.to_a.grep(Nokogiri::XML::AttributeDecl).any? do |declaration|
+        next false if declaration.default.nil?
+
+        handler_default?(declaration) || ContentSecurity.blocked_scheme?(declaration.default)
+      end
+    end
+
+    # A default with the `xmlns` prefix declares a namespace, so it gives no handler: `xmlns:onix`
+    # passes here, as it passes on a tag. `name` gives the name without its prefix, so the method
+    # reads the prefix from the text of the declaration. It asks for that text in UTF-8, because
+    # `to_s` gives the text in the encoding of the file.
+    def handler_default?(declaration)
+      declaration.name.downcase.start_with?('on') &&
+        !declaration.to_xml(encoding: 'UTF-8').match?(NAMESPACE_DEFAULT)
+    end
+
+    private_class_method :dangerous_document?, :dangerous_serialization?, :parse_document, :entity_declarations,
+                         :expanded_document, :dangerous_attribute_default?, :handler_default?
   end
 end

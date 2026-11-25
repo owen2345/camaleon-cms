@@ -436,6 +436,10 @@ web server will serve the bytes under. There are three:
   browser resolves to UTF-8) cannot hide a handler from a parser that re-decoded the bytes differently than the browser will. Every member of a
   compressed upload is decompressed first, under a size ceiling, since compressed bytes are opaque to every rule and a compliant decoder concatenates
   all members.
+
+  A file in an XML format can declare an entity in its DTD. The scan reads such a file as a browser reads it, with each entity reference replaced by
+  the value of the entity. It refuses a file that declares an entity of another resource, and a file whose entities expand past the limit of the
+  parser. An attribute default that the DTD declares follows the rules for an attribute.
 - **Executable script** (`js mjs cjs wasm swf`) is refused outright rather than scanned. No scan can reach a verdict on JavaScript — see rule 3 of
   the gating rule above — so the check fails closed, and this permission is what lifts it. Its holders skip scanning entirely and could already store
   these files, which is why the capability lives here rather than in a second permission.

@@ -396,4 +396,116 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       expect(html('plain text, no markup at all')).to be(false)
     end
   end
+
+  describe 'DTD entities' do
+    def svg_with_dtd(dtd, body)
+      %(<?xml version="1.0"?><!DOCTYPE svg [#{dtd}]><svg xmlns="http://www.w3.org/2000/svg">#{body}</svg>)
+    end
+
+    let(:hidden_handler) { svg_with_dtd(%q(<!ENTITY x "<image href='x' &#111;nerror='alert(1)'/>">), '&x;') }
+
+    it 'rejects a handler that an entity value hides with a character reference' do
+      expect(described_class.unsafe?(hidden_handler)).to be(true)
+    end
+
+    it 'rejects the same file in UTF-16' do
+      xml = hidden_handler.sub('<?xml version="1.0"?>', '<?xml version="1.0" encoding="UTF-16"?>')
+
+      expect(described_class.unsafe?("\xFF\xFE".b + xml.encode(Encoding::UTF_16LE).b)).to be(true)
+    end
+
+    it 'rejects an entity that points to another resource, and does not expand the file' do
+      expect(Nokogiri).to receive(:XML).once.and_call_original
+
+      expect(described_class.unsafe?(svg_with_dtd('<!ENTITY x SYSTEM "file:///etc/hosts">', '<text>&x;</text>')))
+        .to be(true)
+    end
+
+    it 'rejects an unparsed entity' do
+      dtd = '<!NOTATION png SYSTEM "image/png"><!ENTITY logo SYSTEM "logo.png" NDATA png>'
+
+      expect(described_class.unsafe?(svg_with_dtd(dtd, '<text>t</text>'))).to be(true)
+    end
+
+    it 'rejects a file whose expanded form has a fatal parse error' do
+      expect(described_class.unsafe?(svg_with_dtd('<!ENTITY x "hello">', '<text>&x;&missing;</text>'))).to be(true)
+    end
+
+    it 'accepts an entity that the file declares and does not use' do
+      expect(described_class.unsafe?(svg_with_dtd('<!ENTITY x "hello">', '<text>t</text>'))).to be(false)
+    end
+
+    it 'accepts a new declaration of a predefined entity' do
+      dtd = '<!ENTITY lt "&#38;#60;"><!ENTITY amp "&#38;#38;">'
+
+      expect(described_class.unsafe?(svg_with_dtd(dtd, '<text>1 &lt; 2 &amp; 3</text>'))).to be(false)
+    end
+
+    it 'does not read the DTD of a file in HTML mode' do
+      html = %(<!DOCTYPE html [<!ENTITY x "<b>bold</b>">]><p>&x;</p>)
+
+      expect(described_class.unsafe?(html, mode: :html)).to be(false)
+    end
+  end
+
+  describe 'DTD attribute defaults' do
+    def svg_with_defaults(dtd)
+      %(<?xml version="1.0"?><!DOCTYPE svg [#{dtd}]><svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>)
+    end
+
+    it 'rejects a default for a handler attribute' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg onload CDATA "alert(1)">'))).to be(true)
+    end
+
+    it 'rejects a default for a handler attribute in upper case' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg ONLOAD CDATA "alert(1)">'))).to be(true)
+    end
+
+    it 'rejects a default for a handler attribute with a prefix' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg ev:onload CDATA "alert(1)">'))).to be(true)
+    end
+
+    it 'rejects a default of an enumerated handler attribute' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg onload (a|b) "a">'))).to be(true)
+    end
+
+    it 'rejects a default that a parameter entity declares' do
+      dtd = %(<!ENTITY % p "<!ATTLIST svg onload CDATA 'alert(1)'>"> %p;)
+
+      expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+    end
+
+    it 'rejects a default with a blocked scheme that an entity completes' do
+      dtd = '<!ENTITY j "java"><!ATTLIST a href CDATA "&j;script:alert(1)">'
+
+      expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+    end
+
+    it 'accepts a required handler attribute, which has no default' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg onload CDATA #REQUIRED>'))).to be(false)
+    end
+
+    it 'accepts a default for an attribute that is no handler' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST rect fill CDATA "red">'))).to be(false)
+    end
+
+    context 'with a default that declares a namespace whose prefix starts with "on"' do
+      let(:namespace_default) { svg_with_defaults('<!ATTLIST svg xmlns:onix CDATA #FIXED "urn:onix">') }
+
+      it 'accepts the file' do
+        expect(described_class.unsafe?(namespace_default)).to be(false)
+      end
+
+      it 'accepts the same file in UTF-16' do
+        xml = namespace_default.sub('<?xml version="1.0"?>', '<?xml version="1.0" encoding="UTF-16"?>')
+
+        expect(described_class.unsafe?("\xFF\xFE".b + xml.encode(Encoding::UTF_16LE).b)).to be(false)
+      end
+
+      it 'rejects a blocked scheme in the namespace' do
+        expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg xmlns:onix CDATA "javascript:alert(1)">')))
+          .to be(true)
+      end
+    end
+  end
 end
