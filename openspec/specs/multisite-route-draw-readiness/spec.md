@@ -645,8 +645,8 @@ as they were, and the theme stays switched.
 
 ### Requirement: The helper of the theme switch gives an error that is not in a transaction
 
-The helper of the theme switch SHALL give the error of that trial with `in_transaction?` false. This
-holds also in a transaction of the caller, because the switch stays. A caller that lets that error through a
+When the draw after the commit of a theme switch fails, the helper of the theme switch SHALL give the
+error with `in_transaction?` false. This holds also in a transaction of the caller, because the switch stays. A caller that lets that error through a
 transaction of its own rolls the switch back, and the error does not say so.
 
 #### Scenario: The draw after the switch fails in a transaction of the caller
