@@ -53,6 +53,12 @@ namespace :camaleon_cms do
         scan_tree.call(Pathname.new(site.upload_directory), Rails.public_path, "Site #{site.id}")
       end
 
+      # cama_contact_form, which Camaleon installs as a dependency, stores the files of visitors
+      # under public/contact_form/<site id>. A visitor has no permission, so the upload scan applies
+      # to each of these files. The task reads the whole folder, because the folder of a deleted
+      # site can stay in public/, where the web server still serves its files.
+      scan_tree.call(Rails.public_path.join('contact_form'), Rails.public_path, 'Contact form')
+
       # Private media is scanned at upload time exactly like public media, so files stored before
       # these rules apply are equally worth surfacing. It lives outside the public root, under its
       # own directory, so it is scanned separately and reported relative to the app root.

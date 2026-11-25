@@ -461,7 +461,8 @@ that the SVG ruleset accepted be re-cropped under an `.html` name and served as 
 sits is irrelevant.
 
 Files stored before these rules are never re-examined and never rewritten. `rake camaleon_cms:security:scan_uploads` lists what today's rules would
-refuse, read-only, for an operator to review.
+refuse, read-only, for an operator to review. The task reads the media folders of each site, the private media folder and the whole
+contact form folder.
 
 **Defaults:** administrators hold it through `can :manage, :all`, exactly as for `contact_form_unfiltered_html`, and the same reasoning about seeding,
 locked checkboxes and the absence of a backfill applies unchanged. `editor`, `contributor` and `client` never receive it. **`manage :media` does not

@@ -628,13 +628,9 @@ that the scan now refuses:
 RAILS_ENV=production bundle exec rake camaleon_cms:security:scan_uploads
 ```
 
-The task reads the media folders of each site. It does not read `public/contact_form`, where
-`cama_contact_form` stores the files of visitors. List the files there that declare an entity or
-an attribute, and delete each file that you do not trust:
-
-```bash
-grep -rlIE '<!(ENTITY|ATTLIST)' public/contact_form
-```
+The task reads the media folders of each site and the private media folder. It also reads
+the whole `public/contact_form` folder, where `cama_contact_form` stores the files of visitors
+under the id of each site. Review each file that the task lists, and delete each file that you do not trust.
 
 ---
 

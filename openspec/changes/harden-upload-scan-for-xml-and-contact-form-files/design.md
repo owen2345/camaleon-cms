@@ -80,6 +80,18 @@ uses refuses the file too. Text that names the namespace URI does not.
 - *Alternative: add `xsl` and `xslt` to the script extensions.* Rejected: a browser loads a
   stylesheet by its address, so a stylesheet in an `.xml` file works too.
 
+**D4. The task reads the whole contact form folder.** The task scans `public/contact_form`, where
+`ContactFormControllerConcern#perform_save_form` of `cama_contact_form` stores a file under
+`<site id>`. The plugin names that folder by the site id, also when `media_slug_folder` is set. The
+folder of a deleted site can stay in `public/`, and the web server still serves its files. So the
+task does not limit the scan to the sites that exist.
+
+- *Alternative: scan `public/contact_form/<site id>` for each site that exists.* Rejected: the
+  report then leaves out the files of a deleted site, which a visitor stored and the server still
+  serves.
+- *Alternative: a hook that lets a plugin name its folders.* Rejected for now: the contact form
+  folder is the one such folder that this change found.
+
 ## Risks / Trade-offs
 
 - [A role without `media_unfiltered_upload` uploads XSLT stylesheets today] → Each stylesheet with

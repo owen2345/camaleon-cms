@@ -19,6 +19,10 @@ build the name of a handler when it runs, so no scan of the stylesheet file find
 scan refused a stylesheet only when it had an `xsl:template` element, because `template` is a
 banned element name. A stylesheet with no template passed.
 
+The `camaleon_cms:security:scan_uploads` task lists the stored files that the scan now refuses. It
+read the media folders, and it did not read `public/contact_form`. The `cama_contact_form` plugin
+stores the files of visitors there, and Camaleon installs that plugin as a dependency.
+
 ## What Changes
 
 - **BREAKING**: the scan refuses a file in an XML format that has a fatal XML error. Examples are an
@@ -29,6 +33,8 @@ banned element name. A stylesheet with no template passed.
 - **BREAKING**: the scan refuses a markup file with an `xml-stylesheet` processing instruction.
 - **BREAKING**: the scan refuses a file in an XML format that declares the XSLT namespace, used or
   not.
+
+- The `camaleon_cms:security:scan_uploads` task also reads the whole `public/contact_form` folder.
 
 ## Capabilities
 
@@ -42,10 +48,13 @@ None.
   a fatal error in a file that has a root element. New requirements cover the stylesheet
   instruction and the XSLT namespace.
 
+- `upload-content-security`: the task that lists stored files also reads the contact form folder.
+
 ## Impact
 
 - `lib/camaleon_cms/svg_content_checker.rb`: the options of the XML parse, and the stylesheet
   rule.
+- `lib/tasks/unsafe_stored_uploads.rake`: the folders that the task reads.
 - `docs/upgrading-to-2.9.5.md` and `docs/security/permissions.md`.
 - The `camaleon_cms:security:scan_uploads` task uses the same scan, so it lists a stored file with
   a fatal XML error.

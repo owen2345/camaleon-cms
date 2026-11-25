@@ -23,6 +23,21 @@
 - [x] 2.3 Add a section to `docs/upgrading-to-2.9.5.md`, and name the rule in
   `docs/security/permissions.md`. Verify: the Markdown gate prints no line for the new text
 
+## 3. List the contact form files in the stored-upload task
+
+- [x] 3.1 Add the "with a file that a contact form stored" examples to
+  `spec/lib/tasks/unsafe_stored_uploads_rake_spec.rb`, with one example for the folder of a site
+  that does not exist. Verify: the examples fail on the current task
+- [x] 3.2 Scan the whole `public/contact_form` folder in
+  `lib/tasks/unsafe_stored_uploads.rake` (design D4). Verify: the spec of the task passes
+- [x] 3.3 Name the folder in `docs/upgrading-to-2.9.5.md` and `docs/security/permissions.md`.
+  Verify: the Markdown gate prints no line for the new text
+
+## 4. Verify
+
+- [x] 4.1 Run the checks of `AGENTS.md` "Verify before pushing", and `openspec validate --all
+  --strict`. Verify: each check passes
+
 ## Workflow follow-up
 
 - Archive the change on the branch before the merge.
