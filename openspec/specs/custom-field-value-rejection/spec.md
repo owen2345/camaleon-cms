@@ -627,7 +627,7 @@ The group number attribute SHALL have the range of a 4-byte integer on each supp
 
 ### Requirement: A failed set_field_value or set_field_values rolls its delete back
 
-`set_field_value` and `set_field_values` delete stored values before they create the new values. When a new value is invalid, that delete MUST roll back. Inside a transaction of the caller, the two methods SHALL use a savepoint. So the stored values stay when the caller rescues the error and commits.
+`set_field_value` and `set_field_values` delete stored values before they create the new values. When a new value is invalid, that delete MUST roll back. Inside a transaction of the caller, the two methods SHALL use a savepoint. So the stored values stay when the caller rescues the error and commits. The requirement "A pool with an isolation level gets no savepoint" gives the exception.
 
 #### Scenario: A failed call inside a transaction of the caller keeps the stored values
 
