@@ -388,6 +388,21 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       end
     end
 
+    context 'with the whole name of an element' do
+      CamaleonCms::SvgContentChecker::BANNED_TAGS.each do |tag|
+        it "rejects a #{tag.upcase} element in XML mode" do
+          expect(described_class.unsafe?(svg_wrapping("<#{tag.upcase}/>"))).to be(true)
+        end
+      end
+
+      # `metadata` is a common SVG element, and its name starts with the banned name `meta`.
+      %w[metadata scripts stylesheet basefont].each do |tag|
+        it "accepts a #{tag} element, whose name only holds the name of a banned element" do
+          expect(described_class.unsafe?(svg_wrapping("<#{tag}/>"))).to be(false)
+        end
+      end
+    end
+
     it 'defaults to XML mode when no mode is given, preserving the original signature' do
       expect(described_class.unsafe?(svg_wrapping('<circle r="5"/>'))).to be(false)
       # Content that parses to no root at all is refused in XML mode -- the fail-closed signal HTML
@@ -536,6 +551,67 @@ RSpec.describe CamaleonCms::SvgContentChecker do
 
     it 'gives a verdict on a file with an element that has no end tag in HTML mode' do
       expect(described_class.unsafe?('<div><p>text', mode: :html)).to be(false)
+    end
+  end
+
+  describe 'stylesheets' do
+    let(:xslt) { 'http://www.w3.org/1999/XSL/Transform' }
+
+    it 'rejects an xml-stylesheet processing instruction before the root element' do
+      xml = %(<?xml-stylesheet type="text/css" href="x.css"?>#{svg_wrapping('<rect/>')})
+
+      expect(described_class.unsafe?(xml)).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction in an element' do
+      expect(described_class.unsafe?(svg_wrapping('<?xml-stylesheet href="x.css"?><rect/>'))).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction in HTML mode' do
+      html = '<?xml-stylesheet href="x.css"?><html><body><p>text</p></body></html>'
+
+      expect(described_class.unsafe?(html, mode: :html)).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction in the DTD, after an entity declaration' do
+      xml = %(<!DOCTYPE svg [<!ENTITY x "y"><?xml-stylesheet href="x.css"?>]>#{svg_wrapping('<rect/>')})
+
+      expect(described_class.unsafe?(xml)).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction that a parameter entity gives to the DTD' do
+      dtd = %(<!ENTITY % p "<?xml-stylesheet href='x.css'?>"> %p;)
+
+      expect(described_class.unsafe?(%(<!DOCTYPE svg [#{dtd}]>#{svg_wrapping('<rect/>')}))).to be(true)
+    end
+
+    it 'accepts another processing instruction in the DTD' do
+      xml = %(<!DOCTYPE svg [<!ENTITY x "y"><?editor version="2"?>]>#{svg_wrapping('<rect/>')})
+
+      expect(described_class.unsafe?(xml)).to be(false)
+    end
+
+    it 'rejects the XSLT namespace as the default namespace' do
+      expect(described_class.unsafe?(%(<stylesheet xmlns="#{xslt}" version="1.0"/>))).to be(true)
+    end
+
+    it 'rejects the XSLT namespace on an element below the root' do
+      expect(described_class.unsafe?(svg_wrapping(%(<g xmlns:x="#{xslt}"><rect/></g>)))).to be(true)
+    end
+
+    it 'accepts text that names the XSLT namespace' do
+      expect(described_class.unsafe?(svg_wrapping("<desc>#{xslt}</desc>"))).to be(false)
+    end
+
+    # The XPath namespace axis gives each element one node for each namespace in scope. With that
+    # axis, the check of this file of 54 KB took 39 seconds.
+    it 'gives a verdict on a file with 2000 namespaces and 2000 elements in less than 5 seconds' do
+      namespaces = (1..2000).map { |n| %(xmlns:n#{n}="urn:n#{n}") }.join(' ')
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" #{namespaces}>#{'<g/>' * 2000}</svg>)
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+      expect(described_class.unsafe?(svg)).to be(false)
+      expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - start).to be < 5
     end
   end
 end

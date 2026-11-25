@@ -47,11 +47,26 @@ module CamaleonCms
     ASCII_LOWER = 'abcdefghijklmnopqrstuvwxyz'
 
     # The banned-element XPath, built once from the frozen BANNED_TAGS rather than reassembled on
-    # every scan: `//*[translate(local-name(),UPPER,LOWER)='tag' or ...]`, each tag folded to
-    # lowercase so an HTML-lowercased element name still matches.
-    BANNED_TAGS_XPATH = "//*[#{BANNED_TAGS.map do |tag|
-      "translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}') = '#{tag.downcase}'"
-    end.join(' or ')}]".freeze
+    # every scan: `//*[contains(' tag tag ', concat(' ', translate(local-name(),UPPER,LOWER), ' '))]`.
+    # Each tag is in lowercase, so an HTML-lowercased element name still matches. The XPath folds
+    # the name of an element one time. The spaces make the test a test of the whole name, so
+    # `metadata` does not match `meta`. One `translate` call for each tag took 4 seconds for
+    # 100000 elements.
+    BANNED_TAGS_XPATH = "//*[contains(' #{BANNED_TAGS.map(&:downcase).join(' ')} ', " \
+                        "concat(' ', translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}'), ' '))]".freeze
+
+    # A stylesheet that a file loads, and a file that is a stylesheet program.
+    #
+    # An `xml-stylesheet` processing instruction loads a CSS or an XSL stylesheet, as the banned
+    # `link` and `style` elements do. With an XSL stylesheet from the same origin, a browser with
+    # XSLT shows the result of the stylesheet as the page.
+    #
+    # An XSLT stylesheet is a program. It can build the name of an element or of an attribute when
+    # it runs, so no check of its tree finds a handler that it gives to the page. The checker
+    # therefore refuses each file that declares the XSLT namespace, used or not.
+    XSLT_NAMESPACE = 'http://www.w3.org/1999/XSL/Transform'
+    STYLESHEET_INSTRUCTION = 'xml-stylesheet'
+    STYLESHEET_INSTRUCTION_XPATH = %(boolean(//processing-instruction("#{STYLESHEET_INSTRUCTION}"))).freeze
 
     # The entity types whose value the DTD of the file holds. Each other type points to another
     # resource, which the checker cannot read.
@@ -90,6 +105,7 @@ module CamaleonCms
 
     def dangerous_document?(doc, mode)
       return true if doc.xpath(BANNED_TAGS_XPATH).any?
+      return true if stylesheet?(doc)
 
       # Case-insensitive: XML attribute names are case-sensitive, but an SVG inlined into an HTML
       # document fires ONCLICK/OnClick exactly as onclick, and the non-SVG ruleset already matches
@@ -108,6 +124,26 @@ module CamaleonCms
       end
 
       dangerous_serialization?(doc, mode)
+    end
+
+    # The stylesheet rule: see XSLT_NAMESPACE.
+    #
+    # The XPath does not reach each child of the DTD. So the method also reads the instructions
+    # of the DTD, which hold an instruction that a parameter entity gives.
+    #
+    # The method reads the namespace declarations of each element. They hold a namespace that an
+    # attribute default of the DTD declares. Do not use the XPath namespace axis here. That axis
+    # gives each element one node for each namespace in scope, so its cost grows with the elements
+    # times the namespaces. With that axis, a file of 30 KB took 10 seconds.
+    def stylesheet?(doc)
+      return true if doc.xpath(STYLESHEET_INSTRUCTION_XPATH)
+      return true if doc.internal_subset&.children.to_a.any? do |node|
+        node.processing_instruction? && node.name == STYLESHEET_INSTRUCTION
+      end
+
+      doc.xpath('//*').any? do |element|
+        element.namespace_definitions.any? { |namespace| namespace.href == XSLT_NAMESPACE }
+      end
     end
 
     # Serialization echoes the document's declared encoding, so a UTF-16/UTF-32 document yields an
@@ -195,7 +231,7 @@ module CamaleonCms
         !declaration.to_xml(encoding: 'UTF-8').match?(NAMESPACE_DEFAULT)
     end
 
-    private_class_method :dangerous_document?, :dangerous_serialization?, :parse_document, :entity_declarations,
-                         :expanded_document, :dangerous_attribute_default?, :handler_default?
+    private_class_method :dangerous_document?, :stylesheet?, :dangerous_serialization?, :parse_document,
+                         :entity_declarations, :expanded_document, :dangerous_attribute_default?, :handler_default?
   end
 end

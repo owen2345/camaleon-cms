@@ -69,7 +69,7 @@ what theme/plugin developers should know.
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 | Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 | Has a theme or plugin hook that runs in a theme switch, or code that rescues an error of `site_install_theme` | A switch whose hook raises now rolls back, and the site keeps its old theme. A hook that undoes its work with `ActiveRecord::Rollback` must open its block with `requires_new: true` ([details](#a-theme-switch-that-fails-rolls-back)) |
-| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)) |
+| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)), a file with an `xml-stylesheet` instruction and an XSLT stylesheet ([details](#an-upload-with-a-stylesheet-instruction-or-an-xslt-stylesheet-is-refused)) |
 
 ---
 
@@ -664,6 +664,28 @@ past a limit of the parser, let an administrator upload it. This command names t
 ```bash
 xmllint --noout file.svg
 ```
+
+---
+
+## An upload with a stylesheet instruction or an XSLT stylesheet is refused
+
+The upload scan refuses the `link` and `style` elements in a markup file, because they load a
+stylesheet. An `xml-stylesheet` processing instruction loads one too. Before, the scan accepted a
+file with that instruction, and Chrome 158 loaded the CSS file that it names. Now the scan refuses
+a markup file with an `xml-stylesheet` instruction.
+
+The scan now also refuses an XML, XHTML, SVG or XSL file that declares the XSLT namespace,
+`http://www.w3.org/1999/XSL/Transform`. An XSLT stylesheet is a program, and it can build the name
+of an event handler when it runs. So a scan of the stylesheet file cannot find that handler.
+Before, the scan refused a stylesheet with an `xsl:template` element, and it accepted a stylesheet
+without one.
+
+As before, the scan runs only for a user who does not have the `media_unfiltered_upload`
+permission, and for a visitor.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload` uploads
+XSLT stylesheets, or files with an `xml-stylesheet` instruction. Give that role the permission, or
+let an administrator upload those files.
 
 ---
 

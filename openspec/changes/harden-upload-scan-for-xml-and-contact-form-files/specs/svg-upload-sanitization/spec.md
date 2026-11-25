@@ -42,3 +42,58 @@ mode; HTML-parsed uploads are decided entirely by the rejection rules applied to
 #### Scenario: An XHTML file that uses an entity of its public DTD is accepted
 - **WHEN** a user uploads an `.xhtml` file with the public XHTML 1.0 DOCTYPE and `&nbsp;` in its body
 - **THEN** the system stores the file normally
+
+## ADDED Requirements
+
+### Requirement: A stylesheet instruction is rejected
+
+The system SHALL reject a markup upload that holds an `xml-stylesheet` processing instruction, for
+any stylesheet type. In an XML-parsed format, the rule SHALL hold for an instruction at any place
+in the document and in the DTD. In an HTML-parsed format, the rule SHALL hold for each instruction
+that the HTML parser keeps as a node. The instruction loads a CSS or an XSL stylesheet, as the
+rejected `link` and `style` elements do.
+
+#### Scenario: An instruction for a CSS file is rejected
+- **WHEN** a user uploads an SVG file with `<?xml-stylesheet type="text/css" href="https://evil.example/x.css"?>` before the root element
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds for the file under an `.xml` or `.xhtml` name
+- **AND** the same holds for an instruction in an element, and for an instruction in the DTD of the file
+
+#### Scenario: An instruction for an XSL file is rejected
+- **WHEN** a user uploads an `.xml` file with `<?xml-stylesheet type="text/xsl" href="x.xsl"?>`
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: An instruction in an HTML file is rejected
+- **WHEN** a user uploads an `.html` file with `<?xml-stylesheet href="x.css"?>` before the `html` element
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: Another processing instruction is accepted
+- **WHEN** a user uploads an SVG file with `<?editor version="2"?>` and no rejected content
+- **THEN** the system stores the file normally
+
+### Requirement: A file that declares the XSLT namespace is rejected
+
+The system SHALL reject an upload in an XML-parsed markup format that declares the namespace
+`http://www.w3.org/1999/XSL/Transform`, used or not. An XSLT stylesheet is a program. It can build
+the name of an element or of an attribute when it runs, so the scan cannot judge its result. The
+rule SHALL hold when an entity or an attribute default of the DTD gives the namespace.
+
+#### Scenario: A stylesheet that builds a handler name is rejected
+- **WHEN** a user uploads an `.xsl` file whose `html` root element has an `xsl:version` attribute and no `xsl:template`
+- **AND** the file builds an attribute with `xsl:attribute name="{concat('o','nerror')}"`
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds for the file under an `.xslt`, `.xml` or `.xhtml` name
+
+#### Scenario: A namespace from an entity or an attribute default is rejected
+- **WHEN** a user uploads a file whose entity holds the XSLT namespace URI, and an `xmlns` attribute refers to the entity
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds when an `ATTLIST` declaration gives the `xmlns:xsl` attribute as a default
+
+#### Scenario: A declaration that no element uses is rejected
+- **WHEN** a user uploads an SVG file whose root element declares the XSLT namespace, and no element uses it
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: Another namespace, and text that names the XSLT namespace, are accepted
+- **WHEN** a user uploads an SVG file that declares the `xlink` namespace
+- **THEN** the system stores the file normally
+- **AND** the same holds for an SVG file whose `desc` element holds the XSLT namespace URI as text

@@ -439,6 +439,9 @@ web server will serve the bytes under. There are three:
 
   A file in an XML format with a fatal XML error is refused, because a browser does not show the document that a parser repairs.
 
+  An `xml-stylesheet` processing instruction is refused, as the `link` and `style` elements are. A file that declares the XSLT namespace is refused
+  too: a stylesheet is a program, and the scan cannot judge the page that it gives.
+
   A file in an XML format can declare an entity in its DTD. The scan reads such a file as a browser reads it, with each entity reference replaced by
   the value of the entity. It refuses a file that declares an entity of another resource, and a file whose entities expand past the limit of the
   parser. An attribute default that the DTD declares follows the rules for an attribute.

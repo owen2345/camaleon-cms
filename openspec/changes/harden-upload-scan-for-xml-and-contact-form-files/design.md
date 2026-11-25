@@ -48,8 +48,42 @@ These errors do not raise:
 - *Alternative: change the requirement to say what the code did.* Rejected: a verdict on a repaired
   document is a verdict on a document that no browser shows.
 
+**D2. The checker refuses each `xml-stylesheet` processing instruction.** The rule holds at any
+place in an XML file and for any type. A browser reads the instruction only before the root element,
+but a rule for one place adds a case and no value. The rule also runs in HTML mode, for each
+instruction that the parser of the scan keeps as a node. A browser reads it there as a comment.
+
+The HTML parser keeps no node for `<!DOCTYPE html [<?xml-stylesheet href="x.css"?>]>`, and that
+file passes. Chrome 158 reads that text as a part of the DOCTYPE.
+
+The XPath of the tree does not reach each child of the DTD. So the checker also reads the
+instructions of the DTD, and it refuses an `xml-stylesheet` instruction there. Chrome 158 does not
+load the stylesheet of an instruction in the DTD.
+
+Chromium 156 and Chrome 158 applied the CSS file that the instruction of an SVG file names. In
+both, an XML file with an XSL instruction shows no result, and Chromium 156 does not define
+`XSLTProcessor`. So no probe ran an XSLT stylesheet. The rule for XSLT fails closed for the browsers that
+have XSLT.
+
+**D3. The checker refuses each file that declares the XSLT namespace.** The checker reads the
+namespace declarations of each element. They hold a namespace that an entity gives, in the
+expanded document, and one that an attribute default of the DTD gives. A declaration that no element
+uses refuses the file too. Text that names the namespace URI does not.
+
+- *Alternative: the XPath namespace axis, `//namespace::*`.* Rejected: the axis gives each element
+  one node for each namespace in scope. With the axis, the check of a file of 30 KB with 1000
+  namespaces and 2000 elements took 10 seconds.
+- *Alternative: refuse only the instructions that build a name, such as `xsl:element` and
+  `xsl:attribute`.* Rejected: XSLT has more ways to give output, such as `xsl:copy-of`,
+  `xsl:value-of` with `disable-output-escaping`, and `xsl:include`. A list of them is a denylist of
+  a programming language.
+- *Alternative: add `xsl` and `xslt` to the script extensions.* Rejected: a browser loads a
+  stylesheet by its address, so a stylesheet in an `.xml` file works too.
+
 ## Risks / Trade-offs
 
+- [A role without `media_unfiltered_upload` uploads XSLT stylesheets today] → Each stylesheet with
+  an `xsl:template` element was refused already. The upgrade guide names the permission.
 - [A user uploads an SVG file with a fatal XML error that an editor tolerated] → Chrome 158 shows
   an error for a file with an element that has no end tag. The upgrade guide names the change, the
   limits of the parser and a command that shows the error.
