@@ -37,9 +37,10 @@ write that leaves a stored value unchanged SHALL NOT be refused for it.
 
 ### Requirement: Any other value of the decorator class option is refused
 
-Any other value SHALL be refused at save: an unknown class name, a name that cannot be loaded or a
-class outside the decorator hierarchy. The error SHALL name the option, and the value when it is a
-class name. The post type's stored options SHALL be left exactly as they were.
+A new value of the `cama_post_decorator_class` option that is neither blank nor the name of a
+`CamaleonCms::PostDecorator` subclass SHALL be refused at save. Examples are an unknown class name, a
+name that cannot be loaded and a class outside the decorator hierarchy. The error SHALL name the
+option, and the value when it is a class name. The post type's stored options SHALL be left exactly as they were.
 
 #### Scenario: A class outside the decorator hierarchy
 
