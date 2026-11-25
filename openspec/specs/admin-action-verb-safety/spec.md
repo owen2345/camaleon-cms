@@ -41,7 +41,8 @@ and the POST of that page does the action.
 - **AND** the audit fails when a mutation-named admin route of Camaleon admits GET/HEAD outside a
   documented allowlist
 - **AND** the allowlist holds only the deliberate logout / back_to_parent confirmation pair
-- **AND** the audit enforces the invariant for all routes, not only per endpoint
+- **AND** the audit checks each mutation-named admin route of Camaleon, not only the converted
+  endpoints
 
 ### Requirement: First-party callers of a converted endpoint carry the verb and the CSRF token
 
