@@ -74,6 +74,22 @@ module CamaleonCms
       Nokogiri::XML::EntityDecl::INTERNAL_GENERAL, Nokogiri::XML::EntityDecl::INTERNAL_PARAMETER
     ].freeze
 
+    # The names of ContentSecurity::NAMED_REFERENCES without `&` and `;`, such as `colon`.
+    SCHEME_REFERENCE_NAMES = ContentSecurity::NAMED_REFERENCES.keys.map { |reference| reference[1..-2] }.freeze
+
+    # The characters that ContentSecurity::NAMED_REFERENCES gives, and XSLT_NAMESPACE without them.
+    # A browser reads a reference such as `&sol;` in a namespace declaration of a file with a
+    # public XHTML DOCTYPE. The parser drops that reference, so its tree holds the namespace
+    # without that character.
+    REFERENCE_CHARACTERS = Regexp.union(ContentSecurity::NAMED_REFERENCES.values)
+    XSLT_NAMESPACE_WITHOUT_REFERENCES = XSLT_NAMESPACE.gsub(REFERENCE_CHARACTERS, '').freeze
+
+    # The libxml2 code of the report for a reference to an entity that the file does not declare.
+    UNDECLARED_ENTITY = 27
+
+    # libxml2 stops its reports after 100 of one level.
+    PARSER_REPORT_LIMIT = 100
+
     # The start of an attribute default that declares a namespace, such as
     # `<!ATTLIST svg xmlns:onix CDATA "urn:onix">`.
     NAMESPACE_DEFAULT = /\A<!ATTLIST\s+\S+\s+xmlns:/
@@ -142,8 +158,14 @@ module CamaleonCms
       end
 
       doc.xpath('//*').any? do |element|
-        element.namespace_definitions.any? { |namespace| namespace.href == XSLT_NAMESPACE }
+        element.namespace_definitions.any? { |namespace| xslt_namespace?(namespace.href) }
       end
+    end
+
+    # True for XSLT_NAMESPACE, also when the parser dropped a named reference from it: see
+    # REFERENCE_CHARACTERS. So the test compares the two texts without those characters.
+    def xslt_namespace?(href)
+      href.to_s.gsub(REFERENCE_CHARACTERS, '') == XSLT_NAMESPACE_WITHOUT_REFERENCES
     end
 
     # Serialization echoes the document's declared encoding, so a UTF-16/UTF-32 document yields an
@@ -196,13 +218,30 @@ module CamaleonCms
     #     itself, and for entities that expand to more than its limit permits (an entity bomb).
     #     It stops at the limit, so the parse does not use the memory of the expanded text. Never
     #     add the `huge` option here: it removes the limit.
+    #   - The parser dropped a reference that the scheme match needs: see `scheme_reference_dropped?`.
     def expanded_document(content, doc)
       return nil unless entity_declarations(doc).all? { |decl| INTERNAL_ENTITY_TYPES.include?(decl.entity_type) }
 
       expanded = Nokogiri::XML(content) { |config| config.strict.nonet.noent }
-      expanded.root && expanded
+      return nil if expanded.root.nil? || scheme_reference_dropped?(expanded)
+
+      expanded
     rescue Nokogiri::XML::SyntaxError
       nil
+    end
+
+    # A browser has its own entity table for a public XHTML DOCTYPE, so it reads `&colon;` in a
+    # file that does not declare it. The parser drops that reference and reports its name. With
+    # `<!ENTITY a "java">`, the link `&a;script&colon;alert(1)` is a script link in the browser.
+    # The bytes of the file hold no whole scheme, and the tree holds no colon.
+    #
+    # So the checker refuses a file with a report for one of SCHEME_REFERENCE_NAMES. It also
+    # refuses a file at PARSER_REPORT_LIMIT, because the parser does not report the names after it.
+    def scheme_reference_dropped?(doc)
+      reports = doc.errors
+      return true if reports.map(&:level).tally.values.any? { |count| count >= PARSER_REPORT_LIMIT }
+
+      reports.any? { |report| report.code == UNDECLARED_ENTITY && SCHEME_REFERENCE_NAMES.include?(report.str1) }
     end
 
     # A browser gives an element each attribute default that the DTD of the file declares for it.
@@ -231,7 +270,8 @@ module CamaleonCms
         !declaration.to_xml(encoding: 'UTF-8').match?(NAMESPACE_DEFAULT)
     end
 
-    private_class_method :dangerous_document?, :stylesheet?, :dangerous_serialization?, :parse_document,
-                         :entity_declarations, :expanded_document, :dangerous_attribute_default?, :handler_default?
+    private_class_method :dangerous_document?, :stylesheet?, :xslt_namespace?, :dangerous_serialization?,
+                         :parse_document, :entity_declarations, :expanded_document, :scheme_reference_dropped?,
+                         :dangerous_attribute_default?, :handler_default?
   end
 end

@@ -90,6 +90,16 @@ RSpec.describe 'Upload scan of stylesheets in an XML file', type: :request do
       expect(response.body).to include(refusal)
     end
 
+    # A browser reads `&sol;` as a slash in a namespace declaration of a file with a public XHTML
+    # DOCTYPE. The XML parser drops that reference, so its tree does not hold the XSLT namespace.
+    it 'refuses the namespace whose slash is a named reference, in a file with a public XHTML DOCTYPE' do
+      doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" ' \
+                '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'
+      upload(stylesheet.sub(xslt, xslt.sub('//', '&sol;/')).sub('<html', "#{doctype}<html"), extension: '.xsl')
+
+      expect(response.body).to include(refusal)
+    end
+
     it 'refuses an SVG file that declares the namespace and does not use it' do
       upload(svg(shape, root_attributes: %(xmlns:xsl="#{xslt}")))
 

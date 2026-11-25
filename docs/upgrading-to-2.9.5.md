@@ -69,7 +69,7 @@ what theme/plugin developers should know.
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 | Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 | Has a theme or plugin hook that runs in a theme switch, or code that rescues an error of `site_install_theme` | A switch whose hook raises now rolls back, and the site keeps its old theme. A hook that undoes its work with `ActiveRecord::Rollback` must open its block with `requires_new: true` ([details](#a-theme-switch-that-fails-rolls-back)) |
-| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)), a file with an `xml-stylesheet` instruction and an XSLT stylesheet ([details](#an-upload-with-a-stylesheet-instruction-or-an-xslt-stylesheet-is-refused)) |
+| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML or XSL files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)), a file with an `xml-stylesheet` instruction and an XSLT stylesheet ([details](#an-upload-with-a-stylesheet-instruction-or-an-xslt-stylesheet-is-refused)). In a file of each type, the scan also refuses a blocked URI scheme that a named reference such as `&colon;` completes ([details](#the-upload-scan-reads-a-named-reference-in-a-uri-scheme)) |
 
 ---
 
@@ -676,12 +676,40 @@ of an event handler when it runs. So a scan of the stylesheet file cannot find t
 Before, the scan refused a stylesheet with an `xsl:template` element, and it accepted a stylesheet
 without one.
 
+In a file with a public XHTML DOCTYPE, a browser reads a named reference such as `&sol;` in a
+namespace declaration. So the scan also refuses a file whose namespace is the XSLT namespace when
+`&colon;`, `&sol;` or `&period;` gives one of its characters.
+
 As before, the scan runs only for a user who does not have the `media_unfiltered_upload`
 permission, and for a visitor.
 
 **Who must act.** The operator of a site where a role without `media_unfiltered_upload` uploads
 XSLT stylesheets, or files with an `xml-stylesheet` instruction. Give that role the permission, or
 let an administrator upload those files.
+
+---
+
+## The upload scan reads a named reference in a URI scheme
+
+The upload scan refuses a link with a blocked URI scheme, such as `javascript:`. Before, the scan
+did not read a named character reference as its character. A browser reads `&colon;` as a colon in
+an HTML file, and in an XML file with a public XHTML DOCTYPE. So a file with
+`href="javascript&colon;alert(1)"` passed the scan, and a click on that link ran the script.
+
+Now the scan decodes the named references for the characters of a scheme before it looks for a
+scheme. Examples are `&colon;`, `&Tab;`, `&NewLine;` and `&sol;`. The rule holds for an HTML file,
+for a file in an XML format and for a file of another type. As before, the scan runs only for a
+user who does not have the `media_unfiltered_upload` permission, and for a visitor.
+
+A file in an XML format can declare its own entities, and one of them can hold a part of a scheme.
+The scan now refuses such a file when it uses one of the names that the scan decodes and does not
+declare it. It also refuses such a file when the XML parser gives 100 reports of an error, because
+the parser gives no report after them. An example is a file with 100 references to `&nbsp;`, which
+it does not declare.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload`, or a
+visitor, can upload files. List the stored files that the scan now refuses, with the task of the
+section [The upload scan reads the content of a DTD](#the-upload-scan-reads-the-content-of-a-dtd).
 
 ---
 

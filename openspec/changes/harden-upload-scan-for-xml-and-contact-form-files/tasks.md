@@ -33,9 +33,43 @@
 - [x] 3.3 Name the folder in `docs/upgrading-to-2.9.5.md` and `docs/security/permissions.md`.
   Verify: the Markdown gate prints no line for the new text
 
-## 4. Verify
+## 4. Decode the named references of a scheme
 
-- [x] 4.1 Run the checks of `AGENTS.md` "Verify before pushing", and `openspec validate --all
+- [x] 4.1 Add `spec/requests/security/upload_named_reference_scheme_spec.rb`, and the examples for
+  a named reference to `spec/lib/camaleon_cms/uploader_content_security_spec.rb`. Verify: the
+  examples for a refusal fail on the current code
+- [x] 4.2 Decode the eight named references in `CamaleonCms::ContentSecurity.normalize`, and remove
+  the control characters before the decode (design D5). Verify: the specs of 4.1 pass, and the
+  adjacent specs pass
+- [x] 4.3 Add a section to `docs/upgrading-to-2.9.5.md`, and name the rule in
+  `docs/security/permissions.md`. Verify: the anchor of the at-a-glance row resolves, and the
+  Markdown gate prints no line for the new text
+
+## 5. Refuse a dropped scheme reference in a file with entities
+
+- [x] 5.1 Add the examples for a file that declares an entity to
+  `spec/requests/security/upload_named_reference_scheme_spec.rb` and to
+  `spec/lib/svg_content_checker_spec.rb`. Verify: the examples for a refusal fail on the current code
+- [x] 5.2 In `CamaleonCms::SvgContentChecker`, refuse a file that declares an entity when the
+  expanded parse reports one of the eight names (design D6). Refuse it also at the report limit.
+  Verify: the specs of 5.1 pass, and the adjacent upload specs pass
+- [x] 5.3 Name the rule in `docs/upgrading-to-2.9.5.md` and in `docs/security/permissions.md`.
+  Verify: the Markdown gate prints no line for the new text
+
+## 6. Refuse the XSLT namespace with a dropped reference
+
+- [x] 6.1 Add the examples for a namespace with a named reference to
+  `spec/requests/security/upload_stylesheet_scan_spec.rb` and to
+  `spec/lib/svg_content_checker_spec.rb`. Verify: the examples for a refusal fail on the current code
+- [x] 6.2 In `CamaleonCms::SvgContentChecker`, compare each namespace and the XSLT namespace
+  without the characters of the eight names (design D7). Verify: the specs of 6.1 pass, and the
+  adjacent upload specs pass
+- [x] 6.3 Name the rule in `docs/upgrading-to-2.9.5.md`. Verify: the Markdown gate prints no line
+  for the new text
+
+## 7. Verify
+
+- [x] 7.1 Run the checks of `AGENTS.md` "Verify before pushing", and `openspec validate --all
   --strict`. Verify: each check passes
 
 ## Workflow follow-up

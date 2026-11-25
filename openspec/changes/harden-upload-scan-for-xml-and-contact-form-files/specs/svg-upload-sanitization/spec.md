@@ -76,7 +76,8 @@ rejected `link` and `style` elements do.
 The system SHALL reject an upload in an XML-parsed markup format that declares the namespace
 `http://www.w3.org/1999/XSL/Transform`, used or not. An XSLT stylesheet is a program. It can build
 the name of an element or of an attribute when it runs, so the scan cannot judge its result. The
-rule SHALL hold when an entity or an attribute default of the DTD gives the namespace.
+rule SHALL hold when an entity or an attribute default of the DTD gives the namespace. It SHALL
+hold when a named reference gives a character of the namespace.
 
 #### Scenario: A stylesheet that builds a handler name is rejected
 - **WHEN** a user uploads an `.xsl` file whose `html` root element has an `xsl:version` attribute and no `xsl:template`
@@ -89,6 +90,11 @@ rule SHALL hold when an entity or an attribute default of the DTD gives the name
 - **THEN** the system returns an error and does NOT store the file
 - **AND** the same holds when an `ATTLIST` declaration gives the `xmlns:xsl` attribute as a default
 
+#### Scenario: A namespace with a named reference is rejected
+- **WHEN** a user uploads an `.xsl` file with the public XHTML 1.0 Strict DOCTYPE and `xmlns:xsl="http:&sol;/www.w3.org/1999/XSL/Transform"`
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds when `&colon;` or `&period;` gives a character of the namespace
+
 #### Scenario: A declaration that no element uses is rejected
 - **WHEN** a user uploads an SVG file whose root element declares the XSLT namespace, and no element uses it
 - **THEN** the system returns an error and does NOT store the file
@@ -97,3 +103,29 @@ rule SHALL hold when an entity or an attribute default of the DTD gives the name
 - **WHEN** a user uploads an SVG file that declares the `xlink` namespace
 - **THEN** the system stores the file normally
 - **AND** the same holds for an SVG file whose `desc` element holds the XSLT namespace URI as text
+
+### Requirement: A dropped scheme reference in a file with entities is rejected
+
+In an XML file with a public XHTML DOCTYPE, a browser reads an HTML name such as `&colon;` that
+the file does not declare. The XML parser of the scan drops that reference. The system SHALL
+reject an upload that declares a DTD entity and has a dropped reference to one of the eight names
+of the normalization. The system SHALL also reject an upload that declares a DTD entity when the
+parser reaches its limit of 100 reports.
+
+#### Scenario: An entity gives a part of the scheme, and a name gives its colon
+- **WHEN** a user uploads an `.xhtml` file with the public XHTML 1.0 Strict DOCTYPE, `<!ENTITY a "java">` and `<a href="&a;script&colon;alert(1)">`
+- **THEN** the system returns an error and does NOT store the file
+- **AND** the same holds for `<!ENTITY c "&#38;colon;">` with `<a href="javascript&c;alert(1)">`
+- **AND** the same holds for the first link in an `.svg` file with that DOCTYPE and that entity
+
+#### Scenario: The parser reaches its report limit before the name
+- **WHEN** a user uploads an `.xhtml` file with the public XHTML 1.0 Strict DOCTYPE, `<!ENTITY a "java">`, 100 `&nbsp;` references and then `<a href="&a;script&colon;alert(1)">`
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: Another name that the file does not declare is accepted
+- **WHEN** a user uploads an `.xhtml` file with the public XHTML 1.0 Strict DOCTYPE, `<!ENTITY a "text">` and `<p>&a; a&nbsp;b</p>`
+- **THEN** the system stores the file normally
+
+#### Scenario: A name that the file declares is accepted
+- **WHEN** a user uploads an `.xhtml` file with the public XHTML 1.0 Strict DOCTYPE, `<!ENTITY colon ":">` and `<p>10&colon;30</p>`
+- **THEN** the system stores the file normally

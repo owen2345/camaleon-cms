@@ -453,6 +453,10 @@ web server will serve the bytes under. There are three:
   `data:image/png;base64,…` is allowed, since a browser renders it as an inert bitmap). Its element and handler lists are enumerations and therefore
   incomplete, which is why nothing a browser parses as markup is left to it.
 
+Before the match of a URI scheme, each ruleset decodes the character references of the content. These include the named references that complete a
+scheme, such as `&colon;` in `javascript&colon;alert(1)`. A file in an XML format can declare an entity that holds the other
+part of the scheme. The scan refuses a file that declares an entity when it uses such a name and does not declare it.
+
 With the permission, none of that runs.
 
 Uploading the same bytes as `x.svg` and as `x.html` is two different questions, and both are asked of an uploader without the permission. Before this

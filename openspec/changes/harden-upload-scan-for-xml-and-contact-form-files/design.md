@@ -92,6 +92,73 @@ task does not limit the scan to the sites that exist.
 - *Alternative: a hook that lets a plugin name its folders.* Rejected for now: the contact form
   folder is the one such folder that this change found.
 
+**D5. The normalization decodes eight named character references.** `ContentSecurity.normalize`
+decodes `&colon;`, `&Tab;`, `&NewLine;`, `&sol;`, `&semi;`, `&comma;`, `&period;` and `&plus;`, in
+each of its passes. `CGI.unescapeHTML` decodes none of them.
+
+Six of the eight are the names that HTML has for the characters of a match of the scheme pattern,
+apart from letters and digits. They give the colon of a scheme and the punctuation of a data URI.
+The other two give the TAB and the LF that a browser strips inside a scheme. HTML has no name for a
+CR, for the character `-`, for one letter or for a digit.
+
+The pattern also reads the character after a raster media type, such as `)`. The normalization
+does not decode `&rpar;`, so the scan refuses `data:image/png&rpar;`.
+
+Chrome 158 decodes `&colon;`, `&Tab;`, `&NewLine;`, `&sol;`, `&semi;` and `&comma;` in an attribute
+value of an HTML file. It decodes them in an XML file with the public XHTML 1.0 Strict DOCTYPE
+too, and `&colon;` also in an SVG file with that DOCTYPE. The file does not declare them: the
+browser has its own table for that DOCTYPE. The parser of the scan does not know that table, and it
+drops the reference from the attribute value. Chrome 158 does not decode `&COLON;`, or `&colon`
+with no semicolon, so the normalization keeps them.
+
+The normalization now removes the control characters before the decode, and again after it. The
+first step removes the NUL padding of a UTF-16 file, so the decode reads the references of that
+file. Chrome 158 shows the script link of an XHTML file in UTF-16.
+
+Before the first step, the normalization removes two escape sequences of ISO-2022-JP, `ESC ( B`
+and `ESC ( J`. A browser removes them from a file in that encoding, and it still reads the
+characters of a scheme after them. A sequence inside `&colon;` hid the reference from the decode,
+and Chrome 158 showed the script link of such an XHTML file. An escape sequence such as `ESC $ B`
+starts a two-byte character set, and it gets no rule. A browser does not read the bytes after it
+as ASCII.
+
+- *Alternative: refuse an undeclared entity in an attribute value of an XML file.* Rejected: the
+  rule covers no HTML file, and it refuses `title="a&nbsp;b"` in an XHTML file.
+- *Alternative: decode each named reference of HTML.* Rejected: the standard library of Ruby has
+  no table of them, and the scheme match needs only the eight.
+
+**D6. A dropped reference to one of the eight names refuses a file that declares an entity.** An
+entity can hold a part of a scheme, as in `<!ENTITY a "java">` with
+`href="&a;script&colon;alert(1)"`. The byte match of D5 then finds no whole scheme. The expanded
+parse of the change `judge-dtd-content-in-upload-scan` gives `java`, and it drops `&colon;`, which
+the file does not declare. In a file with a public XHTML DOCTYPE, Chrome 158 reads
+`javascript:alert(1)` there.
+
+The parser reports each dropped reference with its name. For a file that declares an entity, the
+checker reads the reports of the expanded parse. It refuses the file when a report names one of
+the eight names of D5.
+
+libxml2 2.13.9 stops its reports after 100 of one level. A file with 100 `&nbsp;` references before
+the link gave no report for `&colon;`. So the checker also refuses a file that declares an entity
+when the reports of one level reach 100.
+
+- *Alternative: refuse each undeclared reference in a file that declares an entity.* Rejected: the
+  rule refuses an XHTML file that declares an entity and uses `&nbsp;`.
+
+**D7. The XSLT namespace rule reads a namespace without the characters of the eight names.** In a
+file with a public XHTML DOCTYPE, a browser reads a name of D5 in a namespace declaration too.
+Chrome 158 reads the XHTML namespace from `xmlns="http:&sol;/www.w3.org/1999/xhtml"`, and it does
+the same for `&colon;` and `&period;`. The parser of the scan drops such a reference, so the rule of
+D3 did not find `xmlns:xsl="http:&sol;/www.w3.org/1999/XSL/Transform"`. Such a file needs no entity
+declaration, so D6 does not refuse it.
+
+The checker removes the characters that the eight names give from each namespace and from the
+XSLT namespace, and it compares the two results. Chrome 158 has no XSLT, so no probe ran such a
+stylesheet: the rule fails closed, as D3 does.
+
+- *Alternative: refuse each file with a dropped reference to one of the eight names.* Rejected:
+  the rule refuses an XHTML file with `10&colon;30` in its text.
+
 ## Risks / Trade-offs
 
 - [A role without `media_unfiltered_upload` uploads XSLT stylesheets today] → Each stylesheet with

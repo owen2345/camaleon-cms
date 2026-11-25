@@ -19,6 +19,11 @@ build the name of a handler when it runs, so no scan of the stylesheet file find
 scan refused a stylesheet only when it had an `xsl:template` element, because `template` is a
 banned element name. A stylesheet with no template passed.
 
+The scan refuses a blocked URI scheme, such as `javascript:`. It decoded a numeric character
+reference before the match, and it did not decode a named one. A browser reads `&colon;` as a colon
+in an HTML file, and in an XML file with a public XHTML DOCTYPE. So a file with
+`href="javascript&colon;alert(1)"` passed the scan, and a click on that link ran the script.
+
 The `camaleon_cms:security:scan_uploads` task lists the stored files that the scan now refuses. It
 read the media folders, and it did not read `public/contact_form`. The `cama_contact_form` plugin
 stores the files of visitors there, and Camaleon installs that plugin as a dependency.
@@ -34,6 +39,13 @@ stores the files of visitors there, and Camaleon installs that plugin as a depen
 - **BREAKING**: the scan refuses a file in an XML format that declares the XSLT namespace, used or
   not.
 
+- **BREAKING**: before the scheme match, the scan decodes eight named character references, such as
+  `&colon;`. The rule holds for an HTML file, for a file in an XML format and for a file of another
+  type.
+
+- **BREAKING**: the scan refuses an XML file that declares an entity and uses one of the eight
+  names with no declaration.
+
 - The `camaleon_cms:security:scan_uploads` task also reads the whole `public/contact_form` folder.
 
 ## Capabilities
@@ -46,14 +58,17 @@ None.
 
 - `svg-upload-sanitization`: the requirement "XML parse errors reject the upload" gets scenarios for
   a fatal error in a file that has a root element. New requirements cover the stylesheet
-  instruction and the XSLT namespace.
+  instruction, the XSLT namespace, and a dropped named reference in a file that declares an entity.
 
 - `upload-content-security`: the task that lists stored files also reads the contact form folder.
+  The requirement "Content is normalized before pattern matching" names the named references.
 
 ## Impact
 
 - `lib/camaleon_cms/svg_content_checker.rb`: the options of the XML parse, and the stylesheet
   rule.
+- `lib/camaleon_cms/content_security.rb`: the references that the normalization decodes, and the
+  order of its steps.
 - `lib/tasks/unsafe_stored_uploads.rake`: the folders that the task reads.
 - `docs/upgrading-to-2.9.5.md` and `docs/security/permissions.md`.
 - The `camaleon_cms:security:scan_uploads` task uses the same scan, so it lists a stored file with

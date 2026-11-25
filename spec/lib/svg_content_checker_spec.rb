@@ -463,6 +463,41 @@ RSpec.describe CamaleonCms::SvgContentChecker do
     end
   end
 
+  # The DOCTYPE names an external DTD, so a reference that the file does not declare is no fatal
+  # error. The parser drops the reference and reports its name.
+  describe 'a reference that a file with entities does not declare' do
+    def svg_with_external_dtd(body)
+      doctype = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" ' \
+                '[<!ENTITY x "hello">]>'
+      %(#{doctype}<svg xmlns="http://www.w3.org/2000/svg"><desc>&x;#{body}</desc></svg>)
+    end
+
+    CamaleonCms::ContentSecurity::NAMED_REFERENCES.each_key do |reference|
+      it "rejects a reference to #{reference}, which the scheme match decodes" do
+        expect(described_class.unsafe?(svg_with_external_dtd(reference))).to be(true)
+      end
+    end
+
+    it 'accepts a reference to another name' do
+      expect(described_class.unsafe?(svg_with_external_dtd('&nbsp;'))).to be(false)
+    end
+
+    it 'accepts 99 references to another name' do
+      expect(described_class.unsafe?(svg_with_external_dtd('&nbsp;' * 99))).to be(false)
+    end
+
+    # The parser stops its reports after 100, so the checker cannot know the names after them.
+    it 'rejects 100 references to another name' do
+      expect(described_class.unsafe?(svg_with_external_dtd('&nbsp;' * 100))).to be(true)
+    end
+
+    it 'accepts a reference to a name that the file declares' do
+      svg = svg_with_external_dtd('10&colon;30').sub('[', '[<!ENTITY colon ":">')
+
+      expect(described_class.unsafe?(svg)).to be(false)
+    end
+  end
+
   describe 'DTD attribute defaults' do
     def svg_with_defaults(dtd)
       %(<?xml version="1.0"?><!DOCTYPE svg [#{dtd}]><svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>)
@@ -601,6 +636,28 @@ RSpec.describe CamaleonCms::SvgContentChecker do
 
     it 'accepts text that names the XSLT namespace' do
       expect(described_class.unsafe?(svg_wrapping("<desc>#{xslt}</desc>"))).to be(false)
+    end
+
+    # A browser reads these names in a namespace declaration of a file with a public XHTML DOCTYPE.
+    # The file does not declare them, so the parser drops them from the namespace.
+    context 'with a named reference in a namespace, in a file with a public XHTML DOCTYPE' do
+      def stylesheet_with(namespace)
+        doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" ' \
+                  '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'
+        root = %(<html xsl:version="1.0" xmlns:xsl="#{namespace}" xmlns="http://www.w3.org/1999/xhtml">)
+
+        "#{doctype}#{root}<body/></html>"
+      end
+
+      { '&colon;' => ':', '&sol;' => '/', '&period;' => '.' }.each do |reference, character|
+        it "rejects the XSLT namespace with #{reference} for a character" do
+          expect(described_class.unsafe?(stylesheet_with(xslt.sub(character, reference)))).to be(true)
+        end
+      end
+
+      it 'accepts another namespace with a named reference' do
+        expect(described_class.unsafe?(stylesheet_with('http:&sol;/example.test/ns'))).to be(false)
+      end
     end
 
     # The XPath namespace axis gives each element one node for each namespace in scope. With that
