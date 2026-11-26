@@ -1,7 +1,9 @@
 ## Purpose
 
 Define the security requirements for content scanning of uploaded files. Uploaded files MUST be scanned for executable content patterns before being persisted, to prevent stored XSS attacks via uploaded files.
+
 ## Requirements
+
 ### Requirement: Content is scanned before being written to a web-served path
 
 The system SHALL scan upload content for malicious patterns before it writes the content into the upload staging directory. Rejected content is then never present, even transiently, at a path that the web server serves.
@@ -69,7 +71,7 @@ The system SHALL expose a content-scanning entry point that accepts content and 
 
 ### Requirement: Content is normalized before pattern matching
 
-The system SHALL normalize file content before it matches the content against the malicious-content patterns, so that encoded variants of a blocked pattern are detected. Normalization SHALL decode HTML entities repeatedly, up to a bounded number of passes, and SHALL remove NUL and control characters.
+The system SHALL normalize file content before it matches the content against the malicious-content patterns, so that encoded variants of a blocked pattern are detected. Normalization SHALL decode HTML entities repeatedly, up to a bounded number of passes, and SHALL remove NUL and control characters. It SHALL also decode the named references `&colon;`, `&Tab;`, `&NewLine;`, `&sol;`, `&semi;`, `&comma;`, `&period;` and `&plus;`.
 
 #### Scenario: Hex-entity encoded javascript scheme is rejected
 - **WHEN** a user uploads a non-SVG file containing `<a href="jav&#x61;script:alert(1)">`
@@ -98,6 +100,31 @@ The system SHALL normalize file content before it matches the content against th
 #### Scenario: Plain non-markup content is unaffected
 - **WHEN** a user uploads a plain text, CSV, or JSON file containing no blocked pattern
 - **THEN** the upload is accepted
+
+#### Scenario: A scheme whose colon is a named reference is rejected
+- **WHEN** a user uploads an `.html` file containing `<a href="javascript&colon;alert(1)">`
+- **THEN** the system returns `'Potentially malicious content found!'`
+- **AND** the same holds for `java&Tab;script:alert(1)` and `java&NewLine;script:alert(1)`
+- **AND** the same holds for the link in a `.txt` file
+
+#### Scenario: A data URI whose slash is a named reference is rejected
+- **WHEN** a user uploads an `.html` file containing `<a href="data:text&sol;html,text">`
+- **THEN** the system returns `'Potentially malicious content found!'`
+
+#### Scenario: A named reference in an XML file with a public XHTML DOCTYPE is rejected
+- **WHEN** a user uploads an `.xhtml` file with the public XHTML 1.0 Strict DOCTYPE and `<a href="javascript&colon;alert(1)">`
+- **THEN** the system returns `'Potentially malicious content found!'`
+- **AND** the same holds for that file in UTF-16, and for an `.svg` file with that DOCTYPE and that link
+- **AND** the same holds for that file in ISO-2022-JP, when the escape sequence `ESC ( B` or `ESC ( J` splits `&colon;`
+
+#### Scenario: A named reference with no scheme is accepted
+- **WHEN** a user uploads an `.html` file containing `<p>Open&colon; 10&colon;30</p>` and no blocked pattern
+- **THEN** the upload is accepted
+- **AND** the same holds for that text in an `.xhtml` file with the public XHTML 1.0 Strict DOCTYPE
+
+#### Scenario: A name that a browser does not read is not decoded
+- **WHEN** content with `javascript&COLON;` or with `javascript&colon` and no semicolon is normalized
+- **THEN** the normalization keeps that text as it is
 
 ### Requirement: URI scheme names tolerate only the characters that browsers strip
 
@@ -456,3 +483,26 @@ The task SHALL NOT delete, move, quarantine or rewrite any file. Its output SHAL
 #### Scenario: The task never modifies stored content
 - **WHEN** the task completes over a media root containing files it reports
 - **THEN** every reported file remains present and byte-identical
+
+### Requirement: The re-examination task scans the contact form uploads
+
+The task SHALL also scan the whole folder `public/contact_form`. The contact form plugin stores the
+files of visitors there, under the id of each site, and a visitor gets the upload scan. A report
+without that folder leaves out the files of the users that the scan trusts least. The scan SHALL
+include a folder whose id belongs to no site, because the folder of a deleted site can stay.
+
+#### Scenario: A flagged contact form file is reported
+- **WHEN** the task runs with a file under `public/contact_form/<site id>` that the current rules refuse
+- **THEN** the file is listed in the report, with the id of its site in its path
+
+#### Scenario: A contact form file that passes is counted
+- **WHEN** the task runs with a file under `public/contact_form/<site id>` that the current rules accept
+- **THEN** the report counts the file as scanned and does not list it
+
+#### Scenario: A file in the folder of a deleted site is reported
+- **WHEN** the task runs with a file that the current rules refuse, under `public/contact_form/<id>` with an id that no site has
+- **THEN** the file is listed in the report
+
+#### Scenario: A site with no contact form folder is scanned
+- **WHEN** the task runs for a site that has no folder under `public/contact_form`
+- **THEN** the task reports the media files of that site and raises no error
