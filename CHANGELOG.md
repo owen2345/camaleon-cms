@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** A drag of a repeatable field group, or of a field value, now sets up each text editor of the dragged item again. Before, a plugin element between the panel of a text editor and its field left that editor broken. Camaleon also set up text editors on other elements. [#1370](https://github.com/owen2345/camaleon-cms/pull/1370).
+
 - **Security fix:** The upload scan now reads the DTD of an SVG, XHTML, XML or XSL file. It refuses unsafe DTD content, an external entity and an entity bomb. It also refuses a fatal XML error, an `xml-stylesheet` instruction and the XSLT namespace. In a URI scheme, it reads a named reference such as `&colon;`. It reads an HTML file as a browser parses it, and it refuses a `select` element there. [#1369](https://github.com/owen2345/camaleon-cms/pull/1369).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-upload-scan-reads-the-content-of-a-dtd) and the four sections after them.
 
