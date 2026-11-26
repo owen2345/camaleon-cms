@@ -47,11 +47,69 @@ module CamaleonCms
     ASCII_LOWER = 'abcdefghijklmnopqrstuvwxyz'
 
     # The banned-element XPath, built once from the frozen BANNED_TAGS rather than reassembled on
-    # every scan: `//*[translate(local-name(),UPPER,LOWER)='tag' or ...]`, each tag folded to
-    # lowercase so an HTML-lowercased element name still matches.
-    BANNED_TAGS_XPATH = "//*[#{BANNED_TAGS.map do |tag|
-      "translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}') = '#{tag.downcase}'"
-    end.join(' or ')}]".freeze
+    # every scan: `//*[contains(' tag tag ', concat(' ', translate(local-name(),UPPER,LOWER), ' '))]`.
+    # Each tag is in lowercase, so an HTML-lowercased element name still matches. The XPath folds
+    # the name of an element one time. The spaces make the test a test of the whole name, so
+    # `metadata` does not match `meta`. One `translate` call for each tag took 4 seconds for
+    # 100000 elements.
+    BANNED_TAGS_XPATH = "//*[contains(' #{BANNED_TAGS.map(&:downcase).join(' ')} ', " \
+                        "concat(' ', translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}'), ' '))]".freeze
+
+    # A stylesheet that a file loads, and a file that is a stylesheet program.
+    #
+    # An `xml-stylesheet` processing instruction loads a CSS or an XSL stylesheet, as the banned
+    # `link` and `style` elements do. With an XSL stylesheet from the same origin, a browser with
+    # XSLT shows the result of the stylesheet as the page.
+    #
+    # An XSLT stylesheet is a program. It can build the name of an element or of an attribute when
+    # it runs, so no check of its tree finds a handler that it gives to the page. The checker
+    # therefore refuses each file that declares the XSLT namespace, used or not.
+    XSLT_NAMESPACE = 'http://www.w3.org/1999/XSL/Transform'
+    STYLESHEET_INSTRUCTION = 'xml-stylesheet'
+    STYLESHEET_INSTRUCTION_XPATH = %(boolean(//processing-instruction("#{STYLESHEET_INSTRUCTION}"))).freeze
+
+    # The entity types whose value the DTD of the file holds. Each other type points to another
+    # resource, which the checker cannot read.
+    INTERNAL_ENTITY_TYPES = [
+      Nokogiri::XML::EntityDecl::INTERNAL_GENERAL, Nokogiri::XML::EntityDecl::INTERNAL_PARAMETER
+    ].freeze
+
+    # The names of ContentSecurity::NAMED_REFERENCES without `&` and `;`, such as `colon`.
+    SCHEME_REFERENCE_NAMES = ContentSecurity::NAMED_REFERENCES.keys.map { |reference| reference[1..-2] }.freeze
+
+    # The characters that ContentSecurity::NAMED_REFERENCES gives, and XSLT_NAMESPACE without them.
+    # A browser reads a reference such as `&sol;` in a namespace declaration of a file with a
+    # public XHTML DOCTYPE. The parser drops that reference, so its tree holds the namespace
+    # without that character.
+    REFERENCE_CHARACTERS = Regexp.union(ContentSecurity::NAMED_REFERENCES.values)
+    XSLT_NAMESPACE_WITHOUT_REFERENCES = XSLT_NAMESPACE.gsub(REFERENCE_CHARACTERS, '').freeze
+
+    # The libxml2 code of the report for a reference to an entity that the file does not declare.
+    UNDECLARED_ENTITY = 27
+
+    # libxml2 stops its reports after 100 of one level.
+    PARSER_REPORT_LIMIT = 100
+
+    # The libxml2 codes of two reports for an attribute declaration of the DTD. With the first, a
+    # default does not fit the type of its attribute, and the tree holds the declaration with no
+    # default. With the second, an earlier declaration has the same attribute, and the tree does
+    # not hold the later one.
+    UNREADABLE_DEFAULT_CODES = [500, 501].freeze
+
+    # The start of an attribute default that declares a namespace, such as
+    # `<!ATTLIST svg xmlns:onix CDATA "urn:onix">`.
+    NAMESPACE_DEFAULT = /\A<!ATTLIST\s+\S+\s+xmlns:/
+
+    # The byte order marks that the HTML5 parser of Nokogiri reads: UTF-8, UTF-16BE and UTF-16LE.
+    BYTE_ORDER_MARKS = ["\xEF\xBB\xBF".b, "\xFE\xFF".b, "\xFF\xFE".b].freeze
+
+    # True when the HTML5 parser of Nokogiri reads the content of a `noscript` element as text, as a
+    # browser with scripting on does. Nokogiri before 1.17 ignores `parse_noscript_content_as_text`,
+    # and its tree then holds the elements of a `noscript` element.
+    NOSCRIPT_PROBE = '<body><noscript><p></p></noscript>'
+    NOSCRIPT_CONTENT_AS_TEXT = defined?(Nokogiri::HTML5) &&
+                               Nokogiri::HTML5::Document.parse(NOSCRIPT_PROBE, parse_noscript_content_as_text: true)
+                                                        .at_css('noscript p').nil?
 
     module_function
 
@@ -61,7 +119,7 @@ module CamaleonCms
       return true if content.nil? || content.empty? # rubocop:disable Rails/Blank
 
       doc = parse_document(content, mode)
-      return true if doc.nil? # XML syntax error -- fail closed
+      return true if doc.nil? # a fatal XML error -- fail closed
 
       # XML mode only. A document that parses to nothing is not a valid document of its format, so
       # refusing it fails closed. HTML has no such signal — Nokogiri::HTML never raises and reports
@@ -69,11 +127,70 @@ module CamaleonCms
       # accepted. See design.md D3: the guarantee does not exist in HTML mode and is not faked.
       return true if mode != HTML_MODE && doc.root.nil?
 
-      dangerous_document?(doc, mode)
+      if mode != HTML_MODE && entity_declarations(doc).any?
+        doc = expanded_document(content, doc)
+        return true if doc.nil? # an entity that the checker cannot read or expand -- fail closed
+      end
+      return true if mode != HTML_MODE && dangerous_attribute_default?(doc)
+      return true if dangerous_document?(doc, mode)
+
+      mode == HTML_MODE && dangerous_browser_document?(content)
+    end
+
+    # The tree of an HTML file as a browser builds it. The HTML parser of libxml2 follows HTML 4,
+    # and a browser follows the HTML5 rules. Inside an `xmp`, `title`, `textarea` or `noscript`
+    # element, a browser reads `<!--` as text, and libxml2 reads the start of a comment. So an
+    # element after the end tag is in the page of the browser, and in a comment of the libxml2
+    # tree. HTML mode therefore reads both trees, and each check runs on both.
+    #
+    # The checker refuses a file that the HTML5 parser gives no tree for, because it cannot judge
+    # that file. For the same reason, it refuses a file with a `noscript` element when the parser
+    # cannot read the content of that element as text: see NOSCRIPT_CONTENT_AS_TEXT. Nokogiri has
+    # no HTML5 parser on JRuby, and this check does not run there.
+    #
+    # Chrome 158 keeps most elements in a `select` element. The HTML5 parser of Nokogiri drops most
+    # elements there, such as `xmp` and `img`, and it does not read the content of a dropped `xmp`
+    # element as text. So in `<select><xmp><!--</xmp><img ...>`, its tree holds a comment, and the
+    # page of the browser holds the `img` element. Neither tree shows the page of the browser there,
+    # so the checker refuses each `select` element. A file that passes holds no `form` element and
+    # no handler, so a `select` element in it has no use.
+    def dangerous_browser_document?(content)
+      return false unless defined?(Nokogiri::HTML5)
+
+      doc = browser_document(content)
+      return true if doc.nil?
+      return true if !NOSCRIPT_CONTENT_AS_TEXT && doc.at_xpath('//noscript')
+      return true if doc.at_xpath('//select')
+
+      dangerous_document?(doc, HTML_MODE)
+    end
+
+    # `parse_noscript_content_as_text` gives the tree of a browser with scripting on. The libxml2
+    # tree holds the elements of a `noscript` element, which a browser with scripting off shows.
+    #
+    # A file can name its encoding in a BOM, or in a `meta` element, which the checker refuses.
+    # Without an encoding, Nokogiri also reads a charset from each tag whose name starts with
+    # `meta`, such as `<metadata charset=IBM037>`, and its tree then holds other characters. So a
+    # file with a BOM goes to the parser as a binary String, and the parser reads the BOM. Each
+    # other file gets ISO-8859-1, the default of the parser. The encoding is the third argument,
+    # because Nokogiri before 1.17 drops an `encoding:` keyword.
+    #
+    # Returns nil in two cases:
+    #   - ArgumentError: the file is past a limit of the parser, which is 400 nested elements and
+    #     400 attributes on one element.
+    #   - EncodingError: the file has a byte that is not valid in its encoding, such as half of a
+    #     character in a UTF-16 file.
+    def browser_document(content)
+      bytes = content.b
+      encoding = Encoding::ISO_8859_1 unless BYTE_ORDER_MARKS.any? { |mark| bytes.start_with?(mark) }
+      Nokogiri::HTML5::Document.parse(bytes, nil, encoding, parse_noscript_content_as_text: true)
+    rescue ArgumentError, EncodingError
+      nil
     end
 
     def dangerous_document?(doc, mode)
       return true if doc.xpath(BANNED_TAGS_XPATH).any?
+      return true if stylesheet?(doc)
 
       # Case-insensitive: XML attribute names are case-sensitive, but an SVG inlined into an HTML
       # document fires ONCLICK/OnClick exactly as onclick, and the non-SVG ruleset already matches
@@ -94,13 +211,39 @@ module CamaleonCms
       dangerous_serialization?(doc, mode)
     end
 
+    # The stylesheet rule: see XSLT_NAMESPACE.
+    #
+    # The XPath does not reach each child of the DTD. So the method also reads the instructions
+    # of the DTD, which hold an instruction that a parameter entity gives.
+    #
+    # The method reads the namespace declarations of each element. They hold a namespace that an
+    # attribute default of the DTD declares. Do not use the XPath namespace axis here. That axis
+    # gives each element one node for each namespace in scope, so its cost grows with the elements
+    # times the namespaces. With that axis, a file of 30 KB took 10 seconds.
+    def stylesheet?(doc)
+      return true if doc.xpath(STYLESHEET_INSTRUCTION_XPATH)
+      return true if doc.internal_subset&.children.to_a.any? do |node|
+        node.processing_instruction? && node.name == STYLESHEET_INSTRUCTION
+      end
+
+      doc.xpath('//*').any? do |element|
+        element.namespace_definitions.any? { |namespace| xslt_namespace?(namespace.href) }
+      end
+    end
+
+    # True for XSLT_NAMESPACE, also when the parser dropped a named reference from it: see
+    # REFERENCE_CHARACTERS. So the test compares the two texts without those characters.
+    def xslt_namespace?(href)
+      href.to_s.gsub(REFERENCE_CHARACTERS, '') == XSLT_NAMESPACE_WITHOUT_REFERENCES
+    end
+
     # Serialization echoes the document's declared encoding, so a UTF-16/UTF-32 document yields an
     # ASCII-incompatible String. Matching an ASCII regex against it raises
     # Encoding::CompatibilityError, which the rescue below does not catch -- surfacing as a 500
     # on upload instead of a verdict. Force BINARY first: the byte scan stays correct (BANNED_TAGS
     # already caught any <script> element, and normalize strips the interleaved NUL bytes of a
-    # non-UTF-8 encoding before the scheme match). Catches DTD entity declarations and CDATA
-    # sections, whose expansion is only visible after the parse.
+    # non-UTF-8 encoding before the scheme match). The serialization also holds the text of each
+    # CDATA section and the declarations of the DTD.
     def dangerous_serialization?(doc, mode)
       serialized = (mode == HTML_MODE ? doc.to_html : doc.to_xml).b
       return true if serialized.match?(/<script[\s>]/i)
@@ -110,14 +253,120 @@ module CamaleonCms
 
     # The rescue is confined to XML mode on purpose: Nokogiri::HTML never raises, so a shared rescue
     # would be dead code implying a fail-closed guarantee that HTML mode cannot provide.
+    #
+    # The XML parse is strict. The default options of Nokogiri hold `RECOVER`: the parser then
+    # repairs a file with a fatal XML error, and it raises nothing. A browser does not repair such a
+    # file, so a verdict on the repaired tree is a verdict on another document. With `strict`, a
+    # fatal error raises, and the checker refuses the file. An error that is not fatal, such as a
+    # prefix with no namespace, does not raise.
     def parse_document(content, mode)
       return Nokogiri::HTML(content) if mode == HTML_MODE
 
-      Nokogiri::XML(content, &:nonet)
+      Nokogiri::XML(content) { |config| config.strict.nonet }
     rescue Nokogiri::XML::SyntaxError
       nil
     end
 
-    private_class_method :dangerous_document?, :dangerous_serialization?, :parse_document
+    # The entity declarations of the DTD in the file. The list holds the entities that a parameter
+    # entity declares, because the parser adds them to the DTD when it reads the reference.
+    def entity_declarations(doc)
+      doc.internal_subset&.children.to_a.grep(Nokogiri::XML::EntityDecl)
+    end
+
+    # The document as a browser reads it, with each entity reference replaced by the entity value.
+    # Without this parse, an entity reference stays one node, and no check sees the elements and
+    # the attributes that the entity value holds. The parser decodes a character reference in an
+    # entity value before it reads the value as markup. So `&#111;nerror` in an entity value becomes
+    # an `onerror` attribute, which the byte patterns of the scan do not see.
+    #
+    # Returns nil for a file that the checker must refuse:
+    #   - The file declares an entity that points to another resource (`SYSTEM` or `PUBLIC`). The
+    #     checker cannot read that resource, and the `noent` option makes the parser read a local
+    #     file that such an entity names. So the check runs before the parse.
+    #   - The parser reports a fatal error. libxml2 reports one for an entity that refers to
+    #     itself, and for entities that expand to more than its limit permits (an entity bomb).
+    #     It stops at the limit, so the parse does not use the memory of the expanded text. Never
+    #     add the `huge` option here: it removes the limit.
+    #   - The parser dropped a reference that the scheme match needs: see `scheme_reference_dropped?`.
+    def expanded_document(content, doc)
+      return nil unless entity_declarations(doc).all? { |decl| INTERNAL_ENTITY_TYPES.include?(decl.entity_type) }
+
+      expanded = Nokogiri::XML(content) { |config| config.strict.nonet.noent }
+      return nil if expanded.root.nil? || scheme_reference_dropped?(expanded)
+
+      expanded
+    rescue Nokogiri::XML::SyntaxError
+      nil
+    end
+
+    # A browser has its own entity table for a public XHTML DOCTYPE, so it reads `&colon;` in a
+    # file that does not declare it. The parser drops that reference and reports its name. With
+    # `<!ENTITY a "java">`, the link `&a;script&colon;alert(1)` is a script link in the browser.
+    # The bytes of the file hold no whole scheme, and the tree holds no colon.
+    #
+    # So the checker refuses a file with a report for one of SCHEME_REFERENCE_NAMES. It also
+    # refuses a file at PARSER_REPORT_LIMIT, because the parser does not report the names after it.
+    def scheme_reference_dropped?(doc)
+      reports = doc.errors
+      return true if report_limit_reached?(reports)
+
+      reports.any? { |report| report.code == UNDECLARED_ENTITY && SCHEME_REFERENCE_NAMES.include?(report.str1) }
+    end
+
+    # The parser gives no report after PARSER_REPORT_LIMIT reports of one level.
+    def report_limit_reached?(reports)
+      reports.map(&:level).tally.values.any? { |count| count >= PARSER_REPORT_LIMIT }
+    end
+
+    # A browser gives an element each attribute default that the DTD of the file declares for it.
+    # So `<!ATTLIST svg onload CDATA "...">` puts an `onload` handler on the `svg` element, and no
+    # tag of the file holds that attribute. The parser keeps a default out of the tree. Its
+    # `dtdattr` option adds the defaults, but that option also loads the external DTD. So this
+    # method reads the declarations. It applies the handler rule and the scheme rule of an
+    # attribute to each default. A declaration with `#IMPLIED` or `#REQUIRED` has no default.
+    #
+    # The caller gives the expanded document when the file declares an entity, so a default holds
+    # the value of each entity that it refers to.
+    def dangerous_attribute_default?(doc)
+      declarations = doc.internal_subset&.children.to_a.grep(Nokogiri::XML::AttributeDecl)
+      return false if declarations.empty?
+      return true if default_unreadable?(doc)
+
+      declarations.any? do |declaration|
+        next false if declaration.default.nil?
+
+        handler_default?(declaration) || ContentSecurity.blocked_scheme?(declaration.default)
+      end
+    end
+
+    # The tree does not hold each default that a browser gives to an element:
+    #   - The parser keeps a declaration with no default when the default does not fit the type of
+    #     the attribute, as in `<!ATTLIST svg onload NMTOKEN "alert(1)">`. It still gives the
+    #     element that default.
+    #   - The parser keeps only the first declaration of an attribute. A browser uses the first
+    #     declaration that has a default, so `#IMPLIED` in the first one hides the second.
+    #
+    # The parser reports both cases, so the checker refuses a file with a report of
+    # UNREADABLE_DEFAULT_CODES. It also refuses a file at PARSER_REPORT_LIMIT, because the parser
+    # then gives no such report.
+    def default_unreadable?(doc)
+      reports = doc.errors
+      report_limit_reached?(reports) || reports.any? { |report| UNREADABLE_DEFAULT_CODES.include?(report.code) }
+    end
+
+    # A default with the `xmlns` prefix declares a namespace, so it gives no handler: `xmlns:onix`
+    # passes here, as it passes on a tag. `name` gives the name without its prefix, so the method
+    # reads the prefix from the text of the declaration. It asks for that text in UTF-8, because
+    # `to_s` gives the text in the encoding of the file.
+    def handler_default?(declaration)
+      declaration.name.downcase.start_with?('on') &&
+        !declaration.to_xml(encoding: 'UTF-8').match?(NAMESPACE_DEFAULT)
+    end
+
+    private_class_method :dangerous_browser_document?, :browser_document, :dangerous_document?,
+                         :stylesheet?, :xslt_namespace?, :dangerous_serialization?,
+                         :parse_document, :entity_declarations, :expanded_document, :scheme_reference_dropped?,
+                         :report_limit_reached?, :dangerous_attribute_default?, :default_unreadable?,
+                         :handler_default?
   end
 end

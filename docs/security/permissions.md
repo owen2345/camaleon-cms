@@ -436,6 +436,20 @@ web server will serve the bytes under. There are three:
   browser resolves to UTF-8) cannot hide a handler from a parser that re-decoded the bytes differently than the browser will. Every member of a
   compressed upload is decompressed first, under a size ceiling, since compressed bytes are opaque to every rule and a compliant decoder concatenates
   all members.
+
+  A file in an XML format with a fatal XML error is refused, because a browser does not show the document that a parser repairs.
+
+  An HTML file is parsed two times: with an HTML 4 parser, and with an HTML5 parser, which builds the tree of a browser. The rules apply to both
+  trees. A file that gives the HTML5 parser no tree is refused, for example a file with more than 400 nested elements. A file with a `select`
+  element is refused, because Chrome 158 keeps most elements there and the HTML5 parser drops them. With Nokogiri before 1.17, a file with a
+  `noscript` element is refused, because that parser cannot read its content as text.
+
+  An `xml-stylesheet` processing instruction is refused, as the `link` and `style` elements are. A file that declares the XSLT namespace is refused
+  too: a stylesheet is a program, and the scan cannot judge the page that it gives.
+
+  A file in an XML format can declare an entity in its DTD. The scan reads such a file as a browser reads it, with each entity reference replaced by
+  the value of the entity. It refuses a file that declares an entity of another resource, and a file whose entities expand past the limit of the
+  parser. An attribute default that the DTD declares follows the rules for an attribute.
 - **Executable script** (`js mjs cjs wasm swf`) is refused outright rather than scanned. No scan can reach a verdict on JavaScript — see rule 3 of
   the gating rule above — so the check fails closed, and this permission is what lifts it. Its holders skip scanning entirely and could already store
   these files, which is why the capability lives here rather than in a second permission.
@@ -443,6 +457,10 @@ web server will serve the bytes under. There are three:
   `javascript:`, `vbscript:`, or a non-raster `data:` URI such as `data:text/html` or `data:image/svg+xml` (an embedded raster image like
   `data:image/png;base64,…` is allowed, since a browser renders it as an inert bitmap). Its element and handler lists are enumerations and therefore
   incomplete, which is why nothing a browser parses as markup is left to it.
+
+Before the match of a URI scheme, each ruleset decodes the character references of the content. These include the named references that complete a
+scheme, such as `&colon;` in `javascript&colon;alert(1)`. A file in an XML format can declare an entity that holds the other
+part of the scheme. The scan refuses a file that declares an entity when it uses such a name and does not declare it.
 
 With the permission, none of that runs.
 
@@ -452,7 +470,8 @@ that the SVG ruleset accepted be re-cropped under an `.html` name and served as 
 sits is irrelevant.
 
 Files stored before these rules are never re-examined and never rewritten. `rake camaleon_cms:security:scan_uploads` lists what today's rules would
-refuse, read-only, for an operator to review.
+refuse, read-only, for an operator to review. The task reads the media folders of each site, the private media folder and the whole
+contact form folder.
 
 **Defaults:** administrators hold it through `can :manage, :all`, exactly as for `contact_form_unfiltered_html`, and the same reasoning about seeding,
 locked checkboxes and the absence of a backfill applies unchanged. `editor`, `contributor` and `client` never receive it. **`manage :media` does not

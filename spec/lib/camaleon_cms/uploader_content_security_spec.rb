@@ -27,6 +27,12 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
         expect(scan(%(<a href="&#106;avascript:alert(1)">x</a>))).to be_truthy
       end
 
+      %w[.html .txt].each do |extension|
+        it "rejects a javascript scheme whose colon is a named reference in a #{extension} file" do
+          expect(scan(%(<a href="javascript&colon;alert(1)">x</a>), ext: extension)).to be_truthy
+        end
+      end
+
       it 'rejects a double-encoded javascript scheme' do
         expect(scan(%(<a href="jav&amp;#x61;script:alert(1)">x</a>))).to be_truthy
       end
@@ -504,6 +510,47 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
 
       it 'strips NUL and C0 controls' do
         expect(described_class.normalize("java\0script:")).to include('javascript:')
+      end
+
+      # A browser reads these names in an HTML file, and in an XML file with a public XHTML DOCTYPE.
+      {
+        'javascript&colon;alert(1)' => 'javascript:alert(1)',
+        'java&Tab;script:' => "java\tscript:",
+        'java&NewLine;script:' => "java\nscript:",
+        'data:text&sol;html&comma;' => 'data:text/html,',
+        'data:&semi;base64' => 'data:;base64',
+        'data:image&sol;svg&plus;xml&period;' => 'data:image/svg+xml.'
+      }.each do |encoded, decoded|
+        it "decodes the named references of #{encoded}" do
+          expect(described_class.normalize(encoded)).to eq(decoded)
+        end
+      end
+
+      it 'decodes a named reference after another reference gives its ampersand' do
+        expect(described_class.normalize('javascript&amp;colon;')).to eq('javascript:')
+      end
+
+      it 'decodes a named reference in UTF-16 bytes' do
+        expect(described_class.normalize('javascript&colon;'.encode(Encoding::UTF_16LE).b)).to eq('javascript:')
+      end
+
+      # A browser removes these escape sequences from a file in ISO-2022-JP, and it still reads the
+      # characters of a scheme after them.
+      { 'ESC ( B' => "\e(B", 'ESC ( J' => "\e(J" }.each do |name, escape|
+        it "decodes a named reference that the ISO-2022-JP escape sequence #{name} splits" do
+          expect(described_class.normalize("javascript&col#{escape}on;")).to eq('javascript:')
+        end
+      end
+
+      # A browser reads the bytes after `ESC $ B` as characters of two bytes each.
+      it 'does not decode a named reference that the start of a two-byte character set splits' do
+        expect(described_class.normalize("javascript&col\e$Bon;")).not_to include(':')
+      end
+
+      it 'keeps a name that a browser does not read as a reference' do
+        text = 'javascript&COLON; javascript&colon'
+
+        expect(described_class.normalize(text)).to eq(text)
       end
 
       it 'preserves C1 bytes so multibyte text is not mangled' do

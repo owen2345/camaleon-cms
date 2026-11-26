@@ -19,6 +19,11 @@ module CamaleonCms
     # bytes, and removing them would mangle legitimate multibyte text.
     CONTROL_CHARS = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/
 
+    # Two escape sequences of ISO-2022-JP, `ESC ( B` and `ESC ( J`. A browser removes them from a
+    # file in that encoding, and it still reads the characters of a scheme after them. So the bytes
+    # `&col\e(Bon;` are `&colon;` in the page.
+    ISO_2022_JP_ESCAPES = /\e\([BJ]/
+
     # Event-handler attribute stems. Each is matched as `<stem>\w*\s*=`, so a stem covers its
     # whole family (`onmouse` → onmousedown/onmouseover/...).
     UNSAFE_EVENT_HANDLERS = %w[
@@ -81,6 +86,17 @@ module CamaleonCms
       BLOCKED_ELEMENT_PATTERN
     ].freeze
 
+    # The HTML named character references for the characters that a match of
+    # BLOCKED_SCHEME_PATTERN holds, other than a letter or a digit, and for the TAB and the LF of
+    # SCHEME_GAP_CHARS. `CGI.unescapeHTML` does not decode them. A browser reads them in an HTML
+    # file, and in an XML file with a public XHTML DOCTYPE, so `href="javascript&colon;alert(1)"`
+    # is a script link there. Each name is case-sensitive and needs its semicolon.
+    NAMED_REFERENCES = {
+      '&colon;' => ':', '&Tab;' => "\t", '&NewLine;' => "\n", '&sol;' => '/', '&semi;' => ';', '&comma;' => ',',
+      '&period;' => '.', '&plus;' => '+'
+    }.freeze
+    NAMED_REFERENCE_PATTERN = Regexp.union(NAMED_REFERENCES.keys)
+
     # True if `content` carries a blocked URI scheme. Normalizes (entity/control-char decoding)
     # first -- use this when you hold raw bytes (the SVG scanner). The non-SVG ruleset normalizes
     # once for all its patterns and calls blocked_scheme_in? directly to avoid a second full copy.
@@ -134,18 +150,30 @@ module CamaleonCms
     def self.normalize(content)
       return content if content.nil?
 
+      # The first strip removes the NUL padding of a UTF-16 or UTF-32 file, so the decode reads the
+      # references of such a file. ISO_2022_JP_ESCAPES go before it for the same reason: the strip
+      # removes only their ESC byte. The second strip removes a control character that a reference
+      # gives.
       normalized = content.dup.force_encoding(Encoding::BINARY)
-      normalized = decode_entities(normalized) if normalized.include?('&')
-      normalized = normalized.gsub(CONTROL_CHARS, '') if CONTROL_CHARS.match?(normalized)
-      normalized
+      normalized = normalized.gsub(ISO_2022_JP_ESCAPES, '') if normalized.include?("\e")
+      normalized = strip_control_chars(normalized)
+      return normalized unless normalized.include?('&')
+
+      strip_control_chars(decode_entities(normalized))
     end
+
+    def self.strip_control_chars(content)
+      CONTROL_CHARS.match?(content) ? content.gsub(CONTROL_CHARS, '') : content
+    end
+    private_class_method :strip_control_chars
 
     # Repeatedly decodes HTML entities until stable, capped at DECODE_PASSES so a
     # deliberately deep chain cannot spin. Falls back to the last good value if a
-    # decode produces bytes that cannot be handled.
+    # decode produces bytes that cannot be handled. Each pass also decodes NAMED_REFERENCES.
     def self.decode_entities(content)
       DECODE_PASSES.times do
         decoded = CGI.unescapeHTML(content).force_encoding(Encoding::BINARY)
+        decoded = decoded.gsub(NAMED_REFERENCE_PATTERN, NAMED_REFERENCES)
         break if decoded == content
 
         content = decoded

@@ -98,6 +98,14 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /script-capable URL/)
     end
 
+    # The data shortcode shows the value in an attribute, where a browser reads `&colon;` as a colon.
+    it 'refuses a script-scheme URL whose colon is a named reference' do
+      as_user(contributor)
+
+      expect { post.set_field_value('link', 'javascript&colon;alert(1)') }
+        .to raise_error(ActiveRecord::RecordInvalid, /script-capable URL/)
+    end
+
     it 'refuses markup in a URL from an untrusted author' do
       as_user(contributor)
 

@@ -69,6 +69,7 @@ what theme/plugin developers should know.
 | Has a theme with a handler for a hook of a plugin install, such as `plugin_after_install`, a theme with an `on_inactive` handler, or code that replaces `site_install_theme` | On a site create, the theme of the site now gets the hooks of the default plugins, before its `on_active` hook. The create runs no `on_inactive` hook, and it no longer calls `site_install_theme` ([details](#a-site-create-gives-its-hooks-to-the-theme-of-the-site)) |
 | Has code that calls `site_install_theme` or `site_after_install` with a theme key that comes from a request, or a `default_template` in `config/system.json` that is not installed | A key that no installed theme has now raises `ArgumentError` before the install changes the site. A site create with such a default theme now shows an error and creates no site ([details](#an-install-refuses-a-theme-that-is-not-installed)) |
 | Has a theme or plugin hook that runs in a theme switch, or code that rescues an error of `site_install_theme` | A switch whose hook raises now rolls back, and the site keeps its old theme. A hook that undoes its work with `ActiveRecord::Rollback` must open its block with `requires_new: true` ([details](#a-theme-switch-that-fails-rolls-back)) |
+| Lets a role without `media_unfiltered_upload`, or a visitor through a contact form, upload SVG, XML, XHTML, XSL or HTML files | The upload scan now reads the content of the DTD of such a file. List the stored files that the scan now refuses ([details](#the-upload-scan-reads-the-content-of-a-dtd)). The scan also refuses a file with a fatal XML error ([details](#an-upload-that-is-not-well-formed-xml-is-refused)), a file with an `xml-stylesheet` instruction and an XSLT stylesheet ([details](#an-upload-with-a-stylesheet-instruction-or-an-xslt-stylesheet-is-refused)). In a file of each type, the scan also refuses a blocked URI scheme that a named reference such as `&colon;` completes ([details](#the-upload-scan-reads-a-named-reference-in-a-uri-scheme)). It also reads an HTML file as a browser parses it ([details](#the-upload-scan-reads-an-html-file-as-a-browser-parses-it)) |
 
 ---
 
@@ -589,6 +590,163 @@ CamaleonCms::Site.order(:id).pluck(:id, :name, :slug)
 ```
 
 The settings form of such a site is on the host that its slug names. Store the old slug there.
+
+---
+
+## The upload scan reads the content of a DTD
+
+Camaleon scans each upload of a user who does not have the `media_unfiltered_upload` permission. A
+visitor who sends a file through a contact form gets the same scan. The scan refuses a markup file
+(SVG, XHTML, XML or XSL) that holds a script, an event handler or another unsafe construct.
+
+A markup file can declare an entity in its DTD, such as `<!ENTITY x "...">`, and use it as `&x;`. A
+browser replaces `&x;` with the value of the entity. Before, the scan did not read that value as
+markup. So a file passed when its entity value held an element with an event handler, and a
+character reference hid the name of the handler. Now the scan reads the file with each entity
+replaced by its value.
+
+A DTD can also declare a default for an attribute, such as `<!ATTLIST svg onload CDATA "...">`. A
+browser then gives the `svg` element that `onload` handler. Before, the scan did not read the
+default. Now it refuses a default for an attribute whose name starts with `on`, and a default with
+a blocked URI scheme.
+
+The XML parser of the scan cannot read each default. It keeps no default that does not fit the type
+of its attribute, as in `<!ATTLIST svg onload NMTOKEN "alert(1)">`. It keeps only the first
+declaration of an attribute. A browser uses the default in both cases. So the scan refuses a file
+with such a declaration.
+
+The scan also refuses a file that declares an attribute when the XML parser gives 100 reports of an
+error. The parser gives no report after them.
+
+The scan now also refuses these files:
+
+- A file that declares an entity of another resource, with `SYSTEM` or `PUBLIC`.
+- A file whose entities expand past the limit of the XML parser (an entity bomb), or refer to
+  themselves. Before, the scan accepted such a file, and ImageMagick then read it for the thumbnail
+  for a long time.
+
+A file with harmless entities passes as before. An example is an SVG file of Adobe Illustrator,
+which declares its namespaces as entities.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload`, or a
+visitor, can upload files. Camaleon does not scan a stored file again. List the stored media files
+that the scan now refuses:
+
+```bash
+RAILS_ENV=production bundle exec rake camaleon_cms:security:scan_uploads
+```
+
+The task reads the media folders of each site and the private media folder. It also reads
+the whole `public/contact_form` folder, where `cama_contact_form` stores the files of visitors
+under the id of each site. Review each file that the task lists, and delete each file that you do not trust.
+
+---
+
+## An upload that is not well-formed XML is refused
+
+The upload scan parses an SVG, XHTML, XML or XSL file as XML. Before, its parser repaired a file
+with a fatal XML error, and the scan gave its verdict on the repaired document. A browser does not
+read the repaired document. Now the scan refuses the file. As before, the scan runs
+only for a user who does not have the `media_unfiltered_upload` permission, and for a visitor.
+
+Examples of a fatal error are an element with no end tag, and text after the root element. An
+entity that the file does not declare is one too in a file with no DOCTYPE, such as `&nbsp;` in an
+SVG file. Chrome 158 shows an error for a file with one of these errors.
+
+The parser of the scan has limits, and it reports a fatal error for a file past a limit. So the
+scan also refuses an SVG file with 300 levels of `g` elements, and an SVG file with an attribute
+value of 11 MB. Chrome 158 shows these two files with no error.
+
+A file with an error that is not fatal passes as before. An example is a prefix with no namespace.
+Another is `&nbsp;` in an SVG file with the public SVG 1.1 DOCTYPE and without `standalone="yes"`.
+The parser does not load the DTD of that DOCTYPE, so it does not know which entities the DTD
+declares. The scan of an HTML file does not change.
+
+**Who must act.** A user whose upload is now refused. Correct the error in the file. For a file
+past a limit of the parser, let an administrator upload it. This command names the error:
+
+```bash
+xmllint --noout file.svg
+```
+
+---
+
+## An upload with a stylesheet instruction or an XSLT stylesheet is refused
+
+The upload scan refuses the `link` and `style` elements in a markup file, because they load a
+stylesheet. An `xml-stylesheet` processing instruction loads one too. Before, the scan accepted a
+file with that instruction, and Chrome 158 loaded the CSS file that it names. Now the scan refuses
+a markup file with an `xml-stylesheet` instruction.
+
+The scan now also refuses an XML, XHTML, SVG or XSL file that declares the XSLT namespace,
+`http://www.w3.org/1999/XSL/Transform`. An XSLT stylesheet is a program, and it can build the name
+of an event handler when it runs. So a scan of the stylesheet file cannot find that handler.
+Before, the scan refused a stylesheet with an `xsl:template` element, and it accepted a stylesheet
+without one.
+
+In a file with a public XHTML DOCTYPE, a browser reads a named reference such as `&sol;` in a
+namespace declaration. So the scan also refuses a file whose namespace is the XSLT namespace when
+`&colon;`, `&sol;` or `&period;` gives one of its characters.
+
+As before, the scan runs only for a user who does not have the `media_unfiltered_upload`
+permission, and for a visitor.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload` uploads
+XSLT stylesheets, or files with an `xml-stylesheet` instruction. Give that role the permission, or
+let an administrator upload those files.
+
+---
+
+## The upload scan reads a named reference in a URI scheme
+
+The upload scan refuses a link with a blocked URI scheme, such as `javascript:`. Before, the scan
+did not read a named character reference as its character. A browser reads `&colon;` as a colon in
+an HTML file, and in an XML file with a public XHTML DOCTYPE. So a file with
+`href="javascript&colon;alert(1)"` passed the scan, and a click on that link ran the script.
+
+Now the scan decodes the named references for the characters of a scheme before it looks for a
+scheme. Examples are `&colon;`, `&Tab;`, `&NewLine;` and `&sol;`. The rule holds for an HTML file,
+for a file in an XML format and for a file of another type. As before, the scan runs only for a
+user who does not have the `media_unfiltered_upload` permission, and for a visitor.
+
+A file in an XML format can declare its own entities, and one of them can hold a part of a scheme.
+The scan now refuses such a file when it uses one of the names that the scan decodes and does not
+declare it. It also refuses such a file when the XML parser gives 100 reports of an error, because
+the parser gives no report after them. An example is a file with 100 references to `&nbsp;`, which
+it does not declare.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload`, or a
+visitor, can upload files. List the stored files that the scan now refuses, with the task of the
+section [The upload scan reads the content of a DTD](#the-upload-scan-reads-the-content-of-a-dtd).
+
+---
+
+## The upload scan reads an HTML file as a browser parses it
+
+The upload scan parses an HTML file with an HTML 4 parser. A browser follows the HTML5 rules, and
+the two do not build the same tree. Inside an `xmp`, `title`, `textarea` or `noscript` element, a
+browser reads `<!--` as text. The parser of the scan read the start of a comment there. So an
+element after the end tag was in the page of the browser, and in a comment for the scan. Such an
+element passed with an event handler whose name the byte patterns of the scan do not list.
+
+Now the scan also parses an HTML file with an HTML5 parser, and it applies its rules to both trees.
+As before, the scan runs only for a user who does not have the `media_unfiltered_upload`
+permission, and for a visitor.
+
+The HTML5 parser has limits. So the scan now refuses an HTML file with more than 400 nested
+elements, and one with more than 400 attributes on one element. It also refuses a UTF-16 file with
+a byte sequence that is not valid. Nokogiri before 1.17 cannot read the content of a `noscript`
+element as text, as a browser with scripting on does. With such a version, the scan also refuses an
+HTML file with a `noscript` element. Use Nokogiri 1.19.7 or later, which CI tests.
+
+Chrome 158 keeps most elements in a `select` element, and the HTML5 parser drops most elements there,
+such as `xmp` and `img`. So the scan also refuses an HTML file with a `select` element. The scan
+refuses a `form` element and each handler, so a `select` element in a file that passes has no use.
+
+**Who must act.** The operator of a site where a role without `media_unfiltered_upload`, or a
+visitor, can upload HTML files. List the stored files that the scan now refuses, with the task of
+the section [The upload scan reads the content of a DTD](#the-upload-scan-reads-the-content-of-a-dtd).
+For a file past a limit of the parser, let an administrator upload it.
 
 ---
 

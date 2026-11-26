@@ -388,12 +388,431 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       end
     end
 
+    context 'with the whole name of an element' do
+      CamaleonCms::SvgContentChecker::BANNED_TAGS.each do |tag|
+        it "rejects a #{tag.upcase} element in XML mode" do
+          expect(described_class.unsafe?(svg_wrapping("<#{tag.upcase}/>"))).to be(true)
+        end
+      end
+
+      # `metadata` is a common SVG element, and its name starts with the banned name `meta`.
+      %w[metadata scripts stylesheet basefont].each do |tag|
+        it "accepts a #{tag} element, whose name only holds the name of a banned element" do
+          expect(described_class.unsafe?(svg_wrapping("<#{tag}/>"))).to be(false)
+        end
+      end
+    end
+
     it 'defaults to XML mode when no mode is given, preserving the original signature' do
       expect(described_class.unsafe?(svg_wrapping('<circle r="5"/>'))).to be(false)
       # Content that parses to no root at all is refused in XML mode -- the fail-closed signal HTML
       # mode cannot have. The identical bytes are accepted as HTML, where they are just prose.
       expect(described_class.unsafe?('plain text, no markup at all')).to be(true)
       expect(html('plain text, no markup at all')).to be(false)
+    end
+  end
+
+  describe 'DTD entities' do
+    def svg_with_dtd(dtd, body)
+      %(<?xml version="1.0"?><!DOCTYPE svg [#{dtd}]><svg xmlns="http://www.w3.org/2000/svg">#{body}</svg>)
+    end
+
+    let(:hidden_handler) { svg_with_dtd(%q(<!ENTITY x "<image href='x' &#111;nerror='alert(1)'/>">), '&x;') }
+
+    it 'rejects a handler that an entity value hides with a character reference' do
+      expect(described_class.unsafe?(hidden_handler)).to be(true)
+    end
+
+    it 'rejects the same file in UTF-16' do
+      xml = hidden_handler.sub('<?xml version="1.0"?>', '<?xml version="1.0" encoding="UTF-16"?>')
+
+      expect(described_class.unsafe?("\xFF\xFE".b + xml.encode(Encoding::UTF_16LE).b)).to be(true)
+    end
+
+    it 'rejects an entity that points to another resource, and does not expand the file' do
+      expect(Nokogiri).to receive(:XML).once.and_call_original
+
+      expect(described_class.unsafe?(svg_with_dtd('<!ENTITY x SYSTEM "file:///etc/hosts">', '<text>&x;</text>')))
+        .to be(true)
+    end
+
+    it 'rejects an unparsed entity' do
+      dtd = '<!NOTATION png SYSTEM "image/png"><!ENTITY logo SYSTEM "logo.png" NDATA png>'
+
+      expect(described_class.unsafe?(svg_with_dtd(dtd, '<text>t</text>'))).to be(true)
+    end
+
+    it 'rejects a file whose expanded form has a fatal parse error' do
+      expect(described_class.unsafe?(svg_with_dtd('<!ENTITY x "hello">', '<text>&x;&missing;</text>'))).to be(true)
+    end
+
+    it 'accepts an entity that the file declares and does not use' do
+      expect(described_class.unsafe?(svg_with_dtd('<!ENTITY x "hello">', '<text>t</text>'))).to be(false)
+    end
+
+    it 'accepts a new declaration of a predefined entity' do
+      dtd = '<!ENTITY lt "&#38;#60;"><!ENTITY amp "&#38;#38;">'
+
+      expect(described_class.unsafe?(svg_with_dtd(dtd, '<text>1 &lt; 2 &amp; 3</text>'))).to be(false)
+    end
+
+    it 'does not read the DTD of a file in HTML mode' do
+      html = %(<!DOCTYPE html [<!ENTITY x "<b>bold</b>">]><p>&x;</p>)
+
+      expect(described_class.unsafe?(html, mode: :html)).to be(false)
+    end
+  end
+
+  # The DOCTYPE names an external DTD, so a reference that the file does not declare is no fatal
+  # error. The parser drops the reference and reports its name.
+  describe 'a reference that a file with entities does not declare' do
+    def svg_with_external_dtd(body)
+      doctype = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" ' \
+                '[<!ENTITY x "hello">]>'
+      %(#{doctype}<svg xmlns="http://www.w3.org/2000/svg"><desc>&x;#{body}</desc></svg>)
+    end
+
+    CamaleonCms::ContentSecurity::NAMED_REFERENCES.each_key do |reference|
+      it "rejects a reference to #{reference}, which the scheme match decodes" do
+        expect(described_class.unsafe?(svg_with_external_dtd(reference))).to be(true)
+      end
+    end
+
+    it 'accepts a reference to another name' do
+      expect(described_class.unsafe?(svg_with_external_dtd('&nbsp;'))).to be(false)
+    end
+
+    it 'accepts 99 references to another name' do
+      expect(described_class.unsafe?(svg_with_external_dtd('&nbsp;' * 99))).to be(false)
+    end
+
+    # The parser stops its reports after 100, so the checker cannot know the names after them.
+    it 'rejects 100 references to another name' do
+      expect(described_class.unsafe?(svg_with_external_dtd('&nbsp;' * 100))).to be(true)
+    end
+
+    it 'accepts a reference to a name that the file declares' do
+      svg = svg_with_external_dtd('10&colon;30').sub('[', '[<!ENTITY colon ":">')
+
+      expect(described_class.unsafe?(svg)).to be(false)
+    end
+  end
+
+  describe 'DTD attribute defaults' do
+    def svg_with_defaults(dtd)
+      %(<?xml version="1.0"?><!DOCTYPE svg [#{dtd}]><svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>)
+    end
+
+    it 'rejects a default for a handler attribute' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg onload CDATA "alert(1)">'))).to be(true)
+    end
+
+    it 'rejects a default for a handler attribute in upper case' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg ONLOAD CDATA "alert(1)">'))).to be(true)
+    end
+
+    it 'rejects a default for a handler attribute with a prefix' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg ev:onload CDATA "alert(1)">'))).to be(true)
+    end
+
+    it 'rejects a default of an enumerated handler attribute' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg onload (a|b) "a">'))).to be(true)
+    end
+
+    it 'rejects a default that a parameter entity declares' do
+      dtd = %(<!ENTITY % p "<!ATTLIST svg onload CDATA 'alert(1)'>"> %p;)
+
+      expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+    end
+
+    it 'rejects a default with a blocked scheme that an entity completes' do
+      dtd = '<!ENTITY j "java"><!ATTLIST a href CDATA "&j;script:alert(1)">'
+
+      expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+    end
+
+    # The tree keeps such a declaration with no default, and the parser still gives the element
+    # that default.
+    context 'with a default that does not fit the type of the attribute' do
+      {
+        'a name token' => '<!ATTLIST svg onload NMTOKEN "alert(1)">',
+        'an enumeration' => '<!ATTLIST svg onload (a|b) "alert(1)">',
+        'a fixed name token' => '<!ATTLIST svg onload NMTOKEN #FIXED "alert(1)">'
+      }.each do |type, dtd|
+        it "rejects a handler default for #{type}" do
+          expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+        end
+      end
+
+      # The parser stops its reports after 100 of one level. Each report before the declaration is
+      # an error, as the report for the default is.
+      it 'rejects the default after 100 reports of an error' do
+        dtd = %(#{'<!ELEMENT a ANY>' * 101}<!ATTLIST svg onload NMTOKEN "alert(1)">)
+
+        expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+      end
+
+      it 'accepts a default that fits its type, for an attribute that is no handler' do
+        expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST rect fill NMTOKEN "red">'))).to be(false)
+      end
+    end
+
+    # The tree keeps the first declaration of an attribute. A browser uses the first declaration
+    # that has a default.
+    context 'with a second declaration of one attribute' do
+      let(:second_default) { '<!ATTLIST svg onload CDATA #IMPLIED><!ATTLIST svg onload CDATA "alert(1)">' }
+
+      it 'rejects a handler default of the second declaration' do
+        expect(described_class.unsafe?(svg_with_defaults(second_default))).to be(true)
+      end
+
+      it 'rejects a second declaration that a parameter entity gives' do
+        dtd = %(<!ATTLIST svg onload CDATA #IMPLIED><!ENTITY % p "<!ATTLIST svg onload CDATA 'alert(1)'>"> %p;)
+
+        expect(described_class.unsafe?(svg_with_defaults(dtd))).to be(true)
+      end
+
+      # Each report before the two declarations is a warning, as the report for the second one is.
+      it 'rejects the second declaration after 100 reports of a warning' do
+        expect(described_class.unsafe?(svg_with_defaults("#{'%u; ' * 100}#{second_default}"))).to be(true)
+      end
+    end
+
+    it 'accepts 100 reports of a warning in a file whose DTD declares no attribute' do
+      doctype = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+      svg = %(#{doctype}<svg xmlns="http://www.w3.org/2000/svg"><desc>#{'&nbsp;' * 100}</desc></svg>)
+
+      expect(described_class.unsafe?(svg)).to be(false)
+    end
+
+    it 'accepts a required handler attribute, which has no default' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg onload CDATA #REQUIRED>'))).to be(false)
+    end
+
+    it 'accepts a default for an attribute that is no handler' do
+      expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST rect fill CDATA "red">'))).to be(false)
+    end
+
+    context 'with a default that declares a namespace whose prefix starts with "on"' do
+      let(:namespace_default) { svg_with_defaults('<!ATTLIST svg xmlns:onix CDATA #FIXED "urn:onix">') }
+
+      it 'accepts the file' do
+        expect(described_class.unsafe?(namespace_default)).to be(false)
+      end
+
+      it 'accepts the same file in UTF-16' do
+        xml = namespace_default.sub('<?xml version="1.0"?>', '<?xml version="1.0" encoding="UTF-16"?>')
+
+        expect(described_class.unsafe?("\xFF\xFE".b + xml.encode(Encoding::UTF_16LE).b)).to be(false)
+      end
+
+      it 'rejects a blocked scheme in the namespace' do
+        expect(described_class.unsafe?(svg_with_defaults('<!ATTLIST svg xmlns:onix CDATA "javascript:alert(1)">')))
+          .to be(true)
+      end
+    end
+  end
+
+  describe 'a file that is not well-formed XML' do
+    it 'rejects an element that has no end tag' do
+      expect(described_class.unsafe?(svg_wrapping('<g><rect/>'))).to be(true)
+    end
+
+    it 'rejects text after the root element' do
+      expect(described_class.unsafe?("#{svg_wrapping('<rect/>')}text")).to be(true)
+    end
+
+    it 'rejects bytes that are not valid in the encoding of the file' do
+      expect(described_class.unsafe?(svg_wrapping("<desc>\xFF</desc>"))).to be(true)
+    end
+
+    it 'accepts a file in an encoding that it declares' do
+      xml = %(<?xml version="1.0" encoding="ISO-8859-1"?>#{svg_wrapping("<desc>\xE9</desc>".b)})
+
+      expect(described_class.unsafe?(xml.b)).to be(false)
+    end
+
+    it 'accepts a prefix with no namespace, which is no fatal error' do
+      svg = '<svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#a"/></svg>'
+
+      expect(described_class.unsafe?(svg)).to be(false)
+    end
+
+    it 'gives a verdict on a file with an element that has no end tag in HTML mode' do
+      expect(described_class.unsafe?('<div><p>text', mode: :html)).to be(false)
+    end
+  end
+
+  # The HTML parser of libxml2 reads `<!--` as the start of a comment inside these elements. A
+  # browser reads it as text there, so the element after the end tag is in its page.
+  describe 'an HTML file that a browser parses in another way' do
+    def html(markup)
+      described_class.unsafe?(markup, mode: :html)
+    end
+
+    %w[xmp title textarea noscript noembed noframes].each do |tag|
+      it "rejects a handler after a comment start in a #{tag} element" do
+        expect(html("<#{tag}><!--</#{tag}><img src=x onpointerdown=alert(1)>--></#{tag}>")).to be(true)
+      end
+    end
+
+    it 'accepts a handler name in a comment' do
+      expect(html('<p>text</p><!-- <img src=x onpointerdown=alert(1)> -->')).to be(false)
+    end
+
+    # Chrome 158 keeps most elements in a `select` element. The HTML5 parser of Nokogiri drops an
+    # `xmp` element there, and it does not read the content of that element as text. In each
+    # example, Chrome 158 shows the `img` element with its handler.
+    {
+      'a comment start in an xmp element' =>
+        '<select><xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></select>',
+      'a comment start in an xmp element in an option element' =>
+        '<select><option><xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></option></select>',
+      'a select end tag in an xmp element' =>
+        '<select><xmp></select><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></select>',
+      'an input start tag in an xmp element' =>
+        '<select><xmp><input><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp></select>',
+      'an xmp end tag in an option attribute' =>
+        '<select><xmp><option title="</xmp><img src=x onpointerdown=alert(1)>"></option></xmp></select>'
+    }.each do |content, markup|
+      it "rejects a handler after #{content} in a select element" do
+        expect(html(markup)).to be(true)
+      end
+    end
+
+    it 'rejects a select element that holds only option elements' do
+      expect(html('<select><optgroup><option>a</option></optgroup></select>')).to be(true)
+    end
+
+    # The HTML5 parser raises an error past 400 nested elements, so the checker cannot judge the file.
+    it 'rejects a file past the nesting limit of the HTML5 parser' do
+      expect(html("#{'<div>' * 500}text")).to be(true)
+    end
+
+    # The last two bytes are half of a character, so the HTML5 parser cannot read the file.
+    it 'rejects a UTF-16 file with a byte sequence that is not valid' do
+      page = "\xFF\xFE".b + '<p>text</p>'.encode(Encoding::UTF_16LE).b + "\x00\xD8".b
+
+      expect(html(page)).to be(true)
+    end
+
+    it 'accepts a UTF-16 file with no rejected content' do
+      expect(html("\xFF\xFE".b + '<p>text</p>'.encode(Encoding::UTF_16LE).b)).to be(false)
+    end
+
+    # Nokogiri reads a charset from each tag whose name starts with `meta`. A browser reads it only
+    # from a `meta` element.
+    it 'rejects a handler after a comment start when a metadata element names a charset' do
+      markup = '<metadata charset=IBM037></metadata><xmp><!--</xmp><img src=x onpointerdown=alert(1)>--></xmp>'
+
+      expect(html(markup)).to be(true)
+    end
+
+    it 'accepts a metadata element that names a charset, with no rejected content' do
+      expect(html('<metadata charset=IBM037></metadata><p>text</p>')).to be(false)
+    end
+
+    it 'accepts a noscript element with no rejected content' do
+      expect(html('<noscript><p>text</p></noscript>')).to be(false)
+    end
+
+    # Nokogiri before 1.17 ignores `parse_noscript_content_as_text`, so its tree is the tree of a
+    # browser with scripting off.
+    it 'rejects a noscript element when the HTML5 parser cannot read its content as text' do
+      stub_const('CamaleonCms::SvgContentChecker::NOSCRIPT_CONTENT_AS_TEXT', false)
+
+      expect(html('<noscript><p>text</p></noscript>')).to be(true)
+    end
+
+    # Nokogiri before 1.17 drops an `encoding:` keyword, and it reads the third argument.
+    it 'gives the HTML5 parser the encoding as its third argument' do
+      expect(Nokogiri::HTML5::Document).to receive(:parse)
+        .with(anything, nil, Encoding::ISO_8859_1, parse_noscript_content_as_text: true).and_call_original
+
+      html('<p>text</p>')
+    end
+  end
+
+  describe 'stylesheets' do
+    let(:xslt) { 'http://www.w3.org/1999/XSL/Transform' }
+
+    it 'rejects an xml-stylesheet processing instruction before the root element' do
+      xml = %(<?xml-stylesheet type="text/css" href="x.css"?>#{svg_wrapping('<rect/>')})
+
+      expect(described_class.unsafe?(xml)).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction in an element' do
+      expect(described_class.unsafe?(svg_wrapping('<?xml-stylesheet href="x.css"?><rect/>'))).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction in HTML mode' do
+      html = '<?xml-stylesheet href="x.css"?><html><body><p>text</p></body></html>'
+
+      expect(described_class.unsafe?(html, mode: :html)).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction in the DTD, after an entity declaration' do
+      xml = %(<!DOCTYPE svg [<!ENTITY x "y"><?xml-stylesheet href="x.css"?>]>#{svg_wrapping('<rect/>')})
+
+      expect(described_class.unsafe?(xml)).to be(true)
+    end
+
+    it 'rejects an xml-stylesheet processing instruction that a parameter entity gives to the DTD' do
+      dtd = %(<!ENTITY % p "<?xml-stylesheet href='x.css'?>"> %p;)
+
+      expect(described_class.unsafe?(%(<!DOCTYPE svg [#{dtd}]>#{svg_wrapping('<rect/>')}))).to be(true)
+    end
+
+    it 'accepts another processing instruction in the DTD' do
+      xml = %(<!DOCTYPE svg [<!ENTITY x "y"><?editor version="2"?>]>#{svg_wrapping('<rect/>')})
+
+      expect(described_class.unsafe?(xml)).to be(false)
+    end
+
+    it 'rejects the XSLT namespace as the default namespace' do
+      expect(described_class.unsafe?(%(<stylesheet xmlns="#{xslt}" version="1.0"/>))).to be(true)
+    end
+
+    it 'rejects the XSLT namespace on an element below the root' do
+      expect(described_class.unsafe?(svg_wrapping(%(<g xmlns:x="#{xslt}"><rect/></g>)))).to be(true)
+    end
+
+    it 'accepts text that names the XSLT namespace' do
+      expect(described_class.unsafe?(svg_wrapping("<desc>#{xslt}</desc>"))).to be(false)
+    end
+
+    # A browser reads these names in a namespace declaration of a file with a public XHTML DOCTYPE.
+    # The file does not declare them, so the parser drops them from the namespace.
+    context 'with a named reference in a namespace, in a file with a public XHTML DOCTYPE' do
+      def stylesheet_with(namespace)
+        doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" ' \
+                  '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'
+        root = %(<html xsl:version="1.0" xmlns:xsl="#{namespace}" xmlns="http://www.w3.org/1999/xhtml">)
+
+        "#{doctype}#{root}<body/></html>"
+      end
+
+      { '&colon;' => ':', '&sol;' => '/', '&period;' => '.' }.each do |reference, character|
+        it "rejects the XSLT namespace with #{reference} for a character" do
+          expect(described_class.unsafe?(stylesheet_with(xslt.sub(character, reference)))).to be(true)
+        end
+      end
+
+      it 'accepts another namespace with a named reference' do
+        expect(described_class.unsafe?(stylesheet_with('http:&sol;/example.test/ns'))).to be(false)
+      end
+    end
+
+    # The XPath namespace axis gives each element one node for each namespace in scope. With that
+    # axis, the check of this file of 54 KB took 39 seconds.
+    it 'gives a verdict on a file with 2000 namespaces and 2000 elements in less than 5 seconds' do
+      namespaces = (1..2000).map { |n| %(xmlns:n#{n}="urn:n#{n}") }.join(' ')
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" #{namespaces}>#{'<g/>' * 2000}</svg>)
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+      expect(described_class.unsafe?(svg)).to be(false)
+      expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - start).to be < 5
     end
   end
 end
