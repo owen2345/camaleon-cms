@@ -87,6 +87,22 @@ RSpec.describe 'the text editors of custom fields that the admin sorts', :js do
 
       expect_the_text_editor_set_up_again(editors)
     end
+
+    # An inline text editor has no frame, so it works after a move.
+    it 'keeps an inline text editor of a dragged instance' do
+      page.execute_script(<<~JS, sortable)
+        jQuery('<div id="inline_editor"><p>inline</p></div>')
+          .appendTo(jQuery(arguments[0]).children('.custom_sortable_grouped').first());
+        tinymce.init({ selector: '#inline_editor', inline: true });
+      JS
+      wait_for_the_text_editors
+      page.execute_script("window.__cama_inline_editor = tinymce.get('inline_editor');")
+      editors = text_editor_ids
+      drag_and_drop_the_first_item(sortable, '.custom_sortable_grouped')
+
+      expect_the_text_editor_set_up_again(editors)
+      expect(page.evaluate_script("tinymce.get('inline_editor') === window.__cama_inline_editor")).to be(true)
+    end
   end
 
   context 'with a field that takes more than one value' do
