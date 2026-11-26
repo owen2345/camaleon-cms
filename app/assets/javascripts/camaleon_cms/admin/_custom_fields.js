@@ -157,7 +157,7 @@ function cama_remove_text_editors(item){
         var field = editor.getElement();
         if(editor.inline || !$.contains(item[0], field)) return;
         var settings = editor.settings;
-        tinymce.execCommand('mceRemoveEditor', false, editor.id);
+        editor.remove();
         $(field).addClass('cama_restore_editor').data('cama_editor_settings', settings);
     });
 }
