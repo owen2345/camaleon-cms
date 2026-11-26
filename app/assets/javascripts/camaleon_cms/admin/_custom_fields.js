@@ -166,9 +166,7 @@ function cama_restore_text_editors(item){
     item.find('.cama_restore_editor').removeClass('cama_restore_editor').each(function(){
         var settings = $(this).data('cama_editor_settings');
         $(this).removeData('cama_editor_settings');
-        if(tinymce.get(this.id)) return;
-        if(settings) new tinymce.Editor(this.id, settings, tinymce.EditorManager).render();
-        else tinymce.execCommand('mceAddEditor', true, this.id);
+        if(!tinymce.get(this.id)) new tinymce.Editor(this.id, settings, tinymce.EditorManager).render();
     });
 }
 
