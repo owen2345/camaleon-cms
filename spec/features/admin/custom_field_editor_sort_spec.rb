@@ -47,21 +47,26 @@ RSpec.describe 'the text editors of custom fields that the admin sorts', :js do
   end
 
   # Runs the events of the sortable for a drag of its first item, because a mouse drag in the browser
-  # of the spec is not reliable. `sortable` is the selector of the sortable, and `items` is the
-  # selector of its items.
+  # of the spec is not reliable. Between the two events, it moves the item to the end of the sortable,
+  # as a drop does. `sortable` is the selector of the sortable, and `items` is the selector of its items.
   def drag_and_drop_the_first_item(sortable, items)
     page.execute_script(<<~JS, sortable, items)
       var sortable = jQuery(arguments[0]);
       var ui = {item: sortable.children(arguments[1]).first()};
       sortable.sortable('option', 'start').call(sortable[0], {}, ui);
+      ui.item.appendTo(sortable);
       sortable.sortable('option', 'stop').call(sortable[0], {}, ui);
     JS
     wait_for_the_text_editors
   end
 
+  # A move loads the frame of a text editor again. The text editor works only when its document is the
+  # document of its frame.
   def expect_the_text_editor_set_up_again(editors)
     expect(text_editor_ids).to match_array(editors)
     expect(page.evaluate_script("#{text_editor} !== window.__cama_first_editor")).to be(true)
+    expect(page.evaluate_script("#{text_editor}.getDoc() === #{text_editor}.iframeElement.contentDocument"))
+      .to be(true)
     expect(page.evaluate_script("#{text_editor}.getContent()")).to eq('<p>written before the drag</p>')
   end
 
