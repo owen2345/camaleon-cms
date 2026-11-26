@@ -12,12 +12,17 @@ RSpec.describe 'the text editors of custom fields that the admin sorts', :js do
                                       is_repeat: true)
   end
   let(:field_options) { { 'field_key' => 'editor' } }
+  # The slugs of more editor fields of the group, after the first one.
+  let(:other_editor_fields) { [] }
   # The scripts of the first editor field of the group and of its text editor.
   let(:field) { "jQuery('#custom_field_group_#{group.id} textarea.input-value').first()" }
   let(:text_editor) { "tinymce.get(#{field}.attr('id'))" }
 
   before do
     group.add_manual_field({ 'name' => 'Body', 'slug' => 'section_body' }, field_options)
+    other_editor_fields.each do |slug|
+      group.add_manual_field({ 'name' => slug.titleize, 'slug' => slug }, { 'field_key' => 'editor' })
+    end
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/settings/site?tab=other_config"
     wait_for_the_text_editors
@@ -103,6 +108,24 @@ RSpec.describe 'the text editors of custom fields that the admin sorts', :js do
 
       expect_the_text_editor_set_up_again(editors)
       expect(page.evaluate_script("tinymce.get('inline_editor') === window.__cama_inline_editor")).to be(true)
+    end
+
+    context 'with two text editors in an instance' do
+      let(:other_editor_fields) { ['section_aside'] }
+
+      it 'sets up each text editor of the dragged instance again' do
+        page.execute_script('window.__cama_old_editors = tinymce.editors.slice();')
+        editors = text_editor_ids
+        drag_and_drop_the_first_item(sortable, '.custom_sortable_grouped')
+
+        expect_the_text_editor_set_up_again(editors)
+        expect(page.evaluate_script(<<~JS)).to be(true)
+          tinymce.editors.length === 2 && jQuery.grep(tinymce.editors, function(editor){
+            return window.__cama_old_editors.indexOf(editor) === -1 &&
+              editor.getDoc() === editor.iframeElement.contentDocument;
+          }).length === 2
+        JS
+      end
     end
   end
 
