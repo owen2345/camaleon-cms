@@ -48,7 +48,8 @@ RSpec.describe 'the text editors of custom fields that the admin sorts', :js do
 
   # Runs the events of the sortable for a drag of its first item, because a mouse drag in the browser
   # of the spec is not reliable. Between the two events, it moves the item to the end of the sortable,
-  # as a drop does. `sortable` is the selector of the sortable, and `items` is the selector of its items.
+  # because a drop also moves the item in the page. `sortable` is the selector of the sortable, and
+  # `items` is the selector of its items.
   def drag_and_drop_the_first_item(sortable, items)
     page.execute_script(<<~JS, sortable, items)
       var sortable = jQuery(arguments[0]);
