@@ -102,5 +102,20 @@ RSpec.describe 'the text editors of custom fields that the admin sorts', :js do
 
       expect_the_text_editor_set_up_again(editors)
     end
+
+    # TinyMCE keeps the settings of the last tinymce.init for the page. On the post page, that is the
+    # init of the post content editor, which comes after the custom fields.
+    it 'sets up the text editor of a dragged value again with its own settings' do
+      page.execute_script(<<~JS)
+        jQuery('<textarea id="later_editor"></textarea>').appendTo('body');
+        tinymce.init(cama_get_tinymce_settings({ selector: '#later_editor', height: '480px' }));
+      JS
+      wait_for_the_text_editors
+      editors = text_editor_ids
+      drag_and_drop_the_first_item(sortable, '.editor-custom-fields')
+
+      expect_the_text_editor_set_up_again(editors)
+      expect(page.evaluate_script("String(#{text_editor}.settings.height)")).to eq('120')
+    end
   end
 end

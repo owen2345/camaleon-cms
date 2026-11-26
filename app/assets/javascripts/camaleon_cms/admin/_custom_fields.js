@@ -149,19 +149,26 @@ function cama_build_custom_field(panel, field_data, values){
 // each field from its text editor, not from the element after a panel. A plugin can put its own
 // element between the panel of a text editor and the field. An inline text editor has no panel in
 // the item, and it stays.
+// Each field keeps the settings of its text editor. mceAddEditor uses the settings of the last
+// tinymce.init of the page, which can be the init of another editor.
 function cama_remove_text_editors(item){
     // a copy of the list: the removal of a text editor changes the list
     $.each(tinymce.editors.slice(), function(index, editor){
         var field = editor.getElement();
         if(editor.inline || !$.contains(item[0], field)) return;
+        var settings = editor.settings;
         tinymce.execCommand('mceRemoveEditor', false, editor.id);
-        $(field).addClass('cama_restore_editor');
+        $(field).addClass('cama_restore_editor').data('cama_editor_settings', settings);
     });
 }
 
 function cama_restore_text_editors(item){
     item.find('.cama_restore_editor').removeClass('cama_restore_editor').each(function(){
-        tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
+        var settings = $(this).data('cama_editor_settings');
+        $(this).removeData('cama_editor_settings');
+        if(tinymce.get(this.id)) return;
+        if(settings) new tinymce.Editor(this.id, settings, tinymce.EditorManager).render();
+        else tinymce.execCommand('mceAddEditor', true, this.id);
     });
 }
 
