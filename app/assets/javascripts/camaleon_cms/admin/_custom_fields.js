@@ -221,7 +221,9 @@ function custom_field_date($field) {
 }
 function custom_field_editor($field) {
     if ($field) {
-        var id = "t_" + Math.floor((Math.random() * 100000) + 1) + "_area";
+        // TinyMCE finds the field by its id, so the field gets a random id that no other element has.
+        var id;
+        do { id = "t_" + Math.floor((Math.random() * 100000) + 1) + "_area"; } while (document.getElementById(id));
         var textarea = $field.find('textarea').attr('id', id);
         if (textarea.hasClass('is_translate')) {
             textarea.addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
