@@ -149,8 +149,9 @@ function cama_build_custom_field(panel, field_data, values){
 // each field from its text editor, not from the element after a panel. A plugin can put its own
 // element between the panel of a text editor and the field. An inline text editor has no panel in
 // the item, and it stays.
-// Each field keeps the settings of its text editor. mceAddEditor uses the settings of the last
-// tinymce.init of the page, which can be the init of another editor.
+// Each field keeps the settings of its text editor. The drop does not use mceAddEditor, because
+// mceAddEditor uses the settings of the last tinymce.init of the page, which can be the init of
+// another editor.
 function cama_remove_text_editors(item){
     // a copy of the list: the removal of a text editor changes the list
     $.each(tinymce.editors.slice(), function(index, editor){
