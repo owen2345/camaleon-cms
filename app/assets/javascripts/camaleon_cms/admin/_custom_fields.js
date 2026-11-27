@@ -42,16 +42,8 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
     if(is_repeat){
         group_panel_body.sortable({ handle: ".move.fa-arrows", items: ' > .custom_sortable_grouped',
             update: function(){ group_panel.trigger('update_custom_group_number'); },
-            start: function (e, ui) { // fix tinymce
-                $(ui.item).find('.mce-panel').each(function () {
-                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
-                });
-            },
-            stop: function (e, ui) { // fix tinymce
-                $(ui.item).find('.cama_restore_editor').each(function () {
-                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
-                });
-            }});
+            start: function (e, ui) { cama_remove_text_editors($(ui.item)); },
+            stop: function (e, ui) { cama_restore_text_editors($(ui.item)); }});
         group_panel.find('.btn.duplicate_cutom_group').click(function(){ return add_group({}); });
         group_panel_body.on('click', '.header-field-grouped .del', function(){ if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); }); return false; });
         group_panel_body.on('click', '.header-field-grouped .toggleable', function(){
@@ -146,18 +138,37 @@ function cama_build_custom_field(panel, field_data, values){
         panel.find('.field_multiple_btn .btn').click(function () { add_field(field_data.default_value); return false; });
         panel.delegate('.actions .fa-times', "click", function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
         $sortable.sortable({ handle: ".fa-arrows", items: ' > .editor-custom-fields',
-            start: function (e, ui) { // fix tinymce
-                $(ui.item).find('.mce-panel').each(function () {
-                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
-                });
-            },
-            stop: function (e, ui) { // fix tinymce
-                $(ui.item).find('.cama_restore_editor').each(function () {
-                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
-                });
-            }
+            start: function (e, ui) { cama_remove_text_editors($(ui.item)); },
+            stop: function (e, ui) { cama_restore_text_editors($(ui.item)); }
         });
     }
+}
+
+// A text editor does not survive a move of its panel in the page. For this reason, a sortable removes
+// the text editors of the dragged item, and sets them up again at the drop. The two functions find
+// each field from its text editor, not from the element after a panel. A plugin can put its own
+// element between the panel of a text editor and the field. An inline text editor has no panel in
+// the item, and it stays.
+// Each field keeps the settings of its text editor. The drop does not use mceAddEditor, because
+// mceAddEditor uses the settings of the last tinymce.init of the page, which can be the init of
+// another editor.
+function cama_remove_text_editors(item){
+    // a copy of the list: the removal of a text editor changes the list
+    $.each(tinymce.editors.slice(), function(index, editor){
+        var field = editor.getElement();
+        if(editor.inline || !$.contains(item[0], field)) return;
+        var settings = editor.settings;
+        editor.remove();
+        $(field).addClass('cama_restore_editor').data('cama_editor_settings', settings);
+    });
+}
+
+function cama_restore_text_editors(item){
+    item.find('.cama_restore_editor').removeClass('cama_restore_editor').each(function(){
+        var settings = $(this).data('cama_editor_settings');
+        $(this).removeData('cama_editor_settings');
+        if(!tinymce.get(this.id)) new tinymce.Editor(this.id, settings, tinymce.EditorManager).render();
+    });
 }
 
 function custom_field_colorpicker($field) {
@@ -211,7 +222,11 @@ function custom_field_date($field) {
 }
 function custom_field_editor($field) {
     if ($field) {
-        var id = "t_" + Math.floor((Math.random() * 100000) + 1) + "_area";
+        // TinyMCE finds the field by its id, so the field gets a random id that no other element has.
+        // TinyMCE keeps the text editor of a deleted field, and it gives no text editor to a new field
+        // with the id of that text editor. For this reason, the id is also not the id of a text editor.
+        var id;
+        do { id = "t_" + Math.floor((Math.random() * 100000) + 1) + "_area"; } while (document.getElementById(id) || tinymce.get(id));
         var textarea = $field.find('textarea').attr('id', id);
         if (textarea.hasClass('is_translate')) {
             textarea.addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
