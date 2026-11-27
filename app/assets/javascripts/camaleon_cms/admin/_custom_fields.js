@@ -223,8 +223,10 @@ function custom_field_date($field) {
 function custom_field_editor($field) {
     if ($field) {
         // TinyMCE finds the field by its id, so the field gets a random id that no other element has.
+        // TinyMCE keeps the text editor of a deleted field, and it gives no text editor to a new field
+        // with the id of that text editor. For this reason, the id is also not the id of a text editor.
         var id;
-        do { id = "t_" + Math.floor((Math.random() * 100000) + 1) + "_area"; } while (document.getElementById(id));
+        do { id = "t_" + Math.floor((Math.random() * 100000) + 1) + "_area"; } while (document.getElementById(id) || tinymce.get(id));
         var textarea = $field.find('textarea').attr('id', id);
         if (textarea.hasClass('is_translate')) {
             textarea.addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
