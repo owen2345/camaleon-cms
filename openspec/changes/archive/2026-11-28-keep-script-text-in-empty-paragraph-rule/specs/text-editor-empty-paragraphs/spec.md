@@ -61,7 +61,7 @@ selection.
 #### Scenario: Paragraph markup in a CDATA section or a noframes element
 
 - **WHEN** the content holds `<![CDATA[<p></p>]]>` or `<noframes><p></p></noframes>`
-- **THEN** the editor returns the CDATA section and the `noframes` element with their text unchanged
+- **THEN** the editor returns each of them with its text unchanged
 
 #### Scenario: An empty paragraph in the content of a media element
 
