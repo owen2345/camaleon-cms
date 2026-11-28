@@ -52,6 +52,10 @@ RSpec.describe 'the Site Settings SideBar options', :js do
         click_button 'Submit'
       end
 
+      # The submit loads a new page. Without this wait, the next step can find the editor frame of the old
+      # page, which is stale when Capybara switches to it.
+      expect(page).to have_text('Updated Successfully')
+
       within '.mce-edit-area' do
         within_frame do
           editor = page.find_by_id('tinymce')
