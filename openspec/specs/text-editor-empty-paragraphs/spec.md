@@ -11,8 +11,8 @@ elements only. The text of a script or a comment holds markup as text, and that 
 
 A TinyMCE text editor that takes the settings of `cama_get_tinymce_settings` SHALL write each
 paragraph that has no attributes and no content as `<br />`. This also applies to a paragraph that
-the editor empties, for example when it removes a last `br`. A paragraph that has an attribute or
-content SHALL stay a paragraph.
+the editor empties, for example when it removes a last `br`. A paragraph that still has an
+attribute or content after the changes of the editor SHALL stay a paragraph.
 
 #### Scenario: An empty paragraph between two paragraphs
 
