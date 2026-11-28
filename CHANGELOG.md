@@ -4,7 +4,7 @@
 
 - **Tests:** The theme settings spec now waits for the new page after a submit, so it no longer reads a stale editor frame. Development-only. [#1374](https://github.com/owen2345/camaleon-cms/pull/1374).
 
-- **Bug fix:** The text editors no longer change `<p></p>` in the text of a script or a comment. An empty paragraph elsewhere still becomes a `<br />`, as before. [#1373](https://github.com/owen2345/camaleon-cms/pull/1373).
+- **Bug fix:** The text editors no longer change `<p></p>` to `<br />` in the text of a script, a comment or a `noscript` element. The same applies to the content of an `iframe`, `video`, `audio` or `object` element. An empty paragraph elsewhere still becomes a `<br />`, as before. [#1373](https://github.com/owen2345/camaleon-cms/pull/1373).
 
 - **Docs:** The README now says that the TinyMCE Template Integration plugin parses all editor content with jQuery in the admin page. An event handler in the content then runs there. No behavior change. [#1372](https://github.com/owen2345/camaleon-cms/pull/1372).
 
