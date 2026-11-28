@@ -83,6 +83,7 @@ https://camaleon.website/store/plugins
 * Lightbox - https://github.com/owen2345/CamaImageLightbox
 * Permissions for External Menus - https://github.com/owen2345/cama_external_menu
 * TinyMCE Template Integration - https://github.com/owen2345/Camaleon-Tinymce-Templates
+  * Its last change is from 2017. At each write and each read, it parses all the content of each text editor with jQuery in the admin page. An event handler in the content, such as `onerror`, then runs on the admin page. The browser also writes the markup again in its own spelling.
 * Download Manager - https://github.com/max2320/camaleon-download
 * OAuth - https://github.com/owen2345/camaleon_oauth
 * Visual Editor - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon_editor (Github: https://github.com/owen2345/camaleon_editor)
