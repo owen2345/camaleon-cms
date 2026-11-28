@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tests:** The theme settings spec now waits for the new page after a submit, so it no longer reads a stale editor frame. Development-only. [#1374](https://github.com/owen2345/camaleon-cms/pull/1374).
+
 - **Docs:** The README now says that the TinyMCE Template Integration plugin parses all editor content with jQuery in the admin page. An event handler in the content then runs there. No behavior change. [#1372](https://github.com/owen2345/camaleon-cms/pull/1372).
 
 - **Bug fix:** A drag of a repeatable field group, or of a field value, now sets up each text editor of the dragged item again. Each one keeps its own settings, and an inline text editor stays. Before, a plugin element between the panel of a text editor and its field left that editor broken. Camaleon also set up text editors on other elements. A new text editor field now always gets its text editor. [#1370](https://github.com/owen2345/camaleon-cms/pull/1370).
