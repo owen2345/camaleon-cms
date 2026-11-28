@@ -112,4 +112,32 @@ RSpec.describe 'Empty paragraphs in the text editor of a post', :js do
     expect(round_trip('<p>a</p><p>&nbsp;</p><p><br><br></p><p><span></span></p>'))
       .to eq("<p>a</p>\n<p>&nbsp;</p>\n<p><br /><br /></p>\n<p><span></span></p>")
   end
+
+  # The rule marks each paragraph with a data-cama-paragraph attribute. A paragraph of the content
+  # that has this attribute keeps its own value.
+  it 'keeps a data-cama-paragraph attribute of the content' do
+    open_editor_that_keeps_scripts
+
+    expect(round_trip('<p>a</p><p data-cama-paragraph="x"></p>'))
+      .to eq("<p>a</p>\n<p data-cama-paragraph=\"x\"></p>")
+  end
+
+  # Without the PostProcess event, nothing removes a mark, so the rule sets none.
+  it 'leaves no mark in content that is read without events or as a tree' do
+    open_editor_that_keeps_scripts
+
+    contents = page.evaluate_script(<<~JS)
+      (function () {
+        var editor = tinymce.get('post_content');
+        editor.setContent('<p>a</p><p></p>');
+        var tree = editor.getContent({ format: 'tree' });
+        return [editor.getContent({ no_events: true }), new tinymce.html.Serializer({}, editor.schema).serialize(tree)];
+      })()
+    JS
+    expect(contents.size).to eq(2)
+    contents.each do |content|
+      expect(content).to include('<p>a</p>')
+      expect(content).not_to include('data-cama-paragraph')
+    end
+  end
 end
