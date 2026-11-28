@@ -20,8 +20,9 @@ RSpec.describe 'Empty paragraphs in the text editor of a post', :js do
     JS
   end
 
-  # Creates the content editor again, with the script element in its valid elements.
-  def open_editor_that_keeps_scripts
+  # Creates the content editor again, with the script element in its valid elements. With
+  # media: false, the editor has no media plugin.
+  def open_editor_that_keeps_scripts(media: true)
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new"
     wait_for_content_editor
@@ -29,6 +30,7 @@ RSpec.describe 'Empty paragraphs in the text editor of a post', :js do
       tinymce.get('post_content').remove();
       var settings = cama_get_tinymce_settings({ selector: '#post_content' });
       settings.extended_valid_elements += ',script[*]';
+      if (!#{media}) settings.plugins = settings.plugins.replace(/\\bmedia\\b/, '');
       tinymce.init(settings);
     JS
     wait_for_content_editor
@@ -75,6 +77,22 @@ RSpec.describe 'Empty paragraphs in the text editor of a post', :js do
 
     expect(round_trip('<p>a</p><noscript><p></p><P></P></noscript>'))
       .to eq("<p>a</p>\n<noscript><p></p><P></P></noscript>")
+  end
+
+  it 'keeps empty paragraph markup in a CDATA section and in a noframes element' do
+    open_editor_that_keeps_scripts
+
+    expect(round_trip('<![CDATA[<p></p>]]>')).to eq('<![CDATA[<p></p>]]>')
+    expect(round_trip('<p>a</p><noframes><p></p><P></P></noframes>'))
+      .to eq("<p>a</p>\n<p><noframes><p></p><P></P></noframes></p>")
+  end
+
+  # Without the media plugin, the editor keeps the content of an iframe element as text.
+  it 'keeps the content of an iframe element without the media plugin' do
+    open_editor_that_keeps_scripts(media: false)
+
+    expect(round_trip('<p>a</p><iframe><p></p><P></P></iframe>'))
+      .to eq("<p>a</p>\n<p><iframe><p></p><P></P></iframe></p>")
   end
 
   # The media plugin writes the content of a media element again, so the case of a tag can change.

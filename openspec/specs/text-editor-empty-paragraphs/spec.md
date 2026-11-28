@@ -65,10 +65,20 @@ selection.
 - **WHEN** the content holds `<noscript><p></p></noscript>`
 - **THEN** the editor returns the `noscript` element with its content unchanged
 
+#### Scenario: Paragraph markup in a CDATA section or a noframes element
+
+- **WHEN** the content holds `<![CDATA[<p></p>]]>` or `<noframes><p></p></noframes>`
+- **THEN** the editor returns the CDATA section and the `noframes` element with their text unchanged
+
 #### Scenario: An empty paragraph in the content of a media element
 
 - **WHEN** the content holds `<video controls><p></p></video>`
 - **THEN** the editor returns the `video` element with `<p></p>` in its content
+
+#### Scenario: Paragraph markup in an iframe element without the media plugin
+
+- **WHEN** a text editor has no media plugin, and the content holds `<iframe><P></P></iframe>`
+- **THEN** the editor returns the `iframe` element with its content unchanged
 
 #### Scenario: A selection that holds a script and an empty paragraph
 
