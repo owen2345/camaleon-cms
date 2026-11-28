@@ -6,8 +6,9 @@
   comment examples fail with the old rule
 - [x] 1.2 Replace the `PostProcess` regular expression with the mark of `design.md` D1. Verify: the
   spec passes
-- [x] 1.3 Compare the old and the new output for content outside scripts. Verify: the output is the
-  same for `getContent` and for the content of a selection
+- [x] 1.3 Compare the old and the new output outside the text of scripts, comments and elements
+  such as `noscript`. Verify: the output is the same for `getContent` and for the content of a
+  selection
 - [x] 1.4 Add the `text-editor-empty-paragraphs` spec. Verify: `openspec validate --all --strict`
   passes
 
