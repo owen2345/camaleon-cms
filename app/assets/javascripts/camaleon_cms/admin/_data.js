@@ -34,8 +34,33 @@ function cama_get_tinymce_settings(settings){
                 $('textarea#'+editor.id).trigger('change');
             });
             
-            editor.on('PostProcess', function (ed) {
-                ed.content = ed.content.replace(/(<p><\/p>)/gi,'<br />');
+            // The editor writes an empty paragraph with no attributes as a line break.
+            // - The text of a script or a comment can contain "<p></p>". That text must not change.
+            //   For this reason, the paragraphs are marked as elements, not found in the output text.
+            // - The serializer of the editor parses the content, its filters change the parsed
+            //   elements, and then it writes them. The filters for different element names run in
+            //   the sequence in which the content names them first. Thus other filters can empty a
+            //   paragraph after this filter, for example the filter that removes the last "br" of a
+            //   block, or the filter that removes bookmarks.
+            // - For this reason, this filter only gives each paragraph an attribute with a random
+            //   value. The value is the same for all the content of one editor. No other filter
+            //   reads this attribute, so the other filters change the same elements as before. A
+            //   paragraph that has this attribute in the content keeps it and gets no mark.
+            // - PostProcess gets the output text. A paragraph that has only this attribute and no
+            //   content becomes a line break. Then the attribute is removed from all paragraphs.
+            // - Without PostProcess (no_events, or a tree), the filter does nothing.
+            var paragraph_mark = Math.random().toString(36).slice(2);
+            var paragraph_mark_text = ' data-cama-paragraph="' + paragraph_mark + '"';
+            editor.on('PreInit', function () {
+                editor.serializer.addNodeFilter('p', function (nodes, name, args) {
+                    if (args.no_events || args.format === 'tree') return;
+                    for (var i = 0; i < nodes.length; i++) {
+                        if (!('data-cama-paragraph' in nodes[i].attributes.map)) nodes[i].attr('data-cama-paragraph', paragraph_mark);
+                    }
+                });
+            });
+            editor.on('PostProcess', function (e) {
+                e.content = e.content.split('<p' + paragraph_mark_text + '></p>').join('<br />').split(paragraph_mark_text).join('');
             });
 
             editor.addMenuItem('append_line', {
