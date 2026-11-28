@@ -13,5 +13,5 @@
 
 ## 2. Archive
 
-- [ ] 2.1 Archive the change on the branch, with the sync of the delta spec. Verify:
+- [x] 2.1 Archive the change on the branch, with the sync of the delta spec. Verify:
   `openspec validate --archived` passes
