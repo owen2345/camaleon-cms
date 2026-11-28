@@ -14,9 +14,9 @@ makes the text editors keep scripts. A script such as `el.innerHTML = '<p></p>';
 
 - The text editors find the empty paragraphs as elements, not in the output text. The text of a
   script or a comment does not change.
-- The text of other elements that the editor keeps as text does not change either. Examples are
+- The editor also keeps `<p></p>` in the text of other elements that it keeps as text. Examples are
   `noscript`, `noframes` and `iframe`, and `video`, `audio` and `object` with the media plugin.
-  The old rule changed `<p></p>` in that text too.
+  The old rule changed `<p></p>` there too.
 - The output for all other content does not change.
 
 ## Capabilities

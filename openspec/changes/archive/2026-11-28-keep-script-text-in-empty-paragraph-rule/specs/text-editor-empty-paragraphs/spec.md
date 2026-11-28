@@ -34,11 +34,14 @@ content SHALL stay a paragraph.
   `<p><span></span></p>`
 - **THEN** the editor returns each of these paragraphs as a paragraph
 
-### Requirement: The empty paragraph rule keeps the text of a script or a comment
+### Requirement: The empty paragraph rule keeps markup that the editor keeps as text
 
-The rule for empty paragraphs SHALL change elements only. The text of a script or a comment SHALL
-come back unchanged, also when it holds `<p></p>` or `<P></P>`. This applies to the content of the
-editor and to the content of a selection.
+The rule for empty paragraphs SHALL change elements only. The text of a script, a comment or a
+`noscript` element SHALL come back unchanged. This also applies when the text holds `<p></p>` or
+`<P></P>`. With the media plugin, an empty paragraph in the content of an `iframe`, `video`,
+`audio` or `object` element SHALL stay `<p></p>`. The media plugin writes this content again, for
+example `<P></P>` as `<p></p>`. This applies to the content of the editor and to the content of a
+selection.
 
 #### Scenario: Paragraph markup in the text of a script
 
@@ -49,6 +52,16 @@ editor and to the content of a selection.
 
 - **WHEN** the content is `<!--<p></p>-->`
 - **THEN** the editor returns the comment with its text unchanged
+
+#### Scenario: Paragraph markup in the content of a noscript element
+
+- **WHEN** the content holds `<noscript><p></p></noscript>`
+- **THEN** the editor returns the `noscript` element with its content unchanged
+
+#### Scenario: An empty paragraph in the content of a media element
+
+- **WHEN** the content holds `<video controls><p></p></video>`
+- **THEN** the editor returns the `video` element with `<p></p>` in its content
 
 #### Scenario: A selection that holds a script and an empty paragraph
 

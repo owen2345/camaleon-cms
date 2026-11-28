@@ -70,6 +70,21 @@ RSpec.describe 'Empty paragraphs in the text editor of a post', :js do
     expect(round_trip('<!--<p></p>-->')).to eq('<!--<p></p>-->')
   end
 
+  it 'keeps empty paragraph markup in the content of a noscript element' do
+    open_editor_that_keeps_scripts
+
+    expect(round_trip('<p>a</p><noscript><p></p><P></P></noscript>'))
+      .to eq("<p>a</p>\n<noscript><p></p><P></P></noscript>")
+  end
+
+  # The media plugin writes the content of a media element again, so the case of a tag can change.
+  it 'keeps an empty paragraph in the content of a media element' do
+    open_editor_that_keeps_scripts
+
+    expect(round_trip('<p>a</p><video controls><p></p></video>'))
+      .to eq("<p>a</p>\n<p><video controls=\"controls\" width=\"300\" height=\"150\"><p></p></video></p>")
+  end
+
   it 'writes an empty paragraph with no attributes as a line break' do
     open_editor_that_keeps_scripts
 
